@@ -276,27 +276,25 @@ fun YouTubeSongMenu(
                 )
             }
         )
-        if (artists.isNotEmpty()) {
-            GridMenuItem(
-                icon = Icons.Rounded.Person,
-                title = R.string.view_artist
-            ) {
-                if (artists.size == 1) {
-                    navController.navigate("artist/${artists[0].id}")
-                    onDismiss()
-                } else {
-                    showSelectArtistDialog = true
-                }
+        GridMenuItem(
+            icon = Icons.Rounded.Person,
+            title = R.string.view_artist,
+            enabled = song.artists.isNotEmpty()
+        ) {
+            if (artists.size == 1) {
+                navController.navigate("artist/${artists[0].id}")
+                onDismiss()
+            } else {
+                showSelectArtistDialog = true
             }
         }
-        song.album?.let { album ->
-            GridMenuItem(
-                icon = Icons.Rounded.Album,
-                title = R.string.view_album
-            ) {
-                navController.navigate("album/${album.id}")
-                onDismiss()
-            }
+        GridMenuItem(
+            icon = Icons.Rounded.Album,
+            title = R.string.view_album,
+            enabled = song.album?.id != null
+        ) {
+            navController.navigate("album/${song.album?.id}")
+            onDismiss()
         }
         GridMenuItem(
             icon = Icons.Rounded.Share,

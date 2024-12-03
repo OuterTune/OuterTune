@@ -138,13 +138,15 @@ fun LazyGridScope.DownloadGridMenu(
     @Download.State state: Int?,
     onRemoveDownload: () -> Unit,
     onDownload: () -> Unit,
+    enabled: Boolean = true
 ) {
     when (state) {
         Download.STATE_COMPLETED -> {
             GridMenuItem(
                 icon = Icons.Rounded.OfflinePin,
                 title = R.string.remove_download,
-                onClick = onRemoveDownload
+                onClick = onRemoveDownload,
+                enabled = enabled
             )
         }
 
@@ -157,7 +159,8 @@ fun LazyGridScope.DownloadGridMenu(
                     )
                 },
                 title = R.string.downloading,
-                onClick = onRemoveDownload
+                onClick = onRemoveDownload,
+                enabled = enabled
             )
         }
 
@@ -165,7 +168,8 @@ fun LazyGridScope.DownloadGridMenu(
             GridMenuItem(
                 icon = Icons.Rounded.Download,
                 title = R.string.download,
-                onClick = onDownload
+                onClick = onDownload,
+                enabled = enabled
             )
         }
     }
