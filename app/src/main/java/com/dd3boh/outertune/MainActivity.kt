@@ -178,6 +178,8 @@ import com.dd3boh.outertune.ui.screens.settings.AboutScreen
 import com.dd3boh.outertune.ui.screens.settings.AppearanceSettings
 import com.dd3boh.outertune.ui.screens.settings.BackupAndRestore
 import com.dd3boh.outertune.ui.screens.settings.ContentSettings
+import com.dd3boh.outertune.ui.screens.settings.DiscordLoginScreen
+import com.dd3boh.outertune.ui.screens.settings.DiscordSettings
 import com.dd3boh.outertune.ui.screens.settings.DEFAULT_ENABLED_TABS
 import com.dd3boh.outertune.ui.screens.settings.DarkMode
 import com.dd3boh.outertune.ui.screens.settings.ExperimentalSettings
@@ -1128,6 +1130,12 @@ class MainActivity : ComponentActivity() {
                                 }
                                 composable("settings/experimental") {
                                     ExperimentalSettings(navController, scrollBehavior)
+                                }
+                                composable("settings/discord") {
+                                    DiscordSettings(navController, scrollBehavior)
+                                }
+                                composable("settings/discord/login") {
+                                    DiscordLoginScreen(navController)
                                 }
                                 composable("settings/about") {
                                     AboutScreen(navController, scrollBehavior)

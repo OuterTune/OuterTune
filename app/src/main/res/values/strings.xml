@@ -99,7 +99,7 @@
     <string name="add_to_playlist">Add to playlist</string>
     <string name="view_artist">View artist</string>
     <string name="view_album">View album</string>
-    <string name="refetch">Refetch</string>
+    <string name="refetch">Re-fetch</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
     <string name="remove_from_history">Remove from history</string>
@@ -319,6 +319,14 @@
     <string name="backup_create_success">Backup created successfully</string>
     <string name="backup_create_failed">Couldn\'t create backup</string>
     <string name="restore_failed">Failed to restore backup</string>
+ 
+    <string name="discord_integration">Discord Integration</string>
+    <string name="discord_information">InnerTune uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\nInnerTune will only extract your token, and everything else is stored locally.</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="options">Options</string>
+    <string name="preview">Preview</string>
+    <string name="login_failed">Login failed</string>
+    <string name="enable_discord_rpc">Enable Rich Presense</string>
 
     <string name="about">About</string>
     <string name="app_version">App version</string>
