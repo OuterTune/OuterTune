@@ -144,7 +144,7 @@ fun ArtistScreen(
     }
 
     LaunchedEffect(isNetworkConnected) {
-        if (!showLocal) {
+        if (!isNetworkConnected && !showLocal) {
             showLocal = true
         }
     }
