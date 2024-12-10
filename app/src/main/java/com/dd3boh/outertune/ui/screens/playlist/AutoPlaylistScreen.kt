@@ -3,7 +3,6 @@ package com.dd3boh.outertune.ui.screens.playlist
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.OfflinePin
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -59,9 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -88,9 +84,9 @@ import com.dd3boh.outertune.constants.SongSortTypeKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.Song
+import com.dd3boh.outertune.extensions.getAvailableSongs
 import com.dd3boh.outertune.extensions.isSyncEnabled
 import com.dd3boh.outertune.extensions.toMediaItem
-import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
@@ -102,8 +98,6 @@ import com.dd3boh.outertune.ui.component.LocalMenuState
 import com.dd3boh.outertune.ui.component.SelectHeader
 import com.dd3boh.outertune.ui.component.SongListItem
 import com.dd3boh.outertune.ui.component.SortHeader
-import com.dd3boh.outertune.ui.component.SwipeToQueueBox
-import com.dd3boh.outertune.ui.menu.SongMenu
 import com.dd3boh.outertune.ui.utils.getNSongsString
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.rememberEnumPreference
@@ -124,21 +118,18 @@ fun AutoPlaylistScreen(
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val syncUtils = LocalSyncUtils.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val isNetworkConnected = LocalIsInternetConnected.current
-    val isPlaying by playerConnection.isPlaying.collectAsState()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val songs by viewModel.songs.collectAsState()
 
     // multiselect
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
-        saver = listSaver<MutableList<Int>, Int>(
+        saver = listSaver<MutableList<String>, String>(
             save = { it.toList() },
             restore = { it.toMutableStateList() }
         )
@@ -383,8 +374,7 @@ fun AutoPlaylistScreen(
                                         else -> {
                                             IconButton(
                                                 onClick = {
-                                                    val _songs = songs.map{ it.toMediaMetadata() }
-                                                    downloadUtil.download(_songs)
+                                                    downloadUtil.download(songs.map{ it.toMediaMetadata() })
                                                 }
                                             ) {
                                                 Icon(
@@ -474,11 +464,13 @@ fun AutoPlaylistScreen(
                     ) {
                         if (inSelectMode) {
                             SelectHeader(
-                                selectedItems = selection.map { songs[it] }.map { it.toMediaMetadata() },
-                                totalItemCount = songs.size,
+                                selectedItems = selection.mapNotNull { id ->
+                                        songs.find { it.song.id == id }
+                                    }.map { it.toMediaMetadata() },
+                                totalItemCount = songs.getAvailableSongs(isNetworkConnected).size,
                                 onSelectAll = {
                                     selection.clear()
-                                    selection.addAll(songs.indices)
+                                    selection.addAll(songs.getAvailableSongs(isNetworkConnected).map { it.song.id })
                                 },
                                 onDeselectAll = { selection.clear() },
                                 menuState = menuState,
@@ -528,78 +520,26 @@ fun AutoPlaylistScreen(
                 items = songs,
                 key = { _, song -> song.id }
             ) { index, song ->
-                val onCheckedChange: (Boolean) -> Unit = {
-                    if (it) {
-                        selection.add(index)
-                    } else {
-                        selection.remove(index)
-                    }
-                }
 
-                val enabled = song.song.isAvailableOffline() || isNetworkConnected
-                SwipeToQueueBox(
-                    enabled = enabled,
-                    item = song.toMediaItem(),
-                    content = {
-                        SongListItem(
-                            song = song,
-                            isActive = song.song.id == mediaMetadata?.id,
-                            isPlaying = isPlaying,
-                            showInLibraryIcon = true,
-                            showLikedIcon = false,
-                            trailingContent = {
-                                IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            SongMenu(
-                                                originalSong = song,
-                                                playlistBrowseId = playlist.browseId,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.MoreVert,
-                                        contentDescription = null
-                                    )
-                                }
-                            },
-                            isSelected = inSelectMode && index in selection,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.background)
-                                .combinedClickable(
-                                    onClick = {
-                                        if (inSelectMode) {
-                                            onCheckedChange(index !in selection)
-                                        } else if (enabled) {
-                                            if (song.id == mediaMetadata?.id) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(
-                                                    ListQueue(
-                                                        title = playlist.name,
-                                                        items = songs.map { it.toMediaMetadata()},
-                                                        startIndex = index,
-                                                        playlistId = playlist.browseId
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    },
-                                    onLongClick = {
-                                        if (!inSelectMode) {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            inSelectMode = true
-                                            onCheckedChange(true)
-                                        }
-                                    }
-                                )
+                SongListItem(
+                    song = song,
+                    onPlay = {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = playlist.name,
+                                items = songs.map { it.toMediaMetadata()},
+                                startIndex = index,
+                                playlistId = playlist.browseId
+                            )
                         )
                     },
-                    snackbarHostState = snackbarHostState
+                    showLikedIcon = playlistType != PlaylistType.LIKE,
+                    showDownloadIcon = playlistType != PlaylistType.DOWNLOAD,
+                    onSelectModeActivation = { inSelectMode = true },
+                    inSelectMode = inSelectMode,
+                    selectionIds = selection,
+                    navController = navController,
+                    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background),
                 )
             }
         }

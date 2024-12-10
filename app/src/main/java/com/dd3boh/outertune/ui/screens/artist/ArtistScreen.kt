@@ -97,7 +97,6 @@ import com.dd3boh.outertune.ui.component.YouTubeGridItem
 import com.dd3boh.outertune.ui.component.YouTubeListItem
 import com.dd3boh.outertune.ui.component.shimmer.ArtistPagePlaceholder
 import com.dd3boh.outertune.ui.menu.AlbumMenu
-import com.dd3boh.outertune.ui.menu.SongMenu
 import com.dd3boh.outertune.ui.menu.YouTubeAlbumMenu
 import com.dd3boh.outertune.ui.menu.YouTubeArtistMenu
 import com.dd3boh.outertune.ui.menu.YouTubePlaylistMenu
@@ -296,55 +295,23 @@ fun ArtistScreen(
                             items = librarySongs,
                             key = { _, item -> item.hashCode() }
                         ) { index, song ->
-                            val enabled = song.song.isAvailableOffline() || isNetworkConnected
-                            SwipeToQueueBox(
-                                enabled = enabled,
-                                item = song.toMediaItem(),
-                                content = {
-                                    SongListItem(
-                                        song = song,
-                                        isActive = song.id == mediaMetadata?.id,
-                                        isPlaying = isPlaying,
-                                        trailingContent = {
-                                            IconButton(
-                                                onClick = {
-                                                    menuState.show {
-                                                        SongMenu(
-                                                            originalSong = song,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss
-                                                        )
-                                                    }
-                                                }
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Rounded.MoreVert,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .combinedClickable {
-                                                if (enabled){
-                                                    if (song.id == mediaMetadata?.id) {
-                                                        playerConnection.player.togglePlayPause()
-                                                    } else {
-                                                        playerConnection.playQueue(
-                                                            ListQueue(
-                                                                title = "Library: ${libraryArtist?.artist?.name}",
-                                                                items = librarySongs.filter { it.song.isLocal }.toList()
-                                                                    .shuffled().map { it.toMediaMetadata() },
-                                                                startIndex = index
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                            .animateItemPlacement()
+                            SongListItem(
+                                song = song,
+                                onPlay = {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = "Library: ${libraryArtist?.artist?.name}",
+                                            items = librarySongs.filter { it.song.isLocal }.toList()
+                                                .shuffled().map { it.toMediaMetadata() },
+                                            startIndex = index
+                                        )
                                     )
                                 },
-                                snackbarHostState = snackbarHostState
+                                onSelectModeActivation = { },
+                                inSelectMode = false,
+                                selectionIds = null,
+                                navController = navController,
+                                modifier = Modifier.fillMaxWidth().animateItem()
                             )
 
                         }

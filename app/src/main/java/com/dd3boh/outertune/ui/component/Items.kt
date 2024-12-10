@@ -8,8 +8,10 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.EditOff
 import androidx.compose.material.icons.rounded.Explicit
@@ -39,10 +42,13 @@ import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.LibraryAddCheck
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.OfflinePin
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -60,9 +66,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -92,8 +100,11 @@ import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.db.entities.PlaylistEntity
+import com.dd3boh.outertune.db.entities.PlaylistSong
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.extensions.isAvailableOffline
+import com.dd3boh.outertune.extensions.toMediaItem
+import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.DirectoryTree
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.MultiQueueObject
@@ -101,6 +112,7 @@ import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.Icon.FolderCopy
 import com.dd3boh.outertune.ui.menu.FolderMenu
+import com.dd3boh.outertune.ui.menu.SongMenu
 import com.dd3boh.outertune.ui.utils.getLocalThumbnail
 import com.dd3boh.outertune.ui.utils.getNSongsString
 import com.dd3boh.outertune.utils.joinByBullet
@@ -130,11 +142,11 @@ inline fun ListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
     isSelected: Boolean? = false,
     isActive: Boolean = false,
-    enabled: Boolean = true,
+    available: Boolean = true,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = if(!enabled) {
+        modifier = if(!available) {
                 modifier
                     .height(ListItemHeight)
                     .padding(horizontal = 8.dp)
@@ -167,7 +179,7 @@ inline fun ListItem(
             contentAlignment = Alignment.Center
         ) {
             thumbnailContent()
-            if (!enabled) {
+            if (!available) {
                 Box(
                     modifier = Modifier
                         .size(ListThumbnailSize) // Adjust size as needed
@@ -225,7 +237,7 @@ fun ListItem(
     isSelected: Boolean? = false,
     isActive: Boolean = false,
     isLocalSong: Boolean? = null,
-    enabled: Boolean = true,
+    available: Boolean = true,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -251,7 +263,7 @@ fun ListItem(
     modifier = modifier,
     isSelected = isSelected,
     isActive = isActive,
-    enabled = enabled
+    available = available
 )
 
 @Composable
@@ -338,62 +350,175 @@ fun GridItem(
     fillMaxWidth = fillMaxWidth
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongListItem(
     song: Song,
+    onPlay: () -> Unit,
+    onSelectModeActivation : () -> Unit,
+    inSelectMode : Boolean,
+    selectionIds: MutableList<String>?,
+    navController: NavController,
     modifier: Modifier = Modifier,
+    enableSwipeToQueue: Boolean = true,
     albumIndex: Int? = null,
     showLikedIcon: Boolean = true,
-    showInLibraryIcon: Boolean = false,
+    showInLibraryIcon: Boolean = true,
     showDownloadIcon: Boolean = true,
-    isSelected: Boolean = false,
-    badges: @Composable RowScope.() -> Unit = {
-        if (showLikedIcon && song.song.liked) {
-            Icon.Favorite()
-        }
-        if (showInLibraryIcon && song.song.inLibrary != null) {
-            Icon.Library()
-        }
-        if (showDownloadIcon) {
-            val download by LocalDownloadUtil.current.getDownload(song.id)
-                .collectAsState(initial = null)
-            Icon.Download(download?.state)
-        }
-
-        // local song indicator
-        if (song.song.isLocal) {
-            FolderCopy()
-        }
-    },
-    isActive: Boolean = false,
-    isPlaying: Boolean = false,
-    trailingContent: @Composable RowScope.() -> Unit = {},
+    showLocalIcon: Boolean = true,
+    playlistSong : PlaylistSong? = null,
+    playlistBrowseId : String? = null,
+    showDragHandle: Boolean = false,
+    dragHandleModifier: Modifier? = null,
+    disableShowMenu: Boolean = false,
 ) {
+    val menuState = LocalMenuState.current
+    val haptic = LocalHapticFeedback.current
     val isNetworkConnected = LocalIsInternetConnected.current
+    val available = song.song.isAvailableOffline() || isNetworkConnected
 
-    ListItem(
-        title = song.song.title,
-        subtitle = joinByBullet(
-            song.artists.joinToString { it.name },
-            makeTimeString(song.song.duration * 1000L)
-        ),
-        badges = badges,
-        thumbnailContent = {
-            ItemThumbnail(
-                thumbnailUrl = if (song.song.isLocal) song.song.localPath else song.song.thumbnailUrl,
-                albumIndex = albumIndex,
-                isActive = isActive,
-                isPlaying = isPlaying,
-                shape = RoundedCornerShape(ThumbnailCornerRadius),
-                modifier = Modifier.size(ListThumbnailSize)
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+
+    val isActive = song.id == mediaMetadata?.id
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val isSelected = selectionIds?.contains(song.id) == true
+    val onCheckedChange: (Boolean) -> Unit = {
+        if (it) {
+            selectionIds?.add(song.id)
+        } else {
+            selectionIds?.remove(song.id)
+        }
+    }
+
+    val listItem: @Composable () -> Unit = {
+        ListItem(
+            title = song.song.title,
+            subtitle = joinByBullet(
+                song.artists.joinToString { it.name },
+                makeTimeString(song.song.duration * 1000L)
+            ),
+            badges = {
+                if (showLikedIcon && song.song.liked) {
+                    Icon.Favorite()
+                }
+                if (showInLibraryIcon && song.song.inLibrary != null) {
+                    Icon.Library()
+                }
+                if (showDownloadIcon) {
+                    val download by LocalDownloadUtil.current.getDownload(song.id)
+                        .collectAsState(initial = null)
+                    Icon.Download(download?.state)
+                }
+                if (showLocalIcon && song.song.isLocal) {
+                    FolderCopy()
+                }
+            },
+            thumbnailContent = {
+                ItemThumbnail(
+                    thumbnailUrl = if (song.song.isLocal) song.song.localPath else song.song.thumbnailUrl,
+                    albumIndex = albumIndex,
+                    isActive = isActive,
+                    isPlaying = isPlaying,
+                    shape = RoundedCornerShape(ThumbnailCornerRadius),
+                    modifier = Modifier.size(ListThumbnailSize)
+                )
+            },
+            trailingContent = {
+                if (available){
+                    if (inSelectMode) {
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = onCheckedChange
+                        )
+                    } else {
+                        IconButton(
+                            onClick = {
+                                if (!disableShowMenu)
+                                {
+                                    menuState.show {
+                                        SongMenu(
+                                            originalSong = song,
+                                            playlistSong = playlistSong,
+                                            playlistBrowseId = playlistBrowseId,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.MoreVert,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+
+                if (showDragHandle && dragHandleModifier != null) {
+                    IconButton(
+                        onClick = { },
+                        modifier = dragHandleModifier
+                    ) {
+                        Icon(
+                            Icons.Rounded.DragHandle,
+                            contentDescription = null
+                        )
+                    }
+                }
+            },
+            isSelected = inSelectMode && isSelected,
+            isActive = isActive,
+            available = available,
+            modifier = modifier.combinedClickable(
+                onClick = {
+                    if (available){
+                        if (inSelectMode) {
+                            onCheckedChange(!isSelected)
+                        } else if (song.id == mediaMetadata?.id) {
+                            playerConnection.player.togglePlayPause()
+                        } else {
+                            onPlay()
+                        }
+                    }
+                },
+                onLongClick = {
+                    if (available){
+                        if (selectionIds == null)
+                        {
+                            menuState.show {
+                                SongMenu(
+                                    originalSong = song,
+                                    navController = navController,
+                                    onDismiss = menuState::dismiss
+                                )
+                            }
+                        }
+                        if (!inSelectMode) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onSelectModeActivation()
+                            onCheckedChange(true)
+                        }
+                    }
+                }
             )
-        },
-        trailingContent = trailingContent,
-        modifier = modifier,
-        isSelected = isSelected,
-        isActive = isActive,
-        enabled = song.song.isAvailableOffline() || isNetworkConnected
-    )
+        )
+    }
+
+    if (enableSwipeToQueue && available){
+        SwipeToQueueBox(
+            item = song.toMediaItem(),
+            content = { listItem() },
+            snackbarHostState = snackbarHostState
+        )
+    }
+    else {
+        listItem()
+    }
 }
 
 @Composable
@@ -445,7 +570,7 @@ fun SongFolderItem(
     )
 },
     trailingContent = {
-        androidx.compose.material3.IconButton(
+        IconButton(
             onClick = {
                 menuState.show {
                     FolderMenu(
@@ -734,7 +859,7 @@ fun AlbumGridItem(
         }
 
         var downloadState by remember {
-            mutableStateOf(Download.STATE_STOPPED)
+            mutableIntStateOf(Download.STATE_STOPPED)
         }
 
         LaunchedEffect(songs) {
@@ -1048,8 +1173,8 @@ fun YouTubeListItem(
     val isNetworkConnected = LocalIsInternetConnected.current
     val downloads by LocalDownloadUtil.current.downloads.collectAsState()
 
-    var enabled = true
-    if (item is SongItem) { enabled = downloads[item.id]?.isAvailableOffline() ?: false || isNetworkConnected }
+    var available = true
+    if (item is SongItem) { available = downloads[item.id]?.isAvailableOffline() ?: false || isNetworkConnected }
 
     ListItem(
         title = item.title,
@@ -1084,7 +1209,7 @@ fun YouTubeListItem(
         modifier = modifier,
         isSelected = isSelected,
         isActive = isActive,
-        enabled = enabled
+        available = available
     )
 }
 

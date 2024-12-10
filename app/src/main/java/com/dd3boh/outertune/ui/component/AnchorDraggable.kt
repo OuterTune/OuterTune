@@ -166,7 +166,10 @@ fun SwipeToQueueBox(
 
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
-                            message = context.getString(R.string.song_added_to_queue, item.mediaMetadata.title),
+                            message = context.getString(
+                                R.string.song_added_to_queue,
+                                item.mediaMetadata.title
+                            ),
                             duration = SnackbarDuration.Short
                         )
                     }
@@ -178,9 +181,9 @@ fun SwipeToQueueBox(
         )
     }
 
-    if (!enabled){
+    if (!enabled) {
         Box { content() }
-    }
+    } 
     else {
          LaunchedEffect(state.currentValue) {
             if (state.currentValue == DragAnchors.Start && !state.isAnimationRunning) {
@@ -215,5 +218,4 @@ fun SwipeToQueueBox(
             }
         )
     }
-
 }

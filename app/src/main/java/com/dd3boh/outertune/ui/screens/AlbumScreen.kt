@@ -30,7 +30,6 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.OfflinePin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -89,8 +88,7 @@ import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.db.entities.Song
-import com.dd3boh.outertune.extensions.toMediaItem
-import com.dd3boh.outertune.extensions.togglePlayPause
+import com.dd3boh.outertune.extensions.getAvailableSongs
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
@@ -101,14 +99,12 @@ import com.dd3boh.outertune.ui.component.LocalMenuState
 import com.dd3boh.outertune.ui.component.NavigationTitle
 import com.dd3boh.outertune.ui.component.SelectHeader
 import com.dd3boh.outertune.ui.component.SongListItem
-import com.dd3boh.outertune.ui.component.SwipeToQueueBox
 import com.dd3boh.outertune.ui.component.YouTubeGridItem
 import com.dd3boh.outertune.ui.component.shimmer.ButtonPlaceholder
 import com.dd3boh.outertune.ui.component.shimmer.ListItemPlaceHolder
 import com.dd3boh.outertune.ui.component.shimmer.ShimmerHost
 import com.dd3boh.outertune.ui.component.shimmer.TextPlaceholder
 import com.dd3boh.outertune.ui.menu.AlbumMenu
-import com.dd3boh.outertune.ui.menu.SongMenu
 import com.dd3boh.outertune.ui.menu.YouTubeAlbumMenu
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.ui.utils.getNSongsString
@@ -141,7 +137,7 @@ fun AlbumScreen(
     // multiselect
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
-        saver = listSaver<MutableList<Int>, Int>(
+        saver = listSaver<MutableList<String>, String>(
             save = { it.toList() },
             restore = { it.toMutableStateList() }
         )
@@ -395,15 +391,15 @@ fun AlbumScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(start = 16.dp)
                 ) {
-                    if (inSelectMode && albumWithSongs?.songs != null) {
+                    if (inSelectMode) {
                         SelectHeader(
-                            selectedItems = selection.mapNotNull { index ->
-                                albumWithSongs?.songs?.getOrNull(index)
-                            }.map { it.toMediaMetadata()},
-                            totalItemCount = albumWithSongs!!.songs.size,
+                            selectedItems = selection.mapNotNull { id ->
+                                albumWithSongsLocal.songs.find { it.song.id == id }
+                            }.map { it.toMediaMetadata() },
+                            totalItemCount = albumWithSongsLocal.songs.getAvailableSongs(isNetworkConnected).size,
                             onSelectAll = {
                                 selection.clear()
-                                selection.addAll(albumWithSongs!!.songs.indices)
+                                selection.addAll(albumWithSongsLocal.songs.getAvailableSongs(isNetworkConnected).map { it.id })
                             },
                             onDeselectAll = { selection.clear() },
                             menuState = menuState,
@@ -414,90 +410,29 @@ fun AlbumScreen(
             }
 
 
-            if (albumWithSongs?.songs != null) {
-                itemsIndexed(
-                    items = albumWithSongs!!.songs,
-                    key = { _, song -> song.id }
-                ) { index, song ->
-                    val onCheckedChange: (Boolean) -> Unit = {
-                        if (it) {
-                            selection.add(index)
-                        } else {
-                            selection.remove(index)
-                        }
-                    }
-
-                    val enabled = song.song.isAvailableOffline() || isNetworkConnected
-                    SwipeToQueueBox(
-                        enabled = enabled,
-                        item = song.toMediaItem(),
-                        content = {
-                            SongListItem(
-                                song = song,
-                                albumIndex = index + 1,
-                                isActive = song.id == mediaMetadata?.id,
-                                isPlaying = isPlaying,
-                                showInLibraryIcon = true,
-                                trailingContent = {
-                                    if (inSelectMode) {
-                                        Checkbox(
-                                            checked = index in selection,
-                                            onCheckedChange = onCheckedChange
-                                        )
-                                    } else {
-                                        IconButton(
-                                            onClick = {
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = song,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                Icons.Rounded.MoreVert,
-                                                contentDescription = null
-                                            )
-                                        }
-                                    }
-                                },
-                                isSelected = inSelectMode && index in selection,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .combinedClickable(
-                                        onClick = {
-                                            if (inSelectMode) {
-                                                onCheckedChange(index !in selection)
-                                            } else if (enabled) {
-                                                if (song.id == mediaMetadata?.id) {
-                                                    playerConnection.player.togglePlayPause()
-                                                } else {
-                                                    playerConnection.playQueue(
-                                                        ListQueue(
-                                                            title = albumWithSongsLocal.album.title,
-                                                            items = albumWithSongsLocal.songs.map { it.toMediaMetadata() },
-                                                            startIndex = index,
-                                                            playlistId = albumWithSongsLocal.album.playlistId
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        onLongClick = {
-                                            if (!inSelectMode) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                inSelectMode = true
-                                                onCheckedChange(true)
-                                            }
-                                        }
-                                    )
+            itemsIndexed(
+                items = albumWithSongs!!.songs,
+                key = { _, song -> song.id }
+            ) { index, song ->
+                SongListItem(
+                    song = song,
+                    albumIndex = index + 1,
+                    onPlay = {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = albumWithSongsLocal.album.title,
+                                items = albumWithSongsLocal.songs.map { it.toMediaMetadata() },
+                                startIndex = index,
+                                playlistId = albumWithSongsLocal.album.playlistId
                             )
-                        },
-                        snackbarHostState = snackbarHostState
-                    )
-                }
+                        )
+                    },
+                    onSelectModeActivation = { inSelectMode = true },
+                    inSelectMode = inSelectMode,
+                    selectionIds = selection,
+                    navController = navController,
+                    modifier = Modifier.fillMaxWidth().animateItem()
+                )
             }
 
             if (otherVersions.isNotEmpty()) {
@@ -517,8 +452,7 @@ fun AlbumScreen(
                                 isActive = mediaMetadata?.album?.id == item.id,
                                 isPlaying = isPlaying,
                                 coroutineScope = scope,
-                                modifier =
-                                Modifier
+                                modifier = Modifier
                                     .combinedClickable(
                                         onClick = { navController.navigate("album/${item.id}") },
                                         onLongClick = {

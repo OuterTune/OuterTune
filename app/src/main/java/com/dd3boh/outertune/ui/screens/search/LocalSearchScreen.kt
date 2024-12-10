@@ -1,6 +1,5 @@
 package com.dd3boh.outertune.ui.screens.search
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,10 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.dd3boh.outertune.LocalIsInternetConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -48,24 +44,18 @@ import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.db.entities.Song
-import com.dd3boh.outertune.extensions.toMediaItem
-import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.AlbumListItem
 import com.dd3boh.outertune.ui.component.ArtistListItem
 import com.dd3boh.outertune.ui.component.ChipsRow
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
-import com.dd3boh.outertune.ui.component.LocalMenuState
 import com.dd3boh.outertune.ui.component.PlaylistListItem
 import com.dd3boh.outertune.ui.component.SongListItem
-import com.dd3boh.outertune.ui.component.SwipeToQueueBox
-import com.dd3boh.outertune.ui.menu.SongMenu
 import com.dd3boh.outertune.viewmodels.LocalFilter
 import com.dd3boh.outertune.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LocalSearchScreen(
     query: String,
@@ -75,9 +65,7 @@ fun LocalSearchScreen(
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsInternetConnected.current
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
@@ -159,57 +147,24 @@ fun LocalSearchScreen(
                 ) { item ->
                     when (item) {
                         is Song -> {
-                            val enabled = item.song.isAvailableOffline() || isNetworkConnected
-                            SwipeToQueueBox(
-                                enabled = enabled,
-                                item = item.toMediaItem(),
-                                content = {
-                                    SongListItem(
-                                        song = item,
-                                        isActive = item.id == mediaMetadata?.id,
-                                        isPlaying = isPlaying,
-                                        trailingContent = {
-                                            IconButton(
-                                                onClick = {
-                                                    menuState.show {
-                                                        SongMenu(
-                                                            originalSong = item,
-                                                            navController = navController
-                                                        ) {
-                                                            onDismiss()
-                                                            menuState.dismiss()
-                                                        }
-                                                    }
-                                                }
-                                            ) {
-                                                Icon(
-                                                    Icons.Rounded.MoreVert,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .clickable {
-                                                if (enabled) {
-                                                    if (item.id == mediaMetadata?.id) {
-                                                        playerConnection.player.togglePlayPause()
-                                                    } else {
-                                                        val songs = result.map
-                                                            .getOrDefault(LocalFilter.SONG, emptyList())
-                                                            .filterIsInstance<Song>()
-                                                            .map { it.toMediaMetadata() }
-                                                        playerConnection.playQueue(ListQueue(
-                                                            title = "${context.getString(R.string.queue_searched_songs)} $query",
-                                                            items = songs,
-                                                            startIndex = songs.indexOfFirst { it.id == item.id }
-                                                        ))
-                                                    }
-                                                }
-                                            }
-                                            .animateItem()
-                                    )
+                            SongListItem(
+                                song = item,
+                                onPlay = {
+                                    val songs = result.map
+                                        .getOrDefault(LocalFilter.SONG, emptyList())
+                                        .filterIsInstance<Song>()
+                                        .map { it.toMediaMetadata() }
+                                    playerConnection.playQueue(ListQueue(
+                                        title = "${context.getString(R.string.queue_searched_songs)} $query",
+                                        items = songs,
+                                        startIndex = songs.indexOfFirst { it.id == item.id }
+                                    ))
                                 },
-                                snackbarHostState = snackbarHostState
+                                onSelectModeActivation = { },
+                                inSelectMode = false,
+                                selectionIds = null,
+                                navController = navController,
+                                modifier = Modifier.animateItem()
                             )
                         }
 

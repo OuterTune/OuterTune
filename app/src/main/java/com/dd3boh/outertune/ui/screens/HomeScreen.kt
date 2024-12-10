@@ -60,7 +60,6 @@ import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
-import com.dd3boh.outertune.LocalIsInternetConnected
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.GridThumbnailHeight
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
@@ -123,7 +122,6 @@ fun HomeScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsInternetConnected.current
     val haptic = LocalHapticFeedback.current
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -474,33 +472,18 @@ fun HomeScreen(
                             val song by database.song(originalSong.id).collectAsState(initial = originalSong)
                             SongListItem(
                                 song = song!!,
-                                showInLibraryIcon = true,
-                                isActive = song!!.id == mediaMetadata?.id,
-                                isPlaying = isPlaying,
-                                modifier = Modifier
-                                    .width(horizontalLazyGridItemWidth)
-                                    .combinedClickable(
-                                        onClick = {
-                                            if (song!!.id == mediaMetadata?.id) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
-                                            }
-                                        },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                SongMenu(
-                                                    originalSong = song!!,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
-                                    )
+                                onPlay = {
+                                    playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
+                                },
+                                onSelectModeActivation = {},
+                                inSelectMode = false,
+                                selectionIds = null,
+                                navController = navController,
+                                modifier = Modifier.width(horizontalLazyGridItemWidth)
                             )
                         }
                     }
+
                     forgottenFavorites?.takeIf { it.isNotEmpty() }?.let { forgottenFavorites ->
                         NavigationTitle(
                             title = stringResource(R.string.forgotten_favorites)
@@ -523,32 +506,14 @@ fun HomeScreen(
                                 val song by database.song(originalSong.id).collectAsState(initial = originalSong)
                                 SongListItem(
                                     song = song!!,
-                                    showInLibraryIcon = true,
-                                    isActive = song!!.id == mediaMetadata?.id,
-                                    isPlaying = isPlaying,
-                                    modifier = Modifier
-                                        .width(horizontalLazyGridItemWidth)
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (song!!.song.isAvailableOffline() || isNetworkConnected){
-                                                    if (song!!.id == mediaMetadata?.id) {
-                                                        playerConnection.player.togglePlayPause()
-                                                    } else {
-                                                        playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
-                                                    }
-                                                }
-                                            },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = song!!,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }
-                                        )
+                                    onPlay = {
+                                        playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
+                                    },
+                                    onSelectModeActivation = {},
+                                    inSelectMode = false,
+                                    selectionIds = null,
+                                    navController = navController,
+                                    modifier = Modifier.width(horizontalLazyGridItemWidth)
                                 )
                             }
                         }
@@ -674,30 +639,14 @@ fun HomeScreen(
 
                             SongListItem(
                                 song = song!!,
-                                showInLibraryIcon = true,
-                                isActive = song!!.id == mediaMetadata?.id,
-                                isPlaying = isPlaying,
-                                modifier = Modifier
-                                    .width(horizontalLazyGridItemWidth)
-                                    .combinedClickable(
-                                        onClick = {
-                                            if (song!!.id == mediaMetadata?.id) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
-                                            }
-                                        },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                SongMenu(
-                                                    originalSong = song!!,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
-                                    )
+                                onPlay = {
+                                    playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
+                                },
+                                onSelectModeActivation = {},
+                                inSelectMode = false,
+                                selectionIds = null,
+                                navController = navController,
+                                modifier = Modifier.width(horizontalLazyGridItemWidth)
                             )
                         }
                     }
