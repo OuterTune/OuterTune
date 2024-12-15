@@ -224,17 +224,18 @@ fun ListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
     isSelected: Boolean? = false,
     isActive: Boolean = false,
-    isLocalSong: Boolean? = null,
+    isLocalSong: Boolean = false,
+    isLiked: Boolean = false,
+    inLibrary: Boolean = false,
     enabled: Boolean = true,
 ) = ListItem(
     title = title,
     subtitle = {
         badges()
 
-        // local song indicator
-        if (isLocalSong == true) {
-           FolderCopy()
-        }
+        if (isLiked)Icon.Favorite()
+        if (inLibrary) Icon.Library()
+        if (isLocalSong) FolderCopy()
 
         if (!subtitle.isNullOrEmpty()) {
             Text(
@@ -346,25 +347,8 @@ fun SongListItem(
     showLikedIcon: Boolean = true,
     showInLibraryIcon: Boolean = false,
     showDownloadIcon: Boolean = true,
+    showLocalIcon: Boolean = true,
     isSelected: Boolean = false,
-    badges: @Composable RowScope.() -> Unit = {
-        if (showLikedIcon && song.song.liked) {
-            Icon.Favorite()
-        }
-        if (showInLibraryIcon && song.song.inLibrary != null) {
-            Icon.Library()
-        }
-        if (showDownloadIcon) {
-            val download by LocalDownloadUtil.current.getDownload(song.id)
-                .collectAsState(initial = null)
-            Icon.Download(download?.state)
-        }
-
-        // local song indicator
-        if (song.song.isLocal) {
-            FolderCopy()
-        }
-    },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
@@ -377,7 +361,13 @@ fun SongListItem(
             song.artists.joinToString { it.name },
             makeTimeString(song.song.duration * 1000L)
         ),
-        badges = badges,
+        badges = {
+            if (showDownloadIcon) {
+                val download by LocalDownloadUtil.current.getDownload(song.id)
+                    .collectAsState(initial = null)
+                Icon.Download(download?.state)
+            }
+        },
         thumbnailContent = {
             ItemThumbnail(
                 thumbnailUrl = if (song.song.isLocal) song.song.localPath else song.song.thumbnailUrl,
@@ -392,6 +382,9 @@ fun SongListItem(
         modifier = modifier,
         isSelected = isSelected,
         isActive = isActive,
+        isLocalSong = showLocalIcon && song.song.isLocal,
+        isLiked = showLikedIcon && song.song.liked,
+        inLibrary = showInLibraryIcon && song.song.inLibrary != null,
         enabled = song.song.isAvailableOffline() || isNetworkConnected
     )
 }
@@ -990,7 +983,9 @@ fun MediaMetadataListItem(
     modifier = modifier,
     isSelected = isSelected,
     isActive = isActive,
-    isLocalSong = mediaMetadata.isLocal
+    isLocalSong = mediaMetadata.isLocal,
+    isLiked = mediaMetadata.liked,
+    inLibrary = mediaMetadata.inLibrary != null
 )
 
 @Composable

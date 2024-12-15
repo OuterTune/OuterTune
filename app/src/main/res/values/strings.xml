@@ -109,6 +109,9 @@
     <string name="sync">Sync</string>
     <string name="advanced">Advanced</string>
     <string name="tempo_and_pitch">Tempo and Pitch</string>
+    <string name="on_error">On error</string>
+    <string name="pause">Pause</string>
+    <string name="wait_to_reconnect">Wait to reconnect</string>">
 
     <!-- Sort menu -->
     <string name="sort_by_create_date">Date added</string>

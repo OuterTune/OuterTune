@@ -64,10 +64,11 @@ import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleRepeatM
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleShuffle
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
+import com.dd3boh.outertune.constants.PlayerOnError
+import com.dd3boh.outertune.constants.PlayerOnErrorActionKey
 import com.dd3boh.outertune.constants.PlayerVolumeKey
 import com.dd3boh.outertune.constants.RepeatModeKey
 import com.dd3boh.outertune.constants.ShowLyricsKey
-import com.dd3boh.outertune.constants.SkipOnErrorKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
 import com.dd3boh.outertune.constants.minPlaybackDurKey
 import com.dd3boh.outertune.db.MusicDatabase
@@ -93,6 +94,7 @@ import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.playback.queues.Queue
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.utils.CoilBitmapLoader
+import com.dd3boh.outertune.utils.NetworkConnectivityObserver
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.enumPreference
 import com.dd3boh.outertune.utils.get
@@ -133,8 +135,6 @@ import javax.inject.Inject
 import kotlin.math.min
 import kotlin.math.pow
 
-const val MAX_CONSECUTIVE_ERR = 3
-
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
 class MusicService : MediaLibraryService(),
@@ -158,12 +158,17 @@ class MusicService : MediaLibraryService(),
     private lateinit var connectivityManager: ConnectivityManager
 
     private val audioQuality by enumPreference(this, AudioQualityKey, AudioQuality.AUTO)
+    private val playerOnErrorAction by enumPreference(this, PlayerOnErrorActionKey, PlayerOnError.WAIT_TO_RECONNECT)
+
 
     var queueTitle: String? = null
     var queuePlaylistId: String? = null
     private var lastMediaItemIndex = -1
 
+    private lateinit var networkConnectivityObserver: NetworkConnectivityObserver
     val currentMediaMetadata = MutableStateFlow<com.dd3boh.outertune.models.MediaMetadata?>(null)
+    val waitingForNetworkConnection = MutableStateFlow(false)
+    private val isNetworkConnected = MutableStateFlow(false)
 
     private val currentSong = currentMediaMetadata.flatMapLatest { mediaMetadata ->
         database.song(mediaMetadata?.id)
@@ -187,8 +192,6 @@ class MusicService : MediaLibraryService(),
 
     private var isAudioEffectSessionOpened = false
 
-    var consecutivePlaybackErr = 0
-
     override fun onCreate() {
         super.onCreate()
         val notificationBuilder = NotificationCompat.Builder(this, KEEP_ALIVE_CHANNEL_ID)
@@ -196,7 +199,7 @@ class MusicService : MediaLibraryService(),
             .setSmallIcon(R.drawable.small_icon)
             .setOngoing(true) // Ensures notification stays until service stops
 
-        val notification = notificationBuilder.build()
+        notificationBuilder.build()
 
         // FG notification
         if (dataStore.get(KeepAliveKey, false)) {
@@ -212,6 +215,20 @@ class MusicService : MediaLibraryService(),
                 reportException(e)
             }
         }
+
+        networkConnectivityObserver = NetworkConnectivityObserver(this)
+        scope.launch {
+            networkConnectivityObserver.networkStatus.collect { isConnected ->
+                isNetworkConnected.value = isConnected
+
+                if (isConnected && waitingForNetworkConnection.value){
+                    waitingForNetworkConnection.value = false
+                    player.prepare()
+                    player.play()
+                }
+            }
+        }
+
 
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(createDataSourceFactory()))
@@ -236,47 +253,54 @@ class MusicService : MediaLibraryService(),
                 addListener(object : Player.Listener {
                     override fun onPlayerError(error: PlaybackException) {
                         super.onPlayerError(error)
-                        if (!dataStore.get(SkipOnErrorKey, true)) {
+
+                        if (playerOnErrorAction == PlayerOnError.SKIP) {
+                            player.seekTo(player.nextMediaItemIndex, C.TIME_UNSET)
+                            player.prepare()
+                            player.play()
+                            Toast.makeText(
+                                this@MusicService,
+                                getString(R.string.play_next) + " " + getString(R.string.on_error).lowercase(),
+                                Toast.LENGTH_LONG
+                            ).show()
                             return
                         }
 
-                        consecutivePlaybackErr += 2
+                        if (playerOnErrorAction == PlayerOnError.PAUSE) {
+                            player.pause()
+                            Toast.makeText(
+                                this@MusicService,
+                                getString(R.string.pause) + " " + getString(R.string.on_error).lowercase(),
+                                Toast.LENGTH_LONG
+                            ).show()
+                            return
+                        }
+
+                        if (playerOnErrorAction == PlayerOnError.WAIT_TO_RECONNECT){
+                            val noConnectionError = (error.cause?.cause is PlaybackException) && (error.cause?.cause as PlaybackException).errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+                            if (!isNetworkConnected.value || noConnectionError) {
+                                player.pause()
+                                waitingForNetworkConnection.value = true
+                                Toast.makeText(
+                                    this@MusicService,
+                                    getString(R.string.wait_to_reconnect) + " " + getString(R.string.on_error).lowercase(),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return
+                            }
+                        }
 
                         Toast.makeText(
                             this@MusicService,
                             "Playback error: ${error.message} (${error.errorCode}): ${error.cause?.message?: "No further errors."} ",
                             Toast.LENGTH_SHORT
                         ).show()
-
-                        /**
-                         * Auto skip to the next media item on error.
-                         *
-                         * To prevent a "runaway diesel engine" scenario, force the user to take action after
-                         * too many errors come up too quickly. Pause to show player "stopped" state
-                         */
-                        val nextWindowIndex = player.nextMediaItemIndex
-                        if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
-                            player.seekTo(nextWindowIndex, C.TIME_UNSET)
-                            player.prepare()
-                            player.play()
-                        } else {
-                            player.pause()
-                            Toast.makeText(
-                                this@MusicService,
-                                "Playback stopped due to too many errors",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            consecutivePlaybackErr = 0
-                        }
+                        player.pause()
                     }
 
                     // start playback again on seek
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                         super.onMediaItemTransition(mediaItem, reason)
-                        // +2 when and error happens, and -1 when transition. Thus when error, number increments by 1, else doesn't change
-                        if (consecutivePlaybackErr > 0) {
-                            consecutivePlaybackErr --
-                        }
 
                         if (player.isPlaying && reason == MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                             player.prepare()

@@ -314,7 +314,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val connectivityObserver = NetworkConnectivityObserver(this)
-            val isInternetConnected by connectivityObserver.networkStatus.collectAsState(false)
+            val isNetworkConnected by connectivityObserver.networkStatus.collectAsState(false)
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -692,7 +692,7 @@ class MainActivity : ComponentActivity() {
                         LocalDownloadUtil provides downloadUtil,
                         LocalShimmerTheme provides ShimmerTheme,
                         LocalSyncUtils provides syncUtils,
-                        LocalIsInternetConnected provides isInternetConnected
+                        LocalIsInternetConnected provides isNetworkConnected
                     ) {
                         Scaffold(
                             topBar = {

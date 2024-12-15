@@ -229,7 +229,10 @@ fun SongMenu(
 
     SongListItem(
         song = song,
-        badges = {},
+        showLikedIcon = false,
+        showDownloadIcon = false,
+        showLocalIcon = false,
+        showInLibraryIcon = false,
         trailingContent = {
             IconButton(
                 onClick = {

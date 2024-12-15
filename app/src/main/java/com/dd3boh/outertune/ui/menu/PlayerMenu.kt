@@ -21,12 +21,15 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material.icons.rounded.LibraryAddCheck
+import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SlowMotionVideo
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Tune
@@ -70,6 +73,8 @@ import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
+import com.dd3boh.outertune.constants.PlayerOnError
+import com.dd3boh.outertune.constants.PlayerOnErrorActionKey
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
@@ -81,6 +86,7 @@ import com.dd3boh.outertune.ui.component.GridMenu
 import com.dd3boh.outertune.ui.component.GridMenuItem
 import com.dd3boh.outertune.ui.component.ListDialog
 import com.dd3boh.outertune.ui.component.SleepTimerGridMenu
+import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -110,8 +116,10 @@ fun PlayerMenu(
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-
+    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnError.WAIT_TO_RECONNECT)
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
+
+    var toast by rememberSaveable { mutableStateOf<Toast?>(null) }
 
     var showChooseQueueDialog by rememberSaveable {
         mutableStateOf(false)
@@ -328,7 +336,7 @@ fun PlayerMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (mediaMetadata.isLocal != true)
+        if (!mediaMetadata.isLocal)
             GridMenuItem(
                 icon = Icons.Rounded.Radio,
                 title = R.string.start_radio
@@ -348,7 +356,7 @@ fun PlayerMenu(
         ) {
             showChoosePlaylistDialog = true
         }
-        if (mediaMetadata.isLocal != true)
+        if (!mediaMetadata.isLocal)
             DownloadGridMenu(
                 state = download?.state,
                 onDownload = {
@@ -409,7 +417,7 @@ fun PlayerMenu(
             }
         }
 
-        if (mediaMetadata.isLocal != true)
+        if (!mediaMetadata.isLocal)
             GridMenuItem(
                 icon = Icons.Rounded.Share,
                 title = R.string.share
@@ -422,12 +430,14 @@ fun PlayerMenu(
                 context.startActivity(Intent.createChooser(intent, null))
                 onDismiss()
             }
+
         GridMenuItem(
             icon = Icons.Rounded.Info,
             title = R.string.details
         ) {
             showDetailsDialog = true
         }
+
         SleepTimerGridMenu(
             sleepTimerTimeLeft = sleepTimerTimeLeft,
             enabled = sleepTimerEnabled
@@ -435,11 +445,37 @@ fun PlayerMenu(
             if (sleepTimerEnabled) playerConnection.service.sleepTimer.clear()
             else showSleepTimerDialog = true
         }
+
         GridMenuItem(
             icon = Icons.Rounded.Tune,
             title = R.string.advanced
         ) {
             showPitchTempoDialog = true
+        }
+
+        GridMenuItem(
+            icon = when (playerOnErrorAction) {
+                PlayerOnError.PAUSE -> Icons.Rounded.Pause
+                PlayerOnError.SKIP -> Icons.Rounded.SkipNext
+                PlayerOnError.WAIT_TO_RECONNECT -> Icons.Rounded.CloudSync
+            },
+            title = R.string.on_error
+        ) {
+            val nextState = when (playerOnErrorAction) {
+                PlayerOnError.PAUSE -> PlayerOnError.SKIP
+                PlayerOnError.SKIP -> PlayerOnError.WAIT_TO_RECONNECT
+                PlayerOnError.WAIT_TO_RECONNECT -> PlayerOnError.PAUSE
+            }
+
+            toast?.cancel()
+            toast = when (nextState) {
+                PlayerOnError.PAUSE -> Toast.makeText(context, R.string.pause, Toast.LENGTH_SHORT)
+                PlayerOnError.SKIP -> Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT)
+                PlayerOnError.WAIT_TO_RECONNECT -> Toast.makeText(context, R.string.wait_to_reconnect, Toast.LENGTH_SHORT)
+            }
+            toast?.show()
+
+            onPlayerOnErrorAction(nextState)
         }
     }
 }

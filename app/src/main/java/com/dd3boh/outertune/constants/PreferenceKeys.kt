@@ -46,7 +46,6 @@ val AudioOffload = booleanPreferencesKey("enableOffload")
 
 val PersistentQueueKey = booleanPreferencesKey("persistentQueue")
 val SkipSilenceKey = booleanPreferencesKey("skipSilence")
-val SkipOnErrorKey = booleanPreferencesKey("skipOnError")
 val AudioNormalizationKey = booleanPreferencesKey("audioNormalization")
 val KeepAliveKey = booleanPreferencesKey("keepAlive")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
@@ -56,6 +55,11 @@ val RepeatModeKey = intPreferencesKey("repeatMode")
 val LastPosKey = longPreferencesKey("lastPosKey")
 val LockQueueKey = booleanPreferencesKey("lockQueue")
 val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
+val PlayerOnErrorActionKey = stringPreferencesKey("PlayerOnError")
+
+enum class PlayerOnError {
+    PAUSE, SKIP, WAIT_TO_RECONNECT
+}
 
 
 /**

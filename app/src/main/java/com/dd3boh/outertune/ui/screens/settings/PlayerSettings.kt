@@ -19,7 +19,7 @@ import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.ClearAll
-import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.NoCell
@@ -54,7 +54,8 @@ import com.dd3boh.outertune.constants.AudioQualityKey
 import com.dd3boh.outertune.constants.AudioOffload
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
-import com.dd3boh.outertune.constants.SkipOnErrorKey
+import com.dd3boh.outertune.constants.PlayerOnError
+import com.dd3boh.outertune.constants.PlayerOnErrorActionKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
 import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.constants.minPlaybackDurKey
@@ -79,9 +80,9 @@ fun PlayerSettings(
     val context = LocalContext.current
 
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(key = AudioQualityKey, defaultValue = AudioQuality.AUTO)
+    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnError.WAIT_TO_RECONNECT)
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
     val (skipSilence, onSkipSilenceChange) = rememberPreference(key = SkipSilenceKey, defaultValue = false)
-    val (skipOnErrorKey, onSkipOnErrorChange) = rememberPreference(key = SkipOnErrorKey, defaultValue = true)
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(key = AudioNormalizationKey, defaultValue = true)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(key = StopMusicOnTaskClearKey, defaultValue = false)
     val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
@@ -232,12 +233,18 @@ fun PlayerSettings(
             checked = skipSilence,
             onCheckedChange = onSkipSilenceChange
         )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.auto_skip_next_on_error)) },
-            description = stringResource(R.string.auto_skip_next_on_error_desc),
-            icon = { Icon(Icons.Rounded.FastForward, null) },
-            checked = skipOnErrorKey,
-            onCheckedChange = onSkipOnErrorChange
+        EnumListPreference(
+            title = { Text(stringResource(R.string.on_error)) },
+            icon = { Icon(Icons.Rounded.Error, null) },
+            selectedValue = playerOnErrorAction,
+            onValueSelected = onPlayerOnErrorAction,
+            valueText = {
+                when (it) {
+                    PlayerOnError.PAUSE -> stringResource(R.string.pause)
+                    PlayerOnError.SKIP -> stringResource(R.string.play_next)
+                    PlayerOnError.WAIT_TO_RECONNECT -> stringResource(R.string.wait_to_reconnect)
+                }
+            }
         )
 
         PreferenceGroupTitle(
