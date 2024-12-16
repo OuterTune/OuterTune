@@ -200,4 +200,7 @@ interface ArtistsDao {
     @Query("DELETE FROM artist WHERE isLocal = 1")
     fun nukeLocalArtists()
     // endregion
+
+    @Query("SELECT EXISTS(SELECT 1 FROM artist WHERE id = :artistId LIMIT 1)")
+    suspend fun artistIdExists(artistId: String):Boolean
 }
