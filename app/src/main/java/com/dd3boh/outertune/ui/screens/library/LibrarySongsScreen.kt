@@ -42,6 +42,7 @@ import androidx.compose.ui.util.fastForEachReversed
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -76,6 +77,8 @@ fun LibrarySongsScreen(
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val isNetworkConnected = LocalIsNetworkConnected.current
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     var filter by rememberEnumPreference(SongFilterKey, SongFilter.LIKED)
@@ -97,6 +100,12 @@ fun LibrarySongsScreen(
             lazyListState.animateScrollToItem(0)
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
         }
+    }
+
+    val songsAvailable = {
+        songs?.filter { it.song.isAvailableOffline() || isNetworkConnected }
+            ?.map { it.toMediaMetadata() }
+            ?.toList() ?: emptyList()
     }
 
     // multiselect
@@ -274,7 +283,7 @@ fun LibrarySongsScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = context.getString(R.string.queue_all_songs),
-                        items = songs!!.shuffled().map { it.toMediaMetadata()}
+                        items = songsAvailable().shuffled()
                     )
                 )
             }

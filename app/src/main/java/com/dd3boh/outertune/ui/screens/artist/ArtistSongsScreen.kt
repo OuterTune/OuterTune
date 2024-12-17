@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.dd3boh.outertune.LocalIsInternetConnected
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -75,13 +75,19 @@ fun ArtistSongsScreen(
 ) {
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsInternetConnected.current
+    val isNetworkConnected = LocalIsNetworkConnected.current
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSongSortTypeKey, ArtistSongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSongSortDescendingKey, true)
 
     val artist by viewModel.artist.collectAsState()
     val songs by viewModel.songs.collectAsState()
+
+    val songsAvailable = {
+        songs.filter { it.song.isAvailableOffline() || isNetworkConnected }
+            .map { it.toMediaMetadata() }
+            .toList()
+    }
 
     val lazyListState = rememberLazyListState()
 
@@ -213,7 +219,7 @@ fun ArtistSongsScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = artist?.artist?.name,
-                        items = songs.shuffled().map { it.toMediaMetadata() },
+                        items = songsAvailable().shuffled(),
                         playlistId = null,
                     )
                 )

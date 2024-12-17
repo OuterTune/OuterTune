@@ -63,7 +63,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
-import com.dd3boh.outertune.LocalIsInternetConnected
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -104,7 +104,7 @@ fun HistoryScreen(
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsInternetConnected.current
+    val isNetworkConnected = LocalIsNetworkConnected.current
     val downloads by LocalDownloadUtil.current.downloads.collectAsState()
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -442,7 +442,9 @@ fun HistoryScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = context.getString(R.string.history),
-                        items = filteredEventIndex.values.map { it.song.toMediaMetadata() }.shuffled(),
+                        items = filteredEventIndex.values
+                            .filter { it.song.song.isAvailableOffline() || isNetworkConnected }
+                            .map { it.song.toMediaMetadata() }.shuffled(),
                     )
                 )
             }

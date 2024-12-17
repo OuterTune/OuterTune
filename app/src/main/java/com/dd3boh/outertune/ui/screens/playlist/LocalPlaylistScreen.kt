@@ -84,7 +84,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
-import com.dd3boh.outertune.LocalIsInternetConnected
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -142,7 +142,7 @@ fun LocalPlaylistScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsInternetConnected.current
+    val isNetworkConnected = LocalIsNetworkConnected.current
 
     val playlist by viewModel.playlist.collectAsState()
 
@@ -521,10 +521,17 @@ fun LocalPlaylistHeader(
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val isNetworkConnected = LocalIsNetworkConnected.current
     val scope = rememberCoroutineScope()
 
     val playlistLength = remember(songs) {
         songs.fastSumBy { it.song.song.duration }
+    }
+
+    val songsAvailable = {
+        songs.filter { it.song.song.isAvailableOffline() || isNetworkConnected }
+            .map { it.song.toMediaMetadata() }
+            .toList()
     }
 
     val downloadUtil = LocalDownloadUtil.current
@@ -659,6 +666,7 @@ fun LocalPlaylistHeader(
 
                     if (playlist.playlist.browseId != null) {
                         IconButton(
+                            enabled = isNetworkConnected,
                             onClick = {
                                 scope.launch(Dispatchers.IO) {
                                     val playlistPage = YouTube.playlist(playlist.playlist.browseId).completed().getOrNull() ?: return@launch
@@ -766,7 +774,7 @@ fun LocalPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.map { it.song.toMediaMetadata() }
+                            items = songsAvailable()
                         )
                     )
                 },
@@ -787,7 +795,7 @@ fun LocalPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.shuffled().map { it.song.toMediaMetadata() }
+                            items = songsAvailable().shuffled()
                         )
                     )
                 },

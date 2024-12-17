@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.dd3boh.outertune.LocalDatabase
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ArtistSongSortType
@@ -45,6 +46,7 @@ fun ArtistMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val isNetworkConnected = LocalIsNetworkConnected.current
     val artistState = database.artist(originalArtist.id).collectAsState(initial = originalArtist)
     val artist = artistState.value ?: originalArtist
 
@@ -86,6 +88,7 @@ fun ArtistMenu(
                 coroutineScope.launch {
                     val songs = withContext(Dispatchers.IO) {
                         database.artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true).first()
+                            .filter { it.song.isAvailableOffline() || isNetworkConnected }
                             .map { it.toMediaMetadata() }
                     }
 
@@ -110,6 +113,7 @@ fun ArtistMenu(
                 coroutineScope.launch {
                     val songs = withContext(Dispatchers.IO) {
                         database.artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true).first()
+                            .filter { it.song.isAvailableOffline() || isNetworkConnected }
                             .map { it.toMediaMetadata() }
                             .shuffled()
                     }

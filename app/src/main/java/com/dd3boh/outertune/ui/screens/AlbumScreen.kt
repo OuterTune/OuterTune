@@ -79,7 +79,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
-import com.dd3boh.outertune.LocalIsInternetConnected
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -87,7 +87,6 @@ import com.dd3boh.outertune.constants.AlbumThumbnailSize
 import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.db.entities.Album
-import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.extensions.getAvailableSongs
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
@@ -123,7 +122,7 @@ fun AlbumScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsInternetConnected.current
+    val isNetworkConnected = LocalIsNetworkConnected.current
 
     val scope = rememberCoroutineScope()
 
@@ -133,6 +132,12 @@ fun AlbumScreen(
     val albumWithSongs by viewModel.albumWithSongs.collectAsState()
     val otherVersions by viewModel.otherVersions.collectAsState()
     val state = rememberLazyListState()
+
+    val songsAvailable = {
+        albumWithSongs?.songs?.filter { it.song.isAvailableOffline() || isNetworkConnected }
+            ?.map { it.toMediaMetadata() }
+            ?.toList() ?: emptyList()
+    }
 
     // multiselect
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
@@ -339,7 +344,7 @@ fun AlbumScreen(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = albumWithSongsLocal.album.title,
-                                        items = albumWithSongsLocal.songs.map(Song::toMediaMetadata),
+                                        items = songsAvailable(),
                                         playlistId = albumWithSongsLocal.album.playlistId
                                     )
                                 )
@@ -363,7 +368,7 @@ fun AlbumScreen(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = albumWithSongsLocal.album.title,
-                                        items = albumWithSongsLocal.songs.shuffled().map(Song::toMediaMetadata),
+                                        items = songsAvailable().shuffled(),
                                         playlistId = albumWithSongsLocal.album.playlistId
                                     )
                                 )

@@ -59,6 +59,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
@@ -89,6 +90,7 @@ fun AlbumMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val isNetworkConnected = LocalIsNetworkConnected.current
     val scope = rememberCoroutineScope()
     val libraryAlbum by database.album(originalAlbum.id).collectAsState(initial = originalAlbum)
     val album = libraryAlbum ?: originalAlbum
@@ -98,6 +100,13 @@ fun AlbumMenu(
     val allInLibrary = remember(songs) {
         songs.all { it.song.inLibrary != null }
     }
+
+    val songsAvailable = {
+        songs.filter { it.song.isAvailableOffline() || isNetworkConnected }
+            .map { it.toMediaMetadata() }
+            .toList()
+    }
+
 //    for when local albums are a thing
 //    val allLocal by remember(songs) { // if only local songs in this selection
 //        mutableStateOf(songs.isNotEmpty() && songs.all { it.song.isLocal })
@@ -330,21 +339,24 @@ fun AlbumMenu(
                 showSelectArtistDialog = true
             }
         }
-        GridMenuItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Rounded.Sync,
-                    contentDescription = null,
-                    modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
-                )
-            },
-            title = R.string.refetch
-        ) {
-            refetchIconDegree -= 360
-            scope.launch(Dispatchers.IO) {
-                YouTube.album(album.id).onSuccess {
-                    database.transaction {
-                        update(album.album, it)
+        if (isNetworkConnected)
+        {
+            GridMenuItem(
+                icon = {
+                    Icon(
+                        imageVector = Icons.Rounded.Sync,
+                        contentDescription = null,
+                        modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
+                    )
+                },
+                title = R.string.refetch
+            ) {
+                refetchIconDegree -= 360
+                scope.launch(Dispatchers.IO) {
+                    YouTube.album(album.id).onSuccess {
+                        database.transaction {
+                            update(album.album, it)
+                        }
                     }
                 }
             }

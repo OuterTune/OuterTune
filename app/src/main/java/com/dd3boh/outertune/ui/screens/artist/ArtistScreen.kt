@@ -72,13 +72,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
-import com.dd3boh.outertune.LocalIsInternetConnected
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AppBarHeight
 import com.dd3boh.outertune.db.entities.ArtistEntity
-import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.toMediaMetadata
@@ -120,7 +119,7 @@ fun ArtistScreen(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
-    val isNetworkConnected = LocalIsInternetConnected.current
+    val isNetworkConnected = LocalIsNetworkConnected.current
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -139,6 +138,12 @@ fun ArtistScreen(
         derivedStateOf {
             lazyListState.firstVisibleItemIndex == 0
         }
+    }
+
+    val librarySongsAvailable = {
+        librarySongs.filter { it.song.isAvailableOffline() || isNetworkConnected }
+        .map { it.toMediaMetadata() }
+        .toList()
     }
 
     LaunchedEffect(isNetworkConnected, libraryArtist) {
@@ -210,7 +215,7 @@ fun ArtistScreen(
                                 if (!showLocal && watchEndpoint != null) YouTubeQueue(watchEndpoint)
                                 else ListQueue(
                                     title = artistName,
-                                    items = librarySongs.shuffled().map(Song::toMediaMetadata),
+                                    items = librarySongsAvailable().shuffled(),
                                 ),
                                 title = artistName
                             )
@@ -301,8 +306,7 @@ fun ArtistScreen(
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = "Library: ${libraryArtist?.artist?.name}",
-                                            items = librarySongs.filter { it.song.isLocal }.toList()
-                                                .shuffled().map { it.toMediaMetadata() },
+                                            items = librarySongsAvailable().shuffled(),
                                             startIndex = index
                                         )
                                     )

@@ -43,6 +43,7 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
+import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.db.entities.Playlist
@@ -76,9 +77,16 @@ fun PlaylistMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val isNetworkConnected = LocalIsNetworkConnected.current
     val dbPlaylist by database.playlist(playlist.id).collectAsState(initial = playlist)
     var songs by remember {
         mutableStateOf(emptyList<Song>())
+    }
+
+    val songsAvailable = {
+        songs.filter { it.song.isAvailableOffline() || isNetworkConnected }
+            .map { it.toMediaMetadata() }
+            .toList()
     }
 
     LaunchedEffect(Unit) {
@@ -294,7 +302,7 @@ fun PlaylistMenu(
             onDismiss()
             playerConnection.playQueue(ListQueue(
                 title = playlist.playlist.name,
-                items = songs.map { it.toMediaMetadata()},
+                items = songsAvailable(),
                 playlistId = playlist.playlist.browseId
             ))
         }
@@ -306,22 +314,25 @@ fun PlaylistMenu(
             onDismiss()
             playerConnection.playQueue(ListQueue(
                 title = playlist.playlist.name,
-                items = songs.shuffled().map { it.toMediaMetadata() },
+                items = songsAvailable().shuffled(),
                 playlistId = playlist.playlist.browseId
             ))
         }
 
-        playlist.playlist.browseId?.let { browseId ->
-            playlist.playlist.radioEndpointParams?.let { radioEndpointParams ->
-                GridMenuItem(
-                    icon = Icons.Rounded.Radio,
-                    title = R.string.start_radio
-                ) {
-                    playerConnection.playQueue(YouTubeQueue(WatchEndpoint(
-                        playlistId = "RDAMPL$browseId",
-                        params = radioEndpointParams,
-                    )))
-                    onDismiss()
+        if (isNetworkConnected)
+        {
+            playlist.playlist.browseId?.let { browseId ->
+                playlist.playlist.radioEndpointParams?.let { radioEndpointParams ->
+                    GridMenuItem(
+                        icon = Icons.Rounded.Radio,
+                        title = R.string.start_radio
+                    ) {
+                        playerConnection.playQueue(YouTubeQueue(WatchEndpoint(
+                            playlistId = "RDAMPL$browseId",
+                            params = radioEndpointParams,
+                        )))
+                        onDismiss()
+                    }
                 }
             }
         }
