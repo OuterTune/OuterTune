@@ -173,7 +173,9 @@ fun LibrarySongsScreen(
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
             if (inSelectMode && songs != null) {
-                val s: List<Song> = (songs as Iterable<Song>).toList()
+                val s: List<Song> = (songs as Iterable<Song>)
+                    .filter { it.song.isAvailableOffline() || isNetworkConnected }
+                    .toList()
                 SelectHeader(
                     selectedItems = selection.mapNotNull { songId ->
                         s.find { it.id == songId }
