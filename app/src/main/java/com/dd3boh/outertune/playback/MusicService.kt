@@ -279,7 +279,6 @@ class MusicService : MediaLibraryService(),
                         if (playerOnErrorAction == PlayerOnError.WAIT_TO_RECONNECT){
                             val noConnectionError = (error.cause?.cause is PlaybackException) && (error.cause?.cause as PlaybackException).errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
                             if (!isNetworkConnected.value || noConnectionError) {
-                                player.pause()
                                 waitingForNetworkConnection.value = true
                                 Toast.makeText(
                                     this@MusicService,
@@ -652,6 +651,9 @@ class MusicService : MediaLibraryService(),
                 openAudioEffectSession()
             } else {
                 closeAudioEffectSession()
+                if (!player.playWhenReady){
+                    waitingForNetworkConnection.value = false
+                }
             }
         }
         if (events.containsAny(EVENT_TIMELINE_CHANGED, EVENT_POSITION_DISCONTINUITY)) {
