@@ -242,12 +242,10 @@ fun BottomSheetPlayer(
                 modifier = Modifier
                     .offset(y = 5.dp)
                     .size(36.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.primary)
             ) {
                 ResizableIconButton(
                     icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else onBackgroundColor,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .size(24.dp),
@@ -261,12 +259,10 @@ fun BottomSheetPlayer(
                 modifier = Modifier
                     .offset(y = 5.dp)
                     .size(36.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.primary)
             ) {
                 ResizableIconButton(
                     icon = Icons.Rounded.MoreVert,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = onBackgroundColor,
                     modifier = Modifier
                         .size(24.dp)
                         .align(Alignment.Center),
