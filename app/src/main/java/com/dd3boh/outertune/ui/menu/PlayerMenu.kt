@@ -75,6 +75,7 @@ import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.PlayerOnError
 import com.dd3boh.outertune.constants.PlayerOnErrorActionKey
+import com.dd3boh.outertune.constants.PlayerOnErrorPref
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
@@ -116,7 +117,7 @@ fun PlayerMenu(
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnError.WAIT_TO_RECONNECT)
+    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnErrorPref.PAUSE)
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
     var toast by rememberSaveable { mutableStateOf<Toast?>(null) }
@@ -455,23 +456,20 @@ fun PlayerMenu(
 
         GridMenuItem(
             icon = when (playerOnErrorAction) {
-                PlayerOnError.PAUSE -> Icons.Rounded.Pause
-                PlayerOnError.SKIP -> Icons.Rounded.SkipNext
-                PlayerOnError.WAIT_TO_RECONNECT -> Icons.Rounded.CloudSync
+                PlayerOnErrorPref.PAUSE -> Icons.Rounded.Pause
+                PlayerOnErrorPref.SKIP -> Icons.Rounded.SkipNext
             },
             title = R.string.on_error
         ) {
             val nextState = when (playerOnErrorAction) {
-                PlayerOnError.PAUSE -> PlayerOnError.SKIP
-                PlayerOnError.SKIP -> PlayerOnError.WAIT_TO_RECONNECT
-                PlayerOnError.WAIT_TO_RECONNECT -> PlayerOnError.PAUSE
+                PlayerOnErrorPref.PAUSE -> PlayerOnErrorPref.SKIP
+                PlayerOnErrorPref.SKIP -> PlayerOnErrorPref.PAUSE
             }
 
             toast?.cancel()
             toast = when (nextState) {
-                PlayerOnError.PAUSE -> Toast.makeText(context, R.string.pause, Toast.LENGTH_SHORT)
-                PlayerOnError.SKIP -> Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT)
-                PlayerOnError.WAIT_TO_RECONNECT -> Toast.makeText(context, R.string.wait_to_reconnect, Toast.LENGTH_SHORT)
+                PlayerOnErrorPref.PAUSE -> Toast.makeText(context, R.string.pause, Toast.LENGTH_SHORT)
+                PlayerOnErrorPref.SKIP -> Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT)
             }
             toast?.show()
 
