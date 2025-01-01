@@ -132,7 +132,7 @@ fun HistoryScreen(
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
-        saver = listSaver<MutableList<String>, String>(
+        saver = listSaver<MutableList<Long>, Long>(
             save = { it.toList() },
             restore = { it.toMutableStateList() }
         )
@@ -175,15 +175,15 @@ fun HistoryScreen(
             }
             .filterValues { it.isNotEmpty() }
     }
-    val filteredEventIndex: Map<String, EventWithSong> by remember(filteredEventsMap) {
+    val filteredEventIndex: Map<Long, EventWithSong> by remember(filteredEventsMap) {
         derivedStateOf {
-            filteredEventsMap.flatMap { it.value }.associateBy { it.song.song.id }
+            filteredEventsMap.flatMap { it.value }.associateBy { it.event.id }
         }
     }
     LaunchedEffect(filteredEventsMap) {
-        selection.fastForEachReversed { songId ->
-            if (filteredEventIndex[songId] == null) {
-                selection.remove(songId)
+        selection.fastForEachReversed { eventId ->
+            if (filteredEventIndex[eventId] == null) {
+                selection.remove(eventId)
             }
         }
     }
@@ -380,22 +380,22 @@ fun HistoryScreen(
                             if (inSelectMode) {
                                 SelectHeader(
                                     selectedItems = eventsMap.flatMap {
-                                        group -> group.value.filter{ it.song.song.id in selection }
+                                        group -> group.value.filter{ it.event.id in selection }
                                     }.map { it.song.toMediaMetadata() },
                                     totalItemCount = eventsMap.flatMap { group -> group.value.map { it.song }.getAvailableSongs(isNetworkConnected)}.size,
                                     onSelectAll = {
                                         selection.clear()
                                         selection.addAll(eventsMap.flatMap { group ->
-                                            group.value.filter{ it.song.song.isAvailableOffline() || isNetworkConnected }.map { it.song.song.id }
+                                            group.value.filter{ it.song.song.isAvailableOffline() || isNetworkConnected }.map { it.event.id }
                                         })
                                     },
                                     onDeselectAll = { selection.clear() },
                                     menuState = menuState,
                                     onDismiss = onExitSelectionMode,
                                     onRemoveFromHistory = {
-                                        val sel = eventsMap.flatMap {
-                                                group -> group.value.filter{ it.song.song.id in selection }
-                                        }.map { it.event }
+                                        val sel = selection.mapNotNull { eventId ->
+                                            filteredEventIndex[eventId]?.event
+                                        }
                                         database.query {
                                             sel.forEach {
                                                 delete(it)
