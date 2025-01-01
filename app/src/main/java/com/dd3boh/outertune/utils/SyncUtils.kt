@@ -80,7 +80,7 @@ class SyncUtils @Inject constructor(
 
             // Get remote and local liked songs
             YouTube.playlist("LM").completed().onSuccess{ page->
-                if (!context.isInternetConnected()){
+                if (!context.isInternetConnected()) {
                     return
                 }
 
@@ -135,7 +135,7 @@ class SyncUtils @Inject constructor(
 
             // Get remote songs (from library and uploads)
             val remoteSongs = getRemoteData<SongItem>("FEmusic_liked_videos", "FEmusic_library_privately_owned_tracks")
-            if (!context.isInternetConnected()){
+            if (!context.isInternetConnected()) {
                 return
             }
 
@@ -189,7 +189,7 @@ class SyncUtils @Inject constructor(
 
             // Get remote albums (from library and uploads)
             val remoteAlbums = getRemoteData<AlbumItem>("FEmusic_liked_albums", "FEmusic_library_privately_owned_releases")
-            if (!context.isInternetConnected()){
+            if (!context.isInternetConnected()) {
                 return
             }
 
@@ -243,7 +243,7 @@ class SyncUtils @Inject constructor(
 
             // Get remote artists (from library and uploads)
             val remoteArtists = getRemoteData<ArtistItem>("FEmusic_library_corpus_track_artists", "FEmusic_library_privately_owned_artists")
-            if (!context.isInternetConnected()){
+            if (!context.isInternetConnected()) {
                 return
             }
 
@@ -304,7 +304,7 @@ class SyncUtils @Inject constructor(
 
             // Get remote and local playlists
             YouTube.library("FEmusic_liked_playlists").completed().onSuccess { page ->
-                if (!context.isInternetConnected()){
+                if (!context.isInternetConnected()) {
                     return
                 }
 
@@ -375,7 +375,7 @@ class SyncUtils @Inject constructor(
 
     suspend fun syncPlaylist(browseId: String, playlistId: String) {
         YouTube.playlist(browseId).completed().onSuccess { playlistPage ->
-            if (!context.isInternetConnected()){
+            if (!context.isInternetConnected()) {
                 return
             }
 

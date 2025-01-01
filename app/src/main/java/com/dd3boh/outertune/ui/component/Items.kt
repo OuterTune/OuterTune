@@ -428,7 +428,7 @@ fun SongListItem(
                 )
             },
             trailingContent = {
-                if (available){
+                if (available) {
                     if (inSelectMode) {
                         Checkbox(
                             checked = isSelected,
@@ -476,7 +476,7 @@ fun SongListItem(
             available = available,
             modifier = modifier.combinedClickable(
                 onClick = {
-                    if (available){
+                    if (available) {
                         if (inSelectMode) {
                             onCheckedChange(!isSelected)
                         } else if (song.id == mediaMetadata?.id) {
@@ -487,9 +487,8 @@ fun SongListItem(
                     }
                 },
                 onLongClick = {
-                    if (available){
-                        if (selectionIds == null)
-                        {
+                    if (available) {
+                        if (selectionIds == null) {
                             menuState.show {
                                 SongMenu(
                                     originalSong = song,
@@ -509,7 +508,7 @@ fun SongListItem(
         )
     }
 
-    if (enableSwipeToQueue && available){
+    if (enableSwipeToQueue && available) {
         SwipeToQueueBox(
             item = song.toMediaItem(),
             content = { listItem() },

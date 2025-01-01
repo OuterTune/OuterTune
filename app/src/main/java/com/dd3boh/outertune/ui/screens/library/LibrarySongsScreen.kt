@@ -137,7 +137,7 @@ fun LibrarySongsScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (context.isSyncEnabled()){
+        if (context.isSyncEnabled()) {
             when (filter) {
                 SongFilter.LIKED -> viewModel.syncLikedSongs()
                 SongFilter.LIBRARY -> viewModel.syncLibrarySongs()
@@ -156,7 +156,7 @@ fun LibrarySongsScreen(
             currentValue = filter,
             onValueUpdate = {
                 filter = it
-                if (context.isSyncEnabled()){
+                if (context.isSyncEnabled()) {
                     if (it == SongFilter.LIKED) viewModel.syncLikedSongs()
                     else if (it == SongFilter.LIBRARY) viewModel.syncLibrarySongs()
                 }

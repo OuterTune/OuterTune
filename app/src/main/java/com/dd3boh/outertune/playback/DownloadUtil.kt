@@ -134,15 +134,15 @@ class DownloadUtil @Inject constructor(
         songs.forEach { song -> downloadSong(song.id, song.title) }
     }
 
-    fun download(song: MediaMetadata){
+    fun download(song: MediaMetadata) {
         downloadSong(song.id, song.title)
     }
 
-    fun download(song: SongEntity){
+    fun download(song: SongEntity) {
         downloadSong(song.id, song.title)
     }
 
-    private fun downloadSong(id: String, title: String){
+    private fun downloadSong(id: String, title: String) {
         val downloadRequest = DownloadRequest.Builder(id, id.toUri())
             .setCustomCacheKey(id)
             .setData(title.toByteArray())
@@ -154,19 +154,19 @@ class DownloadUtil @Inject constructor(
             false)
     }
 
-    fun resumeDownloadsOnStart(){
+    fun resumeDownloadsOnStart() {
         DownloadService.sendResumeDownloads(
             context,
             ExoDownloadService::class.java,
             false)
     }
 
-    fun autoDownloadIfLiked(songs: List<SongEntity>){
+    fun autoDownloadIfLiked(songs: List<SongEntity>) {
         songs.forEach { song -> autoDownloadIfLiked(song) }
     }
 
-    fun autoDownloadIfLiked(song: SongEntity){
-        if (!song.liked || song.dateDownload != null){
+    fun autoDownloadIfLiked(song: SongEntity) {
+        if (!song.liked || song.dateDownload != null) {
             return
         }
 
@@ -199,7 +199,7 @@ class DownloadUtil @Inject constructor(
                     }
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        if (download.state == Download.STATE_COMPLETED){
+                        if (download.state == Download.STATE_COMPLETED) {
                             val updateTime = Instant.ofEpochMilli(download.updateTimeMs).atZone(ZoneOffset.UTC).toLocalDateTime()
                             database.updateDownloadStatus(download.request.id, updateTime)
                         }

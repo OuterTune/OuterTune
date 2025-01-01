@@ -119,7 +119,7 @@ fun LibraryAlbumsScreen(
                 currentValue = filter,
                 onValueUpdate = {
                     filter = it
-                    if (context.isSyncEnabled()){
+                    if (context.isSyncEnabled()) {
                         if (it == AlbumFilter.LIBRARY) viewModel.syncAlbums()
                     }
                 },

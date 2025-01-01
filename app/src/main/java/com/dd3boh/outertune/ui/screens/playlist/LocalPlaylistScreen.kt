@@ -631,7 +631,7 @@ fun LocalPlaylistHeader(
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (playlist.downloadCount > 0){
+                    if (playlist.downloadCount > 0) {
                         Icon(
                             imageVector = Icons.Rounded.OfflinePin,
                             contentDescription = null,

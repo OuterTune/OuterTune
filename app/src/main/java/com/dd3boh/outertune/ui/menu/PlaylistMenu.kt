@@ -319,8 +319,7 @@ fun PlaylistMenu(
             ))
         }
 
-        if (isNetworkConnected)
-        {
+        if (isNetworkConnected) {
             playlist.playlist.browseId?.let { browseId ->
                 playlist.playlist.radioEndpointParams?.let { radioEndpointParams ->
                     GridMenuItem(

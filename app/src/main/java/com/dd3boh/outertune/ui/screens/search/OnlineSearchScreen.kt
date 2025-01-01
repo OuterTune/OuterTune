@@ -230,7 +230,7 @@ fun OnlineSearchScreen(
                         .clickable {
                             when (item) {
                                 is SongItem -> {
-                                    if (available){
+                                    if (available) {
                                         if (item.id == mediaMetadata?.id) {
                                             playerConnection.player.togglePlayPause()
                                         } else if (item.id.startsWith("LA")) {
@@ -244,7 +244,7 @@ fun OnlineSearchScreen(
                                             )
                                         } else {
                                             playerConnection.playQueue(
-                                                if (isNetworkConnected){
+                                                if (isNetworkConnected) {
                                                     YouTubeQueue.radio(item.toMediaMetadata())
                                                 }
                                                 else {

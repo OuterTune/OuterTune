@@ -113,7 +113,7 @@ fun LibraryArtistsScreen(
                 currentValue = filter,
                 onValueUpdate = {
                     filter = it
-                    if (context.isSyncEnabled()){
+                    if (context.isSyncEnabled()) {
                         if (it == ArtistFilter.LIBRARY) viewModel.syncArtists()
                     }
                 },

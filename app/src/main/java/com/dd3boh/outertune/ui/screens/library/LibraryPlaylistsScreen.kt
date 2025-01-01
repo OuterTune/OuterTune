@@ -200,7 +200,7 @@ fun LibraryPlaylistsScreen(
             currentValue = filter,
             onValueUpdate = {
                 filter = it
-                if (context.isSyncEnabled()){
+                if (context.isSyncEnabled()) {
                     if (it == PlaylistFilter.LIBRARY) viewModel.syncPlaylists()
                 }
             },

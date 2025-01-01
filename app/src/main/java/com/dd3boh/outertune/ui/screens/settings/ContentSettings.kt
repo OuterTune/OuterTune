@@ -193,13 +193,11 @@ fun ContentSettings(
             icon = { Icon(Icons.Rounded.Favorite, null) },
             values = listOf(LikedAutodownloadMode.OFF, LikedAutodownloadMode.ON, LikedAutodownloadMode.WIFI_ONLY),
             selectedValue = likedAutoDownload,
-            valueText = {
-                when (it) {
-                    LikedAutodownloadMode.OFF -> stringResource(androidx.compose.ui.R.string.state_off)
-                    LikedAutodownloadMode.ON -> stringResource(androidx.compose.ui.R.string.state_on)
-                    LikedAutodownloadMode.WIFI_ONLY -> stringResource(R.string.wifi_only)
-                }
-            },
+            valueText = { when (it) {
+                LikedAutodownloadMode.OFF -> stringResource(androidx.compose.ui.R.string.state_off)
+                LikedAutodownloadMode.ON -> stringResource(androidx.compose.ui.R.string.state_on)
+                LikedAutodownloadMode.WIFI_ONLY -> stringResource(R.string.wifi_only)
+            } },
             onValueSelected = onLikedAutoDownload
         )
 

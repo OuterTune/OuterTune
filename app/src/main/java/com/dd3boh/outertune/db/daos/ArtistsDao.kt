@@ -113,7 +113,7 @@ interface ArtistsDao {
             ArtistSortType.PLAY_TIME -> "SUM(totalPlayTime) ASC"
         }
 
-        val where = when (filter){
+        val where = when (filter) {
             ArtistFilter.DOWNLOADED -> "song.dateDownload IS NOT NULL"
             ArtistFilter.LIBRARY -> "song.inLibrary IS NOT NULL"
             ArtistFilter.LIKED -> "artist.bookmarkedAt IS NOT NULL"

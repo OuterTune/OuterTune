@@ -309,7 +309,7 @@ fun AutoPlaylistScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
                                 }
 
-                                if (playlistType == PlaylistType.LIKE && downloadCount > 0){
+                                if (playlistType == PlaylistType.LIKE && downloadCount > 0) {
                                     Icon(
                                         imageVector = Icons.Rounded.OfflinePin,
                                         contentDescription = null,

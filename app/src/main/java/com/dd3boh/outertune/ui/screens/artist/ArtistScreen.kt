@@ -234,7 +234,7 @@ fun ArtistScreen(
                         )
                     }
 
-                    if (!showLocal){
+                    if (!showLocal) {
                         artistPage?.artist?.radioEndpoint?.let { radioEndpoint ->
                             OutlinedButton(
                                 onClick = {
@@ -527,7 +527,7 @@ fun ArtistScreen(
             lazyListState = lazyListState,
             icon = if (showLocal) Icons.Rounded.LibraryMusic else Icons.Rounded.Language,
             onClick = {
-                if (isNetworkConnected){
+                if (isNetworkConnected) {
                     showLocal = showLocal.not()
                     if (!showLocal && artistPage == null) viewModel.fetchArtistsFromYTM()
                 }

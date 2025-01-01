@@ -286,7 +286,7 @@ fun HistoryScreen(
                                 isActive = song.id == mediaMetadata?.id,
                                 isPlaying = isPlaying,
                                 trailingContent = {
-                                    if (available){
+                                    if (available) {
                                         IconButton(
                                             onClick = {
                                                 menuState.show {
@@ -349,7 +349,7 @@ fun HistoryScreen(
                             )
                         }
 
-                        if (available){
+                        if (available) {
                             SwipeToQueueBox(
                                 item = song.toMediaItem(),
                                 content = { content() },

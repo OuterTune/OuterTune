@@ -175,7 +175,7 @@ fun OnlineSearchResult(
                                             playerConnection.player.togglePlayPause()
                                         } else {
                                             playerConnection.playQueue(
-                                                if (isNetworkConnected){
+                                                if (isNetworkConnected) {
                                                     YouTubeQueue.radio(item.toMediaMetadata())
                                                 }
                                                 else {

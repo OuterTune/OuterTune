@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -126,6 +127,7 @@ fun SetupWizard(
     navController: NavController,
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val layoutDirection = LocalLayoutDirection.current
     val uriHandler = LocalUriHandler.current
 

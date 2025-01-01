@@ -339,8 +339,7 @@ fun AlbumMenu(
                 showSelectArtistDialog = true
             }
         }
-        if (isNetworkConnected)
-        {
+        if (isNetworkConnected) {
             GridMenuItem(
                 icon = {
                     Icon(
