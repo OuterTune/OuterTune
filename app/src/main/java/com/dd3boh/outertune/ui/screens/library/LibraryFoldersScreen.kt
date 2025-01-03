@@ -67,8 +67,6 @@ import com.dd3boh.outertune.ui.component.SelectHeader
 import com.dd3boh.outertune.ui.component.SongFolderItem
 import com.dd3boh.outertune.ui.component.SongListItem
 import com.dd3boh.outertune.ui.component.SortHeader
-import com.dd3boh.outertune.ui.component.SwipeToQueueBox
-import com.dd3boh.outertune.ui.menu.SongMenu
 import com.dd3boh.outertune.utils.numberToAlpha
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
@@ -83,7 +81,7 @@ import java.util.Stack
 fun LibraryFoldersScreen(
     navController: NavController,
     viewModel: LibrarySongsViewModel = hiltViewModel(),
-    filterContent: @Composable() (() -> Unit)? = null
+    filterContent: @Composable (() -> Unit)? = null
 ) {
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
@@ -325,9 +323,16 @@ fun LibraryFoldersScreen(
                             )
                         )
                     },
-                    onSelectModeActivation = { inSelectMode = true },
+                    onSelectedChange = {
+                        inSelectMode = true
+                        if (it) {
+                            selection.add(song.id)
+                        } else {
+                            selection.remove(song.id)
+                        }
+                    },
                     inSelectMode = inSelectMode,
-                    selectionIds = selection,
+                    isSelected = selection.contains(song.id),
                     navController = navController,
                     modifier = Modifier.fillMaxWidth().animateItem()
                 )

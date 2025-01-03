@@ -160,9 +160,9 @@ fun LocalSearchScreen(
                                         startIndex = songs.indexOfFirst { it.id == item.id }
                                     ))
                                 },
-                                onSelectModeActivation = { },
+                                onSelectedChange = { },
                                 inSelectMode = false,
-                                selectionIds = null,
+                                isSelected = false,
                                 navController = navController,
                                 modifier = Modifier.animateItem()
                             )

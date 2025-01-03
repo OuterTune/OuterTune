@@ -98,9 +98,9 @@ fun StatsScreen(
                         YouTubeQueue.radio(song.toMediaMetadata())
                     )
                 },
-                onSelectModeActivation = {},
+                onSelectedChange = {},
                 inSelectMode = false,
-                selectionIds = null,
+                isSelected = false,
                 navController = navController,
                 modifier = Modifier.fillMaxWidth().animateItem()
             )

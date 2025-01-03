@@ -311,9 +311,9 @@ fun ArtistScreen(
                                         )
                                     )
                                 },
-                                onSelectModeActivation = { },
+                                onSelectedChange = { },
                                 inSelectMode = false,
-                                selectionIds = null,
+                                isSelected = false,
                                 navController = navController,
                                 modifier = Modifier.fillMaxWidth().animateItem()
                             )

@@ -475,9 +475,9 @@ fun HomeScreen(
                                 onPlay = {
                                     playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
                                 },
-                                onSelectModeActivation = {},
-                                inSelectMode = false,
-                                selectionIds = null,
+                                onSelectedChange = {},
+                                inSelectMode = null,
+                                isSelected = false,
                                 navController = navController,
                                 modifier = Modifier.width(horizontalLazyGridItemWidth)
                             )
@@ -509,9 +509,9 @@ fun HomeScreen(
                                     onPlay = {
                                         playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
                                     },
-                                    onSelectModeActivation = {},
-                                    inSelectMode = false,
-                                    selectionIds = null,
+                                    onSelectedChange = {},
+                                    inSelectMode = null,
+                                    isSelected = false,
                                     navController = navController,
                                     modifier = Modifier.width(horizontalLazyGridItemWidth)
                                 )
@@ -642,9 +642,9 @@ fun HomeScreen(
                                 onPlay = {
                                     playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
                                 },
-                                onSelectModeActivation = {},
-                                inSelectMode = false,
-                                selectionIds = null,
+                                onSelectedChange = {},
+                                inSelectMode = null,
+                                isSelected = false,
                                 navController = navController,
                                 modifier = Modifier.width(horizontalLazyGridItemWidth)
                             )

@@ -37,7 +37,6 @@ import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Lyrics
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MusicVideo
 import androidx.compose.material.icons.rounded.NotInterested
 import androidx.compose.material.icons.rounded.Palette
@@ -596,9 +595,9 @@ fun SetupWizard(
                                     SongListItem(
                                         song = song,
                                         onPlay = {},
-                                        inSelectMode = false,
-                                        selectionIds = mutableListOf(),
-                                        onSelectModeActivation = {},
+                                        onSelectedChange = {},
+                                        inSelectMode = null,
+                                        isSelected = false,
                                         navController = navController,
                                         enableSwipeToQueue = false,
                                         disableShowMenu = true

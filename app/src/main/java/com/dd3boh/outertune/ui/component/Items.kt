@@ -355,9 +355,9 @@ fun GridItem(
 fun SongListItem(
     song: Song,
     onPlay: () -> Unit,
-    onSelectModeActivation : () -> Unit,
-    inSelectMode : Boolean,
-    selectionIds: MutableList<String>?,
+    onSelectedChange: (Boolean) -> Unit,
+    inSelectMode: Boolean?,
+    isSelected: Boolean,
     navController: NavController,
     modifier: Modifier = Modifier,
     enableSwipeToQueue: Boolean = true,
@@ -366,8 +366,8 @@ fun SongListItem(
     showInLibraryIcon: Boolean = true,
     showDownloadIcon: Boolean = true,
     showLocalIcon: Boolean = true,
-    playlistSong : PlaylistSong? = null,
-    playlistBrowseId : String? = null,
+    playlistSong: PlaylistSong? = null,
+    playlistBrowseId: String? = null,
     showDragHandle: Boolean = false,
     dragHandleModifier: Modifier? = null,
     disableShowMenu: Boolean = false,
@@ -384,15 +384,6 @@ fun SongListItem(
     val isActive = song.id == mediaMetadata?.id
 
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val isSelected = selectionIds?.contains(song.id) == true
-    val onCheckedChange: (Boolean) -> Unit = {
-        if (it) {
-            selectionIds?.add(song.id)
-        } else {
-            selectionIds?.remove(song.id)
-        }
-    }
 
     val listItem: @Composable () -> Unit = {
         ListItem(
@@ -429,10 +420,10 @@ fun SongListItem(
             },
             trailingContent = {
                 if (available) {
-                    if (inSelectMode) {
+                    if (inSelectMode == true) {
                         Checkbox(
                             checked = isSelected,
-                            onCheckedChange = onCheckedChange
+                            onCheckedChange = onSelectedChange
                         )
                     } else {
                         IconButton(
@@ -471,14 +462,14 @@ fun SongListItem(
                     }
                 }
             },
-            isSelected = inSelectMode && isSelected,
+            isSelected = inSelectMode == true && isSelected,
             isActive = isActive,
             available = available,
             modifier = modifier.combinedClickable(
                 onClick = {
                     if (available) {
-                        if (inSelectMode) {
-                            onCheckedChange(!isSelected)
+                        if (inSelectMode == true) {
+                            onSelectedChange(!isSelected)
                         } else if (song.id == mediaMetadata?.id) {
                             playerConnection.player.togglePlayPause()
                         } else {
@@ -488,7 +479,7 @@ fun SongListItem(
                 },
                 onLongClick = {
                     if (available) {
-                        if (selectionIds == null) {
+                        if (inSelectMode == null){
                             menuState.show {
                                 SongMenu(
                                     originalSong = song,
@@ -497,10 +488,9 @@ fun SongListItem(
                                 )
                             }
                         }
-                        if (!inSelectMode) {
+                        else if (!inSelectMode) {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onSelectModeActivation()
-                            onCheckedChange(true)
+                            onSelectedChange(true)
                         }
                     }
                 }

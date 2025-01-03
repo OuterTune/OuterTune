@@ -535,9 +535,16 @@ fun AutoPlaylistScreen(
                     },
                     showLikedIcon = playlistType != PlaylistType.LIKE,
                     showDownloadIcon = playlistType != PlaylistType.DOWNLOAD,
-                    onSelectModeActivation = { inSelectMode = true },
+                    onSelectedChange = {
+                        inSelectMode = true
+                        if (it) {
+                            selection.add(song.id)
+                        } else {
+                            selection.remove(song.id)
+                        }
+                    },
                     inSelectMode = inSelectMode,
-                    selectionIds = selection,
+                    isSelected = selection.contains(song.id),
                     navController = navController,
                     modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background),
                 )
