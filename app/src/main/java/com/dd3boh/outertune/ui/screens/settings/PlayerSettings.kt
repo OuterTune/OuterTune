@@ -55,7 +55,7 @@ import com.dd3boh.outertune.constants.AudioOffload
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
 import com.dd3boh.outertune.constants.PlayerOnErrorActionKey
-import com.dd3boh.outertune.constants.PlayerOnErrorPref
+import com.dd3boh.outertune.constants.PlayerOnError
 import com.dd3boh.outertune.constants.SkipSilenceKey
 import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.constants.minPlaybackDurKey
@@ -80,7 +80,7 @@ fun PlayerSettings(
     val context = LocalContext.current
 
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(key = AudioQualityKey, defaultValue = AudioQuality.AUTO)
-    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnErrorPref.PAUSE)
+    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnError.PAUSE)
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
     val (skipSilence, onSkipSilenceChange) = rememberPreference(key = SkipSilenceKey, defaultValue = false)
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(key = AudioNormalizationKey, defaultValue = true)
@@ -240,8 +240,8 @@ fun PlayerSettings(
             onValueSelected = onPlayerOnErrorAction,
             valueText = {
                 when (it) {
-                    PlayerOnErrorPref.PAUSE -> stringResource(R.string.pause)
-                    PlayerOnErrorPref.SKIP -> stringResource(R.string.play_next)
+                    PlayerOnError.PAUSE -> stringResource(R.string.pause)
+                    PlayerOnError.SKIP -> stringResource(R.string.play_next)
                 }
             }
         )

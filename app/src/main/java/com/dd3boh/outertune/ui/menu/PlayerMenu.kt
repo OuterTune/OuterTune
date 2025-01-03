@@ -21,7 +21,6 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material.icons.rounded.LibraryAddCheck
@@ -75,7 +74,6 @@ import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.PlayerOnError
 import com.dd3boh.outertune.constants.PlayerOnErrorActionKey
-import com.dd3boh.outertune.constants.PlayerOnErrorPref
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
@@ -117,7 +115,7 @@ fun PlayerMenu(
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnErrorPref.PAUSE)
+    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnError.PAUSE)
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
     var toast by rememberSaveable { mutableStateOf<Toast?>(null) }
@@ -456,20 +454,20 @@ fun PlayerMenu(
 
         GridMenuItem(
             icon = when (playerOnErrorAction) {
-                PlayerOnErrorPref.PAUSE -> Icons.Rounded.Pause
-                PlayerOnErrorPref.SKIP -> Icons.Rounded.SkipNext
+                PlayerOnError.PAUSE -> Icons.Rounded.Pause
+                PlayerOnError.SKIP -> Icons.Rounded.SkipNext
             },
             title = R.string.on_error
         ) {
             val nextState = when (playerOnErrorAction) {
-                PlayerOnErrorPref.PAUSE -> PlayerOnErrorPref.SKIP
-                PlayerOnErrorPref.SKIP -> PlayerOnErrorPref.PAUSE
+                PlayerOnError.PAUSE -> PlayerOnError.SKIP
+                PlayerOnError.SKIP -> PlayerOnError.PAUSE
             }
 
             toast?.cancel()
             toast = when (nextState) {
-                PlayerOnErrorPref.PAUSE -> Toast.makeText(context, R.string.pause, Toast.LENGTH_SHORT)
-                PlayerOnErrorPref.SKIP -> Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT)
+                PlayerOnError.PAUSE -> Toast.makeText(context, R.string.pause, Toast.LENGTH_SHORT)
+                PlayerOnError.SKIP -> Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT)
             }
             toast?.show()
 

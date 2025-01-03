@@ -259,9 +259,9 @@ class MusicService : MediaLibraryService(),
                         super.onPlayerError(error)
 
                         // wait for reconnection
-                        val noConnectionError = (error.cause?.cause is PlaybackException)
+                        val isConnectionError = (error.cause?.cause is PlaybackException)
                                 && (error.cause?.cause as PlaybackException).errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
-                        if (!isNetworkConnected.value || noConnectionError) {
+                        if (!isNetworkConnected.value || isConnectionError) {
                             waitingForNetworkConnection.value = true
                             Toast.makeText(
                                 this@MusicService,
@@ -280,7 +280,9 @@ class MusicService : MediaLibraryService(),
                                 Toast.LENGTH_SHORT
                             ).show()
                             return
-                        } else if (playerOnErrorAction == PlayerOnError.SKIP) {
+                        }
+
+                        if (playerOnErrorAction == PlayerOnError.SKIP) {
                             consecutivePlaybackErr += 2
 
                             /**
