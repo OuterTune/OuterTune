@@ -117,7 +117,8 @@ object YouTube {
             summaries = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.mapNotNull { it ->
                 if (it.musicCardShelfRenderer != null)
                     SearchSummary(
-                        title = it.musicCardShelfRenderer.header.musicCardShelfHeaderBasicRenderer.title.runs?.firstOrNull()?.text ?: return@mapNotNull null,
+                        title = it.musicCardShelfRenderer.header.musicCardShelfHeaderBasicRenderer.title.runs?.firstOrNull()?.text
+                            ?: return@mapNotNull null,
                         items = listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(it.musicCardShelfRenderer))
                             .plus(
                                 it.musicCardShelfRenderer.contents
@@ -175,17 +176,20 @@ object YouTube {
                 browseId = browseId,
                 playlistId = playlistId,
                 title = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.title?.runs?.firstOrNull()?.text!!,
-                artists = response.contents.twoColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.straplineTextOne?.runs?.oddElements()?.map {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                    )
-                }!!,
+                artists = response.contents.twoColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.straplineTextOne?.runs?.oddElements()
+                    ?.map {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    }!!,
                 year = response.contents.twoColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
                 thumbnail = response.contents.twoColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url!!,
             ),
             songs = if (withSongs) albumSongs(playlistId).getOrThrow() else emptyList(),
-            otherVersions = response.contents.twoColumnBrowseResultsRenderer.secondaryContents?.sectionListRenderer?.contents?.getOrNull(1)?.musicCarouselShelfRenderer?.contents
+            otherVersions = response.contents.twoColumnBrowseResultsRenderer.secondaryContents?.sectionListRenderer?.contents?.getOrNull(
+                1
+            )?.musicCarouselShelfRenderer?.contents
                 ?.mapNotNull { it.musicTwoRowItemRenderer }
                 ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer)
                 .orEmpty()
@@ -198,9 +202,9 @@ object YouTube {
         val contents =
             response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
                 ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
-                ?.musicPlaylistShelfRenderer?.contents ?:
-            response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
-                ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents
+                ?.musicPlaylistShelfRenderer?.contents
+                ?: response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
+                    ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents
 
         val songs = contents?.mapNotNull {
             AlbumPage.getSong(it.musicResponsiveListItemRenderer)
@@ -303,7 +307,8 @@ object YouTube {
     }
 
     private fun playlistOld(playlistId: String, response: BrowseResponse): PlaylistPage {
-        val header = response.header?.musicDetailHeaderRenderer ?: response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicDetailHeaderRenderer!!
+        val header = response.header?.musicDetailHeaderRenderer
+            ?: response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicDetailHeaderRenderer!!
         val editable = response.header?.musicEditablePlaylistDetailHeaderRenderer != null
 
         return PlaylistPage(
@@ -318,7 +323,7 @@ object YouTube {
                 },
                 songCountText = header.secondSubtitle.runs?.firstOrNull()?.text,
                 thumbnail = header.thumbnail.croppedSquareThumbnailRenderer?.getThumbnailUrl()!!,
-                playEndpoint =  response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                playEndpoint = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
                     ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
                     ?.musicPlaylistShelfRenderer?.contents?.firstOrNull()?.musicResponsiveListItemRenderer
                     ?.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
@@ -492,30 +497,27 @@ object YouTube {
         val tabs = response.contents?.singleColumnBrowseResultsRenderer?.tabs
 
         val contents = if (tabs != null && tabs.size >= tabIndex) {
-                tabs[tabIndex].tabRenderer.content?.sectionListRenderer?.contents?.firstOrNull()
-            }
-            else {
-                null
-            }
+            tabs[tabIndex].tabRenderer.content?.sectionListRenderer?.contents?.firstOrNull()
+        } else {
+            null
+        }
 
         when {
             contents?.gridRenderer != null -> {
                 LibraryPage(
                     items = contents.gridRenderer.items
-                        .mapNotNull (GridRenderer.Item::musicTwoRowItemRenderer)
+                        .mapNotNull(GridRenderer.Item::musicTwoRowItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) },
-                    continuation = contents.gridRenderer.continuations?.firstOrNull()?.
-                        nextContinuationData?.continuation
+                    continuation = contents.gridRenderer.continuations?.firstOrNull()?.nextContinuationData?.continuation
                 )
             }
 
             else -> { // contents?.musicShelfRenderer != null
                 LibraryPage(
                     items = contents?.musicShelfRenderer?.contents!!
-                        .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
+                        .mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
-                    continuation = contents.musicShelfRenderer.continuations?.firstOrNull()?.
-                        nextContinuationData?.continuation
+                    continuation = contents.musicShelfRenderer.continuations?.firstOrNull()?.nextContinuationData?.continuation
                 )
             }
         }
@@ -534,20 +536,18 @@ object YouTube {
             contents?.gridContinuation != null -> {
                 LibraryContinuationPage(
                     items = contents.gridContinuation.items
-                        .mapNotNull (GridRenderer.Item::musicTwoRowItemRenderer)
+                        .mapNotNull(GridRenderer.Item::musicTwoRowItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) },
-                    continuation = contents.gridContinuation.continuations?.firstOrNull()?.
-                        nextContinuationData?.continuation
+                    continuation = contents.gridContinuation.continuations?.firstOrNull()?.nextContinuationData?.continuation
                 )
             }
 
             else -> { // contents?.musicShelfContinuation != null
                 LibraryContinuationPage(
                     items = contents?.musicShelfContinuation?.contents!!
-                        .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
+                        .mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
-                    continuation = contents.musicShelfContinuation.continuations?.firstOrNull()?.
-                        nextContinuationData?.continuation
+                    continuation = contents.musicShelfContinuation.continuations?.firstOrNull()?.nextContinuationData?.continuation
                 )
             }
         }
@@ -662,8 +662,15 @@ object YouTube {
         innerTube.deletePlaylist(WEB_REMIX, playlistId)
     }
 
-    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, registerPlayback: Boolean = true): Result<PlayerResponse> = runCatching {
-        val playerResponse = innerTube.player(client, videoId, playlistId, registerPlayback).body<PlayerResponse>()
+    suspend fun player(
+        videoId: String,
+        playlistId: String? = null,
+        client: YouTubeClient,
+        signatureTimestamp: Int? = null,
+        registerPlayback: Boolean = true
+    ): Result<PlayerResponse> = runCatching {
+        val playerResponse =
+            innerTube.player(client, videoId, playlistId, signatureTimestamp, registerPlayback).body<PlayerResponse>()
 
         if (playerResponse.playabilityStatus.status == "OK") {
             if (registerPlayback)
@@ -703,21 +710,22 @@ object YouTube {
             endpoint.playlistSetVideoId,
             endpoint.index,
             endpoint.params,
-            continuation).body<NextResponse>()
+            continuation
+        ).body<NextResponse>()
         val playlistPanelRenderer = response.continuationContents?.playlistPanelContinuation
             ?: response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer
                 .watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer
                 ?.content?.playlistPanelRenderer!!
         val title = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer
-                .watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer
-                ?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
+            .watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer
+            ?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
         val items = playlistPanelRenderer.contents.mapNotNull { content ->
             content.playlistPanelVideoRenderer
                 ?.let(NextPage::fromPlaylistPanelVideoRenderer)
                 ?.let { it to content.playlistPanelVideoRenderer.selected }
         }
         val songs = items.map { it.first }
-                val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
+        val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
 
         // load automix items
         playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.let { watchPlaylistEndpoint ->
@@ -725,8 +733,12 @@ object YouTube {
                 result.copy(
                     title = title,
                     items = songs + result.items,
-                    lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
-                    relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
+                    lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(
+                        1
+                    )?.tabRenderer?.endpoint?.browseEndpoint,
+                    relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(
+                        2
+                    )?.tabRenderer?.endpoint?.browseEndpoint,
                     currentIndex = currentIndex,
                     endpoint = watchPlaylistEndpoint
                 )
@@ -736,8 +748,12 @@ object YouTube {
             title = title,
             items = songs,
             currentIndex = currentIndex,
-            lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
-            relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
+            lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(
+                1
+            )?.tabRenderer?.endpoint?.browseEndpoint,
+            relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(
+                2
+            )?.tabRenderer?.endpoint?.browseEndpoint,
             continuation = playlistPanelRenderer.continuations?.getContinuation(),
             endpoint = endpoint
         )
@@ -756,8 +772,9 @@ object YouTube {
         val playlists = mutableListOf<PlaylistItem>()
         response.contents?.sectionListRenderer?.contents?.forEach { sectionContent ->
             sectionContent.musicCarouselShelfRenderer?.contents?.forEach { content ->
-                when (val item = content.musicResponsiveListItemRenderer?.let(RelatedPage.Companion::fromMusicResponsiveListItemRenderer)
-                    ?: content.musicTwoRowItemRenderer?.let(RelatedPage.Companion::fromMusicTwoRowItemRenderer)) {
+                when (val item =
+                    content.musicResponsiveListItemRenderer?.let(RelatedPage.Companion::fromMusicResponsiveListItemRenderer)
+                        ?: content.musicTwoRowItemRenderer?.let(RelatedPage.Companion::fromMusicTwoRowItemRenderer)) {
                     is SongItem -> if (content.musicResponsiveListItemRenderer?.overlay
                             ?.musicItemThumbnailOverlayRenderer?.content
                             ?.musicPlayButtonRenderer?.playNavigationEndpoint
@@ -775,21 +792,24 @@ object YouTube {
         RelatedPage(songs, albums, artists, playlists)
     }
 
-    suspend fun queue(videoIds: List<String>? = null, playlistId: String? = null): Result<List<SongItem>> = runCatching {
-        if (videoIds != null) {
-            assert(videoIds.size <= MAX_GET_QUEUE_SIZE) // Max video limit
-        }
-        innerTube.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueDatas
-            .mapNotNull {
-                it.content.playlistPanelVideoRenderer?.let { renderer ->
-                    NextPage.fromPlaylistPanelVideoRenderer(renderer)
-                }
+    suspend fun queue(videoIds: List<String>? = null, playlistId: String? = null): Result<List<SongItem>> =
+        runCatching {
+            if (videoIds != null) {
+                assert(videoIds.size <= MAX_GET_QUEUE_SIZE) // Max video limit
             }
-    }
+            innerTube.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueDatas
+                .mapNotNull {
+                    it.content.playlistPanelVideoRenderer?.let { renderer ->
+                        NextPage.fromPlaylistPanelVideoRenderer(renderer)
+                    }
+                }
+        }
 
     suspend fun transcript(videoId: String): Result<String> = runCatching {
         val response = innerTube.getTranscript(WEB, videoId).body<GetTranscriptResponse>()
-        response.actions?.firstOrNull()?.updateEngagementPanelAction?.content?.transcriptRenderer?.body?.transcriptBodyRenderer?.cueGroups?.joinToString(separator = "\n") { group ->
+        response.actions?.firstOrNull()?.updateEngagementPanelAction?.content?.transcriptRenderer?.body?.transcriptBodyRenderer?.cueGroups?.joinToString(
+            separator = "\n"
+        ) { group ->
             val time = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.startOffsetMs
             val text = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.cue.simpleText
                 .trim('♪')
@@ -828,10 +848,14 @@ object YouTube {
     @JvmInline
     value class LibraryFilter(val value: String) {
         companion object {
-            val FILTER_RECENT_ACTIVITY = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCaEFCb0FZQg%3D%3D")
-            val FILTER_RECENTLY_PLAYED = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCUkFCb0FZQg%3D%3D")
-            val FILTER_PLAYLISTS_ALPHABETICAL = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpa2VkX3BsYXlsaXN0cxoQZ2dNR0tnUUlBUkFBb0FZQg%3D%3D")
-            val FILTER_PLAYLISTS_RECENTLY_SAVED = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpa2VkX3BsYXlsaXN0cxoQZ2dNR0tnUUlBQkFCb0FZQg%3D%3D")
+            val FILTER_RECENT_ACTIVITY =
+                LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCaEFCb0FZQg%3D%3D")
+            val FILTER_RECENTLY_PLAYED =
+                LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCUkFCb0FZQg%3D%3D")
+            val FILTER_PLAYLISTS_ALPHABETICAL =
+                LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpa2VkX3BsYXlsaXN0cxoQZ2dNR0tnUUlBUkFBb0FZQg%3D%3D")
+            val FILTER_PLAYLISTS_RECENTLY_SAVED =
+                LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpa2VkX3BsYXlsaXN0cxoQZ2dNR0tnUUlBQkFCb0FZQg%3D%3D")
         }
     }
 

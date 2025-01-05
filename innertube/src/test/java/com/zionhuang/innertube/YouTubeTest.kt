@@ -25,7 +25,7 @@ class YouTubeTest {
     @Test
     fun `Check 'player' endpoint`() = runBlocking {
         VIDEO_IDS.forEach { videoId ->
-            val playerResponse = youTube.player(videoId, client = YouTubeClient.WEB_REMIX).getOrThrow()
+            val playerResponse = youTube.player(videoId, client = YouTubeClient.IOS).getOrThrow()
             assertTrue(playerResponse.playabilityStatus.status == "OK")
         }
     }
@@ -33,7 +33,7 @@ class YouTubeTest {
     @Test
     fun `Check playable stream`() = runBlocking {
         VIDEO_IDS.forEach { videoId ->
-            val playerResponse = youTube.player(videoId, client = YouTubeClient.WEB_REMIX).getOrThrow()
+            val playerResponse = youTube.player(videoId, client = YouTubeClient.IOS).getOrThrow()
             val format = playerResponse.streamingData!!.adaptiveFormats[0]
             val url = format.url!!
             println(url)

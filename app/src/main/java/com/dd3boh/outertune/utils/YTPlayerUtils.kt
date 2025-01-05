@@ -4,6 +4,8 @@ import android.net.ConnectivityManager
 import androidx.media3.common.PlaybackException
 import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.db.entities.FormatEntity
+import com.dd3boh.outertune.utils.reportException
+import com.zionhuang.innertube.NewPipeUtils
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
@@ -54,8 +56,16 @@ object YTPlayerUtils {
         connectivityManager: ConnectivityManager,
         registerPlayback: Boolean = false,
     ): Result<PlaybackData> = runCatching {
+        /**
+         * This is required for some clients to get working streams however
+         * it should not be forced for the [MAIN_CLIENT] because the response of the [MAIN_CLIENT]
+         * is required even if the streams won't work from this client.
+         * This is why it is allowed to be null.
+         */
+        val signatureTimestamp = getSignatureTimestampOrNull(videoId)
+
         val mainPlayerResponse =
-            YouTube.player(videoId, playlistId, client = MAIN_CLIENT).getOrThrow()
+            YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp).getOrThrow()
 
         val audioConfig = mainPlayerResponse.playerConfig?.audioConfig
         val videoDetails = mainPlayerResponse.videoDetails
@@ -65,50 +75,45 @@ object YTPlayerUtils {
         var streamUrl: String? = null
         var streamExpiresInSeconds: Int? = null
 
-        if (mainPlayerResponse.playabilityStatus.status == "OK") {
-            format = findFormat(
-                mainPlayerResponse,
-                playedFormat,
-                audioQuality,
-                connectivityManager,
-            )
-            if (format != null) {
-                streamUrl = format.findUrl()
-                streamExpiresInSeconds = mainPlayerResponse.streamingData?.expiresInSeconds
-                if (streamUrl != null && streamExpiresInSeconds != null && validateStatus(streamUrl)) {
-                    return@runCatching PlaybackData(
-                        audioConfig,
-                        videoDetails,
-                        playbackTracking,
-                        format,
-                        streamUrl,
-                        streamExpiresInSeconds,
-                    )
-                }
-            }
-        }
-
-        var fallbackPlayerResponse: PlayerResponse? = null
-        for (client in STREAM_FALLBACK_CLIENTS) {
+        var streamPlayerResponse: PlayerResponse? = null
+        for (clientIndex in (-1 until STREAM_FALLBACK_CLIENTS.size)) {
             // reset for each client
             format = null
             streamUrl = null
             streamExpiresInSeconds = null
 
+            // decide which client to use
+            if (clientIndex == -1) {
+                // try with streams from main client first
+                streamPlayerResponse = mainPlayerResponse
+            } else {
+                // after main client use fallback clients
+                val client = STREAM_FALLBACK_CLIENTS[clientIndex]
+                if (client.loginRequired && YouTube.cookie == null) {
+                    // skip client if it requires login but user is not logged in
+                    continue
+                }
+
+                streamPlayerResponse =
+                    YouTube.player(videoId, playlistId, client, signatureTimestamp).getOrNull()
+            }
+
             // process current client response
-            fallbackPlayerResponse =
-                YouTube.player(videoId, playlistId, client).getOrNull()
-            if (fallbackPlayerResponse?.playabilityStatus?.status == "OK") {
+            if (streamPlayerResponse?.playabilityStatus?.status == "OK") {
                 format =
                     findFormat(
-                        fallbackPlayerResponse,
+                        streamPlayerResponse,
                         playedFormat,
                         audioQuality,
                         connectivityManager,
                     ) ?: continue
-                streamUrl = format.findUrl() ?: continue
-                streamExpiresInSeconds = fallbackPlayerResponse.streamingData?.expiresInSeconds ?: continue
+                streamUrl = findUrlOrNull(format, videoId) ?: continue
+                streamExpiresInSeconds = streamPlayerResponse.streamingData?.expiresInSeconds ?: continue
 
+                if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1) {
+                    /** skip [validateStatus] for last client */
+                    break
+                }
                 if (validateStatus(streamUrl)) {
                     // working stream found
                     break
@@ -116,12 +121,12 @@ object YTPlayerUtils {
             }
         }
 
-        if (fallbackPlayerResponse == null) {
-            throw Exception("Bad fallback player response")
+        if (streamPlayerResponse == null) {
+            throw Exception("Bad stream player response")
         }
-        if (fallbackPlayerResponse.playabilityStatus.status != "OK") {
+        if (streamPlayerResponse.playabilityStatus.status != "OK") {
             throw PlaybackException(
-                fallbackPlayerResponse.playabilityStatus.reason,
+                streamPlayerResponse.playabilityStatus.reason,
                 null,
                 PlaybackException.ERROR_CODE_REMOTE_ERROR
             )
@@ -177,11 +182,48 @@ object YTPlayerUtils {
                 }
         }
 
+    /**
+     * Checks if the stream url returns a successful status.
+     * If this returns true the url is likely to work.
+     * If this returns false the url might cause an error during playback.
+     */
     private fun validateStatus(url: String): Boolean {
-        val requestBuilder = okhttp3.Request.Builder()
-            .head()
-            .url(url)
-        val response = httpClient.newCall(requestBuilder.build()).execute()
-        return response.isSuccessful
+        try {
+            val requestBuilder = okhttp3.Request.Builder()
+                .head()
+                .url(url)
+            val response = httpClient.newCall(requestBuilder.build()).execute()
+            return response.isSuccessful
+        } catch (e: Exception) {
+            reportException(e)
+        }
+        return false
+    }
+
+    /**
+     * Wrapper around the [NewPipeUtils.getSignatureTimestamp] function which reports exceptions
+     */
+    private fun getSignatureTimestampOrNull(
+        videoId: String
+    ): Int? {
+        return NewPipeUtils.getSignatureTimestamp(videoId)
+            .onFailure {
+                reportException(it)
+            }
+            .getOrNull()
+    }
+
+    /**
+     * Wrapper around the [NewPipeUtils.getStreamUrl] function which reports exceptions
+     */
+    private fun findUrlOrNull(
+        format: PlayerResponse.StreamingData.Format,
+        videoId: String
+    ): String? {
+        return NewPipeUtils.getStreamUrl(format, videoId)
+            .onFailure {
+                reportException(it)
+            }
+            .getOrNull()
     }
 }
