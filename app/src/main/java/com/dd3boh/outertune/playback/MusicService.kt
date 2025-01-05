@@ -101,7 +101,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.WatchEndpoint
-import com.zionhuang.innertube.models.response.PlayerResponse
+import com.zionhuang.music.utils.YTPlayerUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -447,15 +447,15 @@ class MusicService : MediaLibraryService(),
         )
     }
 
-    private suspend fun recoverSong(mediaId: String, playerResponse: PlayerResponse? = null) {
+    private suspend fun recoverSong(mediaId: String, playbackData: YTPlayerUtils.PlaybackData? = null) {
         var playbackUrl = database.format(mediaId).first()?.playbackUrl
 
         if (playbackUrl == null) {
-            playbackUrl = if (playerResponse?.playbackTracking?.videostatsPlaybackUrl?.baseUrl == null)
-                YouTube.player(mediaId, registerPlayback = false).getOrNull()?.playbackTracking
+            playbackUrl = if (playbackData?.playbackTracking?.videostatsPlaybackUrl?.baseUrl == null)
+                YTPlayerUtils.playerResponseForMetadata(mediaId, registerPlayback = false).getOrNull()?.playbackTracking
                     ?.videostatsPlaybackUrl?.baseUrl!!
             else
-                playerResponse.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
         }
 
         playbackUrl?.let {
@@ -471,7 +471,7 @@ class MusicService : MediaLibraryService(),
         } ?: return
         val duration = song?.song?.duration?.takeIf { it != -1 }
             ?: mediaMetadata.duration.takeIf { it != -1 }
-            ?: (videoDetails ?: YTPlayerUtils.playerResponseForMetadata(mediaId, , registerPlayback = false).getOrNull()?.videoDetails)?.lengthSeconds?.toInt()
+            ?: (playbackData?.videoDetails ?: YTPlayerUtils.playerResponseForMetadata(mediaId, registerPlayback = false).getOrNull()?.videoDetails)?.lengthSeconds?.toInt()
             ?: -1
         database.query {
             if (song == null) insert(mediaMetadata.copy(duration = duration))
@@ -725,12 +725,12 @@ class MusicService : MediaLibraryService(),
                         bitrate = format.bitrate,
                         sampleRate = format.audioSampleRate,
                         contentLength = format.contentLength!!,
-                        loudnessDb = playbackData.audioConfig?.loudnessDb
+                        loudnessDb = playbackData.audioConfig?.loudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl!!
                     )
                 )
             }
-            scope.launch(Dispatchers.IO) { recoverSong(mediaId, playbackData.videoDetails) }
+            scope.launch(Dispatchers.IO) { recoverSong(mediaId, playbackData) }
 
             val streamUrl = playbackData.streamUrl
 

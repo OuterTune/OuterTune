@@ -2,14 +2,14 @@ package com.zionhuang.music.utils
 
 import android.net.ConnectivityManager
 import androidx.media3.common.PlaybackException
+import com.dd3boh.outertune.constants.AudioQuality
+import com.dd3boh.outertune.db.entities.FormatEntity
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_CREATOR
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.zionhuang.innertube.models.response.PlayerResponse
-import com.zionhuang.music.constants.AudioQuality
-import com.zionhuang.music.db.entities.FormatEntity
 import okhttp3.OkHttpClient
 
 object YTPlayerUtils {
@@ -35,6 +35,7 @@ object YTPlayerUtils {
     data class PlaybackData(
         val audioConfig: PlayerResponse.PlayerConfig.AudioConfig?,
         val videoDetails: PlayerResponse.VideoDetails?,
+        val playbackTracking: PlayerResponse.PlaybackTracking?,
         val format: PlayerResponse.StreamingData.Format,
         val streamUrl: String,
         val streamExpiresInSeconds: Int,
@@ -51,12 +52,14 @@ object YTPlayerUtils {
         playedFormat: FormatEntity?,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
+        registerPlayback: Boolean = false,
     ): Result<PlaybackData> = runCatching {
         val mainPlayerResponse =
             YouTube.player(videoId, playlistId, client = MAIN_CLIENT).getOrThrow()
 
         val audioConfig = mainPlayerResponse.playerConfig?.audioConfig
         val videoDetails = mainPlayerResponse.videoDetails
+        val playbackTracking = mainPlayerResponse.playbackTracking
 
         var format: PlayerResponse.StreamingData.Format? = null
         var streamUrl: String? = null
@@ -76,6 +79,7 @@ object YTPlayerUtils {
                     return@runCatching PlaybackData(
                         audioConfig,
                         videoDetails,
+                        playbackTracking,
                         format,
                         streamUrl,
                         streamExpiresInSeconds,
@@ -135,6 +139,7 @@ object YTPlayerUtils {
         PlaybackData(
             audioConfig,
             videoDetails,
+            playbackTracking,
             format,
             streamUrl,
             streamExpiresInSeconds,
@@ -148,8 +153,9 @@ object YTPlayerUtils {
     suspend fun playerResponseForMetadata(
         videoId: String,
         playlistId: String? = null,
+        registerPlayback: Boolean = false
     ): Result<PlayerResponse> =
-        YouTube.player(videoId, playlistId, client = MAIN_CLIENT)
+        YouTube.player(videoId, playlistId, client = MAIN_CLIENT, registerPlayback = registerPlayback)
 
     private fun findFormat(
         playerResponse: PlayerResponse,

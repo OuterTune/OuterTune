@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.media3.common.PlaybackException
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.SimpleCache
@@ -21,9 +22,11 @@ import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.FormatEntity
 import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.di.DownloadCache
+import com.dd3boh.outertune.extensions.getLikeAutoDownload
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.utils.enumPreference
 import com.zionhuang.innertube.YouTube
+import com.zionhuang.music.utils.YTPlayerUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +43,6 @@ import java.time.ZoneOffset
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.dd3boh.outertune.extensions.getLikeAutoDownload
 
 @Singleton
 class DownloadUtil @Inject constructor(

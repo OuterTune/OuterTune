@@ -121,6 +121,7 @@ class InnerTube {
         client: YouTubeClient,
         videoId: String,
         playlistId: String?,
+        registerPlayback: Boolean = false,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
@@ -148,7 +149,7 @@ class InnerTube {
 
     suspend fun registerPlayback(url: String, cpn: String, playlistId: String?)
             = httpClient.get(url) {
-        ytClient(YouTubeClient.ANDROID_MUSIC, true)
+        ytClient(YouTubeClient.WEB_REMIX, true)
         parameter("ver", "2")
         parameter("c", "ANDROID_MUSIC")
         parameter("cpn", cpn)
