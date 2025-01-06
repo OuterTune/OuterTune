@@ -24,11 +24,9 @@ import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material.icons.rounded.LibraryAddCheck
-import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SlowMotionVideo
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Tune
@@ -44,6 +42,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,8 +72,6 @@ import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
-import com.dd3boh.outertune.constants.PlayerOnError
-import com.dd3boh.outertune.constants.PlayerOnErrorActionKey
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
@@ -85,7 +83,6 @@ import com.dd3boh.outertune.ui.component.GridMenu
 import com.dd3boh.outertune.ui.component.GridMenuItem
 import com.dd3boh.outertune.ui.component.ListDialog
 import com.dd3boh.outertune.ui.component.SleepTimerGridMenu
-import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -115,10 +112,8 @@ fun PlayerMenu(
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    val (playerOnErrorAction, onPlayerOnErrorAction) = rememberEnumPreference(key = PlayerOnErrorActionKey, defaultValue = PlayerOnError.PAUSE)
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
-    var toast by rememberSaveable { mutableStateOf<Toast?>(null) }
 
     var showChooseQueueDialog by rememberSaveable {
         mutableStateOf(false)
@@ -234,7 +229,7 @@ fun PlayerMenu(
     }
 
     var sleepTimerValue by remember {
-        mutableStateOf(30f)
+        mutableFloatStateOf(30f)
     }
 
     if (showSleepTimerDialog) {
@@ -451,28 +446,6 @@ fun PlayerMenu(
         ) {
             showPitchTempoDialog = true
         }
-
-        GridMenuItem(
-            icon = when (playerOnErrorAction) {
-                PlayerOnError.PAUSE -> Icons.Rounded.Pause
-                PlayerOnError.SKIP -> Icons.Rounded.SkipNext
-            },
-            title = R.string.on_error
-        ) {
-            val nextState = when (playerOnErrorAction) {
-                PlayerOnError.PAUSE -> PlayerOnError.SKIP
-                PlayerOnError.SKIP -> PlayerOnError.PAUSE
-            }
-
-            toast?.cancel()
-            toast = when (nextState) {
-                PlayerOnError.PAUSE -> Toast.makeText(context, R.string.pause, Toast.LENGTH_SHORT)
-                PlayerOnError.SKIP -> Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT)
-            }
-            toast?.show()
-
-            onPlayerOnErrorAction(nextState)
-        }
     }
 }
 
@@ -482,10 +455,10 @@ fun PitchTempoDialog(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     var tempo by remember {
-        mutableStateOf(playerConnection.player.playbackParameters.speed)
+        mutableFloatStateOf(playerConnection.player.playbackParameters.speed)
     }
     var transposeValue by remember {
-        mutableStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
+        mutableIntStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
     }
     val updatePlaybackParameters = {
         playerConnection.player.playbackParameters = PlaybackParameters(tempo, 2f.pow(transposeValue.toFloat() / 12))

@@ -64,8 +64,6 @@ import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleRepeatM
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleShuffle
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
-import com.dd3boh.outertune.constants.PlayerOnError
-import com.dd3boh.outertune.constants.PlayerOnErrorActionKey
 import com.dd3boh.outertune.constants.PlayerVolumeKey
 import com.dd3boh.outertune.constants.RepeatModeKey
 import com.dd3boh.outertune.constants.ShowLyricsKey
@@ -160,8 +158,6 @@ class MusicService : MediaLibraryService(),
     private lateinit var connectivityManager: ConnectivityManager
 
     private val audioQuality by enumPreference(this, AudioQualityKey, AudioQuality.AUTO)
-    private val playerOnErrorAction by enumPreference(this, PlayerOnErrorActionKey, PlayerOnError.PAUSE)
-
 
     var queueTitle: String? = null
     var queuePlaylistId: String? = null
@@ -265,52 +261,39 @@ class MusicService : MediaLibraryService(),
                             waitingForNetworkConnection.value = true
                             Toast.makeText(
                                 this@MusicService,
-                                getString(R.string.wait_to_reconnect) + " " + getString(R.string.on_error).lowercase(),
+                                getString(R.string.wait_to_reconnect),
                                 Toast.LENGTH_LONG
                             ).show()
                             return
                         }
 
 
-                        if (playerOnErrorAction == PlayerOnError.PAUSE) {
+                        /**
+                         * Auto skip to the next media item on error.
+                         *
+                         * To prevent a "runaway diesel engine" scenario, force the user to take action after
+                         * too many errors come up too quickly. Pause to show player "stopped" state
+                         */
+                        consecutivePlaybackErr += 2
+                        val nextWindowIndex = player.nextMediaItemIndex
+                        if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
+                            player.seekTo(nextWindowIndex, C.TIME_UNSET)
+                            player.prepare()
+                            player.play()
+
+                            Toast.makeText(
+                                this@MusicService,
+                                getString(R.string.play_next) + " " + getString(R.string.on_error).lowercase(),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
                             player.pause()
                             Toast.makeText(
                                 this@MusicService,
-                                getString(R.string.pause) + " " + getString(R.string.on_error).lowercase(),
+                                "Playback stopped due to too many errors",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            return
-                        }
-
-                        if (playerOnErrorAction == PlayerOnError.SKIP) {
-                            consecutivePlaybackErr += 2
-
-                            /**
-                             * Auto skip to the next media item on error.
-                             *
-                             * To prevent a "runaway diesel engine" scenario, force the user to take action after
-                             * too many errors come up too quickly. Pause to show player "stopped" state
-                             */
-                            val nextWindowIndex = player.nextMediaItemIndex
-                            if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
-                                player.seekTo(nextWindowIndex, C.TIME_UNSET)
-                                player.prepare()
-                                player.play()
-
-                                Toast.makeText(
-                                    this@MusicService,
-                                    getString(R.string.play_next) + " " + getString(R.string.on_error).lowercase(),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                player.pause()
-                                Toast.makeText(
-                                    this@MusicService,
-                                    "Playback stopped due to too many errors",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                consecutivePlaybackErr = 0
-                            }
+                            consecutivePlaybackErr = 0
                         }
 
                         Toast.makeText(
