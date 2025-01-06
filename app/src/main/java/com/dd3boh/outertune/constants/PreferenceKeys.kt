@@ -46,6 +46,7 @@ val AudioOffload = booleanPreferencesKey("enableOffload")
 
 val PersistentQueueKey = booleanPreferencesKey("persistentQueue")
 val SkipSilenceKey = booleanPreferencesKey("skipSilence")
+val SkipOnErrorKey = booleanPreferencesKey("skipOnError")
 val AudioNormalizationKey = booleanPreferencesKey("audioNormalization")
 val KeepAliveKey = booleanPreferencesKey("keepAlive")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")

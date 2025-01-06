@@ -67,6 +67,7 @@ import com.dd3boh.outertune.constants.PersistentQueueKey
 import com.dd3boh.outertune.constants.PlayerVolumeKey
 import com.dd3boh.outertune.constants.RepeatModeKey
 import com.dd3boh.outertune.constants.ShowLyricsKey
+import com.dd3boh.outertune.constants.SkipOnErrorKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
 import com.dd3boh.outertune.constants.minPlaybackDurKey
 import com.dd3boh.outertune.db.MusicDatabase
@@ -268,24 +269,29 @@ class MusicService : MediaLibraryService(),
                         }
 
 
+                        if (!dataStore.get(SkipOnErrorKey, true)) {
+                            return
+                        }
+
+                        consecutivePlaybackErr += 2
+
+                        Toast.makeText(
+                            this@MusicService,
+                            "Playback error: ${error.message} (${error.errorCode}): ${error.cause?.message?: "No further errors."} ",
+                            Toast.LENGTH_LONG
+                        ).show()
+
                         /**
                          * Auto skip to the next media item on error.
                          *
                          * To prevent a "runaway diesel engine" scenario, force the user to take action after
                          * too many errors come up too quickly. Pause to show player "stopped" state
                          */
-                        consecutivePlaybackErr += 2
                         val nextWindowIndex = player.nextMediaItemIndex
                         if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
                             player.seekTo(nextWindowIndex, C.TIME_UNSET)
                             player.prepare()
                             player.play()
-
-                            Toast.makeText(
-                                this@MusicService,
-                                getString(R.string.play_next) + " " + getString(R.string.on_error).lowercase(),
-                                Toast.LENGTH_SHORT
-                            ).show()
                         } else {
                             player.pause()
                             Toast.makeText(
@@ -295,13 +301,6 @@ class MusicService : MediaLibraryService(),
                             ).show()
                             consecutivePlaybackErr = 0
                         }
-
-                        Toast.makeText(
-                            this@MusicService,
-                            "Playback error: ${error.message} (${error.errorCode}): ${error.cause?.message?: "No further errors."} ",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        player.pause()
                     }
 
                     // start playback again on seek
