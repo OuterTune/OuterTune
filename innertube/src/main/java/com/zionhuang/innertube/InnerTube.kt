@@ -151,7 +151,7 @@ class InnerTube {
             = httpClient.get(url) {
         ytClient(YouTubeClient.WEB_REMIX, true)
         parameter("ver", "2")
-        parameter("c", "ANDROID_MUSIC")
+        parameter("c", "WEB_REMIX")
         parameter("cpn", cpn)
 
         if (playlistId != null) {
