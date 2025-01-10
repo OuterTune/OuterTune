@@ -662,19 +662,8 @@ object YouTube {
         playlistId: String? = null,
         client: YouTubeClient,
         signatureTimestamp: Int? = null,
-        registerPlayback: Boolean = true
     ): Result<PlayerResponse> = runCatching {
-        val playerResponse =
-            innerTube.player(client, videoId, playlistId, signatureTimestamp, registerPlayback).body<PlayerResponse>()
-
-        if (playerResponse.playabilityStatus.status == "OK") {
-            if (registerPlayback)
-                registerPlayback(playlistId, playerResponse.playbackTracking?.videostatsPlaybackUrl?.baseUrl!!)
-
-            return@runCatching playerResponse
-        }
-
-        playerResponse
+        innerTube.player(client, videoId, playlistId, signatureTimestamp).body<PlayerResponse>()
     }
 
     suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) {

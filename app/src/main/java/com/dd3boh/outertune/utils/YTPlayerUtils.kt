@@ -56,7 +56,6 @@ object YTPlayerUtils {
         playedFormat: FormatEntity?,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
-        registerPlayback: Boolean = false,
     ): Result<PlaybackData> = runCatching {
         /**
          * This is required for some clients to get working streams however
@@ -160,9 +159,8 @@ object YTPlayerUtils {
     suspend fun playerResponseForMetadata(
         videoId: String,
         playlistId: String? = null,
-        registerPlayback: Boolean = false
     ): Result<PlayerResponse> =
-        YouTube.player(videoId, playlistId, client = MAIN_CLIENT, registerPlayback = registerPlayback)
+        YouTube.player(videoId, playlistId, client = MAIN_CLIENT)
 
     private fun findFormat(
         playerResponse: PlayerResponse,
@@ -228,4 +226,55 @@ object YTPlayerUtils {
             }
             .getOrNull()
     }
+
+
+    /**
+     * OuterTune extras
+     */
+
+
+
+//
+//    /**
+//     * Add to remote playback history
+//     */
+//    fun registerPlayback(playlistId: String? = null, playbackTracking: String): Boolean {
+//        val cpn = (1..16).map {
+//            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
+//                0,
+//                64
+//            )]
+//        }.joinToString("")
+//
+//        val playbackUrl = playbackTracking.replace(
+//            "https://s.youtube.com",
+//            "https://music.youtube.com",
+//        )
+//
+
+////        try {
+//            val baseUrl = playbackUrl.toHttpUrlOrNull() ?: throw IllegalArgumentException("Invalid URL: $playbackUrl")
+//            val httpBuilder = baseUrl.newBuilder()
+//                .addQueryParameter("ver", "2")
+//                .addQueryParameter("c", "WEB_REMIX")
+//                .addQueryParameter("cpn", cpn)
+//
+//            if (playlistId != null) {
+//                httpBuilder.addQueryParameter("list", playlistId)
+//                httpBuilder.addQueryParameter("referrer", "https://music.youtube.com/playlist?list=$playlistId")
+//            }
+//
+//            val requestBuilder = okhttp3.Request.Builder()
+//                .head()
+//                .url(httpBuilder.build())
+//
+//            val response = httpClient.newCall(requestBuilder.build()).execute()
+//            return response.isSuccessful
+////        } catch (e: Exception) {
+////            reportException(e)
+////            throw Exception("weh", e)
+////        }
+//
+//        return false
+//    }
 }

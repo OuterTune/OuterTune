@@ -77,7 +77,6 @@ class DownloadUtil @Inject constructor(
                 playedFormat = playedFormat,
                 audioQuality = audioQuality,
                 connectivityManager = connectivityManager,
-                registerPlayback = false,
             )
         }.getOrThrow()
         val format = playbackData.format

@@ -121,7 +121,6 @@ class InnerTube {
         videoId: String,
         playlistId: String?,
         signatureTimestamp: Int?,
-        registerPlayback: Boolean = false,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(

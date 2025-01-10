@@ -452,17 +452,10 @@ class MusicService : MediaLibraryService(),
 
         if (playbackUrl == null) {
             playbackUrl = if (playbackData?.playbackTracking?.videostatsPlaybackUrl?.baseUrl == null)
-                YTPlayerUtils.playerResponseForMetadata(mediaId, registerPlayback = false).getOrNull()?.playbackTracking
+                YTPlayerUtils.playerResponseForMetadata(mediaId).getOrNull()?.playbackTracking
                     ?.videostatsPlaybackUrl?.baseUrl!!
             else
                 playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-        }
-
-        playbackUrl?.let {
-            try { YouTube.registerPlayback(queuePlaylistId, playbackUrl) }
-            catch (exception: UnknownHostException) {
-                reportException(exception)
-            }
         }
 
         val song = database.song(mediaId).first()
@@ -471,7 +464,7 @@ class MusicService : MediaLibraryService(),
         } ?: return
         val duration = song?.song?.duration?.takeIf { it != -1 }
             ?: mediaMetadata.duration.takeIf { it != -1 }
-            ?: (playbackData?.videoDetails ?: YTPlayerUtils.playerResponseForMetadata(mediaId, registerPlayback = false).getOrNull()?.videoDetails)?.lengthSeconds?.toInt()
+            ?: (playbackData?.videoDetails ?: YTPlayerUtils.playerResponseForMetadata(mediaId).getOrNull()?.videoDetails)?.lengthSeconds?.toInt()
             ?: -1
         database.query {
             if (song == null) insert(mediaMetadata.copy(duration = duration))
@@ -696,7 +689,6 @@ class MusicService : MediaLibraryService(),
                     playedFormat = playedFormat,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
-                    registerPlayback = false,
                 )
             }.getOrElse { throwable ->
                 when (throwable) {
@@ -820,6 +812,19 @@ class MusicService : MediaLibraryService(),
                         )
                     )
                 } catch (_: SQLException) {
+                }
+            }
+
+            // TODO: support playlist id
+            if (mediaItem.metadata?.isLocal != true) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val playerResponse = YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null).getOrNull()
+                    if (playerResponse?.playabilityStatus?.status == "OK") {
+                        YouTube.registerPlayback(
+                            playlistId = null,
+                            playbackTracking = playerResponse.playbackTracking?.videostatsPlaybackUrl?.baseUrl!!
+                        )
+                    }
                 }
             }
         }
