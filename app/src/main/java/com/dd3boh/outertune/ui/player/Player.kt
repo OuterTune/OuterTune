@@ -226,7 +226,7 @@ fun BottomSheetPlayer(
         backgroundColor = if (useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT) {
             MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
         } else MaterialTheme.colorScheme.onSurfaceVariant,
-        collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
+        collapsedBackgroundColor = Color.Transparent,
         onDismiss = {
             playerConnection.player.stop()
             playerConnection.player.clearMediaItems()
