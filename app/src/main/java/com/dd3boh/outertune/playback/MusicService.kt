@@ -834,12 +834,14 @@ class MusicService : MediaLibraryService(),
             // TODO: support playlist id
             if (mediaItem.metadata?.isLocal != true) {
                 CoroutineScope(Dispatchers.IO).launch {
-                    val playerResponse = YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null).getOrNull()
-                    if (playerResponse?.playabilityStatus?.status == "OK") {
-                        YouTube.registerPlayback(
-                            playlistId = null,
-                            playbackTracking = playerResponse.playbackTracking?.videostatsPlaybackUrl?.baseUrl!!
-                        )
+                    val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
+                        ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null).getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+
+                    playbackUrl?.let {
+                        YouTube.registerPlayback(null, playbackUrl)
+                            .onFailure {
+                                reportException(it)
+                            }
                     }
                 }
             }
