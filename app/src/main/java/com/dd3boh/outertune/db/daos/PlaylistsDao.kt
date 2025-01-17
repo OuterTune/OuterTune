@@ -68,6 +68,7 @@ interface PlaylistsDao {
             LEFT JOIN playlist_song_map psm ON p.id = psm.playlistId
             LEFT JOIN song s ON psm.songId = s.id
         WHERE name LIKE '%' || :query || '%'
+            AND s.inLibrary IS NOT NULL
         GROUP BY p.id
         LIMIT :previewSize
     """)
