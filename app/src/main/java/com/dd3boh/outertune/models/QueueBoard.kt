@@ -351,7 +351,7 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
     ) {
         val listPos = if (pos < 0) {
             0
-        } else if (pos >= q.queue.size) {
+        } else if (pos > q.queue.size) {
             q.queue.size - 1
         } else {
             pos

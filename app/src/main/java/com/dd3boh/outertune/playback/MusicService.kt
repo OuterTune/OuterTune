@@ -402,13 +402,9 @@ class MusicService : MediaLibraryService(),
     fun initQueue() {
         if (dataStore.get(PersistentQueueKey, true)) {
             queueBoard = QueueBoard(database.readQueue().toMutableList())
-            isShuffleEnabled.value = queueBoard.getCurrentQueue()?.shuffled ?: false
-            if (queueBoard.getAllQueues().isNotEmpty()) {
-                val queue = queueBoard.getCurrentQueue()
-                if (queue != null) {
-                    isShuffleEnabled.value = queue.shuffled
-                    queueBoard.initialized = true
-                }
+            queueBoard.getCurrentQueue()?.let {
+                isShuffleEnabled.value = it.shuffled
+                queueBoard.initialized = true
             }
         }
     }
@@ -508,6 +504,7 @@ class MusicService : MediaLibraryService(),
     fun playQueue(queue: Queue, playWhenReady: Boolean = true, replace: Boolean = false, title: String? = null) {
         if (!queueBoard.initialized) {
             initQueue()
+            queueBoard.initialized = true
         }
         queueTitle = title
         queuePlaylistId = queue.playlistId
@@ -554,9 +551,12 @@ class MusicService : MediaLibraryService(),
      * Add items to queue, right after current playing item
      */
     fun enqueueNext(items: List<MediaItem>) {
+        println("wtf "+ "ENQUEUNE NEXT CALLED " + queueBoard.initialized)
         if (!queueBoard.initialized) {
+
             // when enqueuing next when player isn't active, play as a new song
             if (items.isNotEmpty()) {
+                println("wtf "+ "PLAYING FROMe")
                 CoroutineScope(Dispatchers.Main).launch {
                     playQueue(
                         ListQueue(
@@ -834,12 +834,14 @@ class MusicService : MediaLibraryService(),
             // TODO: support playlist id
             if (mediaItem.metadata?.isLocal != true) {
                 CoroutineScope(Dispatchers.IO).launch {
-                    val playerResponse = YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null).getOrNull()
-                    if (playerResponse?.playabilityStatus?.status == "OK") {
-                        YouTube.registerPlayback(
-                            playlistId = null,
-                            playbackTracking = playerResponse.playbackTracking?.videostatsPlaybackUrl?.baseUrl!!
-                        )
+                    val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
+                        ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null).getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+
+                    playbackUrl?.let {
+                        YouTube.registerPlayback(null, playbackUrl)
+                            .onFailure {
+                                reportException(it)
+                            }
                     }
                 }
             }
