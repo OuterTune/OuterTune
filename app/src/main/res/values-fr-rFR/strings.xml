@@ -118,6 +118,7 @@
     <string name="sort_by_song_count">Nombre de Titres</string>
     <string name="sort_by_length">Durée</string>
     <string name="sort_by_play_time">Temps de Lecture</string>
+    <string name="sort_by_play_count">Nombre de Lecture</string>    
     <string name="sort_by_custom">Ordre Personnalisé</string>
 
     <!-- Dialog -->
@@ -377,14 +378,20 @@
     <string name="slim_navbar_description">Supprimer les étiquettes de texte pour réduire la hauteur de la barre de navigation</string>
 
     <!-- Content settings -->
-    <string name="ytm_sync">Synchronisez automatiquement avec votre compte YouTube Music</string>
-    <string name="like_autodownload">Téléchargez automatiquement vos titres préférés</string>
+
+    <string name="token_hidden">Appuyez pour afficher le jeton</string>
+    <string name="token_shown">Appuyez à nouveau pour copier ou modifier</string>
+    <string name="token_adv_login_description">Il s'agit d'une méthode de connexion AVANCÉE. En guise d'alternative au portail Web, vous pouvez saisir ou mettre à jour directement votre jeton de connexion ici. Par exemple, cela peut accélérer la connexion sur plusieurs appareils. Veuillez noter que tout format de jeton non valide que l'application ne parvient pas à analyser ne sera pas accepté.</string>
+    <string name="ytm_sync">Synchronisation automatique avec votre compte YouTube Music</string>
+    <string name="like_autodownload">Téléchargez automatiquement vos chansons préférées</string>
     <string name="wifi_only">Wifi uniquement</string>
 
     <!-- Player settings -->
+    <string name="audio_offload">Activer le déchargement</string>
+    <string name="audio_offload_description">Utilisez le chemin audio de déchargement pour la lecture audio. La désactivation de cette option peut augmenter la consommation d'énergie, mais peut être utile si vous rencontrez des problèmes avec la lecture audio ou le post-traitement.</string>
     <string name="keep_alive_title">Empêcher le système de tuer l'application</string>
-    <string name="keep_alive_description">Utiliser une notification de premier plan pour empêcher OuterTune d’être fermé de manière aléatoire par le système</string>
-
+    <string name="keep_alive_description">Utilisez une notification de premier plan pour empêcher OuterTune d’être fermé de manière aléatoire par le système.</string>
+        
 <!--Lyrics settings -->
     <string name="lyrics_settings_title">Paroles</string>
     <string name="lyrics_multiline_title">Lire les paroles</string>
@@ -425,9 +432,14 @@
     <string name="scanner_sensitivity_L2">Titre du match et artistes</string>
     <string name="scanner_sensitivity_L3">Titre du match, artistes, albums</string>
 
-    <string name="scanner_variant_rescan">Rescan the entire library and reload all songs\' metadata</string>
-    <string name="scanner_online_artist_linking">Try to link local files\' artists with ones on YouTube Music</string>
+    <string name="scanner_type_title">Extracteur de métadonnées</string>
+    <string name="scanner_type_taglib">Utiliser l'extracteur de métadonnées TagLib intégré</string>
+    <string name="scanner_type_ffmpeg_ext">Utiliser l'extracteur de métadonnées FFMpeg. Nécessite l'installation d'un package externe</string>
 
+
+    <string name="scanner_variant_rescan">Réanalyser l'intégralité de la bibliothèque et recharger les métadonnées de tous les titres</string>
+    <string name="scanner_online_artist_linking">Essayez de lier les artistes des fichiers locaux avec ceux de YouTube Music</string>
+        
     <!--experimental settings-->
     <string name="experimental_settings_title">Expérimental</string>
     <string name="dev_settings_title">Activer les paramètres du développeur</string>
