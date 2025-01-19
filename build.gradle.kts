@@ -4,10 +4,6 @@ plugins {
 }
 
 buildscript {
-    val isFullBuild by extra {
-        gradle.startParameter.taskNames.none { task -> task.contains("foss", ignoreCase = true) }
-    }
-
     repositories {
         google()
         mavenCentral()

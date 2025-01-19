@@ -54,6 +54,8 @@ fun AboutScreen(
 ) {
     val uriHandler = LocalUriHandler.current
 
+    val showDebugInfo = BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "userdebug"
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,11 +95,11 @@ fun AboutScreen(
 
             Spacer(Modifier.width(4.dp))
 
-            if (BuildConfig.DEBUG) {
+            if (showDebugInfo) {
                 Spacer(Modifier.width(4.dp))
 
                 Text(
-                    text = "DEBUG",
+                    text =  BuildConfig.BUILD_TYPE.uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier
@@ -155,7 +157,7 @@ fun AboutScreen(
         )
 
         // debug info
-        if (BuildConfig.DEBUG) {
+        if (showDebugInfo) {
             Spacer(Modifier.height(400.dp))
             Row(
                 verticalAlignment = Alignment.Top,
