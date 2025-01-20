@@ -60,6 +60,7 @@ import com.dd3boh.outertune.constants.AudioQualityKey
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.LastPosKey
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleLike
+import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleShuffle
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
@@ -306,6 +307,7 @@ class MusicService : MediaLibraryService(),
 
         mediaLibrarySessionCallback.apply {
             toggleLike = ::toggleLike
+            toggleStartRadio = ::toggleStartRadio
             toggleLibrary = ::toggleLibrary
         }
 
@@ -443,6 +445,12 @@ class MusicService : MediaLibraryService(),
                     .setDisplayName(getString(if (currentSong.value?.song?.liked == true) R.string.action_remove_like else R.string.action_like))
                     .setIconResId(if (currentSong.value?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border)
                     .setSessionCommand(CommandToggleLike)
+                    .setEnabled(currentSong.value != null)
+                    .build(),
+                CommandButton.Builder()
+                    .setDisplayName(getString(R.string.start_radio))
+                    .setIconResId(R.drawable.radio)
+                    .setSessionCommand(CommandToggleStartRadio)
                     .setEnabled(currentSong.value != null)
                     .build()
             )
@@ -586,6 +594,10 @@ class MusicService : MediaLibraryService(),
                 downloadUtil.autoDownloadIfLiked(song)
             }
         }
+    }
+
+    fun toggleStartRadio() {
+        startRadioSeamlessly()
     }
 
     private fun openAudioEffectSession() {
