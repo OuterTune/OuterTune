@@ -1,6 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-val isFullBuild: Boolean by rootProject.extra
 
 plugins {
     id("com.android.application")
@@ -19,8 +18,8 @@ android {
         applicationId = "com.dd3boh.outertune"
         minSdk = 24
         targetSdk = 35
-        versionCode = 34
-        versionName = "0.7.0"
+        versionCode = 35
+        versionName = "0.7.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -32,6 +31,13 @@ android {
         }
         debug {
             applicationIdSuffix = ".debug"
+        }
+
+        // userdebug is release builds without minify
+        create("userdebug") {
+            initWith(getByName("release"))
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 
@@ -77,13 +83,16 @@ android {
                 abiFilters.add("x86_64")
             }
         }
-        // for uncommon, but non-obscure architectures
-        create("uncommon_abi") {
-            dimension = "abi"
-            ndk {
-                abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a"))
+    }
+
+    applicationVariants.all {
+        val variant = this
+        variant.outputs
+            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+            .forEach { output ->
+                val outputFileName = "OuterTune-${variant.versionName}-${variant.baseName}.apk"
+                output.outputFileName = outputFileName
             }
-        }
     }
 
     compileOptions {

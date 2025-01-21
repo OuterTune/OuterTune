@@ -55,7 +55,13 @@ object KuGou {
             val keyword = generateKeyword(title, artist)
             getLyricsCandidate(keyword, duration)?.let { candidate ->
                 downloadLyrics(candidate.id, candidate.accesskey).content.decodeBase64String()
-                    .normalize()
+                    .normalize().let {
+                        if (it == "[00:01.58]纯音乐，请欣赏") {
+                            // instrumental tracks should report as having no lyrics
+                            throw IllegalStateException("No lyrics candidate")
+                        }
+                        it
+                    }
             } ?: throw IllegalStateException("No lyrics candidate")
         }
 

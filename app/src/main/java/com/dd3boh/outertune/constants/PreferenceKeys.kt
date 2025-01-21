@@ -65,6 +65,8 @@ val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
 val MultilineLrcKey = booleanPreferencesKey("multilineLrc")
 val LyricTrimKey = booleanPreferencesKey("lyricTrim")
+val LyricSourcePrefKey = booleanPreferencesKey("preferLocalLyrics")
+val LyricFontSizeKey = intPreferencesKey("lyricFontSize")
 
 
 /**
@@ -77,6 +79,7 @@ val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
  * Privacy
  */
 val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
+val PauseRemoteListenHistoryKey = booleanPreferencesKey("pauseRemoteListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrcLib")

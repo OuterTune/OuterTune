@@ -54,6 +54,8 @@ fun AboutScreen(
 ) {
     val uriHandler = LocalUriHandler.current
 
+    val showDebugInfo = BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "userdebug"
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,11 +95,11 @@ fun AboutScreen(
 
             Spacer(Modifier.width(4.dp))
 
-            if (BuildConfig.DEBUG) {
+            if (showDebugInfo) {
                 Spacer(Modifier.width(4.dp))
 
                 Text(
-                    text = "DEBUG",
+                    text =  BuildConfig.BUILD_TYPE.uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier
@@ -141,7 +143,7 @@ fun AboutScreen(
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = "Special Thanks",
+                text = stringResource(R.string.special_thanks),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -149,13 +151,13 @@ fun AboutScreen(
         }
 
         Text(
-            text = "Zion Huang for InnerTune",
+            text = stringResource(R.string.attrib_zhuang),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.secondary
         )
 
         // debug info
-        if (BuildConfig.DEBUG) {
+        if (showDebugInfo) {
             Spacer(Modifier.height(400.dp))
             Row(
                 verticalAlignment = Alignment.Top,

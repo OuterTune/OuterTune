@@ -81,6 +81,7 @@ private sealed class SyntacticLrc {
     companion object {
         // also eats space if present
         val timeMarksRegex = "\\[(\\d{2}):(\\d{2})([.:]\\d+)?]".toRegex()
+        val timeMarksAfterWsRegex = "([ \t]+)\\[(\\d{2}):(\\d{2})([.:]\\d+)?]".toRegex()
         val timeWordMarksRegex = "<(\\d{2}):(\\d{2})([.:]\\d+)?>".toRegex()
         val metadataRegex = "\\[([a-zA-Z#]+):([^]]*)]".toRegex()
 
@@ -133,16 +134,21 @@ private sealed class SyntacticLrc {
                     // but hey, we tried. Can't do much about it.
                     // If you want to write something that looks like a timestamp into your lyrics,
                     // you'll probably have to delete the following three lines.
-                    if (!(out.isNotEmpty() && out.last() is NewLine
-                                || out.isNotEmpty() && out.last() is SyncPoint)
-                    )
+                    if (!(out.lastOrNull() is NewLine || out.lastOrNull() is SyncPoint))
                         out.add(NewLine.SyntheticNewLine())
                     out.add(SyncPoint(parseTime(tmMatch)))
                     pos += tmMatch.value.length
                     continue
                 }
+                // Skip spaces in between of compressed lyric sync points. They really are
+                // completely useless information we can and should discard.
+                val tmwMatch = timeMarksAfterWsRegex.matchAt(text, pos)
+                if (out.lastOrNull() is SyncPoint && pos + 7 < text.length && tmwMatch != null) {
+                    pos += tmwMatch.groupValues[1].length
+                    continue
+                }
                 // Speaker points can only appear directly after a sync point
-                if (out.isNotEmpty() && out.last() is SyncPoint) {
+                if (out.lastOrNull() is SyncPoint) {
                     if (pos + 2 < text.length && text.regionMatches(pos, "v1:", 0, 3)) {
                         out.add(SpeakerTag(SpeakerEntity.Voice1))
                         pos += 3
@@ -240,7 +246,7 @@ private sealed class SyntacticLrc {
                     .let { if (it == pos - 1) text.length else it }
                     .let { if (it == pos) it + 1 else it }
                 val subText = text.substring(pos, firstUnsafeCharPos)
-                val last = if (out.isNotEmpty()) out.last() else null
+                val last = out.lastOrNull()
                 // Only count lyric text as lyric text if there is at least one kind of timestamp
                 // associated.
                 if (out.indexOfLast { it is NewLine } <
@@ -259,7 +265,7 @@ private sealed class SyntacticLrc {
                 }
                 pos = firstUnsafeCharPos
             }
-            if (out.isNotEmpty() && out.last() is SyncPoint)
+            if (out.lastOrNull() is SyncPoint)
                 out.add(InvalidText(""))
             if (out.isNotEmpty() && out.last() !is NewLine)
                 out.add(NewLine.SyntheticNewLine())

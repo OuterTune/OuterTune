@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.ui.screens.settings
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -107,7 +108,7 @@ fun ContentSettings(
             .verticalScroll(rememberScrollState())
     ) {
         PreferenceGroupTitle(
-            title = "ACCOUNT"
+            title = stringResource(R.string.account)
         )
         PreferenceEntry(
             title = { Text(if (isLoggedIn) accountName else stringResource(R.string.login)) },
@@ -202,7 +203,7 @@ fun ContentSettings(
         )
 
         PreferenceGroupTitle(
-            title = "LOCALIZATION"
+            title = stringResource(R.string.localization)
         )
         ListPreference(
             title = { Text(stringResource(R.string.content_language)) },
@@ -230,16 +231,14 @@ fun ContentSettings(
         )
 
         PreferenceGroupTitle(
-            title = "PROXY"
+            title = stringResource(R.string.proxy)
         )
-
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_proxy)) },
             checked = proxyEnabled,
             onCheckedChange = onProxyEnabledChange
         )
-
-        if (proxyEnabled) {
+        AnimatedVisibility(proxyEnabled) {
             ListPreference(
                 title = { Text(stringResource(R.string.proxy_type)) },
                 selectedValue = proxyType,

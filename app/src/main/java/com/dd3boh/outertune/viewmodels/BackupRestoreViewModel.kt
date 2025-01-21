@@ -149,7 +149,7 @@ class BackupRestoreViewModel @Inject constructor(
             }
         }.onFailure {
             reportException(it)
-            Toast.makeText(context, R.string.m3u_import_failed, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.m3u_import_playlist_failed, Toast.LENGTH_SHORT).show()
         }
 
         if (songs.isEmpty()) {

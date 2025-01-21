@@ -145,7 +145,7 @@ fun BackupAndRestore(
             ) {
                 item {
                     Text(
-                        text = "Could not import:",
+                        text = stringResource(R.string.m3u_import_song_failed),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,

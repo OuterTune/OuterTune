@@ -81,28 +81,6 @@ object LyricsUtils {
         return emptyList<LyricsEntry>() + parseLyrics(lyrics, parserOptions).convertForLegacy()
     }
 
-
-    // (OuterTune) Support compressed lyrics. We don't support word for word lyrics (Extended LRC) anyways
-    fun uncompressLyrics(lyrics: String): String {
-        var result = ""
-
-        lyrics.lines().forEach { it ->
-            val regex = Regex("""\[\d+:\d+\.\d+\]""")
-            val matches = regex.findAll(it)
-
-            if (matches.count() < 1) {
-                result += "$it\n"
-            } else {
-                val c = it.split("\\[(\\d+):(\\d{2})([.:]\\d+)?]".toRegex())
-                val content = c[c.size - 1]
-                for (string in matches) {
-                    result += "${string.value}${content}\n"
-                }
-            }
-        }
-        return result
-    }
-
     @OptIn(UnstableApi::class)
     fun loadAndParseLyricsFile(musicFile: File?, parserOptions: LrcParserOptions): SemanticLyrics? {
         val lrcFile = musicFile?.let { File(it.parentFile, it.nameWithoutExtension + ".lrc") }

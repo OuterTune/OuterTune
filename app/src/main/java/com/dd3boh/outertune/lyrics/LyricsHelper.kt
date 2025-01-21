@@ -4,16 +4,18 @@ import android.content.Context
 import android.os.Build
 import android.util.LruCache
 import androidx.annotation.RequiresApi
+import com.dd3boh.outertune.constants.LyricSourcePrefKey
 import com.dd3boh.outertune.db.MusicDatabase
+import com.dd3boh.outertune.db.entities.LyricsEntity
 import com.dd3boh.outertune.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.dd3boh.outertune.models.MediaMetadata
+import com.dd3boh.outertune.utils.dataStore
+import com.dd3boh.outertune.utils.get
 import com.dd3boh.outertune.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-// true will prioritize local lyric files over all cloud providers, true is vice versa
-private const val PREFER_LOCAL_LYRIC = true
 class LyricsHelper @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
@@ -23,17 +25,25 @@ class LyricsHelper @Inject constructor(
     /**
      * Retrieve lyrics from all sources
      *
+     * How lyrics are resolved are determined by PreferLocalLyrics settings key. If this is true, prioritize local lyric
+     * files over all cloud providers, true is vice versa.
+     *
+     * Lyrics stored in the database are fetched first. If this is not available, it is resolved by other means.
+     * If local lyrics are preferred, lyrics from the lrc file is fetched, and then resolve by other means.
+     *
      * @param mediaMetadata Song to fetch lyrics for
      * @param database MusicDatabase connection. Database lyrics are prioritized over all sources.
      * If no database is provided, the database source is disabled
      */
     suspend fun getLyrics(mediaMetadata: MediaMetadata, database: MusicDatabase? = null): String {
+        val prefLocal = context.dataStore.get(LyricSourcePrefKey, true)
+
         val cached = cache.get(mediaMetadata.id)?.firstOrNull()
         if (cached != null) {
             return cached.lyrics
         }
         val dbLyrics = database?.lyrics(mediaMetadata.id)?.let { it.first()?.lyrics }
-        if (dbLyrics != null) {
+        if (dbLyrics != null && !prefLocal) {
             return dbLyrics
         }
 
@@ -46,19 +56,38 @@ class LyricsHelper @Inject constructor(
         val remoteLyrics: String?
 
         // fallback to secondary provider when primary is unavailable
-        if (PREFER_LOCAL_LYRIC) {
+        if (prefLocal) {
             if (localLyrics != null) {
                 return localLyrics
+            }
+            if (dbLyrics != null) {
+                return dbLyrics
             }
 
             // "lazy eval" the remote lyrics cuz it is laughably slow
             remoteLyrics = getRemoteLyrics(mediaMetadata)
             if (remoteLyrics != null) {
+                database?.query {
+                    upsert(
+                        LyricsEntity(
+                            id = mediaMetadata.id,
+                            lyrics = remoteLyrics
+                        )
+                    )
+                }
                 return remoteLyrics
             }
         } else {
             remoteLyrics = getRemoteLyrics(mediaMetadata)
             if (remoteLyrics != null) {
+                database?.query {
+                    upsert(
+                        LyricsEntity(
+                            id = mediaMetadata.id,
+                            lyrics = remoteLyrics
+                        )
+                    )
+                }
                 return remoteLyrics
             } else if (localLyrics != null) {
                 return localLyrics
@@ -66,6 +95,14 @@ class LyricsHelper @Inject constructor(
 
         }
 
+        database?.query {
+            upsert(
+                LyricsEntity(
+                    id = mediaMetadata.id,
+                    lyrics = LYRICS_NOT_FOUND
+                )
+            )
+        }
         return LYRICS_NOT_FOUND
     }
 
