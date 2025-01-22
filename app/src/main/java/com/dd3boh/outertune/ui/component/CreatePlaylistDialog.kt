@@ -73,12 +73,12 @@ fun CreatePlaylistDialog(
                 ) {
                     Column() {
                         Text(
-                            text = "Sync Playlist",
+                            text = stringResource(R.string.create_sync_playlist),
                             style = MaterialTheme.typography.titleLarge,
                         )
 
                         Text(
-                            text = "Note: This allows for syncing with YouTube Music. This is NOT changeable later. You cannot add local songs to synced playlists.",
+                            text = stringResource(R.string.create_sync_playlist_description),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.fillMaxWidth(0.7f)
                         )

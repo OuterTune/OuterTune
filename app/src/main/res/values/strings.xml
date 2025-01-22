@@ -354,6 +354,7 @@
 <!-- Menu -->
     <string name="select">Selection mode</string>
     <string name="like_all">Like all</string>
+    <string name="delete_lyric_confirm">Do you really want to delete the stored lyrics for \"%s\"?</string>
 
 <!-- Sort menu -->
     <string name="sort_by_date_modified">Date modified</string>
@@ -361,42 +362,60 @@
     <string name="sort_by_like_date">Date liked</string>
 
 <!-- Dialog -->
+    <string name="create_sync_playlist">Sync Playlist</string>
+    <string name="create_sync_playlist_description">Note: This allows for syncing with YouTube Music. This is NOT changeable later. You cannot add local songs to synced playlists.</string>
     <string name="play_count">Play count</string>
 
 <!-- Settings -->
-    <string name="settings_debug">Debug</string>
+    <string name="grp_interface">Interface</string>
+    <string name="grp_layout">Layout</string>
     <string name="logout">Logout</string>
+    <string name="prefs_advanced">Advanced</string>
+    <string name="settings_debug">Debug</string>
+
+<!-- About settings -->
+    <string name="attrib_zhuang">Zion Huang for InnerTune</string>
+    <string name="special_thanks">Special thanks</string>
+
 
 <!-- Appearance settings -->
-    <string name="player_background_style">Player background style</string>
+    <string name="new_interface">New interface layout</string>
+    <string name="player_background_blur">Blur</string>
     <string name="player_background_default">Follow theme</string>
     <string name="player_background_gradient">Gradient</string>
-    <string name="player_background_blur">Blur</string>
-    <string name="new_interface">New interface layout</string>
+    <string name="player_background_style">Player background style</string>
     <string name="show_liked_and_downloaded_playlist">Show liked and downloaded playlists in library</string>">
     <string name="slim_navbar_title">Slim navbar</string>
     <string name="slim_navbar_description">Remove text labels to reduce navbar height</string>
+    <string name="tab_arrangement">Arrange tabs</string>
 
     <!-- Content settings -->
-
+    <string name="like_autodownload">Automatically download your liked songs</string>
+    <string name="localization">Localization</string>
+    <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
     <string name="token_hidden">Tap to show token</string>
     <string name="token_shown">Tap again to copy or edit</string>
-    <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
     <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
-    <string name="like_autodownload">Automatically download your liked songs</string>
     <string name="wifi_only">Wifi only</string>
 
     <!-- Player settings -->
+    <string name="audio">Audio</string>
     <string name="audio_offload">Enable offload</string>
     <string name="audio_offload_description">Use the offload audio path for audio playback. Disabling this may increase power usage but can be useful if you experience issues with audio playback or post processing</string>
     <string name="keep_alive_title">Prevent system killing app</string>
     <string name="keep_alive_description">Use a foreground notification to prevent OuterTune from being randomly closed by the system.</string>
+    <string name="min_playback_duration">Minimum playback duration</string>
+    <string name="min_playback_duration_description">The minimum amount of a song that must be played before it is considered \"played\"</string>
+    <string name="proxy">Proxy</string>
 
 <!--Lyrics settings -->
     <string name="lyrics_settings_title">Lyrics</string>
     <string name="lyrics_multiline_title">Read multiline lyrics</string>
     <string name="lyrics_multiline_description">Treat all the lines between sync points as one lyric text</string>
     <string name="lyrics_trim_title">Remove spaces around lyrics</string>
+    <string name="lyrics_prefer_local">Prefer local lyric files</string>
+    <string name="lyrics_prefer_local_description">Prioritize resolving local lyric files before using all cloud providers. Turn ths off to prioritize cloud providers</string>
+    <string name="lyrics_font_Size">Font size</string>
 
 <!-- Local player settings -->
     <string name="local_library_enable_title">Enable local media</string>
@@ -407,7 +426,7 @@
 
     <string name="import_innertune_tooltip">Restoring InnerTune backups are supported, albeit a possibility of anomalies due to technical limitations</string>
     <string name="import_m3u">Import a playlist (m3u)</string>
-    <string name="m3u_import_failed">Failed to import playlist</string>
+    <string name="m3u_import_playlist_failed">Failed to import playlist</string>
 
 <!-- Scanner settings -->
     <string name="local_scanner_title">Local scanner</string>
@@ -436,12 +455,33 @@
     <string name="scanner_type_taglib">Use integrated TagLib metadata extractor</string>
     <string name="scanner_type_ffmpeg_ext">Use FFMpeg metadata extractor. Requires external package to be installed</string>
 
-
     <string name="scanner_variant_rescan">Rescan the entire library and reload all songs\' metadata</string>
     <string name="scanner_online_artist_linking">Try to link local files\' artists with ones on YouTube Music</string>
+
+<!-- Privacy settings -->
+    <string name="pause_remote_listen_history">Share listen history with YouTube Music</string>
+
+<!-- Backup and restore settings -->
+    <string name="m3u_import_song_failed">Could not import:</string>
 
     <!--experimental settings-->
     <string name="experimental_settings_title">Experimental</string>
     <string name="dev_settings_title">Enable developer settings</string>
     <string name="dev_settings_description">Reveals additional advanced settings intended for development use</string>
+
+<!-- Setup wizard -->
+    <string name="oobe_welcome_message">Welcome to OuterTune</string>
+    <string name="oobe_local_scan_tooltip">Click here to scan for songs</string>
+    <string name="oobe_complete">Setup complete</string>
+    <string name="oobe_ytm_content_description">YouTube Music at your fingertips</string>
+    <string name="oobe_ad_free_description">AD free playback</string>
+    <string name="oobe_ytm_sync_description">Account sync</string>
+    <string name="oobe_local_playback_description">Local music playback</string>
+    <string name="oobe_use_backup">I have a backup</string>
+
+<!-- Misc -->
+    <string name="action_back">Back</string>
+    <string name="action_next">Next</string>
+    <string name="action_skip">Skip</string>
+    <string name="info">Information</string>
 </resources>

@@ -146,32 +146,6 @@ fun AppearanceSettings(
         }
         mutableTabs.move(from.index, to.index)
     }
-    LaunchedEffect(reorderableState.isAnyItemDragging) {
-        if (!reorderableState.isAnyItemDragging) {
-            dragInfo?.let { (from, to) ->
-//                if (from == to) {
-//                    return@LaunchedEffect
-//                }
-
-//                mutableTabs.apply {
-//                    clear()
-//
-//                    val enabled = decodeTabString(enabledTabs)
-//                    addAll(enabled)
-//                    add(NavigationTab.NULL)
-//                    addAll(NavigationTab.entries.filter { item -> enabled.none { it == item || item == NavigationTab.NULL } })
-//                }
-            }
-        }
-    }
-
-
-
-//    val reorderableState = rememberReorderableLazyListState(
-//        onMove = { from, to ->
-//            mutableTabs.move(from.index, to.index)
-//        }
-//    )
 
     fun updateTabs() {
         mutableTabs.apply {
@@ -194,9 +168,8 @@ fun AppearanceSettings(
             .verticalScroll(rememberScrollState())
     ) {
         PreferenceGroupTitle(
-            title = "Theme"
+            title = stringResource(R.string.theme)
         )
-
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_dynamic_theme)) },
             icon = { Icon(Icons.Rounded.Palette, null) },
@@ -238,23 +211,20 @@ fun AppearanceSettings(
         )
 
         PreferenceGroupTitle(
-            title = "Layout"
+            title = stringResource(R.string.grp_interface)
         )
-
         SwitchPreference(
             title = { Text(stringResource(R.string.new_interface)) },
             icon = { Icon(Icons.Rounded.Palette, null) },
             checked = newInterfaceStyle,
             onCheckedChange = onNewInterfaceStyleChange
         )
-
         SwitchPreference(
             title = { Text(stringResource(R.string.show_liked_and_downloaded_playlist)) },
             icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, null) },
             checked = showLikedAndDownloadedPlaylist,
             onCheckedChange = onShowLikedAndDownloadedPlaylistChange
         )
-
         SwitchPreference(
             title = { Text(stringResource(R.string.slim_navbar_title)) },
             description = stringResource(R.string.slim_navbar_description),
@@ -262,9 +232,8 @@ fun AppearanceSettings(
             checked = slimNav,
             onCheckedChange = onSlimNavChange
         )
-
         PreferenceEntry(
-            title = { Text("Tab arrangement") },
+            title = { Text(stringResource(R.string.tab_arrangement)) },
             icon = { Icon(Icons.Rounded.Reorder, null) },
             onClick = {
                 showTabArrangement = true
@@ -273,7 +242,7 @@ fun AppearanceSettings(
 
         if (showTabArrangement)
             ActionPromptDialog(
-                title = "Arrange tabs",
+                title = stringResource(R.string.tab_arrangement),
                 onDismiss = { showTabArrangement = false },
                 onConfirm = {
                     var encoded = encodeTabString(mutableTabs)

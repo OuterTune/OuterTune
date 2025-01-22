@@ -143,7 +143,7 @@ fun AboutScreen(
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = "Special Thanks",
+                text = stringResource(R.string.special_thanks),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -151,7 +151,7 @@ fun AboutScreen(
         }
 
         Text(
-            text = "Zion Huang for InnerTune",
+            text = stringResource(R.string.attrib_zhuang),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.secondary
         )

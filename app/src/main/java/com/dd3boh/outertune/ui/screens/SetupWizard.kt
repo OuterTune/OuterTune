@@ -197,7 +197,7 @@ fun SetupWizard(
                 }
             ) {
                 Text(
-                    text = "Back",
+                    text = stringResource(R.string.action_back),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
@@ -235,7 +235,7 @@ fun SetupWizard(
                 }
             ) {
                 Text(
-                    text = "Next",
+                    text = stringResource(R.string.action_next),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
@@ -305,7 +305,7 @@ fun SetupWizard(
                         )
                         Column(verticalArrangement = Arrangement.Center) {
                             Text(
-                                text = "Welcome to OuterTune",
+                                text = stringResource(R.string.oobe_welcome_message),
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier
@@ -329,7 +329,7 @@ fun SetupWizard(
                                     tint = MaterialTheme.colorScheme.secondary
                                 )
                                 Text(
-                                    text = "YouTube Music at your fingertips",
+                                    text = stringResource(R.string.oobe_ytm_content_description),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier
@@ -347,7 +347,7 @@ fun SetupWizard(
                                     contentDescription = null
                                 )
                                 Text(
-                                    text = "AD free playback",
+                                    text = stringResource(R.string.oobe_ad_free_description),
                                     style = MaterialTheme.typography.titleSmall,
                                     modifier = Modifier
                                         .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -365,7 +365,7 @@ fun SetupWizard(
                                     tint = MaterialTheme.colorScheme.tertiary
                                 )
                                 Text(
-                                    text = "Account sync",
+                                    text = stringResource(R.string.oobe_ytm_sync_description),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier
@@ -383,7 +383,7 @@ fun SetupWizard(
                                     tint = MaterialTheme.colorScheme.onSurface,
                                 )
                                 Text(
-                                    text = "Local music playback",
+                                    text = stringResource(R.string.oobe_local_playback_description),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier
@@ -406,7 +406,7 @@ fun SetupWizard(
                                 }
                             ) {
                                 Text(
-                                    text = "I have a backup",
+                                    text = stringResource(R.string.oobe_use_backup),
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
                             }
@@ -418,7 +418,7 @@ fun SetupWizard(
                                 }
                             ) {
                                 Text(
-                                    text = "Skip",
+                                    text = stringResource(R.string.action_skip),
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
                             }
@@ -451,7 +451,7 @@ fun SetupWizard(
                         }
 
                         Text(
-                            text = "Interface",
+                            text = stringResource(R.string.grp_interface),
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -679,7 +679,7 @@ fun SetupWizard(
                         }
 
                         Text(
-                            text = "Account",
+                            text = stringResource(R.string.account),
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -764,7 +764,7 @@ fun SetupWizard(
                     // local media
                     3 -> {
                         Text(
-                            text = "Local media",
+                            text = stringResource(R.string.local_player_settings_title),
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -793,7 +793,7 @@ fun SetupWizard(
 
 
                         PreferenceEntry(
-                            title = { Text("Click here to scan for songs") },
+                            title = { Text(stringResource(R.string.oobe_local_scan_tooltip)) },
                             icon = { Icon(Icons.Rounded.Backup, null) },
                             onClick = {
                                 navController.navigate("settings/local")
@@ -807,7 +807,7 @@ fun SetupWizard(
 
                         Column(verticalArrangement = Arrangement.Center) {
                             Text(
-                                text = "All done",
+                                text = stringResource(R.string.oobe_complete),
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier
@@ -828,7 +828,7 @@ fun SetupWizard(
                                 verticalAlignment = Alignment.Top,
                             ) {
                                 Text(
-                                    text = "Information",
+                                    text = stringResource(R.string.info),
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -902,7 +902,7 @@ private fun SortHeaderDummy(
         modifier = modifier.padding(vertical = 8.dp)
     ) {
         Text(
-            text = "Name",
+            text = stringResource(R.string.sort_by_name),
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier

@@ -25,7 +25,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Minimize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -35,6 +37,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,8 +45,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -312,6 +317,139 @@ fun ActionPromptDialog(
                     ) {
                         Text(stringResource(android.R.string.cancel))
                     }
+            }
+        }
+    }
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CounterDialog(
+    title: String,
+    description: String? = null,
+    initialValue: Int,
+    upperBound: Int = 100,
+    lowerBound: Int = 0,
+    unitDisplay: String = "",
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit,
+    onReset: (() -> Unit)? = null,
+    onCancel: (() -> Unit)? = null,
+) = BasicAlertDialog(
+    onDismissRequest = { onDismiss() },
+    content = {
+        val tempValue = rememberSaveable {
+            mutableIntStateOf(initialValue)
+        }
+        Column(
+            modifier = Modifier
+                .background(
+                    MaterialTheme.colorScheme.background,
+                    RoundedCornerShape(DialogCornerRadius)
+                )
+                .fillMaxWidth(0.8f)
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                // title and description
+                Text(
+                    text = title,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                }
+
+                // plus minus buttons
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp)
+                        .fillMaxWidth()
+                ) {
+                    IconButton(
+                        onClick = {
+                            if (tempValue.intValue < upperBound) {
+                                tempValue.value += 1
+                            }
+                        },
+                        onLongClick = {}
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+
+
+                    IconButton(
+                        onClick = {
+                            if (tempValue.intValue > lowerBound) {
+                                tempValue.value -= 1
+                            }
+                        },
+                        onLongClick = {}
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Minimize,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+
+                // slider and value display
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "${tempValue.intValue}$unitDisplay",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Slider(
+                        value = tempValue.intValue.toFloat(),
+                        onValueChange = { tempValue.intValue = it.toInt() },
+                        valueRange = lowerBound.toFloat()..upperBound.toFloat()
+                    )
+                }
+
+                // bottom options
+                // always have an ok, but explicit cancel/reset is optional
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (onReset != null)
+                        Row(modifier = Modifier.weight(1f)) {
+                            TextButton(
+                                onClick = { onReset() },
+                            ) {
+                                Text(stringResource(R.string.reset))
+                            }
+                        }
+
+                    TextButton(
+                        onClick = { onConfirm(tempValue.intValue) }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+
+                    if (onCancel != null)
+                        TextButton(
+                            onClick = { onCancel() }
+                        ) {
+                            Text(stringResource(android.R.string.cancel))
+                        }
+                }
             }
         }
     }

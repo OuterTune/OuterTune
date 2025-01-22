@@ -31,6 +31,7 @@ import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
+import com.dd3boh.outertune.constants.PauseRemoteListenHistoryKey
 import com.dd3boh.outertune.constants.PauseSearchHistoryKey
 import com.dd3boh.outertune.constants.UseLoginForBrowse
 import com.dd3boh.outertune.ui.component.DefaultDialog
@@ -50,6 +51,7 @@ fun PrivacySettings(
 ) {
     val database = LocalDatabase.current
     val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(key = PauseListenHistoryKey, defaultValue = false)
+    val (pauseRemoteListenHistory, onPauseRemoteListenHistoryChange) = rememberPreference(key = PauseRemoteListenHistoryKey, defaultValue = true)
     val (pauseSearchHistory, onPauseSearchHistoryChange) = rememberPreference(key = PauseSearchHistoryKey, defaultValue = false)
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(key = UseLoginForBrowse, defaultValue = false)
 
@@ -134,6 +136,13 @@ fun PrivacySettings(
             checked = pauseListenHistory,
             onCheckedChange = onPauseListenHistoryChange
         )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.pause_listen_history)) },
+            icon = { Icon(Icons.Rounded.History, null) },
+            checked = pauseRemoteListenHistory,
+            onCheckedChange = onPauseRemoteListenHistoryChange,
+            isEnabled = pauseListenHistory
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.clear_listen_history)) },
             icon = { Icon(Icons.Rounded.ClearAll, null) },
@@ -154,7 +163,6 @@ fun PrivacySettings(
         PreferenceGroupTitle(
             title = stringResource(R.string.account)
         )
-
         SwitchPreference(
             title = { Text(stringResource(R.string.use_login_for_browse)) },
             description = stringResource(R.string.use_login_for_browse_desc),
