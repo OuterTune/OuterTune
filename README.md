@@ -61,6 +61,16 @@ recommend [Pano Scrobbler](https://play.google.com/store/apps/details?id=com.arn
 
 We are looking for contributors, translators, and maintainers! If you would like to help out, or just wish to build the app yourself, please see the [building and contribution notes](./CONTRIBUTING.md).
 
+### Translating
+
+We use Weblate (thank you for the libre tier!) to translate OuterTune. You can help translate OuterTune with it!
+
+<a href="https://hosted.weblate.org/projects/outertune/">
+<img src="https://hosted.weblate.org/widget/outertune/multi-auto.svg" alt="Translation status" />
+</a>
+
+Thank you very much for helping to make OuterTune accessible to many people worldwide.
+
 ## Donate
 
 If you like OuterTune, you're welcome to send a donation. Donations will support the development,
