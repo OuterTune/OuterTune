@@ -102,7 +102,7 @@ interface AlbumsDao : ArtistsDao {
         val orderBy = when (sortType) {
             AlbumSortType.CREATE_DATE -> "album.rowId ASC"
             AlbumSortType.NAME -> "album.title COLLATE NOCASE ASC"
-            AlbumSortType.ARTIST -> """ORDER BY (
+            AlbumSortType.ARTIST -> """(
                                         SELECT LOWER(GROUP_CONCAT(name, ''))
                                         FROM artist
                                         WHERE id IN (SELECT artistId FROM album_artist_map WHERE albumId = album.id)
