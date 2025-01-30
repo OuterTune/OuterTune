@@ -117,6 +117,7 @@ fun Thumbnail(
             modifier = Modifier
                 .padding(32.dp)
                 .align(Alignment.Center)
+                .fillMaxSize()
         ) {
             error?.let { error ->
                 PlaybackError(
