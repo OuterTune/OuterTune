@@ -42,6 +42,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -111,8 +113,8 @@ fun PlayerMenu(
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
+
 
     var showChooseQueueDialog by rememberSaveable {
         mutableStateOf(false)
@@ -228,7 +230,7 @@ fun PlayerMenu(
     }
 
     var sleepTimerValue by remember {
-        mutableStateOf(30f)
+        mutableFloatStateOf(30f)
     }
 
     if (showSleepTimerDialog) {
@@ -329,7 +331,7 @@ fun PlayerMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (mediaMetadata.isLocal != true)
+        if (!mediaMetadata.isLocal)
             GridMenuItem(
                 icon = Icons.Rounded.Radio,
                 title = R.string.start_radio
@@ -349,7 +351,7 @@ fun PlayerMenu(
         ) {
             showChoosePlaylistDialog = true
         }
-        if (mediaMetadata.isLocal != true)
+        if (!mediaMetadata.isLocal)
             DownloadGridMenu(
                 state = download?.state,
                 onDownload = {
@@ -410,7 +412,7 @@ fun PlayerMenu(
             }
         }
 
-        if (mediaMetadata.isLocal != true)
+        if (!mediaMetadata.isLocal)
             GridMenuItem(
                 icon = Icons.Rounded.Share,
                 title = R.string.share
@@ -423,12 +425,14 @@ fun PlayerMenu(
                 context.startActivity(Intent.createChooser(intent, null))
                 onDismiss()
             }
+
         GridMenuItem(
             icon = Icons.Rounded.Info,
             title = R.string.details
         ) {
             showDetailsDialog = true
         }
+
         SleepTimerGridMenu(
             sleepTimerTimeLeft = sleepTimerTimeLeft,
             enabled = sleepTimerEnabled
@@ -436,6 +440,7 @@ fun PlayerMenu(
             if (sleepTimerEnabled) playerConnection.service.sleepTimer.clear()
             else showSleepTimerDialog = true
         }
+
         GridMenuItem(
             icon = Icons.Rounded.Tune,
             title = R.string.advanced
@@ -451,10 +456,10 @@ fun PitchTempoDialog(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     var tempo by remember {
-        mutableStateOf(playerConnection.player.playbackParameters.speed)
+        mutableFloatStateOf(playerConnection.player.playbackParameters.speed)
     }
     var transposeValue by remember {
-        mutableStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
+        mutableIntStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
     }
     val updatePlaybackParameters = {
         playerConnection.player.playbackParameters = PlaybackParameters(tempo, 2f.pow(transposeValue.toFloat() / 12))

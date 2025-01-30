@@ -238,17 +238,18 @@ fun ListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
     isSelected: Boolean? = false,
     isActive: Boolean = false,
-    isLocalSong: Boolean? = null,
+    isLocalSong: Boolean = false,
+    isLiked: Boolean = false,
+    inLibrary: Boolean = false,
     available: Boolean = true,
 ) = ListItem(
     title = title,
     subtitle = {
         badges()
 
-        // local song indicator
-        if (isLocalSong == true) {
-           FolderCopy()
-        }
+        if (isLiked)Icon.Favorite()
+        if (inLibrary) Icon.Library()
+        if (isLocalSong) FolderCopy()
 
         if (!subtitle.isNullOrEmpty()) {
             Text(
@@ -397,19 +398,10 @@ fun SongListItem(
                 makeTimeString(song.song.duration * 1000L)
             ),
             badges = {
-                if (showLikedIcon && song.song.liked) {
-                    Icon.Favorite()
-                }
-                if (showInLibraryIcon && song.song.inLibrary != null) {
-                    Icon.Library()
-                }
                 if (showDownloadIcon) {
                     val download by LocalDownloadUtil.current.getDownload(song.id)
                         .collectAsState(initial = null)
                     Icon.Download(download?.state)
-                }
-                if (showLocalIcon && song.song.isLocal) {
-                    FolderCopy()
                 }
             },
             thumbnailContent = {
@@ -469,6 +461,9 @@ fun SongListItem(
             },
             isSelected = inSelectMode == true && isSelected,
             isActive = isActive,
+            isLocalSong = showLocalIcon && song.song.isLocal,
+            isLiked = showLikedIcon && song.song.liked,
+            inLibrary = showInLibraryIcon && song.song.inLibrary != null,
             available = available,
             modifier = modifier.combinedClickable(
                 onClick = {
@@ -1121,7 +1116,9 @@ fun MediaMetadataListItem(
     modifier = modifier,
     isSelected = isSelected,
     isActive = isActive,
-    isLocalSong = mediaMetadata.isLocal
+    isLocalSong = mediaMetadata.isLocal,
+    isLiked = mediaMetadata.liked,
+    inLibrary = mediaMetadata.inLibrary != null
 )
 
 @Composable
