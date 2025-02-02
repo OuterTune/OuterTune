@@ -370,8 +370,6 @@ fun BottomSheetPlayer(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
-
             Slider(
                 value = (sliderPosition ?: position).toFloat(),
                 valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
@@ -639,6 +637,8 @@ fun BottomSheetPlayer(
                             showLyricsOnClick = true
                         )
                     }
+
+                    Spacer(Modifier.height(8.dp))
 
                     mediaMetadata?.let {
                         controlsContent(it)

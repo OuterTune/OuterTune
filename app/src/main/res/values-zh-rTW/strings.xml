@@ -275,8 +275,17 @@
     <string name="backup_create_success">成功建立備份</string>
     <string name="backup_create_failed">無法建立備份</string>
     <string name="restore_failed">無法還原備份</string>
+    <string name="discord_integration">Discord 整合</string>
+    <string name="discord_information">InnerTune使用KizzyRPC函式庫來設定您的Discord狀態。這會用到Discord Gateway連線，可能會違反Discord服務條款，但是目前沒有使用者為此被停用帳號。使用此功能需自行承擔此風險。\n\nInnerTune只會提取你的token，所有東西都存在本機。</string>
+    <string name="dismiss">了解</string>
+    <string name="options">選項</string>
+    <string name="preview">預覽</string>
+    <string name="login_failed">登入失敗</string>
     <string name="logout">登出</string>
+    <string name="enable_discord_rpc">啟用 Rich Presence</string>
     <string name="about">關於</string>
     <string name="app_version">應用程式版本</string>
     <string name="new_version_available">發現新版本</string>
+    <string name="translation_models">翻譯模型</string>
+    <string name="clear_translation_models">清除翻譯模型</string>
 </resources>

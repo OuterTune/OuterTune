@@ -1,15 +1,15 @@
 [versions]
 androidGradlePlugin = "8.8.0"
 annotation = "1.9.1"
-kotlin = "2.0.21"
+kotlin = "2.1.0"
 compose = "1.7.6"
 lifecycle = "2.8.7"
 material3 = "1.3.1"
 media3 = "1.5.1"
 room = "2.6.1"
-hilt = "2.54"
+hilt = "2.55"
 ktor = "3.0.3"
-ksp = "2.0.21-1.0.26"
+ksp = "2.1.0-1.0.29"
 taglib = "1.0.0"
 
 [libraries]
@@ -20,18 +20,18 @@ coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines
 concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.2.0" }
 
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
-activity = { group = "androidx.activity", name = "activity-compose", version = "1.9.3" }
+activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.0" }
 navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.8.5" }
 hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
-datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.1" }
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.2" }
 
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "compose" }
-compose-ui = { group = "androidx.compose.ui", name = "ui", version = "1.8.0-alpha07" }
+compose-ui = { group = "androidx.compose.ui", name = "ui", version = "1.8.0-alpha08" }
 compose-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "compose" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
 compose-animation = { group = "androidx.compose.animation", name = "animation-graphics", version.ref = "compose" }
-compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version = "2.4.2" }
+compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version = "2.4.3" }
 compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "compose" }
 
 viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
@@ -48,6 +48,7 @@ palette = { group = "androidx.palette", name = "palette", version = "1.0.0" }
 media3 = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 media3-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }
 media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
 
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
@@ -74,9 +75,7 @@ timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" 
 
 taglib = { module = "com.github.Kyant0:taglib", version.ref = "taglib" }
 
-#newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "v0.24.3" }
-# Use fork of NewPipeExtractor until https://github.com/TeamNewPipe/NewPipeExtractor/pull/1253 is merged
-newpipe-extractor = { group = "com.github.gechoto", name = "NewPipeExtractor", version = "00cf7dad9e49933c7faaa382c9c7b1e7afb28a7d" }
+newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "3a33cefbc014a820056d83076914544f29b82644" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

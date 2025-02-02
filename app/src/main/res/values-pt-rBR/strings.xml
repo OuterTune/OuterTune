@@ -229,9 +229,9 @@
     <string name="clear_song_cache">Limpar o cache de músicas</string>
     <string name="size_used">%s usados</string>
     <string name="privacy">Privacidade</string>
-    <string name="pause_listen_history">Pausar o histórico de escuta</string>
-    <string name="clear_listen_history">Limpar o histórico de escuta</string>
-    <string name="clear_listen_history_confirm">Tem certeza que deseja limpar todo o histórico de escuta?</string>
+    <string name="pause_listen_history">Pausar o histórico de reprodução</string>
+    <string name="clear_listen_history">Limpar o histórico de reprodução</string>
+    <string name="clear_listen_history_confirm">Tem certeza que deseja limpar todo o histórico de reprodução?</string>
     <string name="pause_search_history">Pausar histórico de pesquisa</string>
     <string name="clear_search_history">Limpar histórico de pesquisa</string>
     <string name="clear_search_history_confirm">Tem certeza que deseja limpar todo o histórico de pesquisa?</string>
@@ -246,6 +246,8 @@
     <string name="about">Sobre</string>
     <string name="app_version">Versão do app</string>
     <string name="new_version_available">Nova versão disponível</string>
+    <string name="translation_models">Modelos de Tradução</string>
+    <string name="clear_translation_models">Limpar modelos de tradução</string>
     <string name="remove_download_playlist_confirm">Você deseja realmente remover as músicas da playlist \"%s\" do armazenamento de Músicas Baixadas?</string>
     <string name="delete_playlist_confirm">Você deseja realmente excluir a playlist \"%s\"?</string>
     <string name="remove_from_playlist">Remover da playlist</string>
@@ -255,8 +257,17 @@
     <string name="add_anyway">Adicionar mesmo assim</string>
     <string name="duplicates_description_single">Esta música já está na sua playlist</string>
     <string name="duplicates_description_multiple">%d músicas já estão na sua playlist</string>
+    <string name="discord_integration">Integração com Discord</string>
+    <string name="dismiss">Ignorar</string>
+    <string name="options">Opções</string>
+    <string name="preview">Pré-visualização</string>
+    <string name="login_failed">Login falhou</string>
     <string name="logout">Sair</string>
+    <string name="enable_discord_rpc">Ativar Rich Presence</string>
     <string name="not_logged_in">Não logado</string>
+    <string name="discord_information">O InnerTune usa a biblioteca KizzyRPC para definir o status da sua conta do Discord. Isto envolve o uso da conexão Discord Gateway, que pode ser considerado uma violação dos termos de serviço do Discord. Porém, não há nenhum caso conhecido de contas de usuários sendo suspensas por esta razão. Use por sua conta e risco.
+\n
+\nO InnerTune extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
     <string name="sided">Ao lado</string>
     <string name="hide_explicit">Esconder conteúdo explícito</string>
     <string name="player_text_alignment">Alinhamento do texto do reprodutor</string>
@@ -268,7 +279,7 @@
     <string name="action_remove_like_all">Remover todos os likes</string>
     <string name="grid_cell_size">Tamanho da célula da grade</string>
     <string name="auto_load_more_desc">Adicionar mais músicas automaticamente quando o fim da fila é atingido, se possível</string>
-    <string name="listen_history">Histórico de escuta</string>
+    <string name="listen_history">Histórico de reprodução</string>
     <string name="disable_screenshot">Desativar capturas de tela</string>
     <string name="similar_to">Parecido com</string>
     <string name="library_song_empty">Músicas da biblioteca aparecerão aqui</string>
@@ -295,4 +306,6 @@
     <string name="library_playlist_empty">Suas playlists aparecerão aqui</string>
     <string name="theme">Tema</string>
     <string name="remove_all_from_library">Remover tudo da biblioteca</string>
+    <string name="use_login_for_browse">Usar login para navegar conteúdo</string>
+    <string name="use_login_for_browse_desc">Isto pode influenciar em que conteúdo você vê, e se você tiver Premium por exemplo, verá álbuns que só estão disponíveis com Premium</string>
 </resources>

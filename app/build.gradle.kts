@@ -4,7 +4,6 @@
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("kapt")
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
@@ -18,8 +17,8 @@ android {
         applicationId = "com.dd3boh.outertune"
         minSdk = 24
         targetSdk = 35
-        versionCode = 35
-        versionName = "0.7.1"
+        versionCode = 36
+        versionName = "0.7.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -123,6 +122,7 @@ android {
 
     lint {
         disable += "MissingTranslation"
+        disable += "ImpliedQuantity"
     }
 
 }
@@ -164,6 +164,7 @@ dependencies {
     implementation(libs.media3)
     implementation(libs.media3.session)
     implementation(libs.media3.okhttp)
+    implementation(libs.media3.ui)
 
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)

@@ -44,7 +44,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -101,7 +100,6 @@ import com.dd3boh.outertune.utils.scanners.LocalMediaScanner.Companion.scannerRe
 import com.dd3boh.outertune.utils.scanners.LocalMediaScanner.Companion.scannerShowLoading
 import com.dd3boh.outertune.utils.scanners.ScannerAbortException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -159,7 +157,10 @@ fun LocalPlayerSettings(
 
     // other vars
     var tempScanPaths by remember { mutableStateOf("") }
-    val (lastLocalScan, onLastLocalScanChange) = rememberPreference(LastLocalScanKey, LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond())
+    val (lastLocalScan, onLastLocalScanChange) = rememberPreference(
+        LastLocalScanKey,
+        LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond()
+    )
 
     Column(
         Modifier
@@ -305,7 +306,7 @@ fun LocalPlayerSettings(
         }
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.manual_scanner_title)
+            title = stringResource(R.string.grp_manual_scanner)
         )
         // scanner
         Row(
@@ -329,7 +330,7 @@ fun LocalPlayerSettings(
 
                         Toast.makeText(
                             context,
-                            "The scanner requires storage permissions",
+                            context.getString(R.string.scanner_missing_storage_perm),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -371,14 +372,20 @@ fun LocalPlayerSettings(
                                     coroutineScope.launch(Dispatchers.IO) {
                                         Looper.prepare()
                                         try {
-                                            Toast.makeText(context, "Starting YouTube artist linking...", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context, context.getString(R.string.scanner_ytm_link_start),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                             scanner.localToRemoteArtist(database)
-                                            Toast.makeText(context, "YouTube artist linking job complete", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context, context.getString(R.string.scanner_ytm_link_success),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         } catch (e: ScannerAbortException) {
                                             Looper.prepare()
                                             Toast.makeText(
                                                 context,
-                                                "Scanner (background task) failed: ${e.message}",
+                                                "${context.getString(R.string.scanner_ytm_link_success)}: ${e.message}",
                                                 Toast.LENGTH_LONG
                                             ).show()
                                         }
@@ -390,7 +397,7 @@ fun LocalPlayerSettings(
                                 Looper.prepare()
                                 Toast.makeText(
                                     context,
-                                    "Scanner failed: ${e.message}",
+                                    "${context.getString(R.string.scanner_scan_fail)}: ${e.message}",
                                     Toast.LENGTH_LONG
                                 ).show()
                             } finally {
@@ -416,13 +423,21 @@ fun LocalPlayerSettings(
                                     coroutineScope.launch(Dispatchers.IO) {
                                         Looper.prepare()
                                         try {
-                                            Toast.makeText(context, "Starting YouTube artist linking...", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(R.string.scanner_ytm_link_start),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                             scanner.localToRemoteArtist(database)
-                                            Toast.makeText(context, "YouTube artist linking job complete", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(R.string.scanner_ytm_link_success),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         } catch (e: ScannerAbortException) {
                                             Toast.makeText(
                                                 context,
-                                                "Scanner (background task) failed: ${e.message}",
+                                                "${context.getString(R.string.scanner_ytm_link_fail)}: ${e.message}",
                                                 Toast.LENGTH_LONG
                                             ).show()
                                         }
@@ -434,7 +449,7 @@ fun LocalPlayerSettings(
                                 Looper.prepare()
                                 Toast.makeText(
                                     context,
-                                    "Scanner failed: ${e.message}",
+                                    "${context.getString(R.string.scanner_scan_fail)}: ${e.message}",
                                     Toast.LENGTH_LONG
                                 ).show()
                             } finally {
@@ -486,18 +501,22 @@ fun LocalPlayerSettings(
                 Column {
                     val isSyncing = scannerProgressCurrent > -1
                     Text(
-                        text = if (isSyncing) "Syncing..." else "Scanning...",
+                        text = if (isSyncing) {
+                            stringResource(R.string.scanner_progress_syncing)
+                        } else {
+                            stringResource(R.string.scanner_progress_scanning)
+                        },
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 12.sp
                     )
                     Text(
                         text = "${if (isSyncing) scannerProgressCurrent else "—"}/${
                             pluralStringResource(
-                                R.plurals.n_song,
+                                if (isSyncing) R.plurals.scanner_n_song_processed else R.plurals.scanner_n_song_found,
                                 scannerProgressTotal,
                                 scannerProgressTotal
                             )
-                        } ${if (isSyncing) "processed" else "found"}",
+                        }",
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 12.sp
                     )
@@ -555,7 +574,7 @@ fun LocalPlayerSettings(
         }
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.scanner_settings_title)
+            title = stringResource(R.string.grp_extra_scanner_settings)
         )
         // scanner sensitivity
         EnumListPreference(
@@ -597,7 +616,8 @@ fun LocalPlayerSettings(
                 if (it == ScannerImpl.FFMPEG_EXT && isFFmpegInstalled) {
                     onScannerImplChange(it)
                 } else {
-                    Toast.makeText(context, "FFmpeg extractor not detected.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.scanner_missing_ffmpeg), Toast.LENGTH_LONG)
+                        .show()
                     // Explicitly revert to TagLib if FFmpeg is not available
                     onScannerImplChange(ScannerImpl.TAGLIB)
                 }

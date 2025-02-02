@@ -170,7 +170,7 @@ fun LocalPlaylistScreen(
         BackHandler(onBack = onExitSelectionMode)
     }
 
-    val editable: Boolean = playlist?.playlist?.isEditable == true
+    val editable: Boolean = playlist?.playlist?.isLocal == true || playlist?.playlist?.isEditable == true
 
     LaunchedEffect(songs) {
         mutableSongs.apply {
@@ -302,6 +302,13 @@ fun LocalPlaylistScreen(
         scrollThresholdPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
     ) { from, to ->
         if (to.index >= headerItems && from.index >= headerItems) {
+            val currentDragInfo = dragInfo
+            dragInfo = if (currentDragInfo == null) {
+                (from.index - headerItems) to (to.index - headerItems)
+            } else {
+                currentDragInfo.first to (to.index - headerItems)
+            }
+
             mutableSongs.move(from.index - headerItems, to.index - headerItems)
         }
     }
@@ -312,40 +319,42 @@ fun LocalPlaylistScreen(
                 database.transaction {
                     move(viewModel.playlistId, from, to)
                 }
-                viewModel.viewModelScope.launch(Dispatchers.IO) {
-                    val from = from
-                    val to = to
-                    val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
+                if (viewModel.playlist.first()?.playlist?.isLocal == false) {
+                    viewModel.viewModelScope.launch(Dispatchers.IO) {
+                        val from = from
+                        val to = to
+                        val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
 
-                    var fromIndex = from - headerItems
-                    val toIndex = to - headerItems
+                        var fromIndex = from //- headerItems
+                        val toIndex = to //- headerItems
 
-                    var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
+                        var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
 
-                    /*
-                    * Because of how YouTube Music handles playlist changes, you necessarily need to
-                    * have the SetVideoId of the successor when trying to move a song inside of a
-                    * playlist.
-                    * For this reason, if we are trying to move a song to the last element of a playlist,
-                    * we need to first move it as penultimate and then move the last element before it.
-                    */
-                    if (successorIndex >= playlistSongMap.size) {
+                        /*
+                        * Because of how YouTube Music handles playlist changes, you necessarily need to
+                        * have the SetVideoId of the successor when trying to move a song inside of a
+                        * playlist.
+                        * For this reason, if we are trying to move a song to the last element of a playlist,
+                        * we need to first move it as penultimate and then move the last element before it.
+                        */
+                        if (successorIndex >= playlistSongMap.size) {
+                            playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
+                                playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
+                                    viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                                        YouTube.moveSongPlaylist(browseId, setVideoId, successorSetVideoId)
+                                    }
+                                }
+                            }
+
+                            successorIndex = fromIndex
+                            fromIndex = toIndex
+                        }
+
                         playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
-                            playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
+                            playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
                                 viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
                                     YouTube.moveSongPlaylist(browseId, setVideoId, successorSetVideoId)
                                 }
-                            }
-                        }
-
-                        successorIndex = fromIndex
-                        fromIndex = toIndex
-                    }
-
-                    playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
-                        playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
-                            viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
-                                YouTube.moveSongPlaylist(browseId, setVideoId, successorSetVideoId)
                             }
                         }
                     }

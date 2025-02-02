@@ -87,7 +87,7 @@ fun YouTubeArtistMenu(
                 icon = Icons.Rounded.Radio,
                 title = R.string.start_radio
             ) {
-                playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                playerConnection.playQueue(YouTubeQueue(watchEndpoint), isRadio = true)
                 onDismiss()
             }
         }
@@ -96,7 +96,7 @@ fun YouTubeArtistMenu(
                 icon = Icons.Rounded.Shuffle,
                 title = R.string.shuffle
             ) {
-                playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                playerConnection.playQueue(YouTubeQueue(watchEndpoint), isRadio = true)
                 onDismiss()
             }
         }

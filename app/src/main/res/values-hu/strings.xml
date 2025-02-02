@@ -237,6 +237,8 @@
     <string name="about">Rólunk</string>
     <string name="app_version">Alkalmazásverzió</string>
     <string name="new_version_available">Új verzió érhető el</string>
+    <string name="translation_models">Fordítási modellek</string>
+    <string name="clear_translation_models">Fordítási modellek törlése</string>
     <string name="forgotten_favorites">Elfelejtett kedvencek</string>
     <string name="keep_listening">Folytasd a zenehallgatást</string>
     <string name="similar_to">Hasonló, mint</string>

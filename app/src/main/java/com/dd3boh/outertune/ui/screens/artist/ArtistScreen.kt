@@ -217,6 +217,7 @@ fun ArtistScreen(
                                     title = artistName,
                                     items = librarySongsAvailable().shuffled(),
                                 ),
+                                isRadio = true,
                                 title = artistName
                             )
                         },
@@ -240,6 +241,7 @@ fun ArtistScreen(
                                 onClick = {
                                     playerConnection.playQueue(
                                         YouTubeQueue(radioEndpoint),
+                                        isRadio = true,
                                         title = "Radio: ${artistPage.artist.title}"
                                     )
                                 },

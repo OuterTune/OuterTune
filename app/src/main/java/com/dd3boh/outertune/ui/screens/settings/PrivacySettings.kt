@@ -137,7 +137,7 @@ fun PrivacySettings(
             onCheckedChange = onPauseListenHistoryChange
         )
         SwitchPreference(
-            title = { Text(stringResource(R.string.pause_listen_history)) },
+            title = { Text(stringResource(R.string.pause_remote_listen_history)) },
             icon = { Icon(Icons.Rounded.History, null) },
             checked = pauseRemoteListenHistory,
             onCheckedChange = onPauseRemoteListenHistoryChange,

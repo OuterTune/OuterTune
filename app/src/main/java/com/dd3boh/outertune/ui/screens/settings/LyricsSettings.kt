@@ -88,7 +88,7 @@ fun LyricsSettings(
             .verticalScroll(rememberScrollState())
     ) {
         PreferenceGroupTitle(
-            title = "Lyric sources"
+            title = stringResource(R.string.grp_lyrics_source)
         )
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_lrclib)) },
@@ -112,7 +112,7 @@ fun LyricsSettings(
         )
 
         PreferenceGroupTitle(
-            title = "Parser"
+            title = stringResource(R.string.grp_lyrics_parser)
         )
         // multiline lyrics
         SwitchPreference(
@@ -132,7 +132,7 @@ fun LyricsSettings(
         )
 
         PreferenceGroupTitle(
-            title = "Formatting"
+            title = stringResource(R.string.grp_lyrics_format)
         )
         // lyrics position
         EnumListPreference(

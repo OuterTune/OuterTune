@@ -334,7 +334,7 @@ fun YouTubePlaylistMenu(
                 title = R.string.start_radio
             ) {
                 println("Radio: ${radioEndpoint.playlistId}, ${radioEndpoint.params}")
-                playerConnection.playQueue(YouTubeQueue(radioEndpoint))
+                playerConnection.playQueue(YouTubeQueue(radioEndpoint), isRadio = true)
                 onDismiss()
             }
         }

@@ -4,10 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -64,8 +64,9 @@ fun Thumbnail(
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = PlayerHorizontalPadding)
@@ -77,7 +78,7 @@ fun Thumbnail(
                             image = { getLocalThumbnail(it.localPath) },
                             contentDescription = null,
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .weight(1f, false)
                                 .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
                                 .aspectRatio(ratio = 1f)
                                 .clickable(enabled = showLyricsOnClick) {
@@ -91,9 +92,8 @@ fun Thumbnail(
                     AsyncImage(
                         model = mediaMetadata?.thumbnailUrl,
                         contentDescription = null,
-                        contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .weight(1f, false)
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
                             .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
@@ -117,6 +117,7 @@ fun Thumbnail(
             modifier = Modifier
                 .padding(32.dp)
                 .align(Alignment.Center)
+                .fillMaxSize()
         ) {
             error?.let { error ->
                 PlaybackError(

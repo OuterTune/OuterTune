@@ -176,11 +176,16 @@
     <string name="repeat_mode_off">Режим на повторение е изключен</string>
     <string name="repeat_mode_one">Повтори текущата песен</string>
     <string name="repeat_mode_all">Повтори опашката</string>
+    <string name="discord_information">InnerTune използва библиотеката KizzyRPC, за да зададе състоянието на акаунта ви в Discord. Това включва използването на връзката Discord Gateway, което може да се счита за нарушение на TOS на Discord. Въпреки това няма известни случаи на спиране на потребителски акаунти поради тази причина. Използвайте на свой собствен риск.
+\n
+\nInnerTune ще извлече само вашия токен, а всичко останало се съхранява локално.</string>
     <string name="backup">Архивиране</string>
+    <string name="translation_models">Модели за превод</string>
     <string name="clear_image_cache">Изчисти кеша на изображение</string>
     <string name="backup_create_failed">Неуспешно създаване на резервно копие</string>
     <string name="enable_dynamic_theme">Активирай динамична тема</string>
     <string name="clear_song_cache">Изчисти кеша на песен</string>
+    <string name="login_failed">Неуспешно влизане</string>
     <string name="imported_playlist">Внесен плейлист</string>
     <string name="queue">Опашка</string>
     <string name="audio_quality_auto">Автоматично</string>
@@ -197,6 +202,7 @@
     <string name="enable_proxy">Активирай прокси</string>
     <string name="dark_theme">Тъмна тема</string>
     <string name="storage">Съхранение</string>
+    <string name="clear_translation_models">Ясни модели за превод</string>
     <string name="proxy_url">Прокси URL</string>
     <string name="search_history">История на търсене</string>
     <string name="auto_skip_next_on_error">Автоматично премини към следваща песен, когато възникне грешка</string>
@@ -265,5 +271,13 @@
     <string name="hide_explicit">Скрий нецензурно съдържание</string>
     <string name="backup_create_success">Архивирането е създадено успешно</string>
     <string name="restore_failed">Неуспешно възстановяване на резервно копие</string>
+    <string name="discord_integration">Discord интеграция</string>
+    <string name="dismiss">Отхвърли</string>
+    <string name="options">Опции</string>
+    <string name="preview">Преглед</string>
+    <string name="logout">Изход</string>
+    <string name="enable_discord_rpc">Активирай Rich Presence</string>
     <string name="new_version_available">Налична е нова версия</string>
+    <string name="use_login_for_browse">Използвай вход за разглеждане на съдържание</string>
+    <string name="use_login_for_browse_desc">Това може да повлияе какво съдържание виждате и например показва само премиум албуми, ако сте влезли с Премиум акаунт</string>
 </resources>

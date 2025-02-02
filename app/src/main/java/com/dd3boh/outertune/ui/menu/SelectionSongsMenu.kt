@@ -44,6 +44,9 @@ import com.dd3boh.outertune.ui.component.DefaultDialog
 import com.dd3boh.outertune.ui.component.DownloadGridMenu
 import com.dd3boh.outertune.ui.component.GridMenu
 import com.dd3boh.outertune.ui.component.GridMenuItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 /**
@@ -119,7 +122,14 @@ fun SelectionMediaMetadataMenu(
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
         onGetSong = {
-            selection.map { it.id }
+            selection.map {
+                runBlocking {
+                    withContext(Dispatchers.IO) {
+                        database.insert(it)
+                    }
+                }
+                it.id
+            }
         },
         onDismiss = { showChoosePlaylistDialog = false }
     )

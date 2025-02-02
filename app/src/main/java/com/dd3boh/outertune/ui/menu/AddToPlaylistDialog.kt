@@ -35,6 +35,7 @@ import com.dd3boh.outertune.ui.component.DefaultDialog
 import com.dd3boh.outertune.ui.component.ListDialog
 import com.dd3boh.outertune.ui.component.ListItem
 import com.dd3boh.outertune.ui.component.PlaylistListItem
+import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -110,6 +111,14 @@ fun AddToPlaylistDialog(
                             } else {
                                 onDismiss()
                                 database.addSongToPlaylist(playlist, songIds!!)
+
+                                if (!playlist.playlist.isLocal) {
+                                    playlist.playlist.browseId?.let { plist ->
+                                        songIds?.forEach {
+                                            YouTube.addToPlaylist(plist, it)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -118,7 +127,7 @@ fun AddToPlaylistDialog(
 
             item {
                 Text(
-                    text = "Note: Adding local songs to synced/remote playlists is unsupported. Any other combination is valid.",
+                    text = stringResource(R.string.playlist_add_local_to_synced_note),
                     fontSize = TextUnit(12F, TextUnitType.Sp),
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )

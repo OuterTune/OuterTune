@@ -219,9 +219,16 @@
     <string name="backup_create_success">Rezervna kopija je uspešno sagrađena</string>
     <string name="backup_create_failed">Nije moguće napraviti rezervnu kopiju</string>
     <string name="restore_failed">Neuspešno vraćanje rezervne kopije</string>
+    <string name="discord_integration">Integracija sa Discord-om</string>
+    <string name="discord_information">InnerTune koristi KizzyRPC biblioteku kako bi stavio tvoj Discord status. Ovo uključuje korištenje Discord Gateway spajanja, što bi se moglo smatrati prekršajem Discord-ovog TOS-a. Međutim nema poznatih slučajeva gde su korisnički nalozi bili suspendovani zbog ovog razloga. Korisite na svoj rizik.\n\nInnerTune će samo izvesti tvoj žeton, i sve drugo je sklađeno lokalno.</string>
+    <string name="dismiss">Odbaci</string>
+    <string name="options">Opcije</string>
+    <string name="enable_discord_rpc">Omogući Bogatu Prisutnost</string>
     <string name="about">O InnerTune-u</string>
     <string name="app_version">Verzija aplikacije</string>
     <string name="new_version_available">Dostupna je nova verzija</string>
+    <string name="translation_models">Modeli prevođenja</string>
+    <string name="clear_translation_models">Obriši modele prevođenja</string>
     <string name="library_artist_empty">Umetnici biblioteke će se pojaviti ovde</string>
     <string name="library_album_empty">Albumi biblioteke će se pojaviti ovde</string>
     <string name="search_library">Pretraži biblioteku…</string>
@@ -275,5 +282,9 @@
     <string name="unlimited">Neograničeno</string>
     <string name="max_image_cache_size">Maksimalna veličina keša slika</string>
     <string name="clear_image_cache">Obrišite keš slika</string>
+    <string name="login_failed">Neuspešno ulogovanje</string>
+    <string name="preview">Pregled</string>
     <string name="logout">Izloguj se</string>
+    <string name="use_login_for_browse">Koristite prijavu za pregledanje sadržaja</string>
+    <string name="use_login_for_browse_desc">Ovo može uticati na sadržaj koji vidite i, na primer, prikazivati albume koji su dostupni samo za Premium korisnike ako ste prijavljeni sa Premium nalogom</string>
 </resources>

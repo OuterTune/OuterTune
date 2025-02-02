@@ -191,6 +191,9 @@
     <string name="disable_screenshot">Keela ekraanitõmmised</string>
     <string name="disable_screenshot_desc">Kui see eelistus on kasutusel, siis ekraanitõmmiste tegemine ja rakenduse vaade Viimaste rakenduste all on keelatud.</string>
     <string name="enable_lrclib">Kasuta laulusõnade kuvamiseks teenusepakkujat LrcLib</string>
+    <string name="dismiss">Loobu</string>
+    <string name="preview">Eelvaade</string>
+    <string name="enable_discord_rpc">Näita oma tegevust InnerTune rakenduses Discordi olekuteatena</string>
     <string name="sort_by_create_date">Lisamise kuupäev</string>
     <string name="sort_by_name">Nime alusel</string>
     <string name="sort_by_artist">Esitaja järgi</string>
@@ -249,8 +252,10 @@
     <string name="auto_skip_next_on_error_desc">Taga jätkuv taasesitus</string>
     <string name="equalizer">Ekvalaiser</string>
     <string name="about">Rakenduse teave</string>
+    <string name="translation_models">Tõlkemudelid</string>
     <string name="app_version">Rakenduse versioon</string>
     <string name="new_version_available">Uus versioon on saadaval</string>
+    <string name="clear_translation_models">Eemalda tõlkemudelid</string>
     <string name="small">Väike</string>
     <string name="grid_cell_size">Ruudustiku elemendi suurus</string>
     <string name="big">Suur</string>
@@ -266,5 +271,11 @@
     <string name="backup_create_success">Varukoopia tegemine õnnestus</string>
     <string name="backup_create_failed">Varukoopia tegemine ei õnnestunud</string>
     <string name="restore_failed">Varukoopiast taastamine ei õnnestunud</string>
+    <string name="discord_integration">Lõiming Discordiga</string>
+    <string name="discord_information">InnerTune kasutab Discordi kasutajakonto oleku kuvamiseks KizzyRPC teeki. See eeldab Discord Gateway ühenduse kasutamist ja seda loetakse Discordi kasutustingimuste rikkumiseks. Aga pole teada ühtegi juhust, kus kasutajakonto oleks sel põhjusel keelatud. Kasuta seda teenust omal vastutsusel.\n\nInnerTune kasutab ainult sinu tunnusluba, kõike muud hoitakse kohalikus seadmes.</string>
+    <string name="options">Valikud</string>
     <string name="logout">Logi välja</string>
+    <string name="login_failed">Sisselogimine ei õnnestunud</string>
+    <string name="use_login_for_browse">Sisu sirvimiseks logi sisse</string>
+    <string name="use_login_for_browse_desc">See võib mõjutada mis sisu sa näed, sealhulgas kui kasutad YouTube Premium-kontot, siis YouTube Premiumi jaoks mõeldud albumeid</string>
 </resources>

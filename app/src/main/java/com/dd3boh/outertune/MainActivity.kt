@@ -274,7 +274,7 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startService(Intent(this, MusicService::class.java))
+            startForegroundService(Intent(this, MusicService::class.java))
         } else {
             startService(Intent(this, MusicService::class.java))
         }

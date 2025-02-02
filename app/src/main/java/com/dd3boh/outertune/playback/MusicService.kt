@@ -1,16 +1,20 @@
 package com.dd3boh.outertune.playback
 
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.database.SQLException
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Binder
+import android.os.Build
 import android.widget.Toast
-import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -51,17 +55,20 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
+import androidx.media3.ui.PlayerNotificationManager
 import com.dd3boh.outertune.MainActivity
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AudioNormalizationKey
 import com.dd3boh.outertune.constants.AudioOffload
 import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.constants.AudioQualityKey
+import com.dd3boh.outertune.constants.AutoLoadMoreKey
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.LastPosKey
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleLike
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleShuffle
+import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
 import com.dd3boh.outertune.constants.PauseRemoteListenHistoryKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
@@ -85,6 +92,7 @@ import com.dd3boh.outertune.extensions.metadata
 import com.dd3boh.outertune.extensions.setOffloadEnabled
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.lyrics.LyricsHelper
+import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.QueueBoard
 import com.dd3boh.outertune.models.isShuffleEnabled
 import com.dd3boh.outertune.models.toMediaMetadata
@@ -93,6 +101,7 @@ import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.playback.queues.Queue
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.utils.CoilBitmapLoader
+import com.dd3boh.outertune.utils.NetworkConnectivityObserver
 import com.dd3boh.outertune.utils.YTPlayerUtils
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.enumPreference
@@ -130,6 +139,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.collections.map
 import kotlin.math.min
 import kotlin.math.pow
 
@@ -156,6 +166,10 @@ class MusicService : MediaLibraryService(),
     private val binder = MusicBinder()
 
     private lateinit var connectivityManager: ConnectivityManager
+
+    lateinit var connectivityObserver: NetworkConnectivityObserver
+    val waitingForNetworkConnection = MutableStateFlow(false)
+    private val isNetworkConnected = MutableStateFlow(false)
 
     private val audioQuality by enumPreference(this, AudioQualityKey, AudioQuality.AUTO)
 
@@ -184,6 +198,8 @@ class MusicService : MediaLibraryService(),
 
     lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaLibrarySession
+    private lateinit var notificationManager: NotificationManagerCompat
+    private lateinit var playerNotificationManager: PlayerNotificationManager
 
     private var isAudioEffectSessionOpened = false
 
@@ -191,25 +207,18 @@ class MusicService : MediaLibraryService(),
 
     override fun onCreate() {
         super.onCreate()
-        val notificationBuilder = NotificationCompat.Builder(this, KEEP_ALIVE_CHANNEL_ID)
-            .setContentTitle(getString(R.string.music_player))
-            .setSmallIcon(R.drawable.small_icon)
-            .setOngoing(true) // Ensures notification stays until service stops
 
-        val notification = notificationBuilder.build()
+        connectivityObserver = NetworkConnectivityObserver(this)
 
-        // FG notification
-        if (dataStore.get(KeepAliveKey, false)) {
-            try {
-                startService(Intent(this, KeepAlive::class.java))
-            } catch (e: Exception) {
-                reportException(e)
-            }
-        } else {
-            try {
-                stopService(Intent(this, KeepAlive::class.java))
-            } catch (e: Exception) {
-                reportException(e)
+        scope.launch {
+            connectivityObserver.networkStatus.collect { isConnected ->
+                isNetworkConnected.value = isConnected
+
+                if (isConnected && waitingForNetworkConnection.value) {
+                    waitingForNetworkConnection.value = false
+                    player.prepare()
+                    player.play()
+                }
             }
         }
 
@@ -236,43 +245,33 @@ class MusicService : MediaLibraryService(),
                 addListener(object : Player.Listener {
                     override fun onPlayerError(error: PlaybackException) {
                         super.onPlayerError(error)
-                        if (!dataStore.get(SkipOnErrorKey, true)) {
+
+                        // wait for reconnection
+                        val isConnectionError = (error.cause?.cause is PlaybackException)
+                                && (error.cause?.cause as PlaybackException).errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+                        if (!isNetworkConnected.value && isConnectionError) {
+                            waitOnNetworkError()
                             return
                         }
 
-                        consecutivePlaybackErr += 2
+                        if (dataStore.get(SkipOnErrorKey, true)) {
+                            skipOnError()
+                        }
+                        else {
+                            stopOnError()
+                        }
 
                         Toast.makeText(
                             this@MusicService,
-                            "Playback error: ${error.message} (${error.errorCode}): ${error.cause?.message?: "No further errors."} ",
-                            Toast.LENGTH_SHORT
+                            "Error: ${error.message} (${error.errorCode}): ${error.cause?.message?: "No further errors."} ",
+                            Toast.LENGTH_LONG
                         ).show()
-
-                        /**
-                         * Auto skip to the next media item on error.
-                         *
-                         * To prevent a "runaway diesel engine" scenario, force the user to take action after
-                         * too many errors come up too quickly. Pause to show player "stopped" state
-                         */
-                        val nextWindowIndex = player.nextMediaItemIndex
-                        if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
-                            player.seekTo(nextWindowIndex, C.TIME_UNSET)
-                            player.prepare()
-                            player.play()
-                        } else {
-                            player.pause()
-                            Toast.makeText(
-                                this@MusicService,
-                                "Playback stopped due to too many errors",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            consecutivePlaybackErr = 0
-                        }
                     }
 
                     // start playback again on seek
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                         super.onMediaItemTransition(mediaItem, reason)
+
                         // +2 when and error happens, and -1 when transition. Thus when error, number increments by 1, else doesn't change
                         if (consecutivePlaybackErr > 0) {
                             consecutivePlaybackErr --
@@ -281,6 +280,22 @@ class MusicService : MediaLibraryService(),
                         if (player.isPlaying && reason == MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                             player.prepare()
                             player.play()
+                        }
+
+                        // Auto load more songs
+                        val q = queueBoard.getCurrentQueue()
+                        val songId = q?.playlistId
+                        if (dataStore.get(AutoLoadMoreKey, true) &&
+                            reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
+                            player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
+                            songId != null // aka "hasNext"
+                        ) {
+                            scope.launch(SilentHandler) {
+                                val mediaItems = YouTubeQueue(WatchEndpoint(songId)).nextPage()
+                                if (player.playbackState != STATE_IDLE) {
+                                    queueBoard.enqueueEnd(mediaItems.drop(1), this@MusicService, isRadio = true)
+                                }
+                            }
                         }
 
                         // this absolute eye sore detects if we loop back to the beginning of queue, when shuffle AND repeat all
@@ -296,7 +311,7 @@ class MusicService : MediaLibraryService(),
                         updateNotification() // also updates when queue changes
 
                         queueBoard.setCurrQueuePosIndex(player.currentMediaItemIndex, this@MusicService)
-                        queueTitle = queueBoard.getCurrentQueue()?.title
+                        queueTitle = q?.title
                     }
                 })
                 sleepTimer = SleepTimer(scope, this)
@@ -306,6 +321,7 @@ class MusicService : MediaLibraryService(),
 
         mediaLibrarySessionCallback.apply {
             toggleLike = ::toggleLike
+            toggleStartRadio = ::toggleStartRadio
             toggleLibrary = ::toggleLibrary
         }
 
@@ -385,6 +401,81 @@ class MusicService : MediaLibraryService(),
                 }
             }
         }
+
+        notificationManager = NotificationManagerCompat.from(this)
+        notificationManager.createNotificationChannel(
+            NotificationChannelCompat.Builder(
+                CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_HIGH
+            ).apply {
+                setName(CHANNEL_NAME)
+                setLightsEnabled(false)
+                setShowBadge(false)
+                setSound(null, null)
+            }.build()
+        )
+
+        playerNotificationManager = PlayerNotificationManager.Builder(this, NOTIFICATION_ID, CHANNEL_ID)
+            .setNotificationListener(object : PlayerNotificationManager.NotificationListener {
+                override fun onNotificationPosted(notificationId: Int, notification: Notification, ongoing: Boolean) {
+                    fun startFg() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            startForeground(notificationId, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+                        } else {
+                            startForeground(notificationId, notification)
+                        }
+                    }
+
+                    // FG keep alive
+                    if (dataStore.get(KeepAliveKey, false)) {
+                      startFg()
+                    } else {
+                        // mimic media3 default behaviour
+                        if (player.isPlaying) {
+                          startFg()
+                        } else {
+                            stopForeground(notificationId)
+                        }
+                    }
+                }
+            })
+            .build()
+        playerNotificationManager.setPlayer(player)
+        playerNotificationManager.setSmallIcon(R.drawable.small_icon)
+        playerNotificationManager.setMediaSessionToken(mediaSession.platformToken)
+    }
+
+    fun waitOnNetworkError() {
+        waitingForNetworkConnection.value = true
+        Toast.makeText(this@MusicService, getString(R.string.wait_to_reconnect), Toast.LENGTH_LONG).show()
+    }
+
+    fun skipOnError() {
+        /**
+         * Auto skip to the next media item on error.
+         *
+         * To prevent a "runaway diesel engine" scenario, force the user to take action after
+         * too many errors come up too quickly. Pause to show player "stopped" state
+         */
+        consecutivePlaybackErr += 2
+        val nextWindowIndex = player.nextMediaItemIndex
+
+        if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
+            player.seekTo(nextWindowIndex, C.TIME_UNSET)
+            player.prepare()
+            player.play()
+
+            Toast.makeText(this@MusicService, getString(R.string.err_play_next_on_error), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        player.pause()
+        Toast.makeText(this@MusicService, getString(R.string.err_stop_on_too_many_errors), Toast.LENGTH_LONG).show()
+        consecutivePlaybackErr = 0
+    }
+
+    fun stopOnError() {
+        player.pause()
+        Toast.makeText(this@MusicService, getString(R.string.err_stop_on_error), Toast.LENGTH_LONG).show()
     }
 
     fun initQueue() {
@@ -399,10 +490,11 @@ class MusicService : MediaLibraryService(),
 
     fun deInitQueue() {
         if (dataStore.get(PersistentQueueKey, true)) {
+            val pos = player.currentPosition
             saveQueueToDisk()
             scope.launch {
                 dataStore.edit { settings ->
-                    settings[LastPosKey] = player.currentPosition
+                    settings[LastPosKey] = pos
                 }
             }
         }
@@ -443,6 +535,12 @@ class MusicService : MediaLibraryService(),
                     .setDisplayName(getString(if (currentSong.value?.song?.liked == true) R.string.action_remove_like else R.string.action_like))
                     .setIconResId(if (currentSong.value?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border)
                     .setSessionCommand(CommandToggleLike)
+                    .setEnabled(currentSong.value != null)
+                    .build(),
+                CommandButton.Builder()
+                    .setDisplayName(getString(R.string.start_radio))
+                    .setIconResId(R.drawable.radio)
+                    .setSessionCommand(CommandToggleStartRadio)
                     .setEnabled(currentSong.value != null)
                     .build()
             )
@@ -489,7 +587,13 @@ class MusicService : MediaLibraryService(),
      * @param title Title override for the queue. If this value us unspecified, this method takes the value from queue.
      * If both are unspecified, the title will default to "Queue".
      */
-    fun playQueue(queue: Queue, playWhenReady: Boolean = true, replace: Boolean = false, title: String? = null) {
+    fun playQueue(
+        queue: Queue,
+        playWhenReady: Boolean = true,
+        replace: Boolean = false,
+        isRadio: Boolean = false,
+        title: String? = null
+    ) {
         if (!queueBoard.initialized) {
             initQueue()
             queueBoard.initialized = true
@@ -502,17 +606,26 @@ class MusicService : MediaLibraryService(),
             if (queueTitle == null && initialStatus.title != null) { // do not find a title if an override is provided
                 queueTitle = initialStatus.title
             }
+            val items = ArrayList<MediaMetadata>()
+            val preloadItem = queue.preloadItem
 
             // print out queue
 //            println("-----------------------------")
 //            initialStatus.items.map { println(it.title) }
             if (initialStatus.items.isEmpty()) return@launch
+            if (preloadItem != null) {
+                items.add(preloadItem)
+                items.addAll(initialStatus.items.subList(1, initialStatus.items.size))
+            } else {
+                items.addAll(initialStatus.items)
+            }
             queueBoard.addQueue(
                 queueTitle?: "Queue",
-                initialStatus.items,
+                items,
                 player = this@MusicService,
                 startIndex = if (initialStatus.mediaItemIndex > 0) initialStatus.mediaItemIndex else 0,
-                replace = replace
+                replace = replace,
+                isRadio = isRadio
             )
             queueBoard.setCurrQueue(this@MusicService)
 
@@ -521,30 +634,14 @@ class MusicService : MediaLibraryService(),
         }
     }
 
-    fun startRadioSeamlessly() {
-        val currentMediaMetadata = player.currentMetadata ?: return
-        if (player.currentMediaItemIndex > 0) player.removeMediaItems(0, player.currentMediaItemIndex)
-        if (player.currentMediaItemIndex < player.mediaItemCount - 1) player.removeMediaItems(player.currentMediaItemIndex + 1, player.mediaItemCount)
-        scope.launch(SilentHandler) {
-            val radioQueue = YouTubeQueue(endpoint = WatchEndpoint(videoId = currentMediaMetadata.id))
-            val initialStatus = radioQueue.getInitialStatus()
-            if (initialStatus.title != null) {
-                queueTitle = initialStatus.title
-            }
-            player.addMediaItems(initialStatus.items.drop(1).map { it.toMediaItem() })
-        }
-    }
-
     /**
      * Add items to queue, right after current playing item
      */
     fun enqueueNext(items: List<MediaItem>) {
-        println("wtf "+ "ENQUEUNE NEXT CALLED " + queueBoard.initialized)
         if (!queueBoard.initialized) {
 
             // when enqueuing next when player isn't active, play as a new song
             if (items.isNotEmpty()) {
-                println("wtf "+ "PLAYING FROMe")
                 CoroutineScope(Dispatchers.Main).launch {
                     playQueue(
                         ListQueue(
@@ -588,6 +685,11 @@ class MusicService : MediaLibraryService(),
         }
     }
 
+    fun toggleStartRadio() {
+        val mediaMetadata = player.currentMetadata ?: return
+        playQueue(YouTubeQueue.radio(mediaMetadata), isRadio = true)
+    }
+
     private fun openAudioEffectSession() {
         if (isAudioEffectSessionOpened) return
         isAudioEffectSessionOpened = true
@@ -625,6 +727,9 @@ class MusicService : MediaLibraryService(),
                 openAudioEffectSession()
             } else {
                 closeAudioEffectSession()
+                if (!player.playWhenReady) {
+                    waitingForNetworkConnection.value = false
+                }
             }
         }
         if (events.containsAny(EVENT_TIMELINE_CHANGED, EVENT_POSITION_DISCONTINUITY)) {
@@ -838,10 +943,15 @@ class MusicService : MediaLibraryService(),
 
     @Deprecated("This nukes the entire db and adds everything again. Saving queues is to be done inside QueueBoard, incrementally.")
     private fun saveQueueToDisk() {
+        val data = queueBoard.getAllQueues()
         // TODO: get rid of this. Yeah I'd want to update individual queues instead of nuking the entire db and writing everything but ehhhhh that's for later
         CoroutineScope(Dispatchers.IO).launch {
-            database.rewriteAllQueues(queueBoard.getAllQueues())
+            database.rewriteAllQueues(data)
         }
+    }
+
+    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+        // we handle notification manually
     }
 
     override fun onDestroy() {
@@ -876,7 +986,8 @@ class MusicService : MediaLibraryService(),
         const val PLAYLIST = "playlist"
 
         const val CHANNEL_ID = "music_channel_01"
-        const val KEEP_ALIVE_CHANNEL_ID = "outertune_keep_alive"
+        const val CHANNEL_NAME = "fgs_workaround"
+        const val NOTIFICATION_ID = 888
         const val ERROR_CODE_NO_STREAM = 1000001
         const val CHUNK_LENGTH = 512 * 1024L
     }

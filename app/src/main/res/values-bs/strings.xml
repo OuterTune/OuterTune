@@ -79,6 +79,8 @@
     <string name="backup_create_success">Rezervna kopija je uspješno sagrađena</string>
     <string name="backup_create_failed">Nije moguće napraviti rezervnu kopiju</string>
     <string name="restore_failed">Neuspješan povratak rezervne kopije</string>
+    <string name="discord_integration">Integracija sa Discord-om</string>
+    <string name="dismiss">Odbaci</string>
     <string name="home">Početna</string>
     <string name="undo">Vrati</string>
     <string name="artists">Umjetnici</string>
@@ -272,8 +274,15 @@
     <string name="backup">Rezervna kopija</string>
     <string name="restore">Povratak</string>
     <string name="imported_playlist">Spiska je uvezena</string>
+    <string name="discord_information">InnerTune koristi KizzyRPC biblioteku kako bi stavio tvoj Discord status. Ovo uključuje korištenje Discord Gateway spajanja, što bi se moglo smatrati prekršajem Discord-ovog TOS-a. Međutim nema poznatih slučajeva gdje su korisnički nalozi bili suspendovani zbog ovoga razloga. Korisite na svoju štetu.\n\nInnerTune će samo izvesti vaš žeton, i sve drugo je lokalno sklađeno.</string>
+    <string name="login_failed">Neuspješno upisivanje</string>
+    <string name="options">Opcije</string>
+    <string name="preview">Pregled</string>
+    <string name="enable_discord_rpc">Omogući Bogatu Prisutnost</string>
     <string name="app_version">Verzija aplikacije</string>
     <string name="logout">Izpiši se</string>
     <string name="about">O InnerTune-u</string>
+    <string name="clear_translation_models">Rasčisti modele prevođenja</string>
     <string name="new_version_available">Dostupna je nova verzija</string>
+    <string name="translation_models">Modeli prevođenja</string>
 </resources>

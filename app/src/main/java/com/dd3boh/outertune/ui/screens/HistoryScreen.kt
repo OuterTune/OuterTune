@@ -327,7 +327,7 @@ fun HistoryScreen(
                                                             YouTubeQueue.radio(song.toMediaMetadata())
                                                         } else {
                                                             ListQueue(
-                                                                title = "${context.getString(R.string.queue_searched_songs)} $viewModel.query",
+                                                                title = "${context.getString(R.string.queue_searched_songs_ot)} $viewModel.query",
                                                                 items = listOf(song.toMediaMetadata())
                                                             )
                                                         }

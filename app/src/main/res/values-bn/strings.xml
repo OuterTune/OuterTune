@@ -265,4 +265,6 @@
     <string name="app_version">অ্যাপ ভার্সন</string>
 
     <string name="new_version_available">নতুন ভার্সন এসেছে</string>
+    <string name="translation_models">ট্রান্সলেশন মডেল</string>
+    <string name="clear_translation_models">ট্রান্সলেশন মডেল ক্লিয়ার করুন</string>
 </resources>

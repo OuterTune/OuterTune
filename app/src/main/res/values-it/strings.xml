@@ -56,7 +56,7 @@
     <string name="retry">Riprova</string>
     <string name="radio">Radio</string>
     <string name="shuffle">Mischia</string>
-    <string name="reset">Reset</string>
+    <string name="reset">Ricomincia</string>
     <!-- Menu -->
     <string name="details">Dettagli</string>
     <string name="edit">Modifica</string>
@@ -201,7 +201,7 @@
     <string name="center">Centro</string>
     <string name="right">Destra</string>
     <string name="content">Contenuti</string>
-    <string name="login">Login</string>
+    <string name="login">Accesso</string>
     <string name="content_language">Lingua predefinita dei contenuti</string>
     <string name="content_country">Paese predefinito dei contenuti</string>
     <string name="system_default">Predefinito di sistema</string>
@@ -248,6 +248,8 @@
     <string name="about">Informazioni</string>
     <string name="app_version">Versione dell\'app</string>
     <string name="new_version_available">Nuova versione disponibile</string>
+    <string name="translation_models">Modelli di traduzione</string>
+    <string name="clear_translation_models">Cancella i modelli di traduzione</string>
     <string name="squiggly">Ondulato</string>
     <string name="action_remove_like_all">Rimuovi tutti i mi piace</string>
     <string name="library_album_empty">Gli album della libreria verranno visualizzati qui</string>
@@ -284,4 +286,5 @@
     <string name="persistent_queue_desc">Ripristina l\'ultima coda all\'apertura dell\'app</string>
     <string name="auto_load_more">Carica automaticamente più canzoni</string>
     <string name="auto_skip_next_on_error">Salta alla prossima canzone quando si verifica un errore</string>
+    <string name="auto_load_more_desc">Aggiungi automaticamente canzoni quando si raggiunge la fine della coda, se possibile</string>
 </resources>

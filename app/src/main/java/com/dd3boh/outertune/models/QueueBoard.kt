@@ -1,10 +1,9 @@
 package com.dd3boh.outertune.models
 
 import androidx.media3.common.C
-import androidx.media3.common.MediaItem
 import com.dd3boh.outertune.constants.PersistentQueueKey
 import com.dd3boh.outertune.db.entities.QueueEntity
-import com.dd3boh.outertune.extensions.metadata
+import com.dd3boh.outertune.extensions.currentMetadata
 import com.dd3boh.outertune.extensions.move
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.playback.MusicService
@@ -33,7 +32,7 @@ var isShuffleEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
  * @param title Queue title (and UID)
  * @param queue List of media items
  */
-class MultiQueueObject(
+data class MultiQueueObject(
     val id: Long,
     val title: String,
     /**
@@ -47,7 +46,11 @@ class MultiQueueObject(
     var shuffled: Boolean = false,
     var queuePos: Int = -1, // position of current song
     var index: Int, // order of queue
-    val playlistId: String? = null,
+    /**
+     * Song id to start watch endpoint
+     * TODO: change this in database too
+     */
+    var playlistId: String? = null,
 ) {
 
     /**
@@ -169,6 +172,7 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         forceInsert: Boolean = false,
         replace: Boolean = false,
         delta: Boolean = true,
+        isRadio: Boolean = false,
         startIndex: Int = 0
     ): Boolean {
         if (QUEUE_DEBUG)
@@ -296,17 +300,20 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
             }
         } else {
             // add entirely new queue
+            // Precondition(s): radio queues never include local songs
             if (masterQueues.size > MAX_QUEUES) {
                 deleteQueue(masterQueues.first(), player)
             }
+            val q = ArrayList(mediaList.filterNotNull())
             val newQueue = MultiQueueObject(
                 QueueEntity.generateQueueId(),
                 title,
-                ArrayList(mediaList.filterNotNull()),
+                q,
                 ArrayList(mediaList.filterNotNull()),
                 false,
                 startIndex,
-                masterQueues.size
+                masterQueues.size,
+                if (isRadio) q.lastOrNull()?.id else null
             )
             masterQueues.add(newQueue)
             if (player.dataStore.get(PersistentQueueKey, true)) {
@@ -326,16 +333,17 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         forceInsert: Boolean = false,
         replace: Boolean = false,
         delta: Boolean = true,
-        startIndex: Int = 0
-    ) = addQueue(title, mediaList, playerConnection.service, forceInsert, replace, delta, startIndex)
+        startIndex: Int = 0,
+        isRadio: Boolean = false,
+    ) = addQueue(title, mediaList, playerConnection.service, forceInsert, replace, delta, isRadio, startIndex)
 
 
     /**
      * Add songs to end of CURRENT QUEUE & update it in the player
      */
-    fun enqueueEnd(mediaList: List<MediaMetadata>, player: MusicService) {
+    fun enqueueEnd(mediaList: List<MediaMetadata>, player: MusicService, isRadio: Boolean = false) {
         getCurrentQueue()?.let {
-            addSongsToQueue(it, Int.MAX_VALUE, mediaList, player)
+            addSongsToQueue(it, Int.MAX_VALUE, mediaList, player, isRadio = isRadio)
         }
     }
 
@@ -347,12 +355,13 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         pos: Int,
         mediaList: List<MediaMetadata>,
         player: MusicService,
-        saveToDb: Boolean = true
+        saveToDb: Boolean = true,
+        isRadio: Boolean = false
     ) {
         val listPos = if (pos < 0) {
             0
         } else if (pos > q.queue.size) {
-            q.queue.size - 1
+            q.queue.size
         } else {
             pos
         }
@@ -360,14 +369,16 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         // Add to current queue at the position. For the other queue, just add to end
         if (q.shuffled) {
             q.queue.addAll(listPos, mediaList)
-            q.unShuffled.addAll(q.queue.size - 1, mediaList)
+            q.unShuffled.addAll(q.queue.size, mediaList)
         } else {
-            q.queue.addAll(q.queue.size - 1, mediaList)
+            q.queue.addAll(q.queue.size, mediaList)
             q.unShuffled.addAll(listPos, mediaList)
         }
 
-        // copy so ui doesnt crash
-        player.player.replaceMediaItems(listPos, pos, mediaList.map { it.toMediaItem() })
+        setCurrQueue(q, player)
+        if (isRadio) {
+            q.playlistId = mediaList.lastOrNull()?.id
+        }
 
         if (saveToDb && player.dataStore.get(PersistentQueueKey, true)) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -706,14 +717,45 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         masterIndex = masterQueues.indexOf(item)
 
         // if requested to get shuffled queue
+        val mediaItems: MutableList<MediaMetadata>?
         if (item.shuffled) {
-            player.player.setMediaItems(item.queue.map { it.toMediaItem() })
+            mediaItems = item.queue
         } else {
-            player.player.setMediaItems(item.unShuffled.map { it.toMediaItem() })
+            mediaItems = item.unShuffled
         }
+
+        /**
+         * current playing == jump target, do seamlessly
+         */
+        val seamlessSupported = player.player.currentMetadata?.id == mediaItems[queuePos].id
+        if (seamlessSupported) {
+            if (queuePos == 0) {
+                val playerIndex = player.player.currentMediaItemIndex
+                val playerItemCount = player.player.mediaItemCount
+                // player.player.replaceMediaItems seems to stop playback so we
+                // remove all songs except the currently playing one and then add the list of new items
+                if (playerIndex < playerItemCount - 1) {
+                    player.player.removeMediaItems(playerIndex + 1, playerItemCount)
+                }
+                if (playerIndex > 0) {
+                    player.player.removeMediaItems(0, playerIndex)
+                }
+                // add all songs except the first one since it is already present and playing
+                player.player.addMediaItems(mediaItems.drop(1).map { it.toMediaItem() })
+            } else {
+                // replace items up to current playing, then replace items after current
+                player.player.replaceMediaItems(0, queuePos,
+                    mediaItems.subList(0, queuePos).map { it.toMediaItem() })
+                player.player.replaceMediaItems(queuePos + 1, Int.MAX_VALUE,
+                    mediaItems.subList(queuePos + 1, mediaItems.size).map { it.toMediaItem() })
+            }
+        } else {
+            player.player.setMediaItems(mediaItems.map { it.toMediaItem() })
+        }
+
         isShuffleEnabled.value = item.shuffled
 
-        if (autoSeek) {
+        if (autoSeek && !seamlessSupported) {
             player.player.seekTo(queuePos, C.TIME_UNSET)
         }
 
@@ -735,30 +777,6 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
                         player.database.updateQueue(it)
                     }
                 }
-            }
-        }
-    }
-
-    /**
-     * Update the current position index of the current queue to the index of the FIRST media item match
-     *
-     * @param mediaItem
-     */
-    fun setCurrQueuePosIndex(mediaItem: MediaItem?, player: MusicService) {
-        val currentQueue = getCurrentQueue()
-        if (mediaItem == null || currentQueue == null) {
-            return
-        }
-
-        if (currentQueue.shuffled) {
-            currentQueue.queuePos = currentQueue.queue.indexOf(mediaItem.metadata)
-        } else {
-            currentQueue.queuePos = currentQueue.unShuffled.indexOf(mediaItem.metadata)
-        }
-
-        if (player.dataStore.get(PersistentQueueKey, true)) {
-            CoroutineScope(Dispatchers.IO).launch {
-                player.database.updateQueue(currentQueue)
             }
         }
     }

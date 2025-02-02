@@ -57,7 +57,6 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 | github        | Github facing configs, ex. build scripts, templates, etc.                                           |
 | gradle        | Dependency/library updates                                                                          |
 | readme        | Readme changes                                                                                      |
-| translations  | Translations                                                                                        |
 | fixup         | Amendments to certain commits. this is generally done in the format `fixup: <old commit name here>` |
 
 | Tag (ui)    | Description                                                                        |
@@ -96,8 +95,3 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 - You are require to make sure migration works from the previous database version
 - Commits modifying the database version should be all be contained in that single commit
     - The generate json JSON, Entity classes, migration conflict resolution, etc.
-
-## Translations
-Follow the [instructions](https://developer.android.com/guide/topics/resources/localization) to add translation strings, and then
-create a pull request. **You are also required to build the app beforehand** and make sure there is no error
-before you create a pull request.

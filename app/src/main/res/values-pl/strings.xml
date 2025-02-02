@@ -255,6 +255,8 @@
     <string name="about">O aplikacji</string>
     <string name="app_version">Wersja aplikacji</string>
     <string name="new_version_available">Dostępna nowa wersja</string>
+    <string name="translation_models">Modele Tłumaczenia</string>
+    <string name="clear_translation_models">Wyczyść modele tłumaczenia</string>
     <string name="auto_skip_next_on_error_desc">Zapewnij ciągłość odtwarzania</string>
     <string name="add_all_to_library">Dodaj wszystko do biblioteki</string>
     <string name="big">Duży</string>
@@ -273,7 +275,9 @@
     <string name="remove_from_playlist">Usuń z playlisty</string>
     <string name="remove_all_from_library">Usuń wszystko z biblioteki</string>
     <string name="your_youtube_playlists">Twoje playlisty YouTube</string>
+    <string name="enable_discord_rpc">Włącz Rich Presence</string>
     <string name="remove_from_queue">Usuń z kolejki</string>
+    <string name="login_failed">Błąd logowania</string>
     <string name="similar_to">Podobne do</string>
     <string name="library_playlist_empty">Twoje playlisty pojawią się tutaj</string>
     <string name="other_versions">Inne wersje</string>
@@ -303,5 +307,14 @@
     <string name="search_history">Szukaj w historii</string>
     <string name="disable_screenshot">Wyłącz zrzut ekranu</string>
     <string name="hide_explicit">Ukryj wulgarne treści</string>
+    <string name="discord_integration">Integracja z Discordem</string>
+    <string name="discord_information">InnerTune korzysta z biblioteki KizzyRPC, aby móc ustawić status Twojego konta Discord. Wiąże się to z wykorzystaniem połączenia Discord Gateway, co może być uznane za naruszenie Warunków korzystania z usługi Discord. Nie ma jednak znanych przypadków zawieszania kont użytkowników z tego powodu. Używasz na własne ryzyko.
+\n
+\nInnerTune wyodrębni tylko Twój token, a wszystkie inne dane będą przechowywane lokalnie.</string>
+    <string name="dismiss">Odrzuć</string>
+    <string name="options">Opcje</string>
+    <string name="preview">Podgląd</string>
     <string name="logout">Wyloguj</string>
+    <string name="use_login_for_browse">Zaloguj się, aby przeglądać treści</string>
+    <string name="use_login_for_browse_desc">Może to mieć wpływ na to, jaką zawartość widzisz, na przykład wyświetlanie albumów dostępnych tylko w wersji premium, jeśli jesteś zalogowany na koncie Premium</string>
 </resources>

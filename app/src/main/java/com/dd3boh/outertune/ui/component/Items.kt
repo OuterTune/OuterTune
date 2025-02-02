@@ -79,7 +79,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
@@ -95,6 +94,7 @@ import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.GridThumbnailHeight
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.ListThumbnailSize
+import com.dd3boh.outertune.constants.SwipeToQueueKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.db.entities.Artist
@@ -117,6 +117,7 @@ import com.dd3boh.outertune.ui.utils.getLocalThumbnail
 import com.dd3boh.outertune.ui.utils.getNSongsString
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.makeTimeString
+import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.reportException
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.AlbumItem
@@ -208,7 +209,7 @@ inline fun ListItem(
         ) {
             Text(
                 text = title,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -236,23 +237,24 @@ fun ListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
     isSelected: Boolean? = false,
     isActive: Boolean = false,
-    isLocalSong: Boolean? = null,
+    isLocalSong: Boolean = false,
+    isLiked: Boolean = false,
+    inLibrary: Boolean = false,
     available: Boolean = true,
 ) = ListItem(
     title = title,
     subtitle = {
         badges()
 
-        // local song indicator
-        if (isLocalSong == true) {
-           FolderCopy()
-        }
+        if (isLiked)Icon.Favorite()
+        if (inLibrary) Icon.Library()
+        if (isLocalSong) FolderCopy()
 
         if (!subtitle.isNullOrEmpty()) {
             Text(
                 text = subtitle,
                 color = MaterialTheme.colorScheme.secondary,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -324,7 +326,7 @@ fun GridItem(
     title = {
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -339,7 +341,7 @@ fun GridItem(
 
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -385,6 +387,8 @@ fun SongListItem(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val swipeToQueueEnabled by rememberPreference(SwipeToQueueKey, true)
+
     val listItem: @Composable () -> Unit = {
         ListItem(
             title = song.song.title,
@@ -393,19 +397,10 @@ fun SongListItem(
                 makeTimeString(song.song.duration * 1000L)
             ),
             badges = {
-                if (showLikedIcon && song.song.liked) {
-                    Icon.Favorite()
-                }
-                if (showInLibraryIcon && song.song.inLibrary != null) {
-                    Icon.Library()
-                }
                 if (showDownloadIcon) {
                     val download by LocalDownloadUtil.current.getDownload(song.id)
                         .collectAsState(initial = null)
                     Icon.Download(download?.state)
-                }
-                if (showLocalIcon && song.song.isLocal) {
-                    FolderCopy()
                 }
             },
             thumbnailContent = {
@@ -465,6 +460,9 @@ fun SongListItem(
             },
             isSelected = inSelectMode == true && isSelected,
             isActive = isActive,
+            isLocalSong = showLocalIcon && song.song.isLocal,
+            isLiked = showLikedIcon && song.song.liked,
+            inLibrary = showInLibraryIcon && song.song.inLibrary != null,
             available = available,
             modifier = modifier.combinedClickable(
                 onClick = {
@@ -499,7 +497,7 @@ fun SongListItem(
         )
     }
 
-    if (enableSwipeToQueue && available) {
+    if (swipeToQueueEnabled && enableSwipeToQueue && available) {
         SwipeToQueueBox(
             item = song.toMediaItem(),
             content = { listItem() },
@@ -1117,7 +1115,9 @@ fun MediaMetadataListItem(
     modifier = modifier,
     isSelected = isSelected,
     isActive = isActive,
-    isLocalSong = mediaMetadata.isLocal
+    isLocalSong = mediaMetadata.isLocal,
+    isLiked = mediaMetadata.liked,
+    inLibrary = mediaMetadata.inLibrary != null
 )
 
 @Composable
@@ -1249,7 +1249,7 @@ fun YouTubeGridItem(
     title = {
         Text(
             text = item.title,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,

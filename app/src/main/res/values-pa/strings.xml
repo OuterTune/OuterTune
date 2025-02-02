@@ -256,4 +256,6 @@
     <string name="about">ਐਪ ਦੇ ਬਾਰੇ</string>
     <string name="app_version">ਐਪ ਸੰਸਕਰਣ</string>
     <string name="new_version_available">ਨਵਾਂ ਸੰਸਕਰਣ ਉਪਲੱਬਧ ਹੈ</string>
+    <string name="translation_models">ਆਨੁਵਾਦ ਦੇ ਮਾਡਲ</string>
+    <string name="clear_translation_models">ਅਨੁਵਾਦ ਦੇ ਮਾਡਲ ਮਿਟਾਓ</string>
 </resources>

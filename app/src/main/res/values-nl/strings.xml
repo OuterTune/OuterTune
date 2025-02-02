@@ -237,8 +237,11 @@
     <string name="about">Over</string>
     <string name="app_version">App versie</string>
     <string name="new_version_available">Nieuwe versie beschikbaar</string>
+    <string name="translation_models">Vertaalmodellen</string>
+    <string name="clear_translation_models">Verwijder vertaalmodellen</string>
     <string name="enable_lrclib">LrcLib tekstaanbieder inschakelen</string>
     <string name="stop_music_on_task_clear">Stop muziek op \'taak wissen\'</string>
+    <string name="dismiss">Afwijzen</string>
     <string name="tempo_and_pitch">Tempo en toonhoogte</string>
     <string name="auto_load_more_desc">Voeg indien mogelijk automatisch meer nummers toe wanneer het einde van de wachtrij is bereikt</string>
     <string name="forgotten_favorites">Vergeten favorieten</string>
@@ -285,5 +288,11 @@
     <string name="disable_screenshot">Schermafbeelding uitschakelen</string>
     <string name="disable_screenshot_desc">Als deze optie is ingeschakeld, zijn schermafbeeldingen en de weergave van de app in Recente bestanden uitgeschakeld.</string>
     <string name="hide_explicit">Expliciete inhoud verbergen</string>
+    <string name="discord_integration">Discord integratie</string>
+    <string name="discord_information">InnerTune gebruikt de KizzyRPC bibliotheek om de status van je Discord account in te stellen. Dit omvat het gebruik van de Discord Gateway verbinding, die kan worden beschouwd als een schending van de TOS van Discord. Er zijn echter geen gevallen bekend van gebruikersaccounts die om deze reden zijn geschorst. Gebruik op eigen risico.\n\nInnerTune zal alleen uw token uitpakken, en al het andere wordt lokaal opgeslagen.</string>
+    <string name="options">Opties</string>
+    <string name="preview">Voorbeeld</string>
+    <string name="login_failed">Aanmelden mislukt</string>
     <string name="logout">Afmelden</string>
+    <string name="enable_discord_rpc">Rijke aanwezigheid inschakelen</string>
 </resources>

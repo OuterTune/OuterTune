@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Contrast
@@ -64,6 +65,7 @@ import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
 import com.dd3boh.outertune.constants.PureBlackKey
 import com.dd3boh.outertune.constants.ShowLikedAndDownloadedPlaylist
 import com.dd3boh.outertune.constants.SlimNavBarKey
+import com.dd3boh.outertune.constants.SwipeToQueueKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.extensions.move
 import com.dd3boh.outertune.ui.component.ActionPromptDialog
@@ -111,6 +113,7 @@ fun AppearanceSettings(
     val (defaultOpenTabNew, onDefaultOpenTabNewChange) = rememberEnumPreference(DefaultOpenTabNewKey, defaultValue = NavigationTabNew.HOME)
     val (newInterfaceStyle, onNewInterfaceStyleChange) = rememberPreference(key = NewInterfaceKey, defaultValue = true)
     val (showLikedAndDownloadedPlaylist, onShowLikedAndDownloadedPlaylistChange) = rememberPreference(key = ShowLikedAndDownloadedPlaylist, defaultValue = true)
+    val (swipe2Queue, onSwipe2QueueChange) = rememberPreference(SwipeToQueueKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = false)
     val (flatSubfolders, onFlatSubfoldersChange) = rememberPreference(FlatSubfoldersKey, defaultValue = true)
 
@@ -226,6 +229,13 @@ fun AppearanceSettings(
             onCheckedChange = onShowLikedAndDownloadedPlaylistChange
         )
         SwitchPreference(
+            title = { Text(stringResource(R.string.swipe2Queue)) },
+            description = stringResource(R.string.swipe2Queue_description),
+            icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistAdd, null) },
+            checked = swipe2Queue,
+            onCheckedChange = onSwipe2QueueChange
+        )
+        SwitchPreference(
             title = { Text(stringResource(R.string.slim_navbar_title)) },
             description = stringResource(R.string.slim_navbar_description),
             icon = { Icon(Icons.Rounded.MoreHoriz, null) },
@@ -303,7 +313,7 @@ fun AppearanceSettings(
                                         NavigationTab.ALBUM -> stringResource(R.string.albums)
                                         NavigationTab.PLAYLIST -> stringResource(R.string.playlists)
                                         else -> {
-                                            "--- Drag below here to disable ---"
+                                            stringResource(R.string.tab_arrangement_disable_tip)
                                         }
                                     }
                                 )
@@ -317,7 +327,7 @@ fun AppearanceSettings(
                     }
                 }
 
-                InfoLabel(text = "The Home tab is required.")
+                InfoLabel(stringResource(R.string.tab_arrangement_home_required))
             }
 
         if (newInterfaceStyle) {

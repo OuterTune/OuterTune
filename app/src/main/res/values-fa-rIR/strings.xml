@@ -265,4 +265,6 @@
     <string name="app_version">نسخه‌ی برنامه</string>
 
     <string name="new_version_available">نسخه‌ی جدید دردسترس‌است</string>
+    <string name="translation_models">نمونه‌های ترجمه</string>
+    <string name="clear_translation_models">پاک‌کردن نمونه‌های ترجمه</string>
 </resources>

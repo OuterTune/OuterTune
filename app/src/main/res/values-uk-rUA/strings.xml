@@ -302,8 +302,19 @@
     <string name="backup_create_success">Резервну копію створено успішно</string>
     <string name="backup_create_failed">Не вдалося створити резервну копію</string>
     <string name="restore_failed">Не вдалося відновити з резервної копії</string>
+    <string name="discord_integration">Інтеграція з Discord</string>
+    <string name="discord_information">InnerTune використовує бібліотеку KizzyRPC для встановлення статусу вашого облікового запису Discord. Це передбачає використання підключення через Discord Gateway, що може вважатися порушенням умов використання Discord. Однак, наразі немає відомих випадків блокування облікових записів користувачів з цієї причини. Використовуйте на свій страх і ризик.\n\nInnerTune буде зчитувати тільки ваш токен, а все інше зберігається локально.</string>
+    <string name="dismiss">Закрити</string>
+    <string name="options">Налаштування</string>
+    <string name="preview">Попередній перегляд</string>
+    <string name="login_failed">Помилка входу</string>
     <string name="logout">Вийти</string>
+    <string name="enable_discord_rpc">Увімкнути Rich Presenсe</string>
     <string name="about">Про програму</string>
     <string name="app_version">Версія застосунку</string>
     <string name="new_version_available">Доступна нова версія</string>
+    <string name="translation_models">Моделі перекладу</string>
+    <string name="clear_translation_models">Очистити моделі перекладу</string>
+    <string name="use_login_for_browse_desc">Це може вплинути на те, який вміст ви бачите, і, наприклад, показує лише платні альбоми, якщо ви ввійшли в обліковий запис Premium</string>
+    <string name="use_login_for_browse">Використовуйте логін для перегляду вмісту</string>
 </resources>

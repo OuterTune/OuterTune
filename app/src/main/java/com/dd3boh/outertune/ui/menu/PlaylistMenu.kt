@@ -331,7 +331,7 @@ fun PlaylistMenu(
                         playerConnection.playQueue(YouTubeQueue(WatchEndpoint(
                             playlistId = "RDAMPL$browseId",
                             params = radioEndpointParams,
-                        )))
+                        )), isRadio = true)
                         onDismiss()
                     }
                 }
