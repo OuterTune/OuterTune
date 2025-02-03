@@ -238,6 +238,17 @@ class MediaLibrarySessionCallback @Inject constructor(
         }
     }
 
+    override fun onSearch(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        params: MediaLibraryService.LibraryParams?
+    ): ListenableFuture<LibraryResult<Void>> {
+        println("MediaLibrarySessionCallback.onSearch: $query")
+        session.notifySearchResultChanged(browser, query, 0, params)
+        return Futures.immediateFuture(LibraryResult.ofVoid(params))
+    }
+
     private fun drawableUri(@DrawableRes id: Int) = Uri.Builder()
         .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
         .authority(context.resources.getResourcePackageName(id))
