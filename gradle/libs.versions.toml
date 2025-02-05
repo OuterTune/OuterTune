@@ -75,7 +75,7 @@ timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" 
 
 taglib = { module = "com.github.Kyant0:taglib", version.ref = "taglib" }
 
-newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "3a33cefbc014a820056d83076914544f29b82644" }
+newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "v0.24.5" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
