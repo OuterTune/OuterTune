@@ -15,6 +15,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import com.dd3boh.outertune.BuildConfig
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.MediaSessionConstants
 import com.dd3boh.outertune.constants.SongSortType
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.plus
+import timber.log.Timber
 import javax.inject.Inject
 
 class MediaLibrarySessionCallback @Inject constructor(
@@ -42,6 +44,7 @@ class MediaLibrarySessionCallback @Inject constructor(
     val database: MusicDatabase,
     val downloadUtil: DownloadUtil,
 ) : MediaLibrarySession.Callback {
+    private val TAG = MediaLibrarySessionCallback::class.simpleName.toString()
     private val scope = CoroutineScope(Dispatchers.Main) + Job()
     var toggleLike: () -> Unit = {}
     var toggleStartRadio: () -> Unit = {}
@@ -244,7 +247,9 @@ class MediaLibrarySessionCallback @Inject constructor(
         query: String,
         params: MediaLibraryService.LibraryParams?
     ): ListenableFuture<LibraryResult<Void>> {
-        println("MediaLibrarySessionCallback.onSearch: $query")
+        if (BuildConfig.DEBUG) {
+            Timber.tag(TAG).d("MediaLibrarySessionCallback.onSearch: $query")
+        }
         session.notifySearchResultChanged(browser, query, 0, params)
         return Futures.immediateFuture(LibraryResult.ofVoid(params))
     }
