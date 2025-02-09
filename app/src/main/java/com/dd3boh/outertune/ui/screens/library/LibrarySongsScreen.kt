@@ -42,7 +42,6 @@ import androidx.compose.ui.util.fastForEachReversed
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -77,8 +76,6 @@ fun LibrarySongsScreen(
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsNetworkConnected.current
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     var filter by rememberEnumPreference(SongFilterKey, SongFilter.LIKED)
@@ -100,12 +97,6 @@ fun LibrarySongsScreen(
             lazyListState.animateScrollToItem(0)
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
         }
-    }
-
-    val songsAvailable = {
-        songs?.filter { it.song.isAvailableOffline() || isNetworkConnected }
-            ?.map { it.toMediaMetadata() }
-            ?.toList() ?: emptyList()
     }
 
     // multiselect
@@ -173,9 +164,7 @@ fun LibrarySongsScreen(
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
             if (inSelectMode && songs != null) {
-                val s: List<Song> = (songs as Iterable<Song>)
-                    .filter { it.song.isAvailableOffline() || isNetworkConnected }
-                    .toList()
+                val s: List<Song> = (songs as Iterable<Song>).toList()
                 SelectHeader(
                     selectedItems = selection.mapNotNull { songId ->
                         s.find { it.id == songId }
@@ -292,7 +281,8 @@ fun LibrarySongsScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = context.getString(R.string.queue_all_songs),
-                        items = songsAvailable().shuffled()
+                        items =  songs?.map { it.toMediaMetadata() } ?: emptyList(),
+                        startShuffled = true,
                     )
                 )
             }

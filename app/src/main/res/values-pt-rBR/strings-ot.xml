@@ -120,12 +120,12 @@
     <string name="scanner_ytm_link_success">Processo de vínculo de artistas do YouTube concluído</string>
     <plurals name="scanner_n_song_processed">
         <item quantity="one">%d música processada</item>
-        <item quantity="many">%d milhões de músicas processadas</item>
+        <item quantity="many">%d de músicas processadas</item>
         <item quantity="other">%d músicas processadas</item>
     </plurals>
     <plurals name="scanner_n_song_found">
         <item quantity="one">%d música encontrada</item>
-        <item quantity="many">%d milhões de músicas encontradas</item>
+        <item quantity="many">%d de músicas encontradas</item>
         <item quantity="other">%d músicas encontradas</item>
     </plurals>
     <string name="scanner_missing_ffmpeg">Extrator FFmpeg não detectado</string>
@@ -139,4 +139,5 @@
 
 <string name="err_stop_on_error">Um erro ocorreu. A reprodução parou</string>
     <string name="err_stop_on_too_many_errors">Muitos erros. A reprodução parou</string>
+    <string name="grp_general">Geral</string>
 </resources>

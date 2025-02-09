@@ -16,7 +16,7 @@ import java.nio.charset.Charset
 import kotlin.math.min
 
 /**
- * Unless otherwise stated, this file is From Gramophone as of 0d46996db54a3360e832ed06bf18170bce85534f
+ * Unless otherwise stated, this file is From Gramophone as of 9ca721e21a16bbfafdc15b8707b910edc5080c0c
  * This has been adapted for OuterTune
  * https://github.com/AkaneTan/Gramophone/blob/beta/app/src/main/kotlin/org/akanework/gramophone/logic/utils/LrcUtils.kt
  */

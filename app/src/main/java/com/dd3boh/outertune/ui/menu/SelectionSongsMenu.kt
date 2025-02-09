@@ -215,7 +215,8 @@ fun SelectionMediaMetadataMenu(
             playerConnection.playQueue(
                 ListQueue(
                     title = "Selection",
-                    items = selection.shuffled()
+                    items = selection,
+                    startShuffled = true,
                 )
             )
             clearAction()

@@ -72,7 +72,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
-import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -119,7 +118,6 @@ fun ArtistScreen(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
-    val isNetworkConnected = LocalIsNetworkConnected.current
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -132,7 +130,7 @@ fun ArtistScreen(
 
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showLocal by rememberSaveable { mutableStateOf(!isNetworkConnected) }
+    var showLocal by rememberSaveable { mutableStateOf(false) }
 
     val transparentAppBar by remember {
         derivedStateOf {
@@ -140,15 +138,9 @@ fun ArtistScreen(
         }
     }
 
-    val librarySongsAvailable = {
-        librarySongs.filter { it.song.isAvailableOffline() || isNetworkConnected }
-        .map { it.toMediaMetadata() }
-        .toList()
-    }
-
-    LaunchedEffect(isNetworkConnected, libraryArtist) {
+    LaunchedEffect(libraryArtist) {
         // always show local page for local artists. Show local page remote artist when offline
-        showLocal = !isNetworkConnected || libraryArtist?.artist?.isLocalArtist == true
+        showLocal = libraryArtist?.artist?.isLocalArtist == true
     }
 
     val artistHead = @Composable {
@@ -180,7 +172,7 @@ fun ArtistScreen(
                     }
                     AutoResizeText(
                         text = artistName
-                        ?: "Unknown",
+                            ?: "Unknown",
                         style = MaterialTheme.typography.displayLarge,
                         fontSizeRange = FontSizeRange(32.sp, 58.sp),
                         fontWeight = FontWeight.Bold,
@@ -210,12 +202,13 @@ fun ArtistScreen(
                 ) {
                     Button(
                         onClick = {
-                            val watchEndpoint = artistPage?.artist?.shuffleEndpoint?: artistPage?.artist?.playEndpoint
+                            val watchEndpoint = artistPage?.artist?.shuffleEndpoint ?: artistPage?.artist?.playEndpoint
                             playerConnection.playQueue(
                                 if (!showLocal && watchEndpoint != null) YouTubeQueue(watchEndpoint)
                                 else ListQueue(
                                     title = artistName,
-                                    items = librarySongsAvailable().shuffled(),
+                                    items = librarySongs.map { it.toMediaMetadata() },
+                                    startShuffled = true,
                                 ),
                                 isRadio = true,
                                 title = artistName
@@ -281,8 +274,7 @@ fun ArtistScreen(
                 item(key = "shimmer") {
                     ArtistPagePlaceholder()
                 }
-            }
-            else {
+            } else {
                 item(key = "header") {
                     artistHead()
                 }
@@ -308,7 +300,7 @@ fun ArtistScreen(
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = "Library: ${libraryArtist?.artist?.name}",
-                                            items = librarySongsAvailable().shuffled(),
+                                            items = librarySongs.map { it.toMediaMetadata() },
                                             startIndex = index
                                         )
                                     )
@@ -317,7 +309,9 @@ fun ArtistScreen(
                                 inSelectMode = false,
                                 isSelected = false,
                                 navController = navController,
-                                modifier = Modifier.fillMaxWidth().animateItem()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateItem()
                             )
 
                         }
@@ -367,8 +361,7 @@ fun ArtistScreen(
                         }
 
                     }
-                }
-                else artistPage?.sections?.fastForEach { section ->
+                } else artistPage?.sections?.fastForEach { section ->
                     val isSongsSection = (section.items.firstOrNull() as? SongItem)?.album != null
 
                     item {
@@ -446,8 +439,7 @@ fun ArtistScreen(
                             )
 
                         }
-                    }
-                    else {
+                    } else {
                         item {
                             LazyRow {
                                 items(
@@ -525,15 +517,12 @@ fun ArtistScreen(
         }
 
         HideOnScrollFAB(
-            visible = librarySongs.isNotEmpty(),
+            visible = librarySongs.isNotEmpty() && libraryArtist?.artist?.isLocalArtist != true,
             lazyListState = lazyListState,
             icon = if (showLocal) Icons.Rounded.LibraryMusic else Icons.Rounded.Language,
             onClick = {
-                if (isNetworkConnected) {
-                    showLocal = showLocal.not()
-                    if (!showLocal && artistPage == null) viewModel.fetchArtistsFromYTM()
-                }
-                else showLocal = true
+                showLocal = showLocal.not()
+                if (!showLocal && artistPage == null) viewModel.fetchArtistsFromYTM()
             }
         )
 

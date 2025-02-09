@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2025 O‌ute‌rTu‌ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.component
 
 import android.graphics.Bitmap
@@ -25,14 +33,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 
 const val MAX_IMAGE_JOBS = 4
+
 @OptIn(DelicateCoroutinesApi::class)
-val imageSession = newFixedThreadPoolContext(MAX_IMAGE_JOBS , "ImageExtractor")
+val imageSession = newFixedThreadPoolContext(MAX_IMAGE_JOBS, "ImageExtractor")
 
 /**
  * Non-blocking image
  */
 @Composable
-fun AsyncLocalImage(
+fun AsyncImageLocal(
     image: () -> Bitmap?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,

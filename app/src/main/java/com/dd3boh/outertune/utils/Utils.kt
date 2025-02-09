@@ -1,7 +1,14 @@
+/*
+ * Copyright (C) 2025 O​u​t​er​Tu​ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.utils
 
 import android.content.pm.PackageManager
-import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.ui.screens.settings.NavigationTab
 
 fun reportException(throwable: Throwable) {
@@ -49,60 +56,6 @@ fun encodeTabString(list: List<NavigationTab>): String {
     }
 
     return encoded
-}
-
-/**
- * Find the matching string, if not found the closest super string
- */
-fun closestMatch(query: String, stringList: List<Artist>): Artist? {
-    // Check for exact match first
-
-    val exactMatch = stringList.find { query.lowercase() == it.artist.name.lowercase() }
-    if (exactMatch != null) {
-        return exactMatch
-    }
-
-    // Check for query as substring in any of the strings
-    val substringMatches = stringList.filter { it.artist.name.contains(query) }
-    if (substringMatches.isNotEmpty()) {
-        return substringMatches.minByOrNull { it.artist.name.length }
-    }
-
-    return null
-}
-
-/**
- * Convert a number to a string representation
- *
- * The value of the number is denoted with characters from A through J. A being 0, and J being 9. This is prefixed by
- * number of digits the number has (always 2 digits, in the same representation) and succeeded with a null terminator "0"
- * In format:
- * <digit tens><digit ones><value in string form>0
- *
- *
- * For example:
- * 100          -> ADBAA0 ("AD" is "03", which represents this is a AD 3 digit number, "BAA" is "100")
- * 101          -> ADBAB0
- * 1013         -> AEBABD0
- * 9            -> ABJ0
- * 111222333444 -> BCBBBCCCDDDEEE0
- */
-fun numberToAlpha(l: Long): String {
-    val alphabetMap = ('A'..'J').toList()
-    val weh = l.toString()
-    val lengthStr = if (weh.length.toInt() < 10) {
-        "0" + weh.length.toInt()
-    } else {
-        weh.length.toInt().toString()
-    }
-
-    return (lengthStr + weh + "\u0000").map {
-        if (it == '\u0000') {
-            "0"
-        } else {
-            alphabetMap[it.digitToInt()]
-        }
-    }.joinToString("")
 }
 
 /**

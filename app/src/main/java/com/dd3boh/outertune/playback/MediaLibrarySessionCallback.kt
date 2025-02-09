@@ -12,9 +12,11 @@ import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import com.dd3boh.outertune.BuildConfig
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.MediaSessionConstants
 import com.dd3boh.outertune.constants.SongSortType
@@ -27,6 +29,7 @@ import com.dd3boh.outertune.extensions.toggleShuffleMode
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,13 +38,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.plus
+import timber.log.Timber
 import javax.inject.Inject
+import kotlin.collections.map
 
 class MediaLibrarySessionCallback @Inject constructor(
     @ApplicationContext val context: Context,
     val database: MusicDatabase,
     val downloadUtil: DownloadUtil,
 ) : MediaLibrarySession.Callback {
+    private val TAG = MediaLibrarySessionCallback::class.simpleName.toString()
     private val scope = CoroutineScope(Dispatchers.Main) + Job()
     var toggleLike: () -> Unit = {}
     var toggleStartRadio: () -> Unit = {}
@@ -76,6 +82,14 @@ class MediaLibrarySessionCallback @Inject constructor(
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }
+
+//    override fun onPlaybackResumption(
+//        mediaSession: MediaSession,
+//        controller: MediaSession.ControllerInfo
+//    ): ListenableFuture<MediaItemsWithStartPosition> {
+//        // Already handled by the player. This just shuts up the exception
+//        return SettableFuture.create<MediaItemsWithStartPosition>()
+//    }
 
     override fun onGetLibraryRoot(
         session: MediaLibrarySession,
@@ -236,6 +250,19 @@ class MediaLibrarySessionCallback @Inject constructor(
 
             else -> defaultResult
         }
+    }
+
+    override fun onSearch(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        params: MediaLibraryService.LibraryParams?
+    ): ListenableFuture<LibraryResult<Void>> {
+        if (BuildConfig.DEBUG) {
+            Timber.tag(TAG).d("MediaLibrarySessionCallback.onSearch: $query")
+        }
+        session.notifySearchResultChanged(browser, query, 0, params)
+        return Futures.immediateFuture(LibraryResult.ofVoid(params))
     }
 
     private fun drawableUri(@DrawableRes id: Int) = Uri.Builder()

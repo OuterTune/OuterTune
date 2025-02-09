@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2024 z-huang/InnerTune
+ * Copyright (C) 2025 OuterTune Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.player
 
 import android.content.Context
@@ -103,7 +112,7 @@ import com.dd3boh.outertune.extensions.toggleRepeatMode
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.isShuffleEnabled
 import com.dd3boh.outertune.playback.PlayerConnection
-import com.dd3boh.outertune.ui.component.AsyncLocalImage
+import com.dd3boh.outertune.ui.component.AsyncImageLocal
 import com.dd3boh.outertune.ui.component.BottomSheet
 import com.dd3boh.outertune.ui.component.BottomSheetState
 import com.dd3boh.outertune.ui.component.LocalMenuState
@@ -114,7 +123,7 @@ import com.dd3boh.outertune.ui.menu.PlayerMenu
 import com.dd3boh.outertune.ui.screens.settings.DarkMode
 import com.dd3boh.outertune.ui.screens.settings.PlayerBackgroundStyle
 import com.dd3boh.outertune.ui.theme.extractGradientColors
-import com.dd3boh.outertune.ui.utils.getLocalThumbnail
+import com.dd3boh.outertune.ui.utils.imageCache
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
@@ -186,7 +195,7 @@ fun BottomSheetPlayer(
 
         withContext(Dispatchers.IO) {
             if (mediaMetadata?.isLocal == true) {
-                getLocalThumbnail(mediaMetadata?.localPath)?.extractGradientColors()?.let {
+                imageCache.getLocalThumbnail(mediaMetadata?.localPath)?.extractGradientColors()?.let {
                     gradientColors = it
                 }
             } else {
@@ -537,8 +546,8 @@ fun BottomSheetPlayer(
             if (playerBackground == PlayerBackgroundStyle.BLUR) {
                 if (mediaMetadata?.isLocal == true) {
                     mediaMetadata?.let {
-                        AsyncLocalImage(
-                            image = { getLocalThumbnail(it.localPath) },
+                        AsyncImageLocal(
+                            image = { imageCache.getLocalThumbnail(it.localPath) },
                             contentDescription = null,
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier

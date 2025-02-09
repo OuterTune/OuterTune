@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2024 z-huang/InnerTune
+ * Copyright (C) 2025 OuterTune Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.screens.settings
 
 import android.annotation.SuppressLint
@@ -80,7 +89,10 @@ fun StorageSettings(
         }
     }
 
-    val (maxImageCacheSize, onMaxImageCacheSizeChange) = rememberPreference(key = MaxImageCacheSizeKey, defaultValue = 512)
+    val (maxImageCacheSize, onMaxImageCacheSizeChange) = rememberPreference(
+        key = MaxImageCacheSizeKey,
+        defaultValue = 512
+    )
 
     // clear caches when turning off
     LaunchedEffect(maxImageCacheSize) {
@@ -130,7 +142,10 @@ fun StorageSettings(
             )
 
             Text(
-                text = stringResource(R.string.size_used, "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}"),
+                text = stringResource(
+                    R.string.size_used,
+                    "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}"
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
             )

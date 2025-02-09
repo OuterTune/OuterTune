@@ -77,6 +77,11 @@ object YouTube {
         set(value) {
             innerTube.visitorData = value
         }
+    var dataSyncId: String?
+        get() = innerTube.dataSyncId
+        set(value) {
+            innerTube.dataSyncId = value
+        }
     var cookie: String?
         get() = innerTube.cookie
         set(value) {
@@ -488,11 +493,11 @@ object YouTube {
         val tabs = response.contents?.singleColumnBrowseResultsRenderer?.tabs
 
         val contents = if (tabs != null && tabs.size >= tabIndex) {
-                tabs[tabIndex].tabRenderer.content?.sectionListRenderer?.contents?.firstOrNull()
-            }
-            else {
-                null
-            }
+            tabs[tabIndex].tabRenderer.content?.sectionListRenderer?.contents?.firstOrNull()
+        }
+        else {
+            null
+        }
 
         when {
             contents?.gridRenderer != null -> {
@@ -501,7 +506,7 @@ object YouTube {
                         .mapNotNull (GridRenderer.Item::musicTwoRowItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) },
                     continuation = contents.gridRenderer.continuations?.firstOrNull()?.
-                        nextContinuationData?.continuation
+                    nextContinuationData?.continuation
                 )
             }
 
@@ -511,7 +516,7 @@ object YouTube {
                         .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
                     continuation = contents.musicShelfRenderer.continuations?.firstOrNull()?.
-                        nextContinuationData?.continuation
+                    nextContinuationData?.continuation
                 )
             }
         }
@@ -533,7 +538,7 @@ object YouTube {
                         .mapNotNull (GridRenderer.Item::musicTwoRowItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) },
                     continuation = contents.gridContinuation.continuations?.firstOrNull()?.
-                        nextContinuationData?.continuation
+                    nextContinuationData?.continuation
                 )
             }
 
@@ -543,7 +548,7 @@ object YouTube {
                         .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
                     continuation = contents.musicShelfContinuation.continuations?.firstOrNull()?.
-                        nextContinuationData?.continuation
+                    nextContinuationData?.continuation
                 )
             }
         }
@@ -658,8 +663,8 @@ object YouTube {
         innerTube.deletePlaylist(WEB_REMIX, playlistId)
     }
 
-    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null): Result<PlayerResponse> = runCatching {
-        innerTube.player(client, videoId, playlistId, signatureTimestamp).body<PlayerResponse>()
+    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null, webPlayerPot: String? = null): Result<PlayerResponse> = runCatching {
+        innerTube.player(client, videoId, playlistId, signatureTimestamp, webPlayerPot).body<PlayerResponse>()
     }
 
     suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) = runCatching {
@@ -696,15 +701,15 @@ object YouTube {
                 .watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer
                 ?.content?.playlistPanelRenderer!!
         val title = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer
-                .watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer
-                ?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
+            .watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer
+            ?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
         val items = playlistPanelRenderer.contents.mapNotNull { content ->
             content.playlistPanelVideoRenderer
                 ?.let(NextPage::fromPlaylistPanelVideoRenderer)
                 ?.let { it to content.playlistPanelVideoRenderer.selected }
         }
         val songs = items.map { it.first }
-                val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
+        val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
 
         // load automix items
         playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.let { watchPlaylistEndpoint ->

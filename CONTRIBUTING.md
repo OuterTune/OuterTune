@@ -9,19 +9,18 @@ There are the following build variants
 ```
 universal (all architectures)
 arm64 (arm64-v8a)
-uncommonabi (armeabi-v7a, x86, x86_64)
 x86_64
 ```
 
 **For most users, the `universal` variant is sufficient.** The other build variants may reduce file size, however at the
 cost of compatibility.
 
-
 <br/><br/>
 
 # Contributing to OuterTune
 
 ## Submitting a pull request
+
 To make everyone's life easier, there are a set of guidelines that are to be followed when submitting pull requests.
 
 - One pull request for one feature/issue, please refrain from tackling many features/issues in one pull request
@@ -31,6 +30,7 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 - **You are required to build and test the app before submitting a pull request**
 
 ## Commiting guidelines
+
 - Prefix commits with tags, and provide descriptions if necessary. These are generally done in format:
   `tag: commit_name`. [Example](https://github.com/DD3Boh/OuterTune/commit/798e8366227dd2cc38355224c733dbf7e8ffcee0)
     - A list of tags commonly used is provided below
@@ -40,11 +40,14 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
       authorship. [Example](https://github.com/DD3Boh/OuterTune/commit/b0dc59682190b41f0200e9df5174322acaa3d40d)
     - If this is not possible please provide the source in the commit
       description. [Example](https://github.com/DD3Boh/OuterTune/pull/59/commits/e40325dd86ac2c30347cfd4f9e92bbf15a0d0c82)
-- Do not merge `dev` into your branch
-    - Instead, please rebase over dev
-- Merge conflicts
+- IMPORTANT: When merging `dev` into your branch
+    - Best: Please rebase over dev
+    - Less good: Merging dev into your branch via merge commit. We do not like this as it clobbers the commit history.
+      If you do this, your pull request will be squashed and merged
+- IMPORTANT: Merge conflicts
     - As per the previous point, please rebase and conflicts are to be resolve in the commits themselves
     - We may ask you to rebase your PR if merge conflicts are an issue when merging
+    - In the event you do not wish to rebase, your pull request will be squashed and merged as stated above
 - If database schema changes are required, please state clearly if a version increment is required. Additional details
   are in the `Database schema changes` section
 - For multi-part commits where all parts are required for functionality, use

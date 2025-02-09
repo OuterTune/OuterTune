@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2024 z-huang/InnerTune
+ * Copyright (C) 2025 O​u​t​er​Tu​ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
@@ -50,10 +59,22 @@ fun PrivacySettings(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val database = LocalDatabase.current
-    val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(key = PauseListenHistoryKey, defaultValue = false)
-    val (pauseRemoteListenHistory, onPauseRemoteListenHistoryChange) = rememberPreference(key = PauseRemoteListenHistoryKey, defaultValue = true)
-    val (pauseSearchHistory, onPauseSearchHistoryChange) = rememberPreference(key = PauseSearchHistoryKey, defaultValue = false)
-    val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(key = UseLoginForBrowse, defaultValue = false)
+    val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(
+        key = PauseListenHistoryKey,
+        defaultValue = false
+    )
+    val (pauseRemoteListenHistory, onPauseRemoteListenHistoryChange) = rememberPreference(
+        key = PauseRemoteListenHistoryKey,
+        defaultValue = false
+    )
+    val (pauseSearchHistory, onPauseSearchHistoryChange) = rememberPreference(
+        key = PauseSearchHistoryKey,
+        defaultValue = false
+    )
+    val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(
+        key = UseLoginForBrowse,
+        defaultValue = false
+    )
 
     var showClearListenHistoryDialog by remember {
         mutableStateOf(false)
@@ -141,7 +162,7 @@ fun PrivacySettings(
             icon = { Icon(Icons.Rounded.History, null) },
             checked = pauseRemoteListenHistory,
             onCheckedChange = onPauseRemoteListenHistoryChange,
-            isEnabled = pauseListenHistory
+            isEnabled = !pauseListenHistory
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.clear_listen_history)) },

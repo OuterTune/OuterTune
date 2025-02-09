@@ -188,7 +188,8 @@ fun SwitchPreference(
         trailingContent = {
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange
+                onCheckedChange = onCheckedChange,
+                enabled = isEnabled
             )
         },
         onClick = { onCheckedChange(!checked) },

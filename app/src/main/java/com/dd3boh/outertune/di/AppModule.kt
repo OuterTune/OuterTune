@@ -7,6 +7,7 @@ import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import com.dd3boh.outertune.db.InternalDatabase
 import com.dd3boh.outertune.db.MusicDatabase
+import com.dd3boh.outertune.utils.LmImageCacheMgr
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,6 +16,9 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ImageCache
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -27,6 +31,11 @@ object AppModule {
     @Provides
     fun provideDatabase(@ApplicationContext context: Context): MusicDatabase =
         InternalDatabase.newInstance(context)
+
+    @Provides
+    @Singleton
+    @ImageCache
+    fun provideImageCache(): LmImageCacheMgr = LmImageCacheMgr()
 
     @Singleton
     @Provides

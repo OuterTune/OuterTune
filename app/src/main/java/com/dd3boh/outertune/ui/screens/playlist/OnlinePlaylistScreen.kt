@@ -466,7 +466,8 @@ fun OnlinePlaylistScreen(
                                                 ListQueue(
                                                     playlistId = playlist.playEndpoint!!.playlistId,
                                                     title = playlist.title,
-                                                    items = songs.map { it.toMediaMetadata() }.shuffled(),
+                                                    items = songs.map { it.toMediaMetadata() },
+                                                    startShuffled = true,
                                                 )
                                             )
                                         },

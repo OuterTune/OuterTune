@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2024 z-huang/InnerTune
+ * Copyright (C) 2025 O​u​t​er​Tu​ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune
 
 import android.annotation.SuppressLint
@@ -95,7 +104,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -117,7 +125,6 @@ import com.dd3boh.outertune.constants.DynamicThemeKey
 import com.dd3boh.outertune.constants.EnabledTabsKey
 import com.dd3boh.outertune.constants.ExcludedScanPathsKey
 import com.dd3boh.outertune.constants.FirstSetupPassed
-import com.dd3boh.outertune.constants.LastPosKey
 import com.dd3boh.outertune.constants.LibraryFilter
 import com.dd3boh.outertune.constants.LibraryFilterKey
 import com.dd3boh.outertune.constants.LocalLibraryEnableKey
@@ -127,6 +134,7 @@ import com.dd3boh.outertune.constants.NavigationBarAnimationSpec
 import com.dd3boh.outertune.constants.NavigationBarHeight
 import com.dd3boh.outertune.constants.NewInterfaceKey
 import com.dd3boh.outertune.constants.PauseSearchHistoryKey
+import com.dd3boh.outertune.constants.PersistentQueueKey
 import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
 import com.dd3boh.outertune.constants.PureBlackKey
 import com.dd3boh.outertune.constants.ScanPathsKey
@@ -204,14 +212,13 @@ import com.dd3boh.outertune.ui.theme.extractThemeColor
 import com.dd3boh.outertune.ui.utils.DEFAULT_SCAN_PATH
 import com.dd3boh.outertune.ui.utils.appBarScrollBehavior
 import com.dd3boh.outertune.ui.utils.cacheDirectoryTree
-import com.dd3boh.outertune.ui.utils.getLocalThumbnail
+import com.dd3boh.outertune.ui.utils.imageCache
 import com.dd3boh.outertune.ui.utils.resetHeightOffset
 import com.dd3boh.outertune.utils.ActivityLauncherHelper
 import com.dd3boh.outertune.utils.NetworkConnectivityObserver
 import com.dd3boh.outertune.utils.SyncUtils
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.get
-import com.dd3boh.outertune.utils.purgeCache
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.reportException
@@ -228,7 +235,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.URLDecoder
 import javax.inject.Inject
@@ -273,34 +279,34 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(Intent(this, MusicService::class.java))
-        } else {
-            startService(Intent(this, MusicService::class.java))
-        }
+        startService(Intent(this, MusicService::class.java))
         bindService(Intent(this, MusicService::class.java), serviceConnection, BIND_AUTO_CREATE)
     }
 
-    override fun onStop() {
-        unbindService(serviceConnection)
-        super.onStop()
-    }
-
     override fun onDestroy() {
+        /*
+         * While music is playing:
+         *      StopMusicOnTaskClearKey true: clearing from recent apps will kill service
+         *      StopMusicOnTaskClearKey false: clearing from recent apps will NOT kill service
+         * While music is not playing: 
+         *      Service will never be automatically killed
+         *
+         * Regardless of what happens, queues and last position are saves
+         */
         super.onDestroy()
-        runBlocking {
-            // save last position
-            dataStore.edit { settings ->
-                settings[LastPosKey] = playerConnection!!.player.currentPosition
-            }
-        }
+        unbindService(serviceConnection)
 
         if (dataStore.get(StopMusicOnTaskClearKey, false) && playerConnection?.isPlaying?.value == true
             && isFinishing
         ) {
-            stopService(Intent(this, MusicService::class.java))
-            unbindService(serviceConnection)
-            playerConnection = null
+            if (dataStore.get(PersistentQueueKey, true)) {
+//                stopService(Intent(this, MusicService::class.java)) // Believe me, this doesn't actually stop
+                playerConnection?.service?.onDestroy()
+
+                playerConnection = null
+            }
+        } else {
+            playerConnection?.service?.saveQueueToDisk()
         }
     }
 
@@ -315,12 +321,9 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         activityLauncher = ActivityLauncherHelper(this)
-        connectivityObserver = NetworkConnectivityObserver(this)
 
         setContent {
             val haptic = LocalHapticFeedback.current
-
-            val isNetworkConnected by connectivityObserver.networkStatus.collectAsState(false)
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -342,6 +345,14 @@ class MainActivity : ComponentActivity() {
                 defaultValue = PlayerBackgroundStyle.DEFAULT
             )
 
+            try {
+                connectivityObserver.unregister()
+            } catch (e: UninitializedPropertyAccessException) {
+                // lol
+            }
+            connectivityObserver = NetworkConnectivityObserver(this@MainActivity)
+            val isNetworkConnected by connectivityObserver.networkStatus.collectAsState(true)
+
             LaunchedEffect(playerConnection, enableDynamicTheme, isSystemInDarkTheme) {
                 val playerConnection = playerConnection
                 if (!enableDynamicTheme || playerConnection == null) {
@@ -361,7 +372,7 @@ class MainActivity : ComponentActivity() {
                                 (result.drawable as? BitmapDrawable)?.bitmap?.extractThemeColor()
                                     ?: DefaultThemeColor
                             } else {
-                                getLocalThumbnail(song.localPath)?.extractThemeColor()
+                                imageCache.getLocalThumbnail(song.localPath)?.extractThemeColor()
                                     ?: DefaultThemeColor
                             }
                         }
@@ -392,7 +403,8 @@ class MainActivity : ComponentActivity() {
                 CoroutineScope(Dispatchers.IO).launch {
                     // Check if the permissions for local media access
                     if (!scannerActive.value && autoScan && firstSetupPassed && localLibEnable
-                        && checkSelfPermission(MEDIA_PERMISSION_LEVEL) == PackageManager.PERMISSION_GRANTED) {
+                        && checkSelfPermission(MEDIA_PERMISSION_LEVEL) == PackageManager.PERMISSION_GRANTED
+                    ) {
 
                         // equivalent to (quick scan)
                         try {
@@ -433,7 +445,7 @@ class MainActivity : ComponentActivity() {
                         } finally {
                             destroyScanner()
                         }
-                        purgeCache() // juuuust to be sure
+                        imageCache.purgeCache() // juuuust to be sure
                         cacheDirectoryTree(null)
                     } else if (checkSelfPermission(MEDIA_PERMISSION_LEVEL) == PackageManager.PERMISSION_DENIED) {
                         // Request the permission using the permission launcher
@@ -457,7 +469,8 @@ class MainActivity : ComponentActivity() {
 
                     val navController = rememberNavController()
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val inSelectMode = navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
+                    val inSelectMode =
+                        navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
                     val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }
 
                     val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
@@ -646,7 +659,8 @@ class MainActivity : ComponentActivity() {
                     DisposableEffect(Unit) {
                         val listener = Consumer<Intent> { intent ->
                             val uri =
-                                intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)?.toUri() ?: return@Consumer
+                                intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)?.toUri()
+                                ?: return@Consumer
                             when (val path = uri.pathSegments.firstOrNull()) {
                                 "playlist" -> uri.getQueryParameter("list")?.let { playlistId ->
                                     if (playlistId.startsWith("OLAK5uy_")) {
@@ -698,7 +712,7 @@ class MainActivity : ComponentActivity() {
                         LocalDownloadUtil provides downloadUtil,
                         LocalShimmerTheme provides ShimmerTheme,
                         LocalSyncUtils provides syncUtils,
-                        LocalIsNetworkConnected provides isNetworkConnected
+                        LocalNetworkConnected provides isNetworkConnected
                     ) {
                         Scaffold(
                             topBar = {
@@ -731,7 +745,9 @@ class MainActivity : ComponentActivity() {
                                                     when {
                                                         active -> onActiveChange(false)
 
-                                                        !active && navBackStackEntry?.destination?.route?.startsWith("search") == true -> {
+                                                        !active && navBackStackEntry?.destination?.route?.startsWith(
+                                                            "search"
+                                                        ) == true -> {
                                                             navController.navigateUp()
                                                         }
 
@@ -741,7 +757,10 @@ class MainActivity : ComponentActivity() {
                                             ) {
                                                 Icon(
                                                     imageVector =
-                                                    if (active || navBackStackEntry?.destination?.route?.startsWith("search") == true) {
+                                                    if (active || navBackStackEntry?.destination?.route?.startsWith(
+                                                            "search"
+                                                        ) == true
+                                                    ) {
                                                         Icons.AutoMirrored.Rounded.ArrowBack
                                                     } else {
                                                         Icons.Rounded.Search
@@ -926,7 +945,10 @@ class MainActivity : ComponentActivity() {
                                                 },
                                                 onClick = {
                                                     if (navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true) {
-                                                        navBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
+                                                        navBackStackEntry?.savedStateHandle?.set(
+                                                            "scrollToTop",
+                                                            true
+                                                        )
                                                         coroutineScope.launch {
                                                             searchBarScrollBehavior.state.resetHeightOffset()
                                                         }
@@ -1200,7 +1222,7 @@ class MainActivity : ComponentActivity() {
                                     LoginScreen(navController)
                                 }
 
-                                composable("setup_wizard",) {
+                                composable("setup_wizard") {
                                     SetupWizard(navController)
                                 }
                             }
@@ -1277,4 +1299,4 @@ val LocalPlayerConnection = staticCompositionLocalOf<PlayerConnection?> { error(
 val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No WindowInsets provided") }
 val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
 val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
-val LocalIsNetworkConnected = staticCompositionLocalOf<Boolean> { error("No Network Status provided") }
+val LocalNetworkConnected = staticCompositionLocalOf<Boolean> { error("No Network Status provided") }

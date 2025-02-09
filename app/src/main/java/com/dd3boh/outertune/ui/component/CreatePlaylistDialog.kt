@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2025 O⁠ute⁠rTu⁠ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.component
 
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +44,7 @@ fun CreatePlaylistDialog(
     onDismiss: () -> Unit,
     initialTextFieldValue: String? = null,
     allowSyncing: Boolean = true,
-){
+) {
     val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
@@ -45,7 +53,7 @@ fun CreatePlaylistDialog(
     TextFieldDialog(
         icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
         title = { Text(text = stringResource(R.string.create_playlist)) },
-        initialTextFieldValue = TextFieldValue(initialTextFieldValue?: ""),
+        initialTextFieldValue = TextFieldValue(initialTextFieldValue ?: ""),
         onDismiss = onDismiss,
         onDone = { playlistName ->
             coroutineScope.launch(Dispatchers.IO) {
@@ -67,7 +75,7 @@ fun CreatePlaylistDialog(
             }
         },
         extraContent = {
-            if (allowSyncing && context.isUserLoggedIn()){
+            if (allowSyncing && context.isUserLoggedIn()) {
                 Row(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
                 ) {

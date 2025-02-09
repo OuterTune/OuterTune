@@ -59,7 +59,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
-import com.dd3boh.outertune.LocalIsNetworkConnected
+import com.dd3boh.outertune.LocalNetworkConnected
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
@@ -90,7 +90,7 @@ fun AlbumMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsNetworkConnected.current
+    val isNetworkConnected = LocalNetworkConnected.current
     val scope = rememberCoroutineScope()
     val libraryAlbum by database.album(originalAlbum.id).collectAsState(initial = originalAlbum)
     val album = libraryAlbum ?: originalAlbum
@@ -99,12 +99,6 @@ fun AlbumMenu(
     }
     val allInLibrary = remember(songs) {
         songs.all { it.song.inLibrary != null }
-    }
-
-    val songsAvailable = {
-        songs.filter { it.song.isAvailableOffline() || isNetworkConnected }
-            .map { it.toMediaMetadata() }
-            .toList()
     }
 
 //    for when local albums are a thing
@@ -164,8 +158,10 @@ fun AlbumMenu(
     AddToQueueDialog(
         isVisible = showChooseQueueDialog,
         onAdd = { queueName ->
-            queueBoard.addQueue(queueName, songs.map { it.toMediaMetadata() }, playerConnection,
-                forceInsert = true, delta = false)
+            queueBoard.addQueue(
+                queueName, songs.map { it.toMediaMetadata() }, playerConnection,
+                forceInsert = true, delta = false
+            )
             queueBoard.setCurrQueue(playerConnection)
         },
         onDismiss = {
@@ -314,7 +310,7 @@ fun AlbumMenu(
             onDownload = {
                 val _songs = songs
                     .filterNot { it.song.isLocal }
-                    .map{ it.toMediaMetadata() }
+                    .map { it.toMediaMetadata() }
                 downloadUtil.download(_songs)
             },
             onRemoveDownload = {

@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2025 O﻿ute﻿rTu﻿ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.component
 
 import androidx.compose.animation.core.FiniteAnimationSpec

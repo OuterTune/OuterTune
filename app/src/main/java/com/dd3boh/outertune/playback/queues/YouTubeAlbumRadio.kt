@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 
 class YouTubeAlbumRadio(
     override val playlistId: String,
+    override val startShuffled: Boolean = false
 ) : Queue {
     override val preloadItem: MediaMetadata? = null
     private val endpoint = WatchEndpoint(

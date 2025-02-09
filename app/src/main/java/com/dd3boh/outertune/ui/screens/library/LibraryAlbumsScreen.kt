@@ -52,7 +52,9 @@ import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.GridThumbnailHeight
 import com.dd3boh.outertune.constants.LibraryViewType
 import com.dd3boh.outertune.constants.LibraryViewTypeKey
+import com.dd3boh.outertune.extensions.isSyncEnabled
 import com.dd3boh.outertune.ui.component.ChipsRow
+import com.dd3boh.outertune.ui.component.EmptyPlaceholder
 import com.dd3boh.outertune.ui.component.LibraryAlbumGridItem
 import com.dd3boh.outertune.ui.component.LibraryAlbumListItem
 import com.dd3boh.outertune.ui.component.LocalMenuState
@@ -60,8 +62,6 @@ import com.dd3boh.outertune.ui.component.SortHeader
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.LibraryAlbumsViewModel
-import com.dd3boh.outertune.extensions.isSyncEnabled
-import com.dd3boh.outertune.ui.component.EmptyPlaceholder
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -135,10 +135,10 @@ fun LibraryAlbumsScreen(
             ) {
                 Icon(
                     imageVector =
-                        when (albumViewType) {
-                            LibraryViewType.LIST -> Icons.AutoMirrored.Rounded.List
-                            LibraryViewType.GRID -> Icons.Rounded.GridView
-                        },
+                    when (albumViewType) {
+                        LibraryViewType.LIST -> Icons.AutoMirrored.Rounded.List
+                        LibraryViewType.GRID -> Icons.Rounded.GridView
+                    },
                     contentDescription = null
                 )
             }

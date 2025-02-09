@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library">Библиотека</string>
+    <string name="recent_activity">Недавняя активность</string>
+    <string name="local_history">Локальные</string>
+    <string name="create_queue">Новая очередь</string>
+    <string name="queue_searched_songs_ot">Поиск:</string>
+    <string name="song_added_to_queue">\"%s\" добавлено в очередь</string>
+    <string name="auto_playlist">Автоплейлист</string>
+    <string name="select">Режим выбора</string>
+    <string name="err_play_next_on_error">Произошла ошибка. Воспроизведение следующий</string>
+    <string name="err_stop_on_too_many_errors">Слишком много ошибок. Воспроизведение остановлено</string>
+    <string name="wait_to_reconnect">Подождите переподключения</string>"&gt;
+
+<string name="sort_by_date_modified">Дата изменения</string>
+    <string name="sort_by_like_date">Дата добавления в понравившиеся</string>
+    <string name="create_sync_playlist">Синхронизировать плейлист</string>
+    <string name="play_count">Количество воспроизведений</string>
+    <string name="sync_progress_active">Синхронизация YouTube с аккаунтом…</string>
+    <string name="sync_progress_success">Синхронизация завершена</string>
+    <string name="prefs_advanced">Расширенные</string>
+    <string name="remote_history">Удаленные</string>
+    <string name="err_stop_on_error">Произошла ошибка. Воспроизведение остановлено</string>
+    <string name="sort_by_date_released">Дата выпуска</string>
+    <string name="create_sync_playlist_description">Примечание: Это позволит синхронизировать плейлист с YouTube Music. Этот параметр НЕЛЬЗЯ изменить позже. Вы не сможете добавлять локальные песни в синхронизированные плейлисты.</string>
+    <string name="playlist_add_local_to_synced_note">Примечание: Добавление локальных песен в синхронизированные/удаленные плейлисты не поддерживается. Любая другая комбинация допустима</string>
+    <string name="song_added_to_queue_end">\"%s\" добавлено в конец очереди</string>
+    <string name="delete_lyric_confirm">Вы действительно хотите удалить сохраненный текст песни \"%s\"?</string>
+    <string name="folders">Папки</string>
+    <string name="sort_by_play_count">Количество воспроизведений</string>
+</resources>

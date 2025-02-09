@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2024 z-huang/InnerTune
+ * Copyright (C) 2025 OuterTune Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
@@ -59,13 +68,22 @@ fun PlayerSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val (audioQuality, onAudioQualityChange) = rememberEnumPreference(key = AudioQualityKey, defaultValue = AudioQuality.AUTO)
+    val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
+        key = AudioQualityKey,
+        defaultValue = AudioQuality.AUTO
+    )
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
     val (skipSilence, onSkipSilenceChange) = rememberPreference(key = SkipSilenceKey, defaultValue = false)
     val (skipOnErrorKey, onSkipOnErrorChange) = rememberPreference(key = SkipOnErrorKey, defaultValue = true)
-    val (audioNormalization, onAudioNormalizationChange) = rememberPreference(key = AudioNormalizationKey, defaultValue = true)
+    val (audioNormalization, onAudioNormalizationChange) = rememberPreference(
+        key = AudioNormalizationKey,
+        defaultValue = true
+    )
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
-    val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(key = StopMusicOnTaskClearKey, defaultValue = false)
+    val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
+        key = StopMusicOnTaskClearKey,
+        defaultValue = false
+    )
     val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
     val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
     val (keepAlive, onKeepAliveChange) = rememberPreference(key = KeepAliveKey, defaultValue = false)

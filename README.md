@@ -14,7 +14,8 @@ A Material 3 YouTube Music client & local music player for Android
 
 ## Features
 
-OuterTune is a supercharged fork of [InnerTune](https://github.com/z-huang/InnerTune), with advanced account synchronization, local media playback, multiple queues, and a new take on UI design.
+OuterTune is a supercharged fork of [InnerTune](https://github.com/z-huang/InnerTune), with advanced account
+synchronization, local media playback, multiple queues, and a new take on UI design.
 
 - Play, search, and save all your songs, videos, albums, and playlists from YouTube Music
     - Song downloading for offline playback
@@ -22,7 +23,8 @@ OuterTune is a supercharged fork of [InnerTune](https://github.com/z-huang/Inner
 - New integrated library screen design & Multiple queues
 - Advanced account synchronization
     - YouTube Music account login support
-    - Fully fledged syncing of songs, subscriptions, playlists and albums — both to and from your account
+    - Fully fledged syncing of songs, subscriptions, ~~playlists~~ and albums — both to and from your account
+    - Playlist sync from the app to the remote account is temporally unavailable
 - Local audio file playback
     - Play local and Youtube Music songs at the same time
     - We don't use MediaStore's broken metadata extractor! (e.g tags delimited with `\\` now show up properly)
@@ -43,12 +45,17 @@ OuterTune is a supercharged fork of [InnerTune](https://github.com/z-huang/Inner
 >If you're in a region where YouTube Music is not supported, you won't be able to use this app
 ***unless*** you have a proxy or VPN to connect to a YTM supported region.
 
+## Extras
+
+ffMetadataEx is an optional standalone plugin that contains the FFmpeg libraries required for the FFmpeg tag extractor.
+For more information and downloads, see https://github.com/OuterTune/ffMetadataEx
+
 ## FAQ
 
 ### Q: How to scrobble music to LastFM, LibreFM, ListenBrainz or GNU FM?
 
-Use other music scrobbler apps. I
-recommend [Pano Scrobbler](https://play.google.com/store/apps/details?id=com.arn.scrobble).
+Use other music scrobbler apps. You can
+try [Pano Scrobbler](https://play.google.com/store/apps/details?id=com.arn.scrobble).
 
 ### Q: Why OuterTune isn't showing in Android Auto?
 
@@ -59,7 +66,8 @@ recommend [Pano Scrobbler](https://play.google.com/store/apps/details?id=com.arn
 
 ## Building & Contributing
 
-We are looking for contributors, translators, and maintainers! If you would like to help out, or just wish to build the app yourself, please see the [building and contribution notes](./CONTRIBUTING.md).
+We are looking for contributors, translators, and maintainers! If you would like to help out, or just wish to build the
+app yourself, please see the [building and contribution notes](./CONTRIBUTING.md).
 
 ### Translating
 
@@ -80,11 +88,13 @@ including bug fixes and new features.
 
 ## Attribution
 
-[z-huang/InnerTune](https://github.com/z-huang/InnerTune) for providing
-an awesome base for this fork, none of this would have been possible without it.
+Thanks to all our contributors! Check them out [here](https://github.com/OuterTune/OuterTune/graphs/contributors)
 
-[Musicolet](https://play.google.com/store/apps/details?id=in.krosbits.musicolet) for inspiration of a local music player experience done right.
+[z-huang/InnerTune](https://github.com/z-huang/InnerTune) for providing an awesome base for this fork, none of this
+would have been possible without it.
 
+[Musicolet](https://play.google.com/store/apps/details?id=in.krosbits.musicolet) for inspiration of a local music player
+experience done right.
 
 ## Disclaimer
 

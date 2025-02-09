@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2024 z-huang/InnerTune
+ * Copyright (C) 2025 O﻿ute﻿rTu﻿ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.player
 
 import androidx.compose.animation.fadeIn
@@ -54,8 +63,8 @@ import com.dd3boh.outertune.constants.MiniPlayerHeight
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.MediaMetadata
-import com.dd3boh.outertune.ui.component.AsyncLocalImage
-import com.dd3boh.outertune.ui.utils.getLocalThumbnail
+import com.dd3boh.outertune.ui.utils.imageCache
+import com.dd3boh.outertune.ui.component.AsyncImageLocal
 
 @Composable
 fun MiniPlayer(
@@ -112,7 +121,7 @@ fun MiniPlayer(
                 }
             ) {
                 Icon(
-                    imageVector = if(playbackState == Player.STATE_ENDED) Icons.Rounded.Replay else if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                    imageVector = if (playbackState == Player.STATE_ENDED) Icons.Rounded.Replay else if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     contentDescription = null
                 )
             }
@@ -137,7 +146,8 @@ fun MiniMediaInfo(
     modifier: Modifier = Modifier,
 ) {
     val playerConnection = LocalPlayerConnection.current
-    val isWaitingForNetwork by playerConnection?.waitingForNetworkConnection?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
+    val isWaitingForNetwork by playerConnection?.waitingForNetworkConnection?.collectAsState(initial = false)
+        ?: remember { mutableStateOf(false) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -146,8 +156,8 @@ fun MiniMediaInfo(
         Box(modifier = Modifier.padding(6.dp)) {
             if (mediaMetadata.isLocal) {
                 // local thumbnail arts
-                AsyncLocalImage(
-                    image = { getLocalThumbnail(mediaMetadata.localPath, true) },
+                AsyncImageLocal(
+                    image = { imageCache.getLocalThumbnail(mediaMetadata.localPath, true) },
                     contentDescription = null,
                     modifier = Modifier
                         .size(48.dp)

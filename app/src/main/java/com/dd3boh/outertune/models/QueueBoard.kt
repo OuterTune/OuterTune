@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2025 O⁠ute⁠rTu⁠ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.models
 
 import androidx.media3.common.C
@@ -85,6 +93,8 @@ data class MultiQueueObject(
  * otherwise explicitly stated.
  */
 class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
+    private val TAG = QueueBoard::class.simpleName.toString()
+
     private val masterQueues: MutableList<MultiQueueObject> = queues
     private var masterIndex = masterQueues.size - 1 // current queue index
     var detachedHead = false
@@ -153,12 +163,14 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
      *
      * @param title Title (id) of the queue
      * @param mediaList List of items to add
-     * @param queue Queue object for song continuation et al
+     * @param player Player object
+     * @param shuffled Whether to load a shuffled queue into the player
      * @param forceInsert When mediaList contains one item, force an insert instead of jumping to an
      *      item if it exists
      * @param replace Replace all items in the queue. This overrides forceInsert, delta
      * @param delta Takes not effect if forceInsert is false. Setting this to true will add only new
      *      songs, false will add all songs
+     * @param isRadio Specify if this is a queue that supports continuation
      * @param startIndex Index/position to instantiate the new queue with. This value takes no effect
      * if the queue already exists
      *
@@ -169,6 +181,7 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         title: String,
         mediaList: List<MediaMetadata?>,
         player: MusicService,
+        shuffled: Boolean = false,
         forceInsert: Boolean = false,
         replace: Boolean = false,
         delta: Boolean = true,
@@ -198,6 +211,10 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
                 match.unShuffled.addAll(mediaList.filterNotNull())
                 match.queuePos = startIndex
 
+                if (shuffled) {
+                    shuffle(match, player, false, true)
+                }
+
                 if (player.dataStore.get(PersistentQueueKey, true)) {
                     CoroutineScope(Dispatchers.IO).launch {
                         player.database.updateQueue(match)
@@ -219,6 +236,9 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
                     match.queuePos = match.queue.indexOf(findSong)
                     // no need update index in db, onMediaItemTransition() has alread done it
                 }
+                if (shuffled) {
+                    shuffle(match, player, false, true)
+                }
 
                 bubbleUp(match, player)  // move queue to end of list so it shows as most recent
                 return true
@@ -233,6 +253,9 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
                 val findSong = match.queue.firstOrNull { it.id == mediaList[startIndex]?.id }
                 if (findSong != null) {
                     match.queuePos = match.queue.indexOf(findSong) // track the index we jumped to
+                }
+                if (shuffled) {
+                    shuffle(match, player, false, true)
                 }
 
                 if (player.dataStore.get(PersistentQueueKey, true)) {
@@ -249,8 +272,14 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
                 // add items to existing queue unconditionally
                 if (anyExts != null) {
                     addSongsToQueue(anyExts, Int.MAX_VALUE, mediaList.filterNotNull(), player, saveToDb = false)
+                    if (shuffled) {
+                        shuffle(anyExts, player, false, true)
+                    }
                 } else {
                     addSongsToQueue(match, Int.MAX_VALUE, mediaList.filterNotNull(), player, saveToDb = false)
+                    if (shuffled) {
+                        shuffle(match, player, false, true)
+                    }
                 }
 
                 // rewrite queue
@@ -288,6 +317,10 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
                     masterQueues.size
                 )
                 masterQueues.add(newQueue)
+                if (shuffled) {
+                    shuffle(newQueue, player, false, true)
+                }
+
                 if (player.dataStore.get(PersistentQueueKey, true)) {
                     CoroutineScope(Dispatchers.IO).launch {
                         player.database.saveQueue(newQueue)
@@ -316,6 +349,10 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
                 if (isRadio) q.lastOrNull()?.id else null
             )
             masterQueues.add(newQueue)
+            if (shuffled) {
+                shuffle(masterQueues.size - 1, player, false, true)
+            }
+
             if (player.dataStore.get(PersistentQueueKey, true)) {
                 CoroutineScope(Dispatchers.IO).launch {
                     player.database.saveQueue(newQueue)
@@ -330,12 +367,13 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         title: String,
         mediaList: List<MediaMetadata?>,
         playerConnection: PlayerConnection,
+        shuffled: Boolean = false,
         forceInsert: Boolean = false,
         replace: Boolean = false,
         delta: Boolean = true,
         startIndex: Int = 0,
         isRadio: Boolean = false,
-    ) = addQueue(title, mediaList, playerConnection.service, forceInsert, replace, delta, isRadio, startIndex)
+    ) = addQueue(title, mediaList, playerConnection.service, shuffled, forceInsert, replace, delta, isRadio, startIndex)
 
 
     /**
@@ -476,11 +514,12 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
     /**
      * Shuffles current queue
      */
-    fun shuffleCurrent(player: MusicService, preserveCurrent: Boolean = true) = shuffle(masterIndex, player, preserveCurrent)
+    fun shuffleCurrent(player: MusicService, preserveCurrent: Boolean = true, bypassSaveToDb: Boolean = false) =
+        shuffle(masterIndex, player, preserveCurrent, bypassSaveToDb)
 
 
     /**
-     * Un-shuffles a queue
+     * Shuffles a queue
      *
      * If shuffle is enabled, it will pull from the shuffled queue, if shuffle is not enabled, it pulls from the
      * un-shuffled queue
@@ -488,9 +527,42 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
      * @param index
      * @param preserveCurrent True will push the currently playing song to the top of the queue. False will
      *      fully shuffle everything.
+     * @param bypassSaveToDb By default, the queue will be saved after shuffling. In some cases it may be necessary
+     *      to avoid this behaviour
+     *
      * @return New current position tracker
      */
-    fun shuffle(index: Int, player: MusicService, preserveCurrent: Boolean = true): Int {
+    fun shuffle(
+        q: MultiQueueObject,
+        player: MusicService,
+        preserveCurrent: Boolean = true,
+        bypassSaveToDb: Boolean = false
+    ) = shuffle(masterQueues.indexOf(q), player, preserveCurrent, bypassSaveToDb)
+
+    /**
+     * Shuffles a queue
+     *
+     * If shuffle is enabled, it will pull from the shuffled queue, if shuffle is not enabled, it pulls from the
+     * un-shuffled queue
+     *
+     * @param index
+     * @param preserveCurrent True will push the currently playing song to the top of the queue. False will
+     *      fully shuffle everything.
+     * @param bypassSaveToDb By default, the queue will be saved after shuffling. In some cases it may be necessary
+     *      to avoid this behaviour
+     *
+     * @return New current position tracker
+     */
+    fun shuffle(
+        index: Int,
+        player: MusicService,
+        preserveCurrent: Boolean = true,
+        bypassSaveToDb: Boolean = false
+    ): Int {
+        if (index <= -1) {
+            return 0
+        }
+
         val item = masterQueues[index]
         if (QUEUE_DEBUG)
             Timber.tag(TAG).d("Shuffling queue ${item.title}")
@@ -507,8 +579,10 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         item.shuffled = true
         isShuffleEnabled.value = true
 
-        CoroutineScope(Dispatchers.IO).launch {
-            player.database.rewriteQueue(item)
+        if (!bypassSaveToDb && player.dataStore.get(PersistentQueueKey, true)) {
+            CoroutineScope(Dispatchers.IO).launch {
+                player.database.rewriteQueue(item)
+            }
         }
         bubbleUp(item, player)
         return item.queuePos
@@ -783,8 +857,6 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
 
     companion object {
         val mutex = Mutex()
-
-        const val TAG = "QueueBoard"
     }
 
 }

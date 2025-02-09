@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2025 O​u​t​er​Tu​ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.models
 
 import com.dd3boh.outertune.constants.SongSortType
@@ -235,8 +243,8 @@ class DirectoryTree(path: String) {
         // replace the emulated/0 path with "Internal"
         if (emulated != null && zero != null) {
             val newInternalStorage = DirectoryTree("Internal", zero!!.subdirs, zero!!.files)
-            subdirs = ArrayList(subdirs.filterNot { it.currentDir == "emulated"})
-           subdirs.add(newInternalStorage)
+            subdirs = ArrayList(subdirs.filterNot { it.currentDir == "emulated" })
+            subdirs.add(newInternalStorage)
         }
 
         return this

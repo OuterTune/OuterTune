@@ -207,8 +207,10 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
                         title = cursor.getString(1),
                         duration = cursor.getInt(3),
                         liked = cursor.getInt(4) == 1,
-                        createDate = Instant.ofEpochMilli(Date(cursor.getLong(8)).time).atZone(ZoneOffset.UTC).toLocalDateTime(),
-                        modifyDate = Instant.ofEpochMilli(Date(cursor.getLong(9)).time).atZone(ZoneOffset.UTC).toLocalDateTime()
+                        createDate = Instant.ofEpochMilli(Date(cursor.getLong(8)).time).atZone(ZoneOffset.UTC)
+                            .toLocalDateTime(),
+                        modifyDate = Instant.ofEpochMilli(Date(cursor.getLong(9)).time).atZone(ZoneOffset.UTC)
+                            .toLocalDateTime()
                     )
                 )
                 songArtistMaps.add(
@@ -300,6 +302,7 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         }
     }
 }
+
 /**
  * Queue schema update
  */
@@ -315,6 +318,9 @@ val MIGRATION_14_15 = object : Migration(14, 15) {
     }
 }
 
+/**
+ * Add dateDownload to songs
+ */
 val MIGRATION_15_16 = object : Migration(15, 16) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE song ADD COLUMN dateDownload Integer NULL DEFAULT NULL")
@@ -423,7 +429,8 @@ class Migration12To13 : AutoMigrationSpec {
 
             while (cursor.moveToNext()) {
                 val song = cursor.getString(songIdColIndex)
-                val timestamp = Instant.ofEpochMilli(cursor.getLong(timestampColIndex)).atZone(ZoneOffset.UTC).toLocalDateTime()
+                val timestamp =
+                    Instant.ofEpochMilli(cursor.getLong(timestampColIndex)).atZone(ZoneOffset.UTC).toLocalDateTime()
                 val year = timestamp.year
                 val month = timestamp.monthValue
 

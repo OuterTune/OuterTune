@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2025 O​u​t​er​Tu​ne Project
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * For any other attributions, refer to the git commit history
+ */
+
 package com.dd3boh.outertune.ui.screens
 
 import android.provider.Settings
@@ -640,8 +648,9 @@ fun SetupWizard(
                             val navigationItems =
                                 if (!newInterfaceStyle) Screens.getScreens("HSABL") else Screens.MainScreensNew
                             NavigationBar(
-                                windowInsets = WindowInsets(0,0,0,0),
-                                modifier = Modifier.height(NavigationBarHeight)) {
+                                windowInsets = WindowInsets(0, 0, 0, 0),
+                                modifier = Modifier.height(NavigationBarHeight)
+                            ) {
                                 navigationItems.fastForEach { screen ->
                                     NavigationBarItem(
                                         selected = false,
@@ -922,7 +931,7 @@ private fun SortHeaderDummy(
             modifier = Modifier.widthIn(min = 172.dp)
         ) {
 
-           dummyOptions.forEach { type ->
+            dummyOptions.forEach { type ->
                 DropdownMenuItem(
                     text = {
                         Text(

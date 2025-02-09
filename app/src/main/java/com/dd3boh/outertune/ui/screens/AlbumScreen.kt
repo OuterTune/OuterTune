@@ -79,7 +79,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
-import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -87,7 +86,6 @@ import com.dd3boh.outertune.constants.AlbumThumbnailSize
 import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.db.entities.Album
-import com.dd3boh.outertune.extensions.getAvailableSongs
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
@@ -122,22 +120,14 @@ fun AlbumScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsNetworkConnected.current
 
     val scope = rememberCoroutineScope()
-
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val albumWithSongs by viewModel.albumWithSongs.collectAsState()
     val otherVersions by viewModel.otherVersions.collectAsState()
     val state = rememberLazyListState()
-
-    val songsAvailable = {
-        albumWithSongs?.songs?.filter { it.song.isAvailableOffline() || isNetworkConnected }
-            ?.map { it.toMediaMetadata() }
-            ?.toList() ?: emptyList()
-    }
 
     // multiselect
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
@@ -344,7 +334,7 @@ fun AlbumScreen(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = albumWithSongsLocal.album.title,
-                                        items = songsAvailable(),
+                                        items = albumWithSongs?.songs?.mapNotNull { it.toMediaMetadata() }?.toList()?: emptyList(),
                                         playlistId = albumWithSongsLocal.album.playlistId
                                     )
                                 )
@@ -368,7 +358,7 @@ fun AlbumScreen(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = albumWithSongsLocal.album.title,
-                                        items = songsAvailable().shuffled(),
+                                        items = albumWithSongs?.songs?.mapNotNull { it.toMediaMetadata() }?.toList()?: emptyList(),
                                         playlistId = albumWithSongsLocal.album.playlistId
                                     )
                                 )
@@ -401,10 +391,10 @@ fun AlbumScreen(
                             selectedItems = selection.mapNotNull { id ->
                                 albumWithSongsLocal.songs.find { it.song.id == id }
                             }.map { it.toMediaMetadata() },
-                            totalItemCount = albumWithSongsLocal.songs.getAvailableSongs(isNetworkConnected).size,
+                            totalItemCount = albumWithSongsLocal.songs.size,
                             onSelectAll = {
                                 selection.clear()
-                                selection.addAll(albumWithSongsLocal.songs.getAvailableSongs(isNetworkConnected).map { it.id })
+                                selection.addAll(albumWithSongsLocal.songs.map { it.id })
                             },
                             onDeselectAll = { selection.clear() },
                             menuState = menuState,

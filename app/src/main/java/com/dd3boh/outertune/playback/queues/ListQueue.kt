@@ -6,6 +6,7 @@ class ListQueue(
     override val playlistId: String? = null,
     val title: String? = null,
     val items: List<MediaMetadata>,
+    override val startShuffled: Boolean = false,
     val startIndex: Int = 0,
     val position: Long = 0L,
 ) : Queue {

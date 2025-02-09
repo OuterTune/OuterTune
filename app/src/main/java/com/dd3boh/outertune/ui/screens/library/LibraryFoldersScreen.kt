@@ -347,7 +347,8 @@ fun LibraryFoldersScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = currDir.currentDir,
-                        items = currDir.toSortedList(sortType, sortDescending).shuffled().map { it.toMediaMetadata() }
+                        items = currDir.toSortedList(sortType, sortDescending).map { it.toMediaMetadata() },
+                        startShuffled = true
                     )
                 )
             }

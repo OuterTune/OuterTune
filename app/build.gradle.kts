@@ -17,8 +17,8 @@ android {
         applicationId = "com.dd3boh.outertune"
         minSdk = 24
         targetSdk = 35
-        versionCode = 36
-        versionName = "0.7.2"
+        versionCode = 37
+        versionName = "0.7.3_rev1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -123,6 +123,7 @@ android {
     lint {
         disable += "MissingTranslation"
         disable += "ImpliedQuantity"
+        disable += "ByteOrderMark"
     }
 
 }
@@ -182,6 +183,10 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 
     implementation(libs.timber)
+
+    implementation(libs.nanojson)
+
+    implementation(libs.androidx.webkit)
 
     /*
     "JitPack builds are broken with the latest CMake version.

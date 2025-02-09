@@ -113,8 +113,8 @@ fun PlayerMenu(
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
+    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
     var showChooseQueueDialog by rememberSaveable {
         mutableStateOf(false)
@@ -425,14 +425,12 @@ fun PlayerMenu(
                 context.startActivity(Intent.createChooser(intent, null))
                 onDismiss()
             }
-
         GridMenuItem(
             icon = Icons.Rounded.Info,
             title = R.string.details
         ) {
             showDetailsDialog = true
         }
-
         SleepTimerGridMenu(
             sleepTimerTimeLeft = sleepTimerTimeLeft,
             enabled = sleepTimerEnabled
@@ -440,7 +438,6 @@ fun PlayerMenu(
             if (sleepTimerEnabled) playerConnection.service.sleepTimer.clear()
             else showSleepTimerDialog = true
         }
-
         GridMenuItem(
             icon = Icons.Rounded.Tune,
             title = R.string.advanced

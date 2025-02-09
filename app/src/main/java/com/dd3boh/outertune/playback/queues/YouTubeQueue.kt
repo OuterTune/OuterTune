@@ -10,7 +10,8 @@ import kotlinx.coroutines.withContext
 class YouTubeQueue(
     private var endpoint: WatchEndpoint,
     override val preloadItem: MediaMetadata? = null,
-    override val playlistId: String? = endpoint.playlistId
+    override val playlistId: String? = endpoint.playlistId,
+    override val startShuffled: Boolean = false
 ) : Queue {
     private var continuation: String? = null
 

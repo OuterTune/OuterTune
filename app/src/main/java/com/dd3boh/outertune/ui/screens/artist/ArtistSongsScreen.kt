@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.dd3boh.outertune.LocalIsNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -48,7 +47,6 @@ import com.dd3boh.outertune.constants.ArtistSongSortDescendingKey
 import com.dd3boh.outertune.constants.ArtistSongSortType
 import com.dd3boh.outertune.constants.ArtistSongSortTypeKey
 import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
-import com.dd3boh.outertune.extensions.getAvailableSongs
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.HideOnScrollFAB
@@ -75,19 +73,12 @@ fun ArtistSongsScreen(
 ) {
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isNetworkConnected = LocalIsNetworkConnected.current
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSongSortTypeKey, ArtistSongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSongSortDescendingKey, true)
 
     val artist by viewModel.artist.collectAsState()
     val songs by viewModel.songs.collectAsState()
-
-    val songsAvailable = {
-        songs.filter { it.song.isAvailableOffline() || isNetworkConnected }
-            .map { it.toMediaMetadata() }
-            .toList()
-    }
 
     val lazyListState = rememberLazyListState()
 
@@ -127,11 +118,11 @@ fun ArtistSongsScreen(
                         SelectHeader(
                             selectedItems = selection.mapNotNull { songId ->
                                 songs.find { it.id == songId }
-                            }.map { it.toMediaMetadata()},
-                            totalItemCount = songs.getAvailableSongs(isNetworkConnected).size,
+                            }.map { it.toMediaMetadata() },
+                            totalItemCount = songs.size,
                             onSelectAll = {
                                 selection.clear()
-                                selection.addAll(songs.getAvailableSongs(isNetworkConnected).map{ it.id })
+                                selection.addAll(songs.map { it.id })
                             },
                             onDeselectAll = { selection.clear() },
                             menuState = menuState,
@@ -198,7 +189,9 @@ fun ArtistSongsScreen(
                     inSelectMode = inSelectMode,
                     isSelected = selection.contains(song.id),
                     navController = navController,
-                    modifier = Modifier.fillMaxWidth().animateItem()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem()
                 )
             }
         }
@@ -226,7 +219,8 @@ fun ArtistSongsScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = artist?.artist?.name,
-                        items = songsAvailable().shuffled(),
+                        items = songs.map { it.toMediaMetadata() },
+                        startShuffled = true,
                         playlistId = null,
                     )
                 )

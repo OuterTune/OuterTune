@@ -141,4 +141,5 @@
     <string name="err_play_next_on_error">Виникла помилка. Відтворюється наступна</string>
     <string name="wait_to_reconnect">Дочекайтеся перепід\'єднання</string>"&gt;
 
+<string name="grp_general">Загальні</string>
 </resources>
