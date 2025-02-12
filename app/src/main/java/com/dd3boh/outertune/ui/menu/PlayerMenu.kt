@@ -1,6 +1,9 @@
 package com.dd3boh.outertune.ui.menu
 
 import android.content.Intent
+import android.media.audiofx.AudioEffect
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +24,7 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.Equalizer
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material.icons.rounded.LibraryAddCheck
@@ -111,6 +115,7 @@ fun PlayerMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val playerVolume = playerConnection.service.playerVolume.collectAsState()
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
+    val activityResultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
 
@@ -437,6 +442,20 @@ fun PlayerMenu(
         ) {
             if (sleepTimerEnabled) playerConnection.service.sleepTimer.clear()
             else showSleepTimerDialog = true
+        }
+        GridMenuItem(
+            icon = Icons.Rounded.Equalizer,
+            title = R.string.equalizer
+        ) {
+            val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playerConnection.player.audioSessionId)
+                putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+            }
+            if (intent.resolveActivity(context.packageManager) != null) {
+                activityResultLauncher.launch(intent)
+            }
+            onDismiss()
         }
         GridMenuItem(
             icon = Icons.Rounded.Tune,
