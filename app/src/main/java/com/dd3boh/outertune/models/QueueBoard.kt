@@ -791,17 +791,17 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         masterIndex = masterQueues.indexOf(item)
 
         // if requested to get shuffled queue
-        val mediaItems: MutableList<MediaMetadata>?
-        if (item.shuffled) {
-            mediaItems = item.queue
+        val mediaItems: MutableList<MediaMetadata> = if (item.shuffled) {
+            item.queue
         } else {
-            mediaItems = item.unShuffled
+            item.unShuffled
         }
 
         /**
          * current playing == jump target, do seamlessly
          */
-        val seamlessSupported = player.player.currentMetadata?.id == mediaItems[queuePos].id
+        val seamlessSupported = (queuePos >= 0 && queuePos < mediaItems.size)
+                && player.player.currentMetadata?.id == mediaItems[queuePos].id
         if (seamlessSupported) {
             if (queuePos == 0) {
                 val playerIndex = player.player.currentMediaItemIndex

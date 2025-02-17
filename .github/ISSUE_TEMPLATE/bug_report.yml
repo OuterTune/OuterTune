@@ -6,9 +6,9 @@ body:
     id: checklist
     attributes:
       label: Checklist
-      description: You should ensure the completion of the task before proceeding to check it off the checklist. Neglecting to do so may impede the efficiency of the issue resolution process. The developer has the right to delete the issue directly if you check the list blindly.
+      description: Make sure to complete each task before checking it off the checklist. We reserve the right to ignore or delete your issue if you check the list blindly, disregard the template, or post a nonsensical issue.
       options:
-        - label: I am able to reproduce the bug with the [latest debug version](https://github.com/dd3boh/OuterTune/actions).
+        - label: I am able to reproduce the bug with the [latest debug version](https://github.com/dd3boh/OuterTune/actions) AND any logs I have attached are taken with the DEBUG version (NOT release).
           required: true
         - label: I've checked that there is no open or closed issue about this bug.
           required: true
@@ -65,9 +65,9 @@ body:
     attributes:
       label: Logs
       description: |
-        Please use `adb logcat` or other ways to provide logs. This field is strongly recommended to be filled. Without this information, we likely cannot take any meaningful action or provide further assistance.
+        Please use `adb logcat` or other equivalent ways to provide logs. This field is strongly recommended to be filled. Telling us "the app crashed" with no logs means we will gladly ignore your issue. Without this information, we likely cannot take any meaningful action or provide further assistance.
     validations:
-      required: true
+      required: false
 
   - type: input
     id: app-version

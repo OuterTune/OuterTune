@@ -91,7 +91,7 @@
     <string name="lyrics_trim_title">Supprimer les espaces autour des paroles</string>
     <string name="local_library_enable_description">La désactivation masquera la bibliothèque locale de l\'application</string>
     <string name="lyrics_font_Size">Taille de la police</string>
-    <string name="scanner_strict_file_name_description">Lorsque cette option est activée, les noms de fichiers ne seront pas ignorés. Par exemple, Song.ogg sera une chanson différente de Song.flac. La préférence de sensibilité du scanner s\'appliquera toujours.</string>
+    <string name="scanner_strict_file_name_description">Lorsque cette option est activée, les noms de fichiers ne seront pas ignorés. Par exemple, Song.ogg sera une chanson différente de Song.flac. La préférence de sensibilité du scanner s\'appliquera toujours</string>
     <string name="flat_subfolders_title">Aplatir les sous-dossiers</string>
     <string name="m3u_import_playlist_failed">Échec de l\'importation de la playlist</string>
     <string name="local_player_settings_title">Médias Locaux</string>
@@ -140,4 +140,6 @@
     <string name="wait_to_reconnect">Attendez pour vous reconnecter</string>"&gt;
 
 <string name="grp_general">Général</string>
+    <string name="queue_local_history">Historique (locale)</string>
+    <string name="queue_remote_history">Historique (à distance)</string>
 </resources>

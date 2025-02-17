@@ -120,6 +120,7 @@ fun ExperimentalSettings(
         )
 
         // TODO: move to home screen as button?
+        // TODO: rename scanner_manual_btn to sync_manual_btn
         PreferenceEntry(
             title = { Text(stringResource(R.string.scanner_manual_btn)) },
             icon = { Icon(Icons.Rounded.Sync, null) },

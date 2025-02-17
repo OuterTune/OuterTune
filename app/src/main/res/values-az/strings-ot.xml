@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="err_stop_on_too_many_errors">Daha çox səhvlər. Səslənmə dayandırıldı</string>
+    <string name="folders">Qovluqlar</string>
+    <string name="library">Kitabxana</string>
+    <string name="recent_activity">Son fəaliyyət</string>
+    <string name="local_history">Yerli</string>
+    <string name="queue_local_history">Tarixçə (yerli)</string>
+    <string name="queue_remote_history">Tarixçə (tək)</string>
+    <string name="remote_history">Tək</string>
+    <string name="create_queue">Yeni növbə</string>
+    <string name="queue_searched_songs_ot">Axtarış:</string>
+    <string name="song_added_to_queue">\"%s\" növbəyə əlavə edildi</string>
+    <string name="song_added_to_queue_end">\"%s\" növbənin sonuna əlavə edildi</string>
+    <string name="auto_playlist">Avtomatik pleylist</string>
+    <string name="select">Seçmə üsulu</string>
+    <string name="like_all">Hamısı kimi</string>
+    <string name="delete_lyric_confirm">Siz həqiqətən \"%s\" üçün saxlanmış lirikanı silmək istəyirsiniz?</string>
+    <string name="err_play_next_on_error">Xəta baş verdi. Növbəti səslənir</string>
+    <string name="err_stop_on_error">Xəta baş verdi. Səslənmə dayandırıldı</string>
+    <string name="wait_to_reconnect">Təkrar qoşulmağı gözləyin</string>"&gt;
+
+</resources>

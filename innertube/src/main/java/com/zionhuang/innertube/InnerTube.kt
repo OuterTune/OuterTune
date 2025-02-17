@@ -173,7 +173,6 @@ class InnerTube {
         client: YouTubeClient,
         browseId: String? = null,
         params: String? = null,
-        browseContinuation: String? = null,
         continuation: String? = null,
         setLogin: Boolean = false,
     ) = httpClient.post("browse") {
@@ -183,14 +182,9 @@ class InnerTube {
                 context = client.toContext(locale, visitorData),
                 browseId = browseId,
                 params = params,
-                continuation = browseContinuation
+                continuation = continuation
             )
         )
-        parameter("continuation", continuation)
-        parameter("ctoken", continuation)
-        if (continuation != null) {
-            parameter("type", "next")
-        }
     }
 
     suspend fun next(

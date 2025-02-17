@@ -140,4 +140,6 @@
     <string name="err_stop_on_error">Si è verificato un errore. Riproduzione interrotta</string>
     <string name="err_stop_on_too_many_errors">Troppi errori. Riproduzione interrotta</string>
     <string name="grp_general">Generale</string>
+    <string name="queue_remote_history">Cronologia (remota)</string>
+    <string name="queue_local_history">Cronologia (locale)</string>
 </resources>

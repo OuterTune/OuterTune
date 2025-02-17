@@ -66,7 +66,7 @@
     <string name="keep_alive_description">使用持久性前台服务来防止 OuterTune 在后台关闭。</string>
     <string name="persistent_queue_desc_ot">应用程序启动时恢复以前打开的队列</string>
     <string name="min_playback_duration">最短播放时间</string>
-    <string name="min_playback_duration_description">一首歌曲在被视为‘播放过’之前，必须播放的最小时间。</string>
+    <string name="min_playback_duration_description">一首歌曲在被标记为“播放过”之前，必须播放完</string>
     <string name="swipe2Queue">滑动到队列</string>
     <string name="swipe2Queue_description">在歌曲上滑动，在当前播放歌曲后直接将其添加到下一个队列中</string>
     <string name="lyrics_settings_title">歌词</string>
@@ -136,4 +136,6 @@
     <string name="scanner_strict_file_name_description">启用时，文件名将不会被忽略。例如，Song.ogg 将与 Song.flac 被视为不同的歌曲。扫描的灵敏度偏好仍然适用</string>
     <string name="oobe_ad_free_description">无广告播放</string>
     <string name="token_adv_login_description">这是高级登录方法。作为门户网站的替代方法，您可以直接在此输入或更新登录令牌。例如，这可以加快在多个设备上登录的速度。请注意，应用程序无法解析的任何无效令牌格式都不会被接受</string>
+    <string name="queue_local_history">历史（本地）</string>
+    <string name="queue_remote_history">历史记录（远程）</string>
 </resources>

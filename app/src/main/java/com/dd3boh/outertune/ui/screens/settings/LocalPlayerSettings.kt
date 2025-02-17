@@ -475,15 +475,15 @@ fun LocalPlayerSettings(
             ) {
                 Text(
                     text = if (isScannerActive || showLoading) {
-                        "Cancel"
+                        stringResource(R.string.action_cancel)
                     } else if (scannerFailure) {
-                        "An Error Occurred"
+                        stringResource(R.string.scanner_scan_fail)
                     } else if (isScanFinished) {
-                        "Scan complete"
+                        stringResource(R.string.scanner_progress_complete)
                     } else if (!mediaPermission) {
-                        "No Permission"
+                        stringResource(R.string.scanner_missing_storage_perm)
                     } else {
-                        "Scan"
+                        stringResource(R.string.scanner_btn_idle)
                     }
                 )
             }

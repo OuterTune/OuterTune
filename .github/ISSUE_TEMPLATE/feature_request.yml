@@ -6,7 +6,7 @@ body:
     id: checklist
     attributes:
       label: Checklist
-      description: You should ensure the completion of the task before proceeding to check it off the checklist. Neglecting to do so may impede the efficiency of the issue resolution process. The developer has the right to delete the issue directly if you check the list blindly.
+      description: Make sure to complete each task before checking it off the checklist. We reserve the right to ignore or delete your issue if you check the list blindly, disregard the template, or post a nonsensical issue.
       options:
         - label: I've checked that there is no other issue about this feature request.
           required: true
@@ -35,6 +35,6 @@ body:
     id: additional-information
     attributes:
       label: Additional information
-      description: Add any other context or screenshots about the feature request here.
+      description: Add any other context or screenshots about the feature request here. Images or videos would help us better understand your request.
       placeholder: |
         Additional details and attachments.

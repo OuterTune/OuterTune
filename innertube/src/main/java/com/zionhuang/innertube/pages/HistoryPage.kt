@@ -5,6 +5,7 @@ import com.zionhuang.innertube.models.Artist
 import com.zionhuang.innertube.models.MusicResponsiveListItemRenderer
 import com.zionhuang.innertube.models.MusicShelfRenderer
 import com.zionhuang.innertube.models.SongItem
+import com.zionhuang.innertube.models.getItems
 import com.zionhuang.innertube.models.oddElements
 import com.zionhuang.innertube.utils.parseTime
 
@@ -20,8 +21,8 @@ data class HistoryPage(
         fun fromMusicShelfRenderer(renderer: MusicShelfRenderer): HistorySection {
             return HistorySection(
                 title = renderer.title?.runs?.firstOrNull()?.text!!,
-                songs = renderer.contents?.mapNotNull {
-                    fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer)
+                songs = renderer.contents?.getItems()?.mapNotNull {
+                    fromMusicResponsiveListItemRenderer(it)
                 }!!
             )
         }

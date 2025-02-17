@@ -145,6 +145,8 @@
 	<string name="scanner_missing_ffmpeg">FFmpeg extractor not detected</string>
     <string name="scanner_missing_storage_perm">The scanner requires storage permissions</string>
 
+    <string name="scanner_btn_idle">Scan</string>
+    <string name="scanner_progress_complete">Scan complete</string>
 	<string name="scanner_progress_scanning">Scanning…</string>
     <string name="scanner_progress_syncing">Syncing…</string>
 	<string name="scanner_scan_fail">Scanner failed</string>
@@ -202,5 +204,8 @@
     <string name="action_back">Back</string>
     <string name="action_next">Next</string>
     <string name="action_skip">Skip</string>
+
+    <string name="action_cancel">Cancel</string>
+
     <string name="info">Information</string>
 </resources>
