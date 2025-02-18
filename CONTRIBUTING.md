@@ -52,6 +52,8 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
   are in the `Database schema changes` section
 - For multi-part commits where all parts are required for functionality, use
   `[1/2], [2/2], etc`. [See example](https://github.com/DD3Boh/OuterTune/pull/59/commits)
+- Make sure new strings are in the right place, which is `strings-ot.xml` unless they are being ported from upstream InnerTune, on which case it is `strings.xml`.
+- Do not mess with translation files directly, this is managed with Weblate.
 
 ### Tags
 
