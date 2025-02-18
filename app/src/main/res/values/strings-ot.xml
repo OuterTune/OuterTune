@@ -17,11 +17,12 @@
 <!-- Library screens -->
 
 <!-- Queue -->
+    <string name="queues_title">Queues</string>
     <string name="create_queue">New queue</string>
     <string name="queue_searched_songs_ot">Search: </string>
     <string name="song_added_to_queue">\"%s\" inserted into queue</string>
     <string name="song_added_to_queue_end">\"%s\" added to the end of queue</string>
-
+    <string name="queues_empty">No queues</string>
 
 <!-- Playlist -->
     <string name="auto_playlist">Auto playlist</string>
