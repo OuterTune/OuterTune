@@ -105,6 +105,7 @@ fun SongMenu(
     val clipboardManager = LocalClipboardManager.current
     val image = LmImageCacheMgr()
 
+
     val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
