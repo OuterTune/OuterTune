@@ -111,6 +111,7 @@ import com.dd3boh.outertune.constants.AccountEmailKey
 import com.dd3boh.outertune.constants.AccountNameKey
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.DarkModeKey
+import com.dd3boh.outertune.constants.DataSyncIdKey
 import com.dd3boh.outertune.constants.FirstSetupPassed
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
 import com.dd3boh.outertune.constants.LibraryFilter
@@ -120,6 +121,7 @@ import com.dd3boh.outertune.constants.LyricTrimKey
 import com.dd3boh.outertune.constants.NavigationBarHeight
 import com.dd3boh.outertune.constants.NewInterfaceKey
 import com.dd3boh.outertune.constants.PureBlackKey
+import com.dd3boh.outertune.constants.VisitorDataKey
 import com.dd3boh.outertune.db.entities.ArtistEntity
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.db.entities.SongEntity
@@ -159,10 +161,12 @@ fun SetupWizard(
     var filter by rememberEnumPreference(LibraryFilterKey, LibraryFilter.ALL)
 
 
-    val accountName by rememberPreference(AccountNameKey, "")
-    val accountEmail by rememberPreference(AccountEmailKey, "")
-    val accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
+    val (accountName, onAccountNameChange) = rememberPreference(AccountNameKey, "")
+    val (accountEmail, onAccountEmailChange) = rememberPreference(AccountEmailKey, "")
+    val (accountChannelHandle, onAccountChannelHandleChange) = rememberPreference(AccountChannelHandleKey, "")
     val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
+    val (visitorData, onVisitorDataChange) = rememberPreference(VisitorDataKey, "")
+    val (dataSyncId, onDataSyncIdChange) = rememberPreference(DataSyncIdKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
@@ -719,7 +723,23 @@ fun SetupWizard(
                             TextFieldDialog(
                                 modifier = Modifier,
                                 initialTextFieldValue = TextFieldValue(innerTubeCookie),
-                                onDone = { onInnerTubeCookieChange(it) },
+                                onDone = { data ->
+                                    data.split("\n").forEach {
+                                        if (it.startsWith("***INNERTUBE COOKIE*** =")) {
+                                            onInnerTubeCookieChange(it.substringAfter("***INNERTUBE COOKIE*** ="))
+                                        } else if (it.startsWith("***VISITOR DATA*** =")) {
+                                            onVisitorDataChange(it.substringAfter("***VISITOR DATA*** ="))
+                                        } else if (it.startsWith("***DATASYNC ID*** =")) {
+                                            onDataSyncIdChange(it.substringAfter("***DATASYNC ID*** ="))
+                                        } else if (it.startsWith("***ACCOUNT NAME*** =")) {
+                                            onAccountNameChange(it.substringAfter("***ACCOUNT NAME*** ="))
+                                        } else if (it.startsWith("***ACCOUNT EMAIL*** =")) {
+                                            onAccountEmailChange(it.substringAfter("***ACCOUNT EMAIL*** ="))
+                                        } else if (it.startsWith("***ACCOUNT CHANNEL HANDLE*** =")) {
+                                            onAccountChannelHandleChange(it.substringAfter("***ACCOUNT CHANNEL HANDLE*** ="))
+                                        }
+                                    }
+                                },
                                 onDismiss = { showTokenEditor = false },
                                 singleLine = false,
                                 maxLines = 20,
