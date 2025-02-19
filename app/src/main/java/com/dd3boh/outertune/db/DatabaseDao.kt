@@ -275,6 +275,14 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
     fun nukeFormatEntities()
 
     @Transaction
+    @Query("DELETE FROM lyrics")
+    fun nukeLocalLyrics()
+
+    @Transaction
+    @Query("DELETE FROM playlist WHERE isLocal = 0")
+    fun nukeRemotePlaylists()
+
+    @Transaction
     fun nukeLocalData() {
         nukeLocalSongs()
         nukeLocalArtists()
