@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.ui.menu
 
 import android.content.Intent
+import androidx.collection.emptyLongSet
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -85,6 +86,9 @@ import com.dd3boh.outertune.utils.makeTimeString
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.dd3boh.outertune.utils.LmImageCacheMgr
+import com.dd3boh.outertune.ui.component.AsyncImageLocal
+
 
 @Composable
 fun SongMenu(
@@ -99,6 +103,7 @@ fun SongMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val clipboardManager = LocalClipboardManager.current
+    val image = LmImageCacheMgr()
 
     val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
@@ -238,11 +243,20 @@ fun SongMenu(
             makeTimeString(song.song.duration * 1000L)
         ),
         thumbnailContent = {
-            AsyncImage(
-                model = if (song.song.isLocal) song.song.localPath else song.song.thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier.size(ListThumbnailSize).clip(RoundedCornerShape(ThumbnailCornerRadius))
-            )
+            if (song.song.isLocal) {
+                AsyncImageLocal(
+                    image = { image.getLocalThumbnail(song.song.localPath, true) },
+                    contentDescription = null,
+                    modifier = Modifier.size(ListThumbnailSize).clip(RoundedCornerShape(ThumbnailCornerRadius))
+                )
+            }
+            else {
+                AsyncImage(
+                    model = song.song.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(ListThumbnailSize).clip(RoundedCornerShape(ThumbnailCornerRadius))
+                )
+            }
         },
         trailingContent = {
             IconButton(
