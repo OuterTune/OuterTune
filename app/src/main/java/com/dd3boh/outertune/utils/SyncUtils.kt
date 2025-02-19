@@ -92,6 +92,16 @@ class SyncUtils @Inject constructor(
     }
 
     /**
+     * Add/remove to library single song
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun changeInLibrary(s: SongEntity) {
+        CoroutineScope(syncCoroutine).launch {
+            // we don't have an api call yet
+        }
+    }
+
+    /**
      * Singleton syncRemoteLikedSongs
      */
     suspend fun syncRemoteLikedSongs() {
@@ -164,6 +174,7 @@ class SyncUtils @Inject constructor(
                 return
             }
 
+            /*
             // Identify local songs to remove
             val songsToRemoveFromLibrary = database.songsByNameAsc().first()
                 .filterNot { it.song.isLocal }
@@ -177,6 +188,7 @@ class SyncUtils @Inject constructor(
                     }
                 }
             }
+             */
 
             // Inset or mark songs to library
             coroutineScope {
