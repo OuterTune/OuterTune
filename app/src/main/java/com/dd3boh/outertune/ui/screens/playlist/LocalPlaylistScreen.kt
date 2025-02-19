@@ -449,7 +449,8 @@ fun LocalPlaylistScreen(
             ) { index, song ->
                 ReorderableItem(
                     state = reorderableState,
-                    key = song.map.id
+                    key = song.map.id,
+                    enabled = playlist?.playlist?.browseId == null
                 ) {
                     SongListItem(
                         song = song.song,
