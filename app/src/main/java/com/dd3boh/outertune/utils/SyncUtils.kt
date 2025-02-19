@@ -18,6 +18,7 @@ import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.extensions.isInternetConnected
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.DownloadUtil
+import com.dd3boh.outertune.ui.utils.MAX_CONCURRENT_JOBS
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.ArtistItem
@@ -25,7 +26,10 @@ import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.utils.completed
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -36,6 +40,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -61,6 +66,9 @@ class SyncUtils @Inject constructor(
     val isSyncingRemoteArtists: StateFlow<Boolean> = _isSyncingRemoteArtists.asStateFlow()
     val isSyncingRemotePlaylists: StateFlow<Boolean> = _isSyncingRemotePlaylists.asStateFlow()
 
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+    val syncCoroutine = newSingleThreadContext("syncUtils")
+
     private val TAG = "SyncUtils"
 
     suspend fun syncAll() {
@@ -70,6 +78,16 @@ class SyncUtils @Inject constructor(
             launch { syncRemoteAlbums() }
             launch { syncRemoteArtists() }
             launch { syncRemotePlaylists() }
+        }
+    }
+
+    /**
+     * Like single song
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun likeSong(s: SongEntity) {
+        CoroutineScope(syncCoroutine).launch {
+            YouTube.likeVideo(s.id, s.liked)
         }
     }
 

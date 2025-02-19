@@ -51,6 +51,7 @@ import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.ListThumbnailSize
@@ -84,6 +85,8 @@ fun YouTubeSongMenu(
     val downloadUtil = LocalDownloadUtil.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val syncUtils = LocalSyncUtils.current
+
     val librarySong by database.song(song.id).collectAsState(initial = null)
     val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
     val artists = remember {
@@ -205,11 +208,16 @@ fun YouTubeSongMenu(
                 onClick = {
                     database.transaction {
                         librarySong.let { librarySong ->
+                            val s: SongEntity
                             if (librarySong == null) {
                                 insert(song.toMediaMetadata(), SongEntity::toggleLike)
+                                s = song.toMediaMetadata().toSongEntity().let(SongEntity::toggleLike)
                             } else {
-                                update(librarySong.song.toggleLike())
+                                s = librarySong.song.toggleLike()
+                                update(s)
                             }
+
+                            syncUtils.likeSong(s)
                         }
                     }
                 }
