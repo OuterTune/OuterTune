@@ -34,6 +34,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.MediaMetadata
@@ -63,6 +64,7 @@ fun SelectionMediaMetadataMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val syncUtils = LocalSyncUtils.current
 
     val allInLibrary by remember(selection) { // exclude local songs
         mutableStateOf(selection.isNotEmpty() && selection.all { !it.isLocal && it.inLibrary != null })
@@ -272,11 +274,19 @@ fun SelectionMediaMetadataMenu(
             database.query {
                 if (allLiked) {
                     selection.forEach { song ->
-                        update(song.toSongEntity().toggleLike())
+                        val s = song.toSongEntity().toggleLike()
+                        update(s)
+                        if (!s.isLocal) {
+                            syncUtils.likeSong(s)
+                        }
                     }
                 } else {
                     selection.filter { !it.liked }.forEach { song ->
-                        update(song.toSongEntity().toggleLike())
+                        val s = song.toSongEntity().toggleLike()
+                        update(s)
+                        if (!s.isLocal) {
+                            syncUtils.likeSong(s)
+                        }
                     }
                 }
             }

@@ -113,6 +113,7 @@ import com.dd3boh.outertune.playback.queues.Queue
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.utils.CoilBitmapLoader
 import com.dd3boh.outertune.utils.NetworkConnectivityObserver
+import com.dd3boh.outertune.utils.SyncUtils
 import com.dd3boh.outertune.utils.YTPlayerUtils
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.enumPreference
@@ -167,6 +168,9 @@ class MusicService : MediaLibraryService(),
 
     @Inject
     lateinit var downloadUtil: DownloadUtil
+
+    @Inject
+    lateinit var syncUtils: SyncUtils
 
     @Inject
     lateinit var lyricsHelper: LyricsHelper
@@ -698,6 +702,10 @@ class MusicService : MediaLibraryService(),
             currentSong.value?.let {
                 val song = it.song.toggleLike()
                 update(song)
+
+                if (!song.isLocal) {
+                    syncUtils.likeSong(song)
+                }
                 downloadUtil.autoDownloadIfLiked(song)
             }
         }
