@@ -83,6 +83,11 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 | downloads      | Offline song downloads      |
 | innertube      | Innertube module            |
 
+| Tag (Local Media) | Description                      |
+|-------------------|----------------------------------|
+| lm                | General local library components | 
+| scanner           | Local media scanner              |
+
 | Tag (Misc)    | Description                                                      |
 |---------------|------------------------------------------------------------------|
 | `<file name>` | Changes for one single file, that to not fit into any other tags |

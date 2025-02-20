@@ -516,6 +516,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             finalize(newSongs, database)
         }
 
+        cacheDirectoryTree(null)
         scannerShowLoading.value = false
         Timber.tag(TAG).d("------------ SYNC: Finished Quick (additive delta) Library Sync ------------")
     }
@@ -616,6 +617,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             }
         }
 
+        cacheDirectoryTree(null)
         scannerShowLoading.value = false
         Timber.tag(TAG).d("------------ SYNC: Finished Quick (additive delta) Library Sync ------------")
     }

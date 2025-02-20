@@ -88,6 +88,8 @@ fun LibraryFoldersScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val songs by viewModel.localSongDirectoryTree.collectAsState()
+
     /**
      * The top of the stack is the folder that the page will render.
      * Clicking on a folder pushes, while the back button pops.
@@ -113,8 +115,8 @@ fun LibraryFoldersScreen(
         viewModel.getLocalSongs(database)
 
         folderStack.push(
-            if (flatSubfolders) viewModel.localSongDirectoryTree.value.toFlattenedTree()
-            else viewModel.localSongDirectoryTree.value
+            if (flatSubfolders) songs.toFlattenedTree()
+            else songs
         )
     }
 

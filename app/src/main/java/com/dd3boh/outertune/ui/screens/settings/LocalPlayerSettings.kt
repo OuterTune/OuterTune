@@ -8,14 +8,12 @@
 
 package com.dd3boh.outertune.ui.screens.settings
 
-import android.Manifest
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Looper
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -72,6 +70,7 @@ import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
+import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.ExcludedScanPathsKey
@@ -92,6 +91,7 @@ import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.utils.DEFAULT_SCAN_PATH
+import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.ui.utils.cacheDirectoryTree
 import com.dd3boh.outertune.ui.utils.imageCache
@@ -113,10 +113,6 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 
-val MEDIA_PERMISSION_LEVEL =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
-    else Manifest.permission.READ_EXTERNAL_STORAGE
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlayerSettings(
@@ -126,6 +122,7 @@ fun LocalPlayerSettings(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
+    val playerConnection = LocalPlayerConnection.current
 
     // scanner vars
     val isScannerActive by scannerActive.collectAsState()
@@ -247,7 +244,7 @@ fun LocalPlayerSettings(
                 val dirPickerLauncher = rememberLauncherForActivityResult(
                     ActivityResultContracts.OpenDocumentTree()
                 ) { uri ->
-                    if (uri?.path != null && !tempScanPaths.contains(uri.path!!)) {
+                    if (uri?.path != null && !("$tempScanPaths\u200B").contains(uri.path!! + "\u200B")) {
                         if (tempScanPaths.isBlank()) {
                             tempScanPaths = "${uri.path}\n"
                         } else {
@@ -288,7 +285,13 @@ fun LocalPlayerSettings(
                                         .align(Alignment.CenterVertically)
                                 )
                                 IconButton(
-                                    onClick = { tempScanPaths = tempScanPaths.replace("$it\n", "") },
+                                    onClick = {
+                                        tempScanPaths = if (tempScanPaths.substringAfter("\n").contains("\n")) {
+                                            tempScanPaths.replace("$it\n", "")
+                                        } else {
+                                            " " // cursed bug
+                                        }
+                                    },
                                     onLongClick = {}
                                 ) {
                                     Icon(
@@ -357,6 +360,8 @@ fun LocalPlayerSettings(
 
                     scannerFinished.value = false
                     scannerFailure = false
+
+                    playerConnection?.player?.pause()
 
                     coroutineScope.launch(Dispatchers.IO) {
                         // full rescan
@@ -465,8 +470,9 @@ fun LocalPlayerSettings(
                             }
                         }
 
+                        // post scan actions
                         imageCache.purgeCache()
-                        cacheDirectoryTree(null)
+                        playerConnection?.service?.initQueue()
 
                         onLastLocalScanChange(LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond())
                         scannerFinished.value = true
