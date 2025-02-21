@@ -1,7 +1,6 @@
 package com.dd3boh.outertune.ui.menu
 
 import android.content.Intent
-import androidx.collection.emptyLongSet
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -74,6 +73,7 @@ import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
+import com.dd3boh.outertune.ui.component.AsyncImageLocal
 import com.dd3boh.outertune.ui.component.DetailsDialog
 import com.dd3boh.outertune.ui.component.DownloadGridMenu
 import com.dd3boh.outertune.ui.component.GridMenu
@@ -81,14 +81,12 @@ import com.dd3boh.outertune.ui.component.GridMenuItem
 import com.dd3boh.outertune.ui.component.ListDialog
 import com.dd3boh.outertune.ui.component.ListItem
 import com.dd3boh.outertune.ui.component.TextFieldDialog
+import com.dd3boh.outertune.ui.utils.imageCache
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.makeTimeString
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.dd3boh.outertune.utils.LmImageCacheMgr
-import com.dd3boh.outertune.ui.component.AsyncImageLocal
-
 
 @Composable
 fun SongMenu(
@@ -103,8 +101,6 @@ fun SongMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val clipboardManager = LocalClipboardManager.current
-    val image = LmImageCacheMgr()
-
 
     val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
@@ -246,7 +242,7 @@ fun SongMenu(
         thumbnailContent = {
             if (song.song.isLocal) {
                 AsyncImageLocal(
-                    image = { image.getLocalThumbnail(song.song.localPath, true) },
+                    image = { imageCache.getLocalThumbnail(song.song.localPath, true) },
                     contentDescription = null,
                     modifier = Modifier.size(ListThumbnailSize).clip(RoundedCornerShape(ThumbnailCornerRadius))
                 )
