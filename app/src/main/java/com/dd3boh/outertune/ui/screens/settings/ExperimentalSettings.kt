@@ -353,6 +353,26 @@ fun ExperimentalSettings(
                         }
                     }
                 )
+                PreferenceEntry(
+                    title = { Text("DEBUG: Nuke db lyrics") },
+                    icon = { Icon(Icons.Rounded.WarningAmber, null) },
+                    onClick = {
+                        Toast.makeText(context, "Nuking lyrics from database...", Toast.LENGTH_SHORT).show()
+                        coroutineScope.launch(Dispatchers.IO) {
+                            Timber.tag("Settings").d("Nuke database status:  ${database.nukeLocalLyrics()}")
+                        }
+                    }
+                )
+                PreferenceEntry(
+                    title = { Text("DEBUG: Nuke format entities") },
+                    icon = { Icon(Icons.Rounded.WarningAmber, null) },
+                    onClick = {
+                        Toast.makeText(context, "Nuking remote playlists from database...", Toast.LENGTH_SHORT).show()
+                        coroutineScope.launch(Dispatchers.IO) {
+                            Timber.tag("Settings").d("Nuke database status:  ${database.nukeRemotePlaylists()}")
+                        }
+                    }
+                )
             }
         }
     }

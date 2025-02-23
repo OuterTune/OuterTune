@@ -73,7 +73,7 @@ object YouTube {
         set(value) {
             innerTube.locale = value
         }
-    var visitorData: String
+    var visitorData: String?
         get() = innerTube.visitorData
         set(value) {
             innerTube.visitorData = value
@@ -807,6 +807,4 @@ object YouTube {
     const val MAX_GET_QUEUE_SIZE = 1000
 
     private const val VISITOR_DATA_PREFIX = "Cgt"
-
-    const val DEFAULT_VISITOR_DATA = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
 }

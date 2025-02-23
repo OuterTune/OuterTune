@@ -197,7 +197,6 @@ import com.dd3boh.outertune.ui.screens.settings.DarkMode
 import com.dd3boh.outertune.ui.screens.settings.ExperimentalSettings
 import com.dd3boh.outertune.ui.screens.settings.LocalPlayerSettings
 import com.dd3boh.outertune.ui.screens.settings.LyricsSettings
-import com.dd3boh.outertune.ui.screens.settings.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.ui.screens.settings.NavigationTab
 import com.dd3boh.outertune.ui.screens.settings.NavigationTabNew
 import com.dd3boh.outertune.ui.screens.settings.PlayerBackgroundStyle
@@ -210,6 +209,7 @@ import com.dd3boh.outertune.ui.theme.DefaultThemeColor
 import com.dd3boh.outertune.ui.theme.OuterTuneTheme
 import com.dd3boh.outertune.ui.theme.extractThemeColor
 import com.dd3boh.outertune.ui.utils.DEFAULT_SCAN_PATH
+import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.ui.utils.appBarScrollBehavior
 import com.dd3boh.outertune.ui.utils.cacheDirectoryTree
 import com.dd3boh.outertune.ui.utils.imageCache
@@ -401,55 +401,58 @@ class MainActivity : ComponentActivity() {
                 downloadUtil.resumeDownloadsOnStart()
 
                 CoroutineScope(Dispatchers.IO).launch {
+                    val perms = checkSelfPermission(MEDIA_PERMISSION_LEVEL)
                     // Check if the permissions for local media access
-                    if (!scannerActive.value && autoScan && firstSetupPassed && localLibEnable
-                        && checkSelfPermission(MEDIA_PERMISSION_LEVEL) == PackageManager.PERMISSION_GRANTED
-                    ) {
+                    if (!scannerActive.value && autoScan && firstSetupPassed && localLibEnable) {
+                        if (perms == PackageManager.PERMISSION_GRANTED) {
+                            // equivalent to (quick scan)
+                            try {
+                                playerConnection?.player?.pause()
+                                val scanner = LocalMediaScanner.getScanner(this@MainActivity, scannerImpl)
+                                val directoryStructure = scanner.scanLocal(
+                                    database,
+                                    scanPaths.split('\n'),
+                                    excludedScanPaths.split('\n'),
+                                    pathsOnly = true
+                                ).value
+                                scanner.quickSync(
+                                    database, directoryStructure.toList(), scannerSensitivity,
+                                    strictExtensions,
+                                )
 
-                        // equivalent to (quick scan)
-                        try {
-                            val scanner = LocalMediaScanner.getScanner(this@MainActivity, scannerImpl)
-                            val directoryStructure = scanner.scanLocal(
-                                database,
-                                scanPaths.split('\n'),
-                                excludedScanPaths.split('\n'),
-                                pathsOnly = true
-                            ).value
-                            scanner.quickSync(
-                                database, directoryStructure.toList(), scannerSensitivity,
-                                strictExtensions,
-                            )
-
-                            // start artist linking job
-                            if (lookupYtmArtists && !scannerActive.value) {
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    try {
-                                        scanner.localToRemoteArtist(database)
-                                    } catch (e: ScannerAbortException) {
-                                        Looper.prepare()
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            "Scanner (background task) failed: ${e.message}",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                // start artist linking job
+                                if (lookupYtmArtists && !scannerActive.value) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        try {
+                                            scanner.localToRemoteArtist(database)
+                                        } catch (e: ScannerAbortException) {
+                                            Looper.prepare()
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                "${this@MainActivity.getString(R.string.scanner_scan_fail)}: ${e.message}",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
                                     }
                                 }
+                            } catch (e: ScannerAbortException) {
+                                Looper.prepare()
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    "${this@MainActivity.getString(R.string.scanner_scan_fail)}: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            } finally {
+                                destroyScanner()
                             }
-                        } catch (e: ScannerAbortException) {
-                            Looper.prepare()
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Scanner failed: ${e.message}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } finally {
-                            destroyScanner()
+
+                            // post scan actions
+                            imageCache.purgeCache()
+                            playerConnection?.service?.initQueue()
+                        } else if (perms == PackageManager.PERMISSION_DENIED) {
+                            // Request the permission using the permission launcher
+                            permissionLauncher.launch(MEDIA_PERMISSION_LEVEL)
                         }
-                        imageCache.purgeCache() // juuuust to be sure
-                        cacheDirectoryTree(null)
-                    } else if (checkSelfPermission(MEDIA_PERMISSION_LEVEL) == PackageManager.PERMISSION_DENIED) {
-                        // Request the permission using the permission launcher
-                        permissionLauncher.launch(MEDIA_PERMISSION_LEVEL)
                     }
                 }
             }

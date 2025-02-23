@@ -1,8 +1,12 @@
 package com.dd3boh.outertune.utils.potoken
 
-import com.grack.nanojson.JsonObject
-import com.grack.nanojson.JsonParser
-import com.grack.nanojson.JsonWriter
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import okio.ByteString.Companion.decodeBase64
 import okio.ByteString.Companion.toByteString
 
@@ -11,36 +15,48 @@ import okio.ByteString.Companion.toByteString
  * embedded in a JavaScript snippet.
  */
 fun parseChallengeData(rawChallengeData: String): String {
-    val scrambled = JsonParser.array().from(rawChallengeData)
+    val scrambled = Json.parseToJsonElement(rawChallengeData).jsonArray
 
-    val challengeData = if (scrambled.size > 1 && scrambled.isString(1)) {
-        val descrambled = descramble(scrambled.getString(1))
-        JsonParser.array().from(descrambled)
+    val challengeData = if (scrambled.size > 1 && scrambled[1].jsonPrimitive.isString) {
+        val descrambled = descramble(scrambled[1].jsonPrimitive.content)
+        Json.parseToJsonElement(descrambled).jsonArray
     } else {
-        scrambled.getArray(1)
+        scrambled[1].jsonArray
     }
 
-    val messageId = challengeData.getString(0)
-    val interpreterHash = challengeData.getString(3)
-    val program = challengeData.getString(4)
-    val globalName = challengeData.getString(5)
-    val clientExperimentsStateBlob = challengeData.getString(7)
+    val messageId = challengeData[0].jsonPrimitive.content
+    val interpreterHash = challengeData[3].jsonPrimitive.content
+    val program = challengeData[4].jsonPrimitive.content
+    val globalName = challengeData[5].jsonPrimitive.content
+    val clientExperimentsStateBlob = challengeData[7].jsonPrimitive.content
 
-    val privateDoNotAccessOrElseSafeScriptWrappedValue = challengeData.getArray(1, null)?.find { it is String }
-    val privateDoNotAccessOrElseTrustedResourceUrlWrappedValue = challengeData.getArray(2, null)?.find { it is String }
+    val privateDoNotAccessOrElseSafeScriptWrappedValue = challengeData[1]
+        .takeIf { it !is JsonNull }
+        ?.jsonArray
+        ?.find { it.jsonPrimitive.isString }
+    val privateDoNotAccessOrElseTrustedResourceUrlWrappedValue = challengeData[2]
+        .takeIf { it !is JsonNull }
+        ?.jsonArray
+        ?.find { it.jsonPrimitive.isString }
 
-    return JsonWriter.string(
-        JsonObject.builder()
-            .value("messageId", messageId)
-            .`object`("interpreterJavascript")
-            .value("privateDoNotAccessOrElseSafeScriptWrappedValue", privateDoNotAccessOrElseSafeScriptWrappedValue)
-            .value("privateDoNotAccessOrElseTrustedResourceUrlWrappedValue", privateDoNotAccessOrElseTrustedResourceUrlWrappedValue)
-            .end()
-            .value("interpreterHash", interpreterHash)
-            .value("program", program)
-            .value("globalName", globalName)
-            .value("clientExperimentsStateBlob", clientExperimentsStateBlob)
-            .done()
+    return Json.encodeToString(
+        JsonObject.serializer(), JsonObject(
+            mapOf(
+                "messageId" to JsonPrimitive(messageId),
+                "interpreterJavascript" to JsonObject(
+                    mapOf(
+                        "privateDoNotAccessOrElseSafeScriptWrappedValue" to (privateDoNotAccessOrElseSafeScriptWrappedValue
+                            ?: JsonNull),
+                        "privateDoNotAccessOrElseTrustedResourceUrlWrappedValue" to (privateDoNotAccessOrElseTrustedResourceUrlWrappedValue
+                            ?: JsonNull)
+                    )
+                ),
+                "interpreterHash" to JsonPrimitive(interpreterHash),
+                "program" to JsonPrimitive(program),
+                "globalName" to JsonPrimitive(globalName),
+                "clientExperimentsStateBlob" to JsonPrimitive(clientExperimentsStateBlob)
+            )
+        )
     )
 }
 
@@ -50,8 +66,8 @@ fun parseChallengeData(rawChallengeData: String): String {
  * duration of this token in seconds.
  */
 fun parseIntegrityTokenData(rawIntegrityTokenData: String): Pair<String, Long> {
-    val integrityTokenData = JsonParser.array().from(rawIntegrityTokenData)
-    return base64ToU8(integrityTokenData.getString(0)) to integrityTokenData.getLong(1)
+    val integrityTokenData = Json.parseToJsonElement(rawIntegrityTokenData).jsonArray
+    return base64ToU8(integrityTokenData[0].jsonPrimitive.content) to integrityTokenData[1].jsonPrimitive.long
 }
 
 /**

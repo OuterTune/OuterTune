@@ -407,9 +407,9 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         // Add to current queue at the position. For the other queue, just add to end
         if (q.shuffled) {
             q.queue.addAll(listPos, mediaList)
-            q.unShuffled.addAll(q.queue.size, mediaList)
+            q.unShuffled.addAll(mediaList)
         } else {
-            q.queue.addAll(q.queue.size, mediaList)
+            q.queue.addAll(mediaList)
             q.unShuffled.addAll(listPos, mediaList)
         }
 

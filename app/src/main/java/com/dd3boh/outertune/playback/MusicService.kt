@@ -505,6 +505,8 @@ class MusicService : MediaLibraryService(),
                 isShuffleEnabled.value = it.shuffled
                 queueBoard.initialized = true
             }
+        } else {
+            queueBoard = QueueBoard()
         }
     }
 
