@@ -1,7 +1,9 @@
 package com.dd3boh.outertune.lyrics
 
 import android.content.Context
+import android.os.Build
 import android.util.LruCache
+import androidx.annotation.RequiresApi
 import com.dd3boh.outertune.constants.LyricSourcePrefKey
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.LyricsEntity
@@ -43,6 +45,11 @@ class LyricsHelper @Inject constructor(
         val dbLyrics = database?.lyrics(mediaMetadata.id)?.let { it.first()?.lyrics }
         if (dbLyrics != null && !prefLocal) {
             return dbLyrics
+        }
+
+        // Nougat support is likely going to be dropped soon
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return getRemoteLyrics(mediaMetadata) ?: LYRICS_NOT_FOUND
         }
 
         val localLyrics = getLocalLyrics(mediaMetadata)
@@ -123,7 +130,8 @@ class LyricsHelper @Inject constructor(
     /**
      * Lookup lyrics from local disk (.lrc) file
      */
-    private suspend fun getLocalLyrics(mediaMetadata: MediaMetadata): String? {
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getLocalLyrics(mediaMetadata: MediaMetadata): String? {
         if (LocalLyricsProvider.isEnabled(context)) {
             LocalLyricsProvider.getLyrics(
                 mediaMetadata.id,

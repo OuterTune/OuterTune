@@ -1,6 +1,8 @@
 package com.dd3boh.outertune.lyrics
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -17,6 +19,7 @@ object LocalLyricsProvider : LyricsProvider {
      *
      * @param title file path of the song, NOT the song title
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun getLyrics(
         id: String,
         title: String,
