@@ -1,6 +1,7 @@
-<resources>
-<!--InnerTune strings-->
+<!-- These strings are the upstream InnerTune strings. Do not add strings from OuterTune features here.
+We recycle translations from upstream, they are pulled periodically. -->
 
+<resources>
     <!-- Bottom navigation -->
     <string name="home">Home</string>
     <string name="songs">Songs</string>

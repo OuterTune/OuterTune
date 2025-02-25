@@ -88,6 +88,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -112,6 +113,7 @@ import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.MultiQueueObject
 import com.dd3boh.outertune.models.isShuffleEnabled
 import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
+import com.dd3boh.outertune.R
 import com.dd3boh.outertune.ui.component.BottomSheet
 import com.dd3boh.outertune.ui.component.BottomSheetState
 import com.dd3boh.outertune.ui.component.LocalMenuState
@@ -356,7 +358,7 @@ fun Queue(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Queues",
+                    text = stringResource(R.string.queues_title),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -390,7 +392,7 @@ fun Queue(
             }
 
             if (mutableQueues.isEmpty()) {
-                Text(text = "No queues")
+                Text(text = stringResource(R.string.queues_empty))
             }
 
             LazyColumn(
@@ -508,7 +510,7 @@ fun Queue(
             ) {
                 Column {
                     Text(
-                        text = "Songs",
+                        text = stringResource(R.string.songs),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,

@@ -15,6 +15,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -505,6 +506,58 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+
+                    val coroutineScope = rememberCoroutineScope()
+                    var sharedSong: SongItem? by remember {
+                        mutableStateOf(null)
+                    }
+
+                    /**
+                     * Directly navigate to a YouTube page given an YouTube url
+                     */
+                    fun youtubeNavigator(uri: Uri): Boolean {
+                        when (val path = uri.pathSegments.firstOrNull()) {
+                            "playlist" -> uri.getQueryParameter("list")?.let { playlistId ->
+                                if (playlistId.startsWith("OLAK5uy_")) {
+                                    coroutineScope.launch {
+                                        YouTube.albumSongs(playlistId).onSuccess { songs ->
+                                            songs.firstOrNull()?.album?.id?.let { browseId ->
+                                                navController.navigate("album/$browseId")
+                                            }
+                                        }.onFailure {
+                                            reportException(it)
+                                        }
+                                    }
+                                } else {
+                                    navController.navigate("online_playlist/$playlistId")
+                                }
+                            }
+
+                            "channel", "c" -> uri.lastPathSegment?.let { artistId ->
+                                navController.navigate("artist/$artistId")
+                            }
+
+                            else -> when {
+                                path == "watch" -> uri.getQueryParameter("v")
+                                uri.host == "youtu.be" -> path
+                                else -> return false
+                            }?.let { videoId ->
+                                coroutineScope.launch {
+                                    withContext(Dispatchers.IO) {
+                                        YouTube.queue(listOf(videoId))
+                                    }.onSuccess {
+                                        sharedSong = it.firstOrNull()
+                                    }.onFailure {
+                                        reportException(it)
+                                    }
+                                }
+                            }
+                        }
+
+                        return true
+                    }
+
+
                     val (query, onQueryChange) = rememberSaveable(stateSaver = TextFieldValue.Saver) {
                         mutableStateOf(TextFieldValue())
                     }
@@ -527,10 +580,14 @@ class MainActivity : ComponentActivity() {
                     val onSearch: (String) -> Unit = {
                         if (it.isNotEmpty()) {
                             onActiveChange(false)
-                            navController.navigate("search/${it.urlEncode()}")
-                            if (dataStore[PauseSearchHistoryKey] != true) {
-                                database.query {
-                                    insert(SearchHistory(query = it))
+                            if (youtubeNavigator(it.toUri())) {
+                                // don't do anything
+                            } else {
+                                navController.navigate("search/${it.urlEncode()}")
+                                if (dataStore[PauseSearchHistoryKey] != true) {
+                                    database.query {
+                                        insert(SearchHistory(query = it))
+                                    }
                                 }
                             }
                         }
@@ -655,52 +712,12 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val coroutineScope = rememberCoroutineScope()
-                    var sharedSong: SongItem? by remember {
-                        mutableStateOf(null)
-                    }
                     DisposableEffect(Unit) {
                         val listener = Consumer<Intent> { intent ->
                             val uri =
                                 intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)?.toUri()
                                 ?: return@Consumer
-                            when (val path = uri.pathSegments.firstOrNull()) {
-                                "playlist" -> uri.getQueryParameter("list")?.let { playlistId ->
-                                    if (playlistId.startsWith("OLAK5uy_")) {
-                                        coroutineScope.launch {
-                                            YouTube.albumSongs(playlistId).onSuccess { songs ->
-                                                songs.firstOrNull()?.album?.id?.let { browseId ->
-                                                    navController.navigate("album/$browseId")
-                                                }
-                                            }.onFailure {
-                                                reportException(it)
-                                            }
-                                        }
-                                    } else {
-                                        navController.navigate("online_playlist/$playlistId")
-                                    }
-                                }
-
-                                "channel", "c" -> uri.lastPathSegment?.let { artistId ->
-                                    navController.navigate("artist/$artistId")
-                                }
-
-                                else -> when {
-                                    path == "watch" -> uri.getQueryParameter("v")
-                                    uri.host == "youtu.be" -> path
-                                    else -> null
-                                }?.let { videoId ->
-                                    coroutineScope.launch {
-                                        withContext(Dispatchers.IO) {
-                                            YouTube.queue(listOf(videoId))
-                                        }.onSuccess {
-                                            sharedSong = it.firstOrNull()
-                                        }.onFailure {
-                                            reportException(it)
-                                        }
-                                    }
-                                }
-                            }
+                            youtubeNavigator(uri)
                         }
 
                         addOnNewIntentListener(listener)
@@ -843,10 +860,14 @@ class MainActivity : ComponentActivity() {
                                                     onQueryChange = onQueryChange,
                                                     navController = navController,
                                                     onSearch = {
-                                                        navController.navigate("search/${it.urlEncode()}")
-                                                        if (dataStore[PauseSearchHistoryKey] != true) {
-                                                            database.query {
-                                                                insert(SearchHistory(query = it))
+                                                        if (youtubeNavigator(it.toUri())) {
+                                                            return@OnlineSearchScreen
+                                                        } else {
+                                                            navController.navigate("search/${it.urlEncode()}")
+                                                            if (dataStore[PauseSearchHistoryKey] != true) {
+                                                                database.query {
+                                                                    insert(SearchHistory(query = it))
+                                                                }
                                                             }
                                                         }
                                                     },

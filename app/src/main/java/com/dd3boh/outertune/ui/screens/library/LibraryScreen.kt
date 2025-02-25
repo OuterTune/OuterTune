@@ -2,7 +2,6 @@ package com.dd3boh.outertune.ui.screens.library
 
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -38,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -62,7 +60,6 @@ import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.db.entities.PlaylistEntity
-import com.dd3boh.outertune.extensions.move
 import com.dd3boh.outertune.ui.component.AutoPlaylistGridItem
 import com.dd3boh.outertune.ui.component.AutoPlaylistListItem
 import com.dd3boh.outertune.ui.component.ChipsLazyRow
@@ -81,9 +78,7 @@ import com.dd3boh.outertune.utils.decodeTabString
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.LibraryViewModel
-import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LibraryScreen(
     navController: NavController,
@@ -155,45 +150,17 @@ fun LibraryScreen(
             chips.add(filter to filterString)
     }
 
-    val animatorDurationScale = Settings.Global.getFloat(context.contentResolver,
-        Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f).toLong()
-
-    suspend fun animationBasedDelay(value: Long) {
-        delay(value * animatorDurationScale)
-    }
-
-    // Update the filters list in a proper way so that the animations of the LazyRow can work.
     LaunchedEffect(filter) {
-        val filterIndex = defaultFilter.indexOf(defaultFilter.find { it.first == filter })
-        val currentPairIndex = if (chips.size > 0) defaultFilter.indexOf(chips[0]) else -1
-        val currentPair = if (chips.size > 0) chips[0] else null
-
         if (filter == LibraryFilter.ALL) {
-            defaultFilter.reversed().fastForEachIndexed { index, it ->
-                val curFilterIndex = defaultFilter.indexOf(it)
-                if (!chips.contains(it)) {
-                    chips.add(0, it)
-                    if (currentPairIndex > curFilterIndex) animationBasedDelay(100)
-                    else {
-                        currentPair?.let {
-                            animationBasedDelay(2)
-                            chips.move(chips.indexOf(it), 0)
-                        }
-                        animationBasedDelay(80 + (index * 30).toLong())
-                    }
-                }
+            defaultFilter.forEachIndexed { index, it ->
+                if (!chips.contains(it)) chips.add(index, it)
             }
-            animationBasedDelay(100)
             filterSelected = LibraryFilter.ALL
         } else {
             filterSelected = filter
             chips.filter { it.first != filter }
-                .onEachIndexed { index, it ->
-                    if (chips.contains(it)) {
-                        chips.remove(it)
-                        if (index > filterIndex) animationBasedDelay(150 + 30 * index.toLong())
-                        else animationBasedDelay(80)
-                    }
+                .onEach {
+                    if (chips.contains(it)) chips.remove(it)
                 }
         }
     }

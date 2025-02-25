@@ -142,4 +142,7 @@
     <string name="grp_general">Generale</string>
     <string name="queue_remote_history">Cronologia (remota)</string>
     <string name="queue_local_history">Cronologia (locale)</string>
+    <string name="scanner_btn_idle">Scansiona</string>
+    <string name="scanner_progress_complete">Scansione completata</string>
+    <string name="action_cancel">Annulla</string>
 </resources>

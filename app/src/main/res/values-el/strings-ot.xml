@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="select">Λειτουργία επιλογής</string>
+    <string name="queue_searched_songs_ot">Αναζήτηση:</string>
+    <string name="local_history">Τοπικό</string>
+    <string name="queue_local_history">Ιστορικό (τοπικό)</string>
+    <string name="queue_remote_history">Ιστορικό (απομακρυσμένο)</string>
+    <string name="remote_history">Απομακρυσμένο</string>
+    <string name="create_queue">Νέα ουρά</string>
+    <string name="song_added_to_queue">Το «%s» εισήχθη στην ουρά</string>
+    <string name="song_added_to_queue_end">Το «%s» προστέθηκε στο τέλος της ουράς</string>
+    <string name="auto_playlist">Αυτόματη λίστα αναπαραγωγής</string>
+    <string name="like_all">Μου αρέσουν όλα</string>
+    <string name="folders">Φάκελοι</string>
+    <string name="library">Βιβλιοθήκη</string>
+    <string name="recent_activity">Πρόσφατη δραστηριότητα</string>
+    <string name="delete_lyric_confirm">Θες πραγματικά να διαγράψεις τους αποθηκευμένους στίχους για «%s»;</string>
+    <string name="err_play_next_on_error">Πρόεκυψε σφάλμα. Αναπαραγωγή επομένου</string>
+    <string name="err_stop_on_error">Πρόεκυψε σφάλμα. Η αναπαραγωγή σταμάτησε</string>
+    <string name="err_stop_on_too_many_errors">Πάρα πολλά σφάλματα. Η αναπαραγωγή σταμάτησε</string>
+    <string name="wait_to_reconnect">Αναμονή για επανασύνδεση</string>"&gt;
+
+<string name="sort_by_date_modified">Ημερομηνία τροποποίησης</string>
+    <string name="sort_by_date_released">Ημερομηνία κυκλοφορίας</string>
+    <string name="sort_by_like_date">Ημερομηνία «μου αρέσει»</string>
+    <string name="sort_by_play_count">Αναπαραγωγές</string>
+    <string name="create_sync_playlist_description">Σημείωση: Αυτό επιτρέπει το συγχρονισμό με το YouTube Music. Αυτό ΔΕΝ αλλάζει αργότερα. Δεν μπορείς να προσθέσεις τοπικά τραγούδια για σε συγχρονιζόμενες playlists.</string>
+    <string name="create_sync_playlist">Συγχρονισμός Playlist</string>
+</resources>

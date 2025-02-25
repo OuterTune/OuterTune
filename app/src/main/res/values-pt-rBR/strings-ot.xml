@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="library">Biblioteca</string>
-    <string name="audio_offload_description">Usar o caminho de offload de áudio para a reprodução. Desativar isso pode aumentar o consumo de energia mas pode ser útil caso tenha problemas com a reprodução ou com pós-processamento</string>
+    <string name="audio_offload_description">Usar o caminho de descarga de áudio para a reprodução. Desativar isso pode aumentar o consumo de energia mas pode ser útil caso tenha problemas com a reprodução ou com pós-processamento</string>
     <string name="player_background_gradient">Gradiente</string>
     <string name="create_sync_playlist_description">Nota: Isto permite sincronizar com o YouTube Music. Isso NÃO pode ser alterado depois. Você não pode adicionar músicas locais à playlists sincronizadas.</string>
     <string name="create_sync_playlist">Sincronizar Playlist</string>
     <string name="player_background_default">Seguir o tema</string>
     <string name="lyrics_multiline_description">Tratar com as linhas entre pontos de sincronização como um único texto de letras</string>
     <string name="scan_paths_excl">Caminhos de busca exclusos</string>
-    <string name="audio_offload">Ativar offload</string>
+    <string name="audio_offload">Ativar descarga</string>
     <string name="scanner_strict_file_name_description">Quando ativado, os nomes de arquivo NÃO serão ignorados. Por exemplo, música.ogg será uma diferente de música.flac. A configuração de sensibilidade da busca ainda se aplica</string>
     <string name="lyrics_prefer_local_description">Priorizar arquivos de letras locais antes de usar os fornecedores na nuvem. Desative isso para priorizar fornecedores na nuvem</string>
     <string name="local_library_enable_description">Desativar isto esconderá a biblioteca local do app</string>
@@ -22,7 +22,7 @@
     <string name="folders">Pastas</string>
     <string name="local_history">Local</string>
     <string name="remote_history">Remoto</string>
-    <string name="queue_searched_songs_ot">Pesquisar:</string>
+    <string name="queue_searched_songs_ot">Pesquisa:</string>
     <string name="song_added_to_queue">\"%s\" adicionado à fila</string>
     <string name="song_added_to_queue_end">\"%s\" adicionado ao final da fila</string>
     <string name="auto_playlist">Playlist automática</string>
@@ -82,7 +82,7 @@
     <string name="scanner_type_ffmpeg_ext">Usar o extrator de metadados do FFMpeg. Requer que pacote externo seja instalado</string>
     <string name="scanner_online_artist_linking">Tentar sincronizar os artistas dos arquivos locais com os no YouTube Music</string>
     <string name="pause_remote_listen_history">Compartilhar histórico de reprodução com o YouTube Music</string>
-    <string name="experimental_settings_title">Experimental</string>
+    <string name="experimental_settings_title">Experimentais</string>
     <string name="dev_settings_title">Ativar configurações de desenvolvedor</string>
     <string name="dev_settings_description">Revelar configurações avançadas adicionais utilizadas no desenvolvimento</string>
     <string name="oobe_local_scan_tooltip">Toque aqui para buscar músicas</string>
@@ -142,4 +142,7 @@
     <string name="grp_general">Geral</string>
     <string name="queue_local_history">Histórico (local)</string>
     <string name="queue_remote_history">Histórico (remoto)</string>
+    <string name="scanner_btn_idle">Buscar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="scanner_progress_complete">Busca concluída</string>
 </resources>

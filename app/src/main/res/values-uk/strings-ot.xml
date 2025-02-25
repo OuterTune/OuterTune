@@ -144,4 +144,7 @@
 <string name="grp_general">Загальні</string>
     <string name="queue_local_history">Історія (локальна)</string>
     <string name="queue_remote_history">Історія (віддалена)</string>
+    <string name="scanner_progress_complete">Сканування завершено</string>
+    <string name="scanner_btn_idle">Сканувати</string>
+    <string name="action_cancel">Скасувати</string>
 </resources>

@@ -1,6 +1,7 @@
-<resources>
-<!--OuterTune strings below-->
+<!-- This file hosts strings specific to OuterTune. This separation allows us to easily recycle translations from upstream InnerTune,
+while also allowing users to translate our app as well. New, specific strings to OuterTune go here. -->
 
+<resources>
 <!-- Bottom navigation -->
     <string name="folders">Folders</string>
     <string name="library">Library</string>
@@ -17,11 +18,12 @@
 <!-- Library screens -->
 
 <!-- Queue -->
+    <string name="queues_title">Queues</string>
     <string name="create_queue">New queue</string>
     <string name="queue_searched_songs_ot">Search: </string>
     <string name="song_added_to_queue">\"%s\" inserted into queue</string>
     <string name="song_added_to_queue_end">\"%s\" added to the end of queue</string>
-
+    <string name="queues_empty">No queues</string>
 
 <!-- Playlist -->
     <string name="auto_playlist">Auto playlist</string>
@@ -35,7 +37,7 @@
     <string name="err_play_next_on_error">Error occurred. Playing next</string>
     <string name="err_stop_on_error">Error occurred. Playback stopped</string>
     <string name="err_stop_on_too_many_errors">Too many errors. Playback stopped</string>
-    <string name="wait_to_reconnect">Wait to reconnect</string>">
+    <string name="wait_to_reconnect">Wait to reconnect</string>
 
 <!-- Sort menu -->
     <string name="sort_by_date_modified">Date modified</string>
@@ -69,8 +71,6 @@
     <string name="grp_manual_scanner">Manual scanner</string>
     <string name="grp_proxy">Proxy</string>
 
-
-
 <!-- About settings -->
     <string name="attrib_zhuang">Zion Huang for InnerTune</string>
     <string name="special_thanks">Special thanks</string>
@@ -88,7 +88,7 @@
     <string name="tab_arrangement_disable_tip">--- Drag below here to disable ---</string>
     <string name="tab_arrangement_home_required">The Home tab is required.</string>
 
-    <!-- Content settings -->
+<!-- Content settings -->
     <string name="like_autodownload">Automatically download your liked songs</string>
     <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
     <string name="token_hidden">Tap to show token</string>
@@ -96,7 +96,7 @@
     <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
     <string name="wifi_only">Wi-Fi only</string>
 
-    <!-- Player settings -->
+<!-- Player settings -->
     <string name="audio_offload">Enable offload</string>
     <string name="audio_offload_description">Use the offload audio path for audio playback. Disabling this may increase power usage but can be useful if you experience issues with audio playback or post processing</string>
     <string name="keep_alive_title">Prevent system killing app</string>
@@ -185,7 +185,7 @@
 <!-- Backup and restore settings -->
     <string name="m3u_import_song_failed">Could not import:</string>
 
-    <!--experimental settings-->
+<!-- Experimental settings -->
     <string name="experimental_settings_title">Experimental</string>
     <string name="dev_settings_title">Enable developer settings</string>
     <string name="dev_settings_description">Reveals additional advanced settings intended for development use</string>
@@ -204,8 +204,6 @@
     <string name="action_back">Back</string>
     <string name="action_next">Next</string>
     <string name="action_skip">Skip</string>
-
     <string name="action_cancel">Cancel</string>
-
     <string name="info">Information</string>
 </resources>

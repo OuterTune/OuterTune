@@ -104,7 +104,7 @@
     <plurals name="scanner_n_song_found">
         <item quantity="other">%d 曲が見つかりました</item>
     </plurals>
-    <string name="scanner_strict_file_name_title">厳密なファイル名</string>
+    <string name="scanner_strict_file_name_title">ファイル名を厳格に扱う</string>
     <string name="scanner_strict_file_name_description">有効にすると、ファイル名は無視されません。例: Song.ogg は Song.flac とは異なる曲になります。スキャナの感度設定は引き続き適用されます</string>
     <string name="scanner_sensitivity_title">スキャナーの感度を設定する</string>
     <string name="scanner_sensitivity_L2">タイトルとアーティストが一致</string>
@@ -136,4 +136,9 @@
     <string name="oobe_ad_free_description">広告なしの音楽体験</string>
     <string name="experimental_settings_title">実験的な設定</string>
     <string name="grp_general">一般</string>
+    <string name="queue_remote_history">再生履歴 (リモート)</string>
+    <string name="queue_local_history">履歴 (ローカル)</string>
+    <string name="scanner_btn_idle">スキャン</string>
+    <string name="scanner_progress_complete">スキャンが終わりました</string>
+    <string name="action_cancel">キャンセル</string>
 </resources>

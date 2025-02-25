@@ -24,6 +24,7 @@ import com.dd3boh.outertune.db.entities.GenreEntity
 import com.dd3boh.outertune.db.entities.LyricsEntity
 import com.dd3boh.outertune.db.entities.PlayCountEntity
 import com.dd3boh.outertune.db.entities.PlaylistEntity
+import com.dd3boh.outertune.db.entities.PlaylistEntity.Companion.generatePlaylistId
 import com.dd3boh.outertune.db.entities.PlaylistSongMap
 import com.dd3boh.outertune.db.entities.PlaylistSongMapPreview
 import com.dd3boh.outertune.db.entities.QueueEntity
@@ -106,7 +107,6 @@ class MusicDatabase(
         AutoMigration(from = 11, to = 12, spec = Migration11To12::class),
         AutoMigration(from = 12, to = 13, spec = Migration12To13::class), // Migration from InnerTune
         AutoMigration(from = 13, to = 14), // Initial queue as database
-        AutoMigration(from = 15, to = 16), // Add dateDownload to songs
     ]
 )
 @TypeConverters(Converters::class)
@@ -451,6 +451,60 @@ class Migration12To13 : AutoMigrationSpec {
                     )
                 }
                 checkCursor.close()
+            }
+        }
+
+        // move liked songs to playlist
+        val playlistIdLiked = generatePlaylistId()
+        var position = 0
+        db.query("SELECT * from song WHERE liked = true").use { cursor ->
+            db.insert(
+                table = "playlist",
+                conflictAlgorithm = SQLiteDatabase.CONFLICT_ABORT,
+                values = contentValuesOf(
+                    "id" to playlistIdLiked,
+                    "name" to "Liked songs (InnerTune migration)",
+                    "isLocal" to true
+                )
+            )
+
+            while (cursor.moveToNext()) {
+                val songIdColIndex = cursor.getColumnIndex("id")
+                db.insert(
+                    "playlist_song_map", SQLiteDatabase.CONFLICT_IGNORE, contentValuesOf(
+                        "playlistId" to playlistIdLiked,
+                        "songId" to cursor.getString(songIdColIndex),
+                        "position" to position
+                    )
+                )
+                position ++
+            }
+        }
+
+        // move inLibrary songs to playlist
+        val playlistIdLibrary = generatePlaylistId()
+        position = 0
+        db.query("SELECT * from song WHERE inLibrary IS NOT NULL").use { cursor ->
+            db.insert(
+                table = "playlist",
+                conflictAlgorithm = SQLiteDatabase.CONFLICT_ABORT,
+                values = contentValuesOf(
+                    "id" to playlistIdLibrary,
+                    "name" to "Library songs (InnerTune migration)",
+                    "isLocal" to true
+                )
+            )
+
+            while (cursor.moveToNext()) {
+                val songIdColIndex = cursor.getColumnIndex("id")
+                db.insert(
+                    "playlist_song_map", SQLiteDatabase.CONFLICT_IGNORE, contentValuesOf(
+                        "playlistId" to playlistIdLibrary,
+                        "songId" to cursor.getString(songIdColIndex),
+                        "position" to position
+                    )
+                )
+                position ++
             }
         }
 
