@@ -192,4 +192,6 @@ dependencies {
      */
 //    implementation(libs.taglib)
     implementation(files("../prebuilt/taglib_1.0.0.aar")) // prebuilt
+
+    implementation("androidx.webkit:webkit:1.12.1")
 }
