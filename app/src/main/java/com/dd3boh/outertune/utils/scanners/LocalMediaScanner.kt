@@ -11,6 +11,8 @@ package com.dd3boh.outertune.utils.scanners
 import android.content.Context
 import android.media.MediaPlayer
 import android.os.Environment
+import androidx.compose.ui.util.fastFirstOrNull
+import androidx.compose.ui.util.fastForEach
 import androidx.datastore.preferences.core.edit
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.ScannerImpl
@@ -903,7 +905,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             database: MusicDatabase,
             scanPaths: List<String>,
             excludedScanPaths: List<String>,
-        ): MutableStateFlow<DirectoryTree> {
+        ): DirectoryTree {
             val newDirectoryStructure = DirectoryTree(STORAGE_ROOT)
 
             // get songs from db
@@ -913,24 +915,21 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             }
 
             Timber.tag(TAG).d("------------ SCAN: Starting Quick Directory Rebuild ------------")
-            getScanPaths(scanPaths, excludedScanPaths).forEach { path ->
+            getScanPaths(scanPaths, excludedScanPaths).fastForEach { path ->
                 if (SCANNER_DEBUG)
                     Timber.tag(TAG).d("Quick scanner: PATH: $path")
 
                 // Build directory tree with existing files
-                val possibleMatch =
-                    existingSongs.firstOrNull { it.song.localPath == path }
+                val possibleMatch = existingSongs.fastFirstOrNull { it.song.localPath == path }
 
                 if (possibleMatch != null) {
-                    newDirectoryStructure.insert(
-                        path, possibleMatch
-                    )
+                    newDirectoryStructure.insert(path, possibleMatch)
                 }
             }
 
             Timber.tag(TAG).d("------------ SCAN: Finished Quick Directory Rebuild ------------")
             cacheDirectoryTree(newDirectoryStructure.androidStorageWorkaround().trimRoot())
-            return MutableStateFlow(newDirectoryStructure)
+            return newDirectoryStructure
         }
 
         /**

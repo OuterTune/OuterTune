@@ -13,5 +13,5 @@ data class FormatEntity(
     val sampleRate: Int?,
     val contentLength: Long,
     val loudnessDb: Double?,
-    val playbackUrl: String?
+    val playbackTrackingUrl: String?
 )

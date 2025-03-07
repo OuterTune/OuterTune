@@ -131,7 +131,7 @@
     <string name="action_skip">Salta</string>
     <string name="oobe_ad_free_description">Riproduzione senza pubblicità</string>
     <string name="experimental_settings_title">Sperimentale</string>
-    <string name="pause_remote_listen_history">Condividi la cronologia degli ascolti con YouTube Music</string>
+    <string name="pause_remote_listen_history">Interrompi la condivisione della cronologia degli ascolti con YouTube Music</string>
     <string name="oobe_local_scan_tooltip">Clicca qui per cercare i brani</string>
     <string name="m3u_import_song_failed">Impossibile importare:</string>
     <string name="wait_to_reconnect">Attendi per riconnetterti</string>"&gt;
@@ -145,4 +145,6 @@
     <string name="scanner_btn_idle">Scansiona</string>
     <string name="scanner_progress_complete">Scansione completata</string>
     <string name="action_cancel">Annulla</string>
+    <string name="queues_title">Code</string>
+    <string name="queues_empty">Nessuna coda</string>
 </resources>

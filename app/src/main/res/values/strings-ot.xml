@@ -180,7 +180,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="scanner_online_artist_linking">Try to link local files\' artists with ones on YouTube Music</string>
 
 <!-- Privacy settings -->
-    <string name="pause_remote_listen_history">Share listen history with YouTube Music</string>
+    <string name="pause_remote_listen_history">Pause sharing listen history with YouTube Music</string>
 
 <!-- Backup and restore settings -->
     <string name="m3u_import_song_failed">Could not import:</string>

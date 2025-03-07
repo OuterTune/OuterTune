@@ -222,10 +222,12 @@ fun OnlineSearchScreen(
                                     if (item.id == mediaMetadata?.id) {
                                         playerConnection.player.togglePlayPause()
                                     } else {
+                                        val songSuggestions = viewState.items.filter { it is SongItem }
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = "${context.getString(R.string.queue_searched_songs_ot)} ${viewModel.query.value}",
-                                                items = listOf(item.toMediaMetadata())
+                                                title = "${context.getString(R.string.queue_searched_songs_ot)} $query",
+                                                items = songSuggestions.map { (it as SongItem).toMediaMetadata() },
+                                                startIndex = songSuggestions.indexOf(item)
                                             ),
                                             replace = true,
                                         )

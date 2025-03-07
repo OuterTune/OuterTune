@@ -215,7 +215,7 @@ class TagLibScanner : MetadataScanner {
                     sampleRate = sampleRate,
                     contentLength = duration.toLong(),
                     loudnessDb = replayGain,
-                    playbackUrl = null
+                    playbackTrackingUrl = null
                 )
             )
         }

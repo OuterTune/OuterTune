@@ -53,6 +53,7 @@ import com.dd3boh.outertune.models.DirectoryTree
 import com.dd3boh.outertune.ui.utils.DEFAULT_SCAN_PATH
 import com.dd3boh.outertune.ui.utils.cacheDirectoryTree
 import com.dd3boh.outertune.ui.utils.getDirectoryTree
+import com.dd3boh.outertune.ui.utils.uninitializedDirectoryTree
 import com.dd3boh.outertune.utils.SyncUtils
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.get
@@ -61,6 +62,7 @@ import com.dd3boh.outertune.utils.scanners.LocalMediaScanner.Companion.refreshLo
 import com.zionhuang.innertube.YouTube
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,28 +91,29 @@ class LibrarySongsViewModel @Inject constructor(
 
     private val scanPaths = context.dataStore[ScanPathsKey]?: DEFAULT_SCAN_PATH
     private val excludedScanPaths = context.dataStore[ExcludedScanPathsKey]?: ""
-    val localSongDirectoryTree = refreshLocal(database, scanPaths.split('\n'), excludedScanPaths.split('\n'))
+    val localSongDirectoryTree: MutableStateFlow<DirectoryTree?> = getLocalSongs(database)
 
     fun syncLibrarySongs() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteSongs() } }
     fun syncLikedSongs() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteLikedSongs() } }
 
     /**
-     * Get local songs, update the one in the viewmodel
+     * Get local songs asynchronously, as a full directory tree
      *
      * @return DirectoryTree
      */
-    fun getLocalSongs(database: MusicDatabase): MutableStateFlow<DirectoryTree> {
-        val cachedTree = getDirectoryTree()
-        if (cachedTree == null) {
-            val directoryStructure =
-                refreshLocal(database, scanPaths.split('\n'),
-                    excludedScanPaths.split('\n')).value
-            localSongDirectoryTree.value = directoryStructure
-            cacheDirectoryTree(directoryStructure)
-            return MutableStateFlow(directoryStructure)
-        } else {
-            return MutableStateFlow(cachedTree)
+    fun getLocalSongs(database: MusicDatabase): MutableStateFlow<DirectoryTree?> {
+        CoroutineScope(Dispatchers.IO).launch {
+            val directoryStructure: DirectoryTree
+            var cachedTree = getDirectoryTree().value
+            if (cachedTree == uninitializedDirectoryTree) {
+                directoryStructure = refreshLocal(database, scanPaths.split('\n'), excludedScanPaths.split('\n'))
+                cacheDirectoryTree(directoryStructure)
+            } else {
+                directoryStructure = cachedTree!!
+            }
         }
+
+        return getDirectoryTree()
     }
 
     private fun getSyncedSongs(context: Context, database: MusicDatabase): StateFlow<List<Song>?> {

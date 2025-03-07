@@ -231,7 +231,7 @@ class FFMpegScanner(context: Context) : MetadataScanner {
                 sampleRate = sampleRate?.let { parseInt(it.trim()) } ?: -1,
                 contentLength = duration,
                 loudnessDb = replayGain,
-                playbackUrl = null
+                playbackTrackingUrl = null
             )
         )
     }

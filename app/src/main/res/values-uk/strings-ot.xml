@@ -75,7 +75,6 @@
     <string name="scanner_type_title">Витягувач метаданих</string>
     <string name="scanner_type_taglib">Використовути вбудований витягувач метаданих TagLib</string>
     <string name="scanner_variant_rescan">Пересканувати всю бібліотеку та перезавантажити метадані всіх пісень</string>
-    <string name="pause_remote_listen_history">Ділитися історією прослуховування з YouTube Music</string>
     <string name="m3u_import_song_failed">Не вдалось імпортувати:</string>
     <string name="oobe_use_backup">У мене є резервна копія</string>
     <string name="sort_by_play_count">Кількість відтворень</string>
@@ -147,4 +146,6 @@
     <string name="scanner_progress_complete">Сканування завершено</string>
     <string name="scanner_btn_idle">Сканувати</string>
     <string name="action_cancel">Скасувати</string>
+    <string name="queues_title">Черги</string>
+    <string name="queues_empty">Без черг</string>
 </resources>

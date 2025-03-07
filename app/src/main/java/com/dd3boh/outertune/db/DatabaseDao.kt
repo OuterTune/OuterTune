@@ -302,7 +302,7 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
      */
     @Transaction
     fun saveQueue(mq: MultiQueueObject) {
-        if (mq.queue.isEmpty() || mq.unShuffled.isEmpty()) {
+        if (mq.queue.isEmpty()) {
             return
         }
 
@@ -319,25 +319,20 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
 
         deleteAllQueueSongs(mq.id)
         // insert songs
-        mq.unShuffled.forEach {
-            insert(it)
-            insert(
-                QueueSongMap(
-                    queueId = mq.id,
-                    songId = it.id,
-                    shuffled = false
-                )
-            )
-        }
 
-        mq.queue.forEach {
+        // why does kotlin not have for i loop???
+        var i = 0
+        while (i < mq.getSize()) {
+            insert(mq.queue[i]) // make sure song exists
             insert(
                 QueueSongMap(
                     queueId = mq.id,
-                    songId = it.id,
-                    shuffled = true
+                    songId = mq.queue[i].id,
+                    index = i.toLong(),
+                    shuffledIndex = mq.queue[i].shuffleIndex.toLong()
                 )
             )
+            i ++
         }
     }
 

@@ -14,6 +14,7 @@ import com.dd3boh.outertune.models.DirectoryTree
 import com.dd3boh.outertune.utils.LmImageCacheMgr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 
 const val TAG = "LocalMediaUtils"
 
@@ -39,7 +40,8 @@ val MEDIA_PERMISSION_LEVEL =
 const val STORAGE_ROOT = "/storage/"
 const val DEFAULT_SCAN_PATH = "/tree/primary:Music\n"
 val ARTIST_SEPARATORS = Regex("\\s*;\\s*|\\s*ft\\.\\s*|\\s*feat\\.\\s*|\\s*&\\s*|\\s*,\\s*", RegexOption.IGNORE_CASE)
-private var cachedDirectoryTree: DirectoryTree? = null
+val uninitializedDirectoryTree = DirectoryTree(STORAGE_ROOT)
+private var cachedDirectoryTree: MutableStateFlow<DirectoryTree?> = MutableStateFlow(uninitializedDirectoryTree)
 
 var imageCache: LmImageCacheMgr = LmImageCacheMgr()
 
@@ -53,10 +55,7 @@ var imageCache: LmImageCacheMgr = LmImageCacheMgr()
 /**
  * Get cached DirectoryTree
  */
-fun getDirectoryTree(): DirectoryTree? {
-    if (cachedDirectoryTree == null) {
-        return null
-    }
+fun getDirectoryTree(): MutableStateFlow<DirectoryTree?> {
     return cachedDirectoryTree
 }
 
@@ -64,5 +63,5 @@ fun getDirectoryTree(): DirectoryTree? {
  * Cache a DirectoryTree
  */
 fun cacheDirectoryTree(new: DirectoryTree?) {
-    cachedDirectoryTree = new
+    cachedDirectoryTree.value = new?: uninitializedDirectoryTree
 }

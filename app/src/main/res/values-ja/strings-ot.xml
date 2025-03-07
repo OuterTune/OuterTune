@@ -113,7 +113,6 @@
     <string name="scanner_type_taglib">統合されたTagLibメタデータ抽出ツールを使用する</string>
     <string name="scanner_sensitivity_L1">タイトルが一致</string>
     <string name="scanner_online_artist_linking">ローカルファイルのアーティストをYouTube Music のアーティストとリンクする</string>
-    <string name="pause_remote_listen_history">YouTube Music に視聴履歴を保存する</string>
     <string name="m3u_import_song_failed">インポートできませんでした:</string>
     <string name="dev_settings_title">開発者向け設定を有効にする</string>
     <string name="dev_settings_description">開発用途向けの追加の詳細設定を表示します</string>
@@ -141,4 +140,6 @@
     <string name="scanner_btn_idle">スキャン</string>
     <string name="scanner_progress_complete">スキャンが終わりました</string>
     <string name="action_cancel">キャンセル</string>
+    <string name="queues_title">キュー</string>
+    <string name="queues_empty">キューはありません</string>
 </resources>

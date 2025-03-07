@@ -530,16 +530,12 @@ fun HomeScreen(
                             SongListItem(
                                 song = song!!,
                                 onPlay = {
-                                    if (song!!.song.isLocal) {
-                                        playerConnection.playQueue(
-                                            ListQueue(
-                                                title = queueTitle,
-                                                items = listOf(song!!.toMediaMetadata())
-                                            )
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = queueTitle,
+                                            items = forgottenFavorites.map { it.toMediaMetadata() }
                                         )
-                                    } else {
-                                        playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
-                                    }
+                                    )
                                 },
                                 onSelectedChange = {},
                                 inSelectMode = null,

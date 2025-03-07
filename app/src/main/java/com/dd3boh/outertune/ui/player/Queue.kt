@@ -94,7 +94,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachReversed
-import androidx.media3.common.C
 import androidx.media3.common.Player.REPEAT_MODE_ALL
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.REPEAT_MODE_ONE
@@ -102,6 +101,7 @@ import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.LockQueueKey
 import com.dd3boh.outertune.constants.PlayerHorizontalPadding
@@ -113,7 +113,6 @@ import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.MultiQueueObject
 import com.dd3boh.outertune.models.isShuffleEnabled
 import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
-import com.dd3boh.outertune.R
 import com.dd3boh.outertune.ui.component.BottomSheet
 import com.dd3boh.outertune.ui.component.BottomSheetState
 import com.dd3boh.outertune.ui.component.LocalMenuState
@@ -254,7 +253,6 @@ fun Queue(
                     queueBoard.moveSong(
                         from,
                         to,
-                        playerConnection.player.currentMediaItemIndex,
                         playerConnection.service
                     )
                     playerConnection.player.moveMediaItem(from, to)
@@ -428,7 +426,7 @@ fun Queue(
                                             detachedQueue.clear()
                                             detachedQueue.addAll(mq.getCurrentQueueShuffled())
                                             detachedQueueIndex = index
-                                            detachedQueuePos = mq.queuePos
+                                            detachedQueuePos = mq.getQueuePosShuffled()
                                             detachedQueueTitle = mq.title
                                         }
 
@@ -535,8 +533,7 @@ fun Queue(
                         onClick = {
                             coroutineScope.launch(Dispatchers.Main) {
                                 // change to this queue, seek to the item clicked on
-                                queueBoard.setCurrQueue(detachedQueueIndex, playerConnection, false)
-                                playerConnection.player.seekTo(detachedQueuePos, C.TIME_UNSET)
+                                queueBoard.setCurrQueue(detachedQueueIndex, playerConnection)
                                 playerConnection.player.playWhenReady = true
                                 detachedHead = false
                                 updateQueues()
@@ -574,8 +571,7 @@ fun Queue(
                                         onClick = {
                                             coroutineScope.launch(Dispatchers.Main) {
                                                 // change to this queue, seek to the item clicked on
-                                                queueBoard.setCurrQueue(detachedQueueIndex, playerConnection, false)
-                                                playerConnection.player.seekTo(index, C.TIME_UNSET)
+                                                queueBoard.setCurrQueue(detachedQueueIndex, playerConnection)
                                                 detachedHead = false
                                                 updateQueues()
                                             }

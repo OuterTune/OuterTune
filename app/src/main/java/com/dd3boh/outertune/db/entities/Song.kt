@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.db.entities
 
 import androidx.compose.runtime.Immutable
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
@@ -56,3 +57,8 @@ data class Song @JvmOverloads constructor(
     override val thumbnailUrl: String?
         get() = song.thumbnailUrl
 }
+
+data class QueueSong(
+    @Embedded val song: Song,
+    @ColumnInfo(name = "shuffledIndex") val shuffledIndex: Int
+)

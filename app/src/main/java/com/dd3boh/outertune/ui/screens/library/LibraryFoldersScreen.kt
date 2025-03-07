@@ -67,6 +67,7 @@ import com.dd3boh.outertune.ui.component.SelectHeader
 import com.dd3boh.outertune.ui.component.SongFolderItem
 import com.dd3boh.outertune.ui.component.SongListItem
 import com.dd3boh.outertune.ui.component.SortHeader
+import com.dd3boh.outertune.ui.utils.uninitializedDirectoryTree
 import com.dd3boh.outertune.utils.numberToAlpha
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
@@ -110,22 +111,31 @@ fun LibraryFoldersScreen(
         folderStack.clear()
     }
 
-    // initialize with first directory
-    if (folderStack.isEmpty()) {
-        viewModel.getLocalSongs(database)
-
-        folderStack.push(
-            if (flatSubfolders) songs.toFlattenedTree()
-            else songs
-        )
-    }
-
     // content to load for this page
     var currDir by remember {
         // hello mikooo from the fture, this is mikooo from the past warning you to not touch this.
         // mikooo, you clearly are just going to waste time trying to put this in the in the viewmodel
         // If anyone else would like to try, be my guest
-        mutableStateOf(folderStack.peek())
+        mutableStateOf(uninitializedDirectoryTree)
+    }
+
+    LaunchedEffect(songs) {
+        if (songs == uninitializedDirectoryTree) {
+            viewModel.localSongDirectoryTree.value = viewModel.getLocalSongs(database).value
+        }
+
+        // reset current directory
+        folderStack.clear()
+        if (songs == uninitializedDirectoryTree) {
+            folderStack.push(uninitializedDirectoryTree)
+        } else {
+            folderStack.push(
+                if (flatSubfolders) songs!!.toFlattenedTree()
+                else songs
+            )
+
+            currDir = folderStack.peek()
+        }
     }
 
     val mutableSongs = remember {

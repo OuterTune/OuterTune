@@ -15,6 +15,7 @@ import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
+import com.dd3boh.outertune.db.MusicDatabase.Companion.MUSIC_DATABASE_VERSION
 import com.dd3boh.outertune.db.entities.AlbumArtistMap
 import com.dd3boh.outertune.db.entities.AlbumEntity
 import com.dd3boh.outertune.db.entities.ArtistEntity
@@ -64,6 +65,10 @@ class MusicDatabase(
     }
 
     fun close() = delegate.close()
+
+    companion object {
+        const val MUSIC_DATABASE_VERSION = 18
+    }
 }
 
 @Database(
@@ -92,7 +97,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class
     ],
-    version = 16,
+    version = MUSIC_DATABASE_VERSION,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -107,6 +112,7 @@ class MusicDatabase(
         AutoMigration(from = 11, to = 12, spec = Migration11To12::class),
         AutoMigration(from = 12, to = 13, spec = Migration12To13::class), // Migration from InnerTune
         AutoMigration(from = 13, to = 14), // Initial queue as database
+        AutoMigration(from = 17, to = 18, spec = Migration17To18::class), // Fix Room nonsense
     ]
 )
 @TypeConverters(Converters::class)
@@ -122,6 +128,7 @@ abstract class InternalDatabase : RoomDatabase() {
                     .addMigrations(MIGRATION_1_2)
                     .addMigrations(MIGRATION_14_15)
                     .addMigrations(MIGRATION_15_16)
+                    .addMigrations(MIGRATION_16_17)
                     .build()
             )
     }
@@ -327,6 +334,105 @@ val MIGRATION_15_16 = object : Migration(15, 16) {
     }
 }
 
+/**
+ * Merge shuffled and un-shuffled queue
+ */
+val MIGRATION_16_17 = object : Migration(16, 17) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE format RENAME playbackUrl to playbackTrackingUrl")
+
+        data class TempQueueSong(val queue: String, val song: String, val index: Long, var shuffleIndex: Long)
+
+        val shuffled = ArrayList<TempQueueSong>()
+        val unShuffled = ArrayList<TempQueueSong>()
+        val result = ArrayList<TempQueueSong>()
+
+        // get shuffled songs
+        db.query("SELECT * FROM queue_song_map WHERE shuffled = 1").use { cursor ->
+            val songIdColIndex = cursor.getColumnIndex("songId")
+            val queueIdColIndex = cursor.getColumnIndex("queueId")
+
+            var i = 0L
+            while (cursor.moveToNext()) {
+                shuffled.add(
+                    TempQueueSong(cursor.getString(queueIdColIndex), cursor.getString(songIdColIndex), i, -1)
+                )
+                i++
+            }
+
+            cursor.close()
+        }
+
+        // get unshuffled songs
+        db.query("SELECT * FROM queue_song_map WHERE shuffled = 0").use { cursor ->
+            val songIdColIndex = cursor.getColumnIndex("songId")
+            val queueIdColIndex = cursor.getColumnIndex("queueId")
+
+            var i = 0L
+            while (cursor.moveToNext()) {
+                unShuffled.add(
+                    TempQueueSong(cursor.getString(queueIdColIndex), cursor.getString(songIdColIndex), i, -1)
+                )
+                i++
+            }
+
+            cursor.close()
+        }
+
+
+        /**
+         * Assign the un-shuffled song the shuffled counterpart's index
+         */
+        while (unShuffled.isNotEmpty()) {
+            // get all songs in the same queue
+            val queue = unShuffled.first().queue
+            val songs = unShuffled.filter { it.queue == queue }.toMutableList()
+            val shuffled = shuffled.filter { it.queue == queue }.toMutableList()
+
+            var tempResult = ArrayList<TempQueueSong>()
+            // assign indexes
+            for (s in songs) {
+                val match = shuffled.find { it.song == s.song }
+
+                match.let {
+                    s.shuffleIndex = it?.index!!
+                    tempResult.add(s)
+                    shuffled.remove(match) // remove from shuffled, so duplicates are handled
+                }
+            }
+            // queues could be malformed, so only take pairs of songs
+            tempResult.removeAll { it.shuffleIndex <= -1L }
+
+            // regenerate shuffle indexes
+            val reIndexShuffle = ArrayList<TempQueueSong>()
+            reIndexShuffle.addAll(tempResult)
+            reIndexShuffle.sortBy { it.shuffleIndex }
+            reIndexShuffle.forEachIndexed { index, s -> s.shuffleIndex = index.toLong() }
+
+            unShuffled.removeAll(songs)
+            result.addAll(tempResult)
+        }
+
+        // rewrite db
+        db.execSQL("DELETE FROM queue_song_map")
+        db.execSQL("ALTER TABLE queue_song_map ADD COLUMN `index` INTEGER NOT NULL")
+        db.execSQL("ALTER TABLE queue_song_map ADD COLUMN shuffledIndex INTEGER NOT NULL")
+        db.execSQL("ALTER TABLE queue_song_map DROP COLUMN shuffled")
+        var i = 0L
+        result.forEach {
+            db.insert(
+                "queue_song_map", SQLiteDatabase.CONFLICT_IGNORE, contentValuesOf(
+                    "id" to i++,
+                    "queueId" to it.queue,
+                    "songId" to it.song,
+                    "`index`" to it.index,
+                    "shuffledIndex" to it.shuffleIndex
+                )
+            )
+        }
+    }
+}
+
 @DeleteColumn.Entries(
     DeleteColumn(tableName = "song", columnName = "isTrash"),
     DeleteColumn(tableName = "playlist", columnName = "author"),
@@ -477,7 +583,7 @@ class Migration12To13 : AutoMigrationSpec {
                         "position" to position
                     )
                 )
-                position ++
+                position++
             }
         }
 
@@ -504,9 +610,23 @@ class Migration12To13 : AutoMigrationSpec {
                         "position" to position
                     )
                 )
-                position ++
+                position++
             }
         }
 
     }
 }
+
+/**
+ * Nonsense migration failure
+ *
+ * Q: What? Why? playCount was never changed since it's creation
+ * A: It wasn't. But that didn't stop Room from randomly adding an id column for *some* users only...
+ *
+ * Q: That sounds like complete nonsense.
+ * A: Yep. https://github.com/OuterTune/OuterTune/discussions/359#discussioncomment-12366232
+ */
+@DeleteColumn.Entries(
+    DeleteColumn(tableName = "playCount", columnName = "id"),
+)
+class Migration17To18 : AutoMigrationSpec

@@ -101,7 +101,6 @@ import com.dd3boh.outertune.extensions.currentMetadata
 import com.dd3boh.outertune.extensions.findNextMediaItemById
 import com.dd3boh.outertune.extensions.metadata
 import com.dd3boh.outertune.extensions.setOffloadEnabled
-import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.lyrics.LyricsHelper
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.QueueBoard
@@ -327,7 +326,7 @@ class MusicService : MediaLibraryService(),
 
                         updateNotification() // also updates when queue changes
 
-                        queueBoard.setCurrQueuePosIndex(player.currentMediaItemIndex, this@MusicService)
+                        queueBoard.setCurrQueuePosIndex(player.currentMediaItemIndex)
                         queueTitle = q?.title
                     }
                 })
@@ -511,6 +510,7 @@ class MusicService : MediaLibraryService(),
     }
 
     fun deInitQueue() {
+        queueBoard.shutdown()
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
@@ -862,7 +862,7 @@ class MusicService : MediaLibraryService(),
                         sampleRate = format.audioSampleRate,
                         contentLength = format.contentLength!!,
                         loudnessDb = playbackData.audioConfig?.loudnessDb,
-                        playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                        playbackTrackingUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
                     )
                 )
             }
@@ -908,26 +908,16 @@ class MusicService : MediaLibraryService(),
      */
     fun triggerShuffle() {
         val oldIndex = player.currentMediaItemIndex
-        queueBoard.setCurrQueuePosIndex(oldIndex, this)
+        queueBoard.setCurrQueuePosIndex(oldIndex)
         val currentQueue = queueBoard.getCurrentQueue() ?: return
 
         // shuffle and update player playlist
         if (!currentQueue.shuffled) {
             queueBoard.shuffleCurrent(this)
-            player.moveMediaItem(oldIndex, 0)
-            val newItems = currentQueue.getCurrentQueueShuffled()
-            player.replaceMediaItems(1, Int.MAX_VALUE,
-                newItems.subList(1, newItems.size).map { it.toMediaItem() })
         } else {
-            val unshuffledPos = queueBoard.unShuffleCurrent(this)
-            player.moveMediaItem(oldIndex, unshuffledPos)
-            val newItems = currentQueue.getCurrentQueueShuffled()
-            // replace items up to current playing, then replace items after current
-            player.replaceMediaItems(0, unshuffledPos,
-                newItems.subList(0, unshuffledPos).map { it.toMediaItem() })
-            player.replaceMediaItems(unshuffledPos + 1, Int.MAX_VALUE,
-                newItems.subList(unshuffledPos + 1, newItems.size).map { it.toMediaItem() })
+            queueBoard.unShuffleCurrent(this)
         }
+        queueBoard.setCurrQueue(this)
 
         updateNotification()
     }
@@ -965,7 +955,7 @@ class MusicService : MediaLibraryService(),
             // TODO: support playlist id
             if (mediaItem.metadata?.isLocal != true && !dataStore.get(PauseRemoteListenHistoryKey, false)) {
                 CoroutineScope(Dispatchers.IO).launch {
-                    val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
+                    val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackTrackingUrl
                         ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
                             .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
 

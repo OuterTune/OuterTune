@@ -30,7 +30,7 @@ import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.StatPeriod
 import com.dd3boh.outertune.models.toMediaMetadata
-import com.dd3boh.outertune.playback.queues.YouTubeQueue
+import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.AlbumGridItem
 import com.dd3boh.outertune.ui.component.ArtistGridItem
 import com.dd3boh.outertune.ui.component.ChipsRow
@@ -60,6 +60,8 @@ fun StatsScreen(
     val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
+
+    val mostPlayedSongTitle = stringResource(R.string.most_played_songs)
 
     LazyColumn(
         contentPadding = LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom).asPaddingValues(),
@@ -95,7 +97,10 @@ fun StatsScreen(
                 song = song,
                 onPlay = {
                     playerConnection.playQueue(
-                        YouTubeQueue.radio(song.toMediaMetadata())
+                        ListQueue(
+                            title = mostPlayedSongTitle,
+                            items = mostPlayedSongs.map { it.toMediaMetadata() }
+                        )
                     )
                 },
                 onSelectedChange = {},

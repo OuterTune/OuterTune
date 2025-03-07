@@ -112,7 +112,6 @@
     <string name="scanner_type_ffmpeg_ext">使用 FFMpeg 元数据提取器。需要安装外部软件包</string>
     <string name="scanner_variant_rescan">重新扫描整个音乐库并重新加载所有歌曲的元数据</string>
     <string name="scanner_online_artist_linking">尝试将本地文件的音乐人与 YouTube Music 上的音乐人相关联</string>
-    <string name="pause_remote_listen_history">与 YouTube Music 分享收听记录</string>
     <string name="m3u_import_song_failed">无法导入：</string>
     <string name="dev_settings_title">启用开发人员设置</string>
     <string name="dev_settings_description">显示用于开发的其他高级设置</string>

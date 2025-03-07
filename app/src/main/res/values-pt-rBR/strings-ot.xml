@@ -81,7 +81,6 @@
     <string name="scanner_type_title">Extrator de metadados</string>
     <string name="scanner_type_ffmpeg_ext">Usar o extrator de metadados do FFMpeg. Requer que pacote externo seja instalado</string>
     <string name="scanner_online_artist_linking">Tentar sincronizar os artistas dos arquivos locais com os no YouTube Music</string>
-    <string name="pause_remote_listen_history">Compartilhar histórico de reprodução com o YouTube Music</string>
     <string name="experimental_settings_title">Experimentais</string>
     <string name="dev_settings_title">Ativar configurações de desenvolvedor</string>
     <string name="dev_settings_description">Revelar configurações avançadas adicionais utilizadas no desenvolvimento</string>
@@ -145,4 +144,6 @@
     <string name="scanner_btn_idle">Buscar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="scanner_progress_complete">Busca concluída</string>
+    <string name="queues_title">Filas</string>
+    <string name="queues_empty">Nenhuma fila</string>
 </resources>

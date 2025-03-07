@@ -9,8 +9,8 @@ import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
 import androidx.room.Update
 import com.dd3boh.outertune.db.entities.QueueEntity
+import com.dd3boh.outertune.db.entities.QueueSong
 import com.dd3boh.outertune.db.entities.QueueSongMap
-import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.models.MultiQueueObject
 import com.dd3boh.outertune.models.QueueBoard
 import com.dd3boh.outertune.models.toMediaMetadata
@@ -31,13 +31,8 @@ interface QueueDao {
 
     @Transaction
     @RewriteQueriesToDropUnusedColumns
-    @Query("SELECT * from queue_song_map JOIN song ON queue_song_map.songId = song.id WHERE queueId = :queueId AND shuffled = 1")
-    fun getQueueSongs(queueId: Long): Flow<List<Song>>
-
-    @Transaction
-    @RewriteQueriesToDropUnusedColumns
-    @Query("SELECT * from queue_song_map JOIN song ON queue_song_map.songId = song.id WHERE queueId = :queueId AND shuffled = 0")
-    fun getQueueSongsUnshuffled(queueId: Long): Flow<List<Song>>
+    @Query("SELECT *, queue_song_map.shuffledIndex from queue_song_map JOIN song ON queue_song_map.songId = song.id WHERE queueId = :queueId ORDER BY `index`")
+    fun getQueueSongs(queueId: Long): Flow<List<QueueSong>>
 
     fun readQueue(): List<MultiQueueObject> {
         val resultQueues = ArrayList<MultiQueueObject>()
@@ -45,14 +40,16 @@ interface QueueDao {
 
         queues.forEach { queue ->
             val shuffledSongs = runBlocking { getQueueSongs(queue.id).first() }
-            val unshuffledSongs = runBlocking { getQueueSongsUnshuffled(queue.id).first() }
 
             resultQueues.add(
                 MultiQueueObject(
                     id = queue.id,
                     title = queue.title,
-                    queue = shuffledSongs.map { it.toMediaMetadata() }.toMutableList(),
-                    unShuffled = unshuffledSongs.map { it.toMediaMetadata() }.toMutableList(),
+                    queue = shuffledSongs.map {
+                        val s = it.song.toMediaMetadata()
+                        s.shuffleIndex = it.shuffledIndex
+                        s
+                    }.toMutableList(),
                     shuffled = queue.shuffled,
                     queuePos = queue.queuePos,
                     index = queue.index,
