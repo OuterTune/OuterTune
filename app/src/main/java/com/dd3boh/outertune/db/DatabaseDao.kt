@@ -271,8 +271,14 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
     fun nukeLocalGenre()
 
     @Transaction
-    @Query("DELETE FROM format")
-    fun nukeFormatEntities()
+    @Query("""
+DELETE FROM format 
+WHERE format.id IS NOT NULL 
+AND NOT EXISTS (
+    SELECT 1 FROM song WHERE song.id = format.id
+);
+    """)
+    fun nukeDanglingFormatEntities()
 
     @Transaction
     @Query("DELETE FROM lyrics")

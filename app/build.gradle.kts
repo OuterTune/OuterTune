@@ -17,8 +17,8 @@ android {
         applicationId = "com.dd3boh.outertune"
         minSdk = 24
         targetSdk = 35
-        versionCode = 39
-        versionName = "0.7.5"
+        versionCode = 40
+        versionName = "0.7.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -184,6 +184,7 @@ dependencies {
 
     implementation(libs.timber)
 
+    implementation(libs.ktor.client.core)
     implementation(libs.ktor.serialization.json)
 
     /*

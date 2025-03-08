@@ -7,11 +7,13 @@
  * For any other attributions, refer to the git commit history
  */
 
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+@file:Suppress("INVISIBLE_MEMBER")
 
 package com.dd3boh.outertune.ui.component
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -53,7 +55,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.tokens.MotionTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
@@ -89,6 +90,13 @@ import com.dd3boh.outertune.constants.AppBarHeight
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+// MotionTokens.EasingLegacyCubicBezier
+val easingLegacyCubicBezier = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
+
+// MotionTokens.DurationMedium2
+const val durationMedium2 = 300.0
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @ExperimentalMaterial3Api
 @Composable
 fun SearchBar(
@@ -124,7 +132,7 @@ fun SearchBar(
         targetValue = if (active) 1f else 0f,
         animationSpec = tween(
             durationMillis = AnimationDurationMillis,
-            easing = MotionTokens.EasingLegacyCubicBezier,
+            easing = easingLegacyCubicBezier,
         ),
         label = ""
     )
@@ -301,7 +309,7 @@ private fun SearchBarInputField(
             enabled = enabled,
             singleLine = true,
             textStyle = LocalTextStyle.current.merge(TextStyle(color = textColor)),
-            cursorBrush = SolidColor(colors.cursorColor(isError = false)),
+            cursorBrush = SolidColor(colors.cursorColor),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSearch(query.text) }),
             interactionSource = interactionSource,
@@ -339,4 +347,4 @@ internal val SearchBarHorizontalPadding: Dp = 12.dp
 val SearchBarIconOffsetX: Dp = 4.dp
 
 // Animation specs
-private const val AnimationDurationMillis: Int = MotionTokens.DurationMedium2.toInt()
+private const val AnimationDurationMillis: Int = durationMedium2.toInt()

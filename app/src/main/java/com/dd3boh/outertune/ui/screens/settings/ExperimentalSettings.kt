@@ -344,12 +344,12 @@ fun ExperimentalSettings(
                     }
                 )
                 PreferenceEntry(
-                    title = { Text("DEBUG: Nuke format entities") },
+                    title = { Text("DEBUG: Nuke dangling format entities") },
                     icon = { Icon(Icons.Rounded.WarningAmber, null) },
                     onClick = {
-                        Toast.makeText(context, "Nuking format entities from database...", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Nuking dangling format entities from database...", Toast.LENGTH_SHORT).show()
                         coroutineScope.launch(Dispatchers.IO) {
-                            Timber.tag("Settings").d("Nuke database status:  ${database.nukeFormatEntities()}")
+                            Timber.tag("Settings").d("Nuke database status:  ${database.nukeDanglingFormatEntities()}")
                         }
                     }
                 )
@@ -364,7 +364,7 @@ fun ExperimentalSettings(
                     }
                 )
                 PreferenceEntry(
-                    title = { Text("DEBUG: Nuke format entities") },
+                    title = { Text("DEBUG: Nuke remote playlists") },
                     icon = { Icon(Icons.Rounded.WarningAmber, null) },
                     onClick = {
                         Toast.makeText(context, "Nuking remote playlists from database...", Toast.LENGTH_SHORT).show()

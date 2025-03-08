@@ -9,6 +9,7 @@
 
 package com.dd3boh.outertune.ui.component
 
+import android.content.ClipData
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -62,7 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -470,7 +471,7 @@ fun DetailsDialog(
     currentFormat: FormatEntity?,
     currentPlayCount: Int?,
     volume: Float,
-    clipboardManager: ClipboardManager,
+    clipboardManager: Clipboard,
     setVisibility: (newState: Boolean) -> Unit,
 ) {
     val context = LocalContext.current
@@ -553,7 +554,8 @@ fun DetailsDialog(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                             onClick = {
-                                clipboardManager.setText(AnnotatedString(displayText))
+                                val clipData = ClipData.newPlainText(label, AnnotatedString(displayText))
+                                clipboardManager.nativeClipboard.setPrimaryClip(clipData)
                                 Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
                             }
                         )

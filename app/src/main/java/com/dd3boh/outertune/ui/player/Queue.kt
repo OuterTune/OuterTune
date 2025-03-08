@@ -606,15 +606,17 @@ fun Queue(
                                 confirmValueChange = { dismissValue ->
                                     when (dismissValue) {
                                         SwipeToDismissBoxValue.StartToEnd -> {
-                                            playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
-                                            queueBoard.removeCurrentQueueSong(currentItem.firstPeriodIndex, playerConnection.service)
+                                            if (queueBoard.removeCurrentQueueSong(currentItem.firstPeriodIndex, playerConnection.service)) {
+                                                playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                                            }
                                             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                             return@rememberSwipeToDismissBoxState true
                                         }
 
                                         SwipeToDismissBoxValue.EndToStart -> {
-                                            playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
-                                            queueBoard.removeCurrentQueueSong(currentItem.firstPeriodIndex, playerConnection.service)
+                                            if (queueBoard.removeCurrentQueueSong(currentItem.firstPeriodIndex, playerConnection.service)) {
+                                                playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                                            }
                                             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                             return@rememberSwipeToDismissBoxState true
                                         }

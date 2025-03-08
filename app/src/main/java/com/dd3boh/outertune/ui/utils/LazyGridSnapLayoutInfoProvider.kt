@@ -1,4 +1,4 @@
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+@file:Suppress("INVISIBLE_MEMBER")
 
 package com.dd3boh.outertune.ui.utils
 

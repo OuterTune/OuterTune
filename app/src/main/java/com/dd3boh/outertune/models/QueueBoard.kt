@@ -444,11 +444,13 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
             pos
         }
 
+        Log.d(TAG, "Inserting at position: $listPos")
+
         // assign new indexes to items affected by inserted items
         if (q.shuffled) {
-            val songsAfter = q.queue.filter { it.shuffleIndex >= listPos }
-            songsAfter.forEachIndexed { index, s ->
-                s.shuffleIndex = listPos + mediaList.size + index
+            val songsAfter = q.getCurrentQueueShuffled()
+            songsAfter.subList(listPos, songsAfter.size - 1).forEach {
+                it.shuffleIndex += mediaList.size
             }
         }
 
@@ -456,7 +458,12 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         mediaList.fastForEachIndexed { index, s ->
             s.shuffleIndex = listPos + index
         }
-        q.queue.addAll(listPos, mediaList)
+
+        if (q.shuffled) {
+            q.queue.addAll(mediaList)
+        } else {
+            q.queue.addAll(listPos, mediaList)
+        }
 
         // adding before current playing song requires tracking new index
         if (q.getQueuePosShuffled() >= listPos) {
@@ -485,8 +492,14 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
      *
      * @param index Index of item
      */
-    fun removeCurrentQueueSong(index: Int, player: MusicService) =
-        getCurrentQueue()?.let { removeSong(it, index, player) }
+    fun removeCurrentQueueSong(index: Int, player: MusicService): Boolean {
+        val q = getCurrentQueue()
+        if (q == null) {
+            return false
+        }
+        return removeSong(q, index, player)
+    }
+
 
     /**
      * Removes song from the queue
@@ -494,14 +507,42 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
      * @param item Queue
      * @param index Index of item
      */
-    fun removeSong(item: MultiQueueObject, index: Int, player: MusicService) {
+    fun removeSong(item: MultiQueueObject, index: Int, player: MusicService): Boolean {
+        var ret = false
+        val currentMediaItemIndex = player.player.currentMediaItemIndex
+        var newQueuePos = item.getQueuePosShuffled()
+
         if (item.shuffled) {
-            item.queue.find { it.shuffleIndex == index }.let { item.queue.remove(it) }
+            Log.d(TAG, "Trying remove song at index: $index")
+            val s = item.queue.find { it.shuffleIndex == index }
+            if (s != null) {
+                ret = item.queue.remove(s)
+                Log.d(TAG, "Removing song: ${s.title}, $ret")
+            }
         } else {
             item.queue.removeAt(index)
+            ret = true
+        }
+        item.getCurrentQueueShuffled().fastForEachIndexed { index, s -> s.shuffleIndex = index }
+
+        // update current position only if the move will affect it
+        if (index < currentMediaItemIndex) {
+            newQueuePos--
+        } else if (index == currentMediaItemIndex) {
+            newQueuePos++
+        } else {
+            // no need to adjust
         }
 
+        if (newQueuePos >= item.getSize()) {
+            newQueuePos = item.getSize() - 1
+        } else if (newQueuePos < 0) {
+            newQueuePos = 0
+        }
+        item.queuePos = newQueuePos
+
         saveQueueSongs(item, player)
+        return ret
     }
 
     /**
@@ -689,7 +730,6 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
      * @param queue Queue to operate on
      * @param fromIndex Song to move
      * @param toIndex Destination
-     * @param currentMediaItemIndex Index of now playing song
      *
      * @return New current position tracker
      */
@@ -731,6 +771,7 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         } else {
             queue.queue.move(fromIndex, toIndex)
         }
+        queue.getCurrentQueueShuffled().fastForEachIndexed { index, s -> s.shuffleIndex = index }
 
         saveQueueSongs(queue, player)
 
@@ -842,18 +883,25 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
             return null
         }
 
-        val queuePos =
-            item.getQueuePosShuffled() // I have no idea why this value gets reset to 0 by the end... but ig this works
+        // I have no idea why this value gets reset to 0 by the end... but ig this works
+        val queuePos = item.getQueuePosShuffled()
+        val realQueuePos = item.queuePos
         masterIndex = masterQueues.indexOf(item)
 
         val mediaItems: MutableList<MediaMetadata> = item.getCurrentQueueShuffled()
 
+        Log.d(
+            TAG, "Setting current queue. in bounds: ${queuePos >= 0 && queuePos < mediaItems.size}, " +
+                    "queuePos: $queuePos, real queuePos: ${realQueuePos}, ids: ${player.player.currentMetadata?.id}, " +
+                    "${mediaItems[queuePos].id}"
+        )
         /**
          * current playing == jump target, do seamlessly
          */
         val seamlessSupported = (queuePos >= 0 && queuePos < mediaItems.size)
                 && player.player.currentMetadata?.id == mediaItems[queuePos].id
         if (seamlessSupported) {
+            Log.d(TAG, "Trying seamless queue switch. Is first song?: ${queuePos == 0}")
             val playerIndex = player.player.currentMediaItemIndex
 
             if (queuePos == 0) {
@@ -876,6 +924,7 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
                     mediaItems.subList(queuePos + 1, mediaItems.size).map { it.toMediaItem() })
             }
         } else {
+            Log.d(TAG, "Seamless is not supported. Loading songs in directly")
             player.player.setMediaItems(mediaItems.map { it.toMediaItem() })
         }
 

@@ -114,11 +114,15 @@ fun LibraryArtistsScreen(
                 onValueUpdate = {
                     filter = it
                     if (context.isSyncEnabled()) {
-                        if (it == ArtistFilter.LIBRARY) viewModel.syncArtists()
+                        if ((it == ArtistFilter.LIBRARY || it == ArtistFilter.LIKED)
+                            && !isSyncingRemoteArtists) viewModel.syncArtists()
                     }
                 },
                 modifier = Modifier.weight(1f),
-                isLoading = { filter -> filter == ArtistFilter.LIBRARY && isSyncingRemoteArtists }
+                isLoading = {
+                    (it == ArtistFilter.LIBRARY || it == ArtistFilter.LIKED)
+                            && isSyncingRemoteArtists
+                }
             )
 
             IconButton(

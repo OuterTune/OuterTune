@@ -255,7 +255,7 @@ fun LibraryPlaylistsScreen(
                     }
 
                     playlists?.let { playlists ->
-                        if (playlists.isEmpty()) {
+                        if (playlists.isEmpty() && !showLikedAndDownloadedPlaylist) {
                             item {
                                 EmptyPlaceholder(
                                     icon = Icons.AutoMirrored.Rounded.QueueMusic,
@@ -348,7 +348,7 @@ fun LibraryPlaylistsScreen(
                     }
 
                     playlists?.let { playlists ->
-                        if (playlists.isEmpty()) {
+                        if (playlists.isEmpty() && !showLikedAndDownloadedPlaylist) {
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 EmptyPlaceholder(
                                     icon = R.drawable.queue_music,
