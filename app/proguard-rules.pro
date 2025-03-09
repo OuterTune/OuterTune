@@ -60,9 +60,6 @@
 -dontwarn org.openjsse.net.ssl.OpenJSSE
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
-## Sacrificing a few half a MB for readable logs is worth it.
--keep class com.dd3boh.outertune.** { *; }
-
 ## Rules for NewPipeExtractor
 -keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
 -keep class org.mozilla.javascript.** { *; }

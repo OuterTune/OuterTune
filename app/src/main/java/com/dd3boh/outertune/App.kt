@@ -96,7 +96,20 @@ class App : Application(), ImageLoaderFactory {
                 .map { it[DataSyncIdKey] }
                 .distinctUntilChanged()
                 .collect { dataSyncId ->
-                    YouTube.dataSyncId = dataSyncId
+                    YouTube.dataSyncId = dataSyncId?.let {
+                        /*
+                         * Workaround to avoid breaking older installations that have a dataSyncId
+                         * that contains "||" in it.
+                         * If the dataSyncId ends with "||" and contains only one id, then keep the
+                         * id before the "||".
+                         * If the dataSyncId contains "||" and is not at the end, then keep the
+                         * second id.
+                         * This is needed to keep using the same account as before.
+                         */
+                        it.takeIf { !it.contains("||") }
+                            ?: it.takeIf { it.endsWith("||") }?.substringBefore("||")
+                            ?: it.substringAfter("||")
+                    }
                 }
         }
         GlobalScope.launch {
