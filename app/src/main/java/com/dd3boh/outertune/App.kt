@@ -97,6 +97,7 @@ class App : Application(), ImageLoaderFactory {
                 .distinctUntilChanged()
                 .collect { dataSyncId ->
                     YouTube.dataSyncId = dataSyncId
+                        ?.substringBefore("||") // workaround to avoid breaking older installations that have a dataSyncId that contains "||" in it
                 }
         }
         GlobalScope.launch {
