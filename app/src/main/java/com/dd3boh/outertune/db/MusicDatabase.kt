@@ -339,7 +339,30 @@ val MIGRATION_15_16 = object : Migration(15, 16) {
  */
 val MIGRATION_16_17 = object : Migration(16, 17) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE format RENAME playbackUrl to playbackTrackingUrl")
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `format_new` (
+                `id` TEXT NOT NULL,
+                `itag` INTEGER NOT NULL,
+                `mimeType` TEXT NOT NULL,
+                `codecs` TEXT NOT NULL,
+                `bitrate` INTEGER NOT NULL,
+                `sampleRate` INTEGER,
+                `contentLength` INTEGER NOT NULL,
+                `loudnessDb` REAL,
+                `playbackTrackingUrl` TEXT,
+                PRIMARY KEY(`id`)
+            )
+        """)
+
+        db.execSQL("""
+            INSERT INTO `format_new` (`id`, `itag`, `mimeType`, `codecs`, `bitrate`, `sampleRate`, `contentLength`, `loudnessDb`, `playbackTrackingUrl`)
+            SELECT `id`, `itag`, `mimeType`, `codecs`, `bitrate`, `sampleRate`, `contentLength`, `loudnessDb`, `playbackUrl`
+            FROM `format`
+        """)
+
+        db.execSQL("DROP TABLE `format`")
+
+        db.execSQL("ALTER TABLE `format_new` RENAME TO `format`")
 
         data class TempQueueSong(val queue: String, val song: String, val index: Long, var shuffleIndex: Long)
 
@@ -414,10 +437,20 @@ val MIGRATION_16_17 = object : Migration(16, 17) {
         }
 
         // rewrite db
-        db.execSQL("DELETE FROM queue_song_map")
-        db.execSQL("ALTER TABLE queue_song_map ADD COLUMN `index` INTEGER NOT NULL")
-        db.execSQL("ALTER TABLE queue_song_map ADD COLUMN shuffledIndex INTEGER NOT NULL")
-        db.execSQL("ALTER TABLE queue_song_map DROP COLUMN shuffled")
+        db.execSQL("DROP TABLE queue_song_map")
+        db.execSQL("""
+            CREATE TABLE `queue_song_map` (
+                `queueId` INTEGER NOT NULL,
+                `index` INTEGER NOT NULL,
+                `shuffledIndex` INTEGER NOT NULL,
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `songId` TEXT NOT NULL,
+                FOREIGN KEY(`queueId`) REFERENCES `queue`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`songId`) REFERENCES `song`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+        """)
+        db.execSQL("CREATE INDEX `index_queue_song_map_queueId` ON `queue_song_map` (`queueId` ASC)")
+        db.execSQL("CREATE INDEX `index_queue_song_map_songId` ON `queue_song_map` (`songId` ASC)")
         var i = 0L
         result.forEach {
             db.insert(

@@ -269,9 +269,9 @@ class LibraryViewModel @Inject constructor(
     val isSyncingRemoteArtists = syncUtils.isSyncingRemoteArtists
     val isSyncingRemotePlaylists = syncUtils.isSyncingRemotePlaylists
 
-    var artists = database.artistsBookmarkedAsc().stateIn(viewModelScope, SharingStarted.Lazily, null)
-    var albums = database.albumsInLibraryAsc().stateIn(viewModelScope, SharingStarted.Lazily, null)
-    var playlists = database.playlistInLibraryAsc().stateIn(viewModelScope, SharingStarted.Lazily, null)
+    var artists = database.artistsBookmarkedAsc().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    var albums = database.albumsLikedAsc().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    var playlists = database.playlistInLibraryAsc().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val allItems = context.dataStore.data
         .map {
@@ -280,8 +280,8 @@ class LibraryViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { (sortType, descending) ->
             combine(artists, albums, playlists) { artists, albums, playlists ->
-                val items = artists?.plus(albums)?.plus(playlists)
-                items?.sortedBy { item ->
+                val items = artists + albums + playlists
+                items.sortedBy { item ->
                     when (sortType) {
                         LibrarySortType.CREATE_DATE -> when (item) {
                             is Album -> item.album.bookmarkedAt
@@ -297,10 +297,10 @@ class LibraryViewModel @Inject constructor(
                             else -> ""
                         }
                     }.toString()
-                }.let { if (descending) it?.reversed() else it }
+                }.let { if (descending) it.reversed() else it }
             }
         }
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }
 
 @HiltViewModel

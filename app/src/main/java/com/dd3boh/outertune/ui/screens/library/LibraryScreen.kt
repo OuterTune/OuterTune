@@ -441,7 +441,7 @@ fun LibraryScreen(
                                 }
                             }
 
-                            allItems?.let { allItems ->
+                            allItems.let { allItems ->
                                 if (allItems.isEmpty()) {
                                     item {
                                         EmptyPlaceholder(

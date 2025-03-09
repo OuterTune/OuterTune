@@ -409,7 +409,9 @@ class MainActivity : ComponentActivity() {
                         if (perms == PackageManager.PERMISSION_GRANTED) {
                             // equivalent to (quick scan)
                             try {
-                                playerConnection?.player?.pause()
+                                withContext(Dispatchers.Main) {
+                                    playerConnection?.player?.pause()
+                                }
                                 val scanner = LocalMediaScanner.getScanner(this@MainActivity, scannerImpl)
                                 val directoryStructure = scanner.scanLocal(
                                     database,
