@@ -155,6 +155,7 @@ dependencies {
     implementation(libs.viewmodel.compose)
 
     implementation(libs.material3)
+    implementation(libs.squigglyslider)
     implementation(libs.palette)
     implementation(projects.materialColorUtilities)
 
