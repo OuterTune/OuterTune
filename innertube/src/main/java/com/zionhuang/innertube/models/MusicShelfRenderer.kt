@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class MusicShelfRenderer(
     val title: Runs?,
     val contents: List<Content>?,
+    val continuations: List<Continuation>?,
     val bottomEndpoint: NavigationEndpoint?,
     val moreContentButton: Button?,
 ) {
