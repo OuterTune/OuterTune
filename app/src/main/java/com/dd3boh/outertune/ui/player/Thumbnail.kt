@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalPlayerConnection
@@ -44,6 +48,7 @@ import com.dd3boh.outertune.ui.component.AsyncImageLocal
 import com.dd3boh.outertune.ui.component.Lyrics
 import com.dd3boh.outertune.ui.utils.imageCache
 import com.dd3boh.outertune.utils.rememberPreference
+import kotlin.math.roundToInt
 
 @Composable
 fun Thumbnail(
@@ -59,7 +64,7 @@ fun Thumbnail(
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
-    var dragDirection = 0f
+    var offsetX by remember { mutableFloatStateOf(0f) }
 
     DisposableEffect(showLyrics) {
         currentView.keepScreenOn = showLyrics
@@ -108,22 +113,30 @@ fun Thumbnail(
                         modifier = Modifier
                             .weight(1f, false)
                             .aspectRatio(1f)
+                            .offset { IntOffset(offsetX.roundToInt(), 0) }
                             .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
                             .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
                             .pointerInput(Unit) {
                                 detectHorizontalDragGestures(
                                     onDragEnd = {
-                                        if (dragDirection < 0) { // swipe left
-                                            playerConnection.player.seekToNext()
-                                        } else if (dragDirection > 0) { // swipe right
-                                            playerConnection.player.seekToPrevious()
+                                        if (offsetX < -300) { // swipe left
+                                            if (playerConnection.player.nextMediaItemIndex != -1) {
+                                                playerConnection.player.seekToNext()
+                                            }
+                                        } else if (offsetX > 300) { // swipe right
+                                            if (playerConnection.player.previousMediaItemIndex != -1) {
+                                                playerConnection.player.seekToPrevious()
+                                            }
                                         }
                                         haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                                        offsetX = 0f
                                     },
                                     onDragStart = {},
-                                    onDragCancel = {},
+                                    onDragCancel = {
+                                        offsetX = 0f
+                                    },
                                     onHorizontalDrag = { _, dragAmount ->
-                                        dragDirection = dragAmount
+                                        offsetX += dragAmount
                                     }
                                 )
                             }
