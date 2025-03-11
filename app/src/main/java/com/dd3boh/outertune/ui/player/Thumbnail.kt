@@ -89,20 +89,47 @@ fun Thumbnail(
                     .fillMaxSize()
                     .padding(horizontal = PlayerHorizontalPadding)
             ) {
+                val thumbnailModifier = Modifier
+                    .weight(1f, false)
+                    .aspectRatio(1f)
+                    .offset { IntOffset(offsetX.roundToInt(), 0) }
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
+                    .clickable(enabled = showLyricsOnClick) {
+                        showLyrics = !showLyrics
+                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                    }
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                if (offsetX < -300) { // swipe left
+                                    if (playerConnection.player.nextMediaItemIndex != -1) {
+                                        playerConnection.player.seekToNext()
+                                    }
+                                } else if (offsetX > 300) { // swipe right
+                                    if (playerConnection.player.previousMediaItemIndex != -1) {
+                                        playerConnection.player.seekToPrevious()
+                                    }
+                                }
+                                haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                                offsetX = 0f
+                            },
+                            onDragStart = {},
+                            onDragCancel = {
+                                offsetX = 0f
+                            },
+                            onHorizontalDrag = { _, dragAmount ->
+                                offsetX += dragAmount
+                            }
+                        )
+                    }
+
                 if (mediaMetadata?.isLocal == true) {
                     // local thumbnail arts
                     mediaMetadata?.let { // required to re render when song changes
                         AsyncImageLocal(
                             image = { imageCache.getLocalThumbnail(it.localPath) },
                             contentDescription = null,
-                            modifier = Modifier
-                                .weight(1f, false)
-                                .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
-                                .aspectRatio(ratio = 1f)
-                                .clickable(enabled = showLyricsOnClick) {
-                                    showLyrics = !showLyrics
-                                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                                }
+                            modifier = thumbnailModifier
                         )
                     }
                 } else {
@@ -110,36 +137,7 @@ fun Thumbnail(
                     AsyncImage(
                         model = mediaMetadata?.thumbnailUrl,
                         contentDescription = null,
-                        modifier = Modifier
-                            .weight(1f, false)
-                            .aspectRatio(1f)
-                            .offset { IntOffset(offsetX.roundToInt(), 0) }
-                            .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
-                            .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
-                            .pointerInput(Unit) {
-                                detectHorizontalDragGestures(
-                                    onDragEnd = {
-                                        if (offsetX < -300) { // swipe left
-                                            if (playerConnection.player.nextMediaItemIndex != -1) {
-                                                playerConnection.player.seekToNext()
-                                            }
-                                        } else if (offsetX > 300) { // swipe right
-                                            if (playerConnection.player.previousMediaItemIndex != -1) {
-                                                playerConnection.player.seekToPrevious()
-                                            }
-                                        }
-                                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                                        offsetX = 0f
-                                    },
-                                    onDragStart = {},
-                                    onDragCancel = {
-                                        offsetX = 0f
-                                    },
-                                    onHorizontalDrag = { _, dragAmount ->
-                                        offsetX += dragAmount
-                                    }
-                                )
-                            }
+                        modifier = thumbnailModifier
                     )
                 }
             }
