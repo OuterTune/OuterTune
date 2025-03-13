@@ -136,6 +136,7 @@ fun HomeScreen(
     val keepListening by viewModel.keepListening.collectAsState()
     val similarRecommendations by viewModel.similarRecommendations.collectAsState()
     val accountPlaylists by viewModel.accountPlaylists.collectAsState()
+    val mixedPlaylist by viewModel.mixedPlaylist.collectAsState()
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
@@ -596,6 +597,34 @@ fun HomeScreen(
                     ) {
                         items(
                             items = accountPlaylists,
+                            key = { it.id },
+                        ) { item ->
+                            ytGridItem(item)
+                        }
+                    }
+                }
+            }
+
+            mixedPlaylist?.takeIf { it.isNotEmpty() }?.let { mixedPlaylists ->
+                item {
+                    NavigationTitle(
+                        title = stringResource(R.string.youtube_mixed),
+                        onClick = {
+                            navController.navigate("mixed_for_you")
+                        },
+                        modifier = Modifier.animateItem()
+                    )
+                }
+
+                item {
+                    LazyRow(
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                        modifier = Modifier.animateItem()
+                    ) {
+                        items(
+                            items = mixedPlaylists,
                             key = { it.id },
                         ) { item ->
                             ytGridItem(item)

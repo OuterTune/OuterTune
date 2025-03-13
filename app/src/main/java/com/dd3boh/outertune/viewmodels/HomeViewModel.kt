@@ -45,6 +45,7 @@ class HomeViewModel @Inject constructor(
     val keepListening = MutableStateFlow<List<LocalItem>?>(null)
     val similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(null)
     val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
+    val mixedPlaylist = MutableStateFlow<List<PlaylistItem>?>(null)
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
     val playlists = database.playlists(PlaylistFilter.LIBRARY, PlaylistSortType.NAME, true)
@@ -82,6 +83,12 @@ class HomeViewModel @Inject constructor(
             // OuterTune uses YouTube.library("FEmusic_liked_playlists").completedL().onSuccess { ... }
             YouTube.library("FEmusic_liked_playlists").completed().onSuccess {
                 accountPlaylists.value = it.items.filterIsInstance<PlaylistItem>()
+            }.onFailure {
+                reportException(it)
+            }
+
+            YouTube.library("FEmusic_mixed_for_you").completed().onSuccess {
+                mixedPlaylist.value = it.items.filterIsInstance<PlaylistItem>()
             }.onFailure {
                 reportException(it)
             }
