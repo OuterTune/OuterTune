@@ -16,6 +16,8 @@ body:
           required: true
         - label: The title of this issue accurately describes the bug.
           required: true
+        - label: I have NOT read the above checklist.
+          required: false
 
   - type: textarea
     id: reproduce-steps
