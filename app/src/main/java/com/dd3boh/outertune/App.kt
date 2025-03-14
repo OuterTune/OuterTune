@@ -29,11 +29,13 @@ import com.zionhuang.innertube.models.YouTubeLocale
 import com.zionhuang.kugou.KuGou
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.net.Proxy
 import java.util.*
@@ -84,7 +86,12 @@ class App : Application(), ImageLoaderFactory {
                 .collect { visitorData ->
                     YouTube.visitorData = visitorData
                         ?.takeIf { it != "null" } // Previously visitorData was sometimes saved as "null" due to a bug
-                        ?: YouTube.visitorData().getOrNull()?.also { newVisitorData ->
+                        ?: YouTube.visitorData().onFailure {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@App, "Failed to get visitorData.", LENGTH_SHORT).show()
+                            }
+                            reportException(it)
+                        }.getOrNull()?.also { newVisitorData ->
                             dataStore.edit { settings ->
                                 settings[VisitorDataKey] = newVisitorData
                             }
