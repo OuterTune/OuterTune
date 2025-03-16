@@ -584,12 +584,7 @@ class MainActivity : ComponentActivity() {
                             if (youtubeNavigator(it.toUri())) {
                                 // don't do anything
                             } else {
-                                val query = if (it[it.lastIndex] == '%') {
-                                    it.substring(0, it.lastIndex)
-                                } else {
-                                    it
-                                }
-                                navController.navigate("search/${query.urlEncode()}")
+                                navController.navigate("search/${it.urlEncode()}")
                                 if (dataStore[PauseSearchHistoryKey] != true) {
                                     database.query {
                                         insert(SearchHistory(query = it))
@@ -869,12 +864,7 @@ class MainActivity : ComponentActivity() {
                                                         if (youtubeNavigator(it.toUri())) {
                                                             return@OnlineSearchScreen
                                                         } else {
-                                                            val query = if (it[it.lastIndex] == '%') {
-                                                                it.substring(0, it.lastIndex)
-                                                            } else {
-                                                                it
-                                                            }
-                                                            navController.navigate("search/${query.urlEncode()}")
+                                                            navController.navigate("search/${it.urlEncode()}")
                                                             if (dataStore[PauseSearchHistoryKey] != true) {
                                                                 database.query {
                                                                     insert(SearchHistory(query = it))
