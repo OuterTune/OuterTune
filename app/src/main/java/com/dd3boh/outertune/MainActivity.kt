@@ -167,7 +167,7 @@ import com.dd3boh.outertune.ui.screens.HistoryScreen
 import com.dd3boh.outertune.ui.screens.HomeScreen
 import com.dd3boh.outertune.ui.screens.LoginScreen
 import com.dd3boh.outertune.ui.screens.MoodAndGenresScreen
-import com.dd3boh.outertune.ui.screens.NewReleaseScreen
+import com.dd3boh.outertune.ui.screens.BrowseScreen
 import com.dd3boh.outertune.ui.screens.Screens
 import com.dd3boh.outertune.ui.screens.SetupWizard
 import com.dd3boh.outertune.ui.screens.StatsScreen
@@ -1086,10 +1086,21 @@ class MainActivity : ComponentActivity() {
                                 composable("account") {
                                     AccountScreen(navController, scrollBehavior)
                                 }
-                                composable("new_release") {
-                                    NewReleaseScreen(navController, scrollBehavior)
-                                }
 
+                                composable(
+                                    route = "browse/{browseId}",
+                                    arguments = listOf(
+                                        navArgument("browseId") {
+                                            type = NavType.StringType
+                                        }
+                                    )
+                                ) {
+                                    BrowseScreen(
+                                        navController,
+                                        scrollBehavior,
+                                        it.arguments?.getString("browseId")
+                                    )
+                                }
                                 composable(
                                     route = "search/{query}",
                                     arguments = listOf(
