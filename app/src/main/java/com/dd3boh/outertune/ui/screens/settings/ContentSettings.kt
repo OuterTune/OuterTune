@@ -40,7 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
-import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import com.dd3boh.outertune.App.Companion.forgetAccount
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
@@ -71,12 +70,12 @@ import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.component.TextFieldDialog
 import com.dd3boh.outertune.ui.utils.backToMain
-import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
+import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.utils.parseCookieString
-import kotlinx.coroutines.runBlocking
 import java.net.Proxy
+import java.util.Locale
 
 @SuppressLint("PrivateResource")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -241,7 +240,19 @@ fun ContentSettings(
                     stringResource(R.string.system_default)
                 }
             },
-            onValueSelected = onContentLanguageChange
+            onValueSelected = { newValue ->
+                val locale = Locale.getDefault()
+                val languageTag = locale.toLanguageTag().replace("-Hant", "")
+
+                YouTube.locale = YouTube.locale.copy(
+                    hl = newValue.takeIf { it != SYSTEM_DEFAULT }
+                        ?: locale.language.takeIf { it in LanguageCodeToName }
+                        ?: languageTag.takeIf { it in LanguageCodeToName }
+                        ?: "en"
+                )
+
+                onContentLanguageChange(newValue)
+            }
         )
         ListPreference(
             title = { Text(stringResource(R.string.content_country)) },
@@ -253,7 +264,17 @@ fun ContentSettings(
                     stringResource(R.string.system_default)
                 }
             },
-            onValueSelected = onContentCountryChange
+            onValueSelected = { newValue ->
+                val locale = Locale.getDefault()
+
+                YouTube.locale = YouTube.locale.copy(
+                    gl = newValue.takeIf { it != SYSTEM_DEFAULT }
+                        ?: locale.country.takeIf { it in CountryCodeToName }
+                        ?: "US"
+                )
+
+                onContentCountryChange(newValue)
+            }
         )
 
         PreferenceGroupTitle(
