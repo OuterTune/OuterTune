@@ -357,7 +357,7 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
         // assign new indexes to items affected by inserted items
         if (q.shuffled) {
             val songsAfter = q.getCurrentQueueShuffled()
-            songsAfter.subList(listPos, songsAfter.size - 1).forEach {
+            songsAfter.subList(listPos, songsAfter.size).forEach {
                 it.shuffleIndex += mediaList.size
             }
         }
