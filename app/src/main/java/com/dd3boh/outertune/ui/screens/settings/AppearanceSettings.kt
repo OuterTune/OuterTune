@@ -251,13 +251,16 @@ fun AppearanceSettings(
             checked = slimNav,
             onCheckedChange = onSlimNavChange
         )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.tab_arrangement)) },
-            icon = { Icon(Icons.Rounded.Reorder, null) },
-            onClick = {
-                showTabArrangement = true
-            }
-        )
+
+        if (!newInterfaceStyle) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.tab_arrangement)) },
+                icon = { Icon(Icons.Rounded.Reorder, null) },
+                onClick = {
+                    showTabArrangement = true
+                }
+            )
+        }
 
         if (showTabArrangement)
             ActionPromptDialog(
