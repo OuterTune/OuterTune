@@ -147,4 +147,6 @@
     <string name="queues_empty">Pas de files d\'attente</string>
     <string name="queues_title">Files d\'attente</string>
     <string name="pause_remote_listen_history">Partager l\'historique d\'écoute avec YouTube Music</string>
+    <string name="swipe_to_skip_title">Balayer horizontalement pour changer de titre</string>
+    <string name="swipe_to_skip_description">Activer le balayage horizontal dans le lecteur pour changer de titre</string>
 </resources>
