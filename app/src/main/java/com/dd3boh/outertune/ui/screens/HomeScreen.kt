@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -521,10 +522,10 @@ fun HomeScreen(
                             .height(ListItemHeight * rows)
                             .animateItem()
                     ) {
-                        items(
+                        itemsIndexed(
                             items = forgottenFavorites,
-                            key = { it.id }
-                        ) { originalSong ->
+                            key = { _, song -> song.id }
+                        ) { index, originalSong ->
                             val song by database.song(originalSong.id).collectAsState(initial = originalSong)
 
                             SongListItem(
@@ -533,7 +534,8 @@ fun HomeScreen(
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = queueTitle,
-                                            items = forgottenFavorites.map { it.toMediaMetadata() }
+                                            items = forgottenFavorites.map { it.toMediaMetadata() },
+                                            startIndex = index
                                         )
                                     )
                                 },
