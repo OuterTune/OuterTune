@@ -170,6 +170,15 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(lazylistState) {
+        val lastVisibleIndex =
+            lazylistState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return@LaunchedEffect
+        val len = lazylistState.layoutInfo.totalItemsCount
+        if (lastVisibleIndex >= len - 3) {
+            viewModel.loadMoreYouTubeItems(homePage?.continuation)
+        }
+    }
+
     val localGridItem: @Composable (LocalItem, String) -> Unit = { it, source ->
         when (it) {
             is Song -> SongGridItem(
