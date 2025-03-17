@@ -146,4 +146,7 @@
     <string name="scanner_progress_complete">Busca concluída</string>
     <string name="queues_title">Filas</string>
     <string name="queues_empty">Nenhuma fila</string>
+    <string name="pause_remote_listen_history">Pausar o compartilhamento do histórico de reprodução com o YouTube Music</string>
+    <string name="swipe_to_skip_description">Deslize horizontalmente no reprodutor para mudar de música</string>
+    <string name="swipe_to_skip_title">Deslizar horizontalmente para mudar música</string>
 </resources>

@@ -137,4 +137,5 @@
     <string name="token_adv_login_description">这是高级登录方法。作为门户网站的替代方法，您可以直接在此输入或更新登录令牌。例如，这可以加快在多个设备上登录的速度。请注意，应用程序无法解析的任何无效令牌格式都不会被接受</string>
     <string name="queue_local_history">历史（本地）</string>
     <string name="queue_remote_history">历史记录（远程）</string>
+    <string name="pause_remote_listen_history">与 YouTube Music 分享收听记录</string>
 </resources>

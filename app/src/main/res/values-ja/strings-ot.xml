@@ -142,4 +142,5 @@
     <string name="action_cancel">キャンセル</string>
     <string name="queues_title">キュー</string>
     <string name="queues_empty">キューはありません</string>
+    <string name="pause_remote_listen_history">YouTube Music に視聴履歴を保存する</string>
 </resources>
