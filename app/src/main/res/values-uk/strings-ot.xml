@@ -148,4 +148,7 @@
     <string name="action_cancel">Скасувати</string>
     <string name="queues_title">Черги</string>
     <string name="queues_empty">Без черг</string>
+    <string name="pause_remote_listen_history">Призупиніть надсилання історії прослуховування в YouTube Music</string>
+    <string name="swipe_to_skip_title">Проведіть горизонтально, щоб змінити пісню</string>
+    <string name="swipe_to_skip_description">Увімкніть горизонтальне гортання в плеєрі для перемикання пісень</string>
 </resources>
