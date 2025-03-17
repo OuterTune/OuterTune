@@ -53,7 +53,7 @@
     <string name="scanner_sensitivity_title">Настройка чувствительности сканера</string>
     <string name="scanner_sensitivity_L3">Совпадение по названию, исполнителям и альбомам</string>
     <string name="experimental_settings_title">Экспериментальные настройки</string>
-    <string name="pause_remote_listen_history">Делиться историей прослушиваний с YouTube Music</string>
+    <string name="pause_remote_listen_history">Приостановить обмен историей прослушивания с YouTube Music</string>
     <string name="m3u_import_song_failed">Не удалось импортировать:</string>
     <string name="grp_extra_scanner_settings">Дополнительные настройки сканера</string>
     <string name="grp_interface">Интерфейс</string>
@@ -149,4 +149,6 @@
     <string name="oobe_ytm_content_description">YouTube Music всегда под рукой</string>
     <string name="scan_paths_tooltip">Все подкаталоги также будут затронуты</string>
     <string name="scanner_strict_file_name_title">Точное соответствие имен файлов</string>
+    <string name="swipe_to_skip_title">Переключение треков свайпом</string>
+    <string name="swipe_to_skip_description">Использовать свайпы в плеере для переключения между треками</string>
 </resources>
