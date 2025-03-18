@@ -46,6 +46,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -170,14 +171,16 @@ fun HomeScreen(
         }
     }
 
-    LaunchedEffect(lazylistState) {
-        val lastVisibleIndex =
-            lazylistState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return@LaunchedEffect
-        val len = lazylistState.layoutInfo.totalItemsCount
-        if (lastVisibleIndex >= len - 3) {
-            viewModel.loadMoreYouTubeItems(homePage?.continuation)
-        }
+    LaunchedEffect(Unit) {
+        snapshotFlow { lazylistState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastVisibleIndex ->
+                val len = lazylistState.layoutInfo.totalItemsCount
+                if (lastVisibleIndex != null && lastVisibleIndex >= len - 3) {
+                    viewModel.loadMoreYouTubeItems(homePage?.continuation)
+                }
+            }
     }
+
 
     val localGridItem: @Composable (LocalItem, String) -> Unit = { it, source ->
         when (it) {
