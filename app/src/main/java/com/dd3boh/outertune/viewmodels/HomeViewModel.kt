@@ -147,15 +147,13 @@ class HomeViewModel @Inject constructor(
 
 
     fun loadMoreYouTubeItems(continuation: String?) {
-        if (isRefreshing.value || continuation == null) return
+        if (continuation == null) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            isRefreshing.value = true
             val nextSections = YouTube.home(continuation).getOrNull() ?: return@launch
             homePage.value = nextSections.copy(
                 homePage.value?.sections.orEmpty() + nextSections.sections
             )
-            isRefreshing.value = false
         }
     }
 
