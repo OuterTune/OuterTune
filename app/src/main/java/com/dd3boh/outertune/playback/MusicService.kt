@@ -9,21 +9,16 @@
 
 package com.dd3boh.outertune.playback
 
-import android.app.Notification
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.database.SQLException
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Binder
-import android.os.Build
 import android.widget.Toast
-import androidx.core.app.NotificationChannelCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -60,13 +55,12 @@ import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.CommandButton
+import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
-import androidx.media3.ui.DefaultMediaDescriptionAdapter
-import androidx.media3.ui.PlayerNotificationManager
 import com.dd3boh.outertune.MainActivity
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AudioNormalizationKey
@@ -207,8 +201,6 @@ class MusicService : MediaLibraryService(),
 
     lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaLibrarySession
-    private lateinit var notificationManager: NotificationManagerCompat
-    private lateinit var playerNotificationManager: PlayerNotificationManager
 
     private var isAudioEffectSessionOpened = false
 
@@ -416,49 +408,12 @@ class MusicService : MediaLibraryService(),
             }
         }
 
-        notificationManager = NotificationManagerCompat.from(this)
-        notificationManager.createNotificationChannel(
-            NotificationChannelCompat.Builder(
-                CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_HIGH
-            ).apply {
-                setName(CHANNEL_NAME)
-                setLightsEnabled(false)
-                setShowBadge(false)
-                setSound(null, null)
-            }.build()
-        )
-
-
-        playerNotificationManager = PlayerNotificationManager.Builder(this, NOTIFICATION_ID, CHANNEL_ID)
-            .setNotificationListener(object : PlayerNotificationManager.NotificationListener {
-                override fun onNotificationPosted(notificationId: Int, notification: Notification, ongoing: Boolean) {
-                    fun startFg() {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            startForeground(notificationId, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
-                        } else {
-                            startForeground(notificationId, notification)
-                        }
-                    }
-
-                    // FG keep alive
-                    if (dataStore.get(KeepAliveKey, false)) {
-                        startFg()
-                    } else {
-                        // mimic media3 default behaviour
-                        if (player.isPlaying) {
-                            startFg()
-                        } else {
-                            stopForeground(notificationId)
-                        }
-                    }
+        setMediaNotificationProvider(
+            DefaultMediaNotificationProvider(this, { NOTIFICATION_ID }, CHANNEL_ID, R.string.music_player)
+                .apply {
+                    setSmallIcon(R.drawable.small_icon)
                 }
-            })
-            .setMediaDescriptionAdapter(DefaultMediaDescriptionAdapter(mediaSession.sessionActivity))
-            .build()
-
-        playerNotificationManager.setPlayer(player)
-        playerNotificationManager.setSmallIcon(R.drawable.small_icon)
-        playerNotificationManager.setMediaSessionToken(mediaSession.platformToken)
+        )
     }
 
     fun waitOnNetworkError() {
@@ -986,30 +941,21 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
-        // we handle notification manually
+        // FG keep alive
+        if (!(!player.isPlaying && dataStore.get(KeepAliveKey, false))) {
+            super.onUpdateNotification(session, startInForegroundRequired)
+        }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
-        return START_NOT_STICKY
-    }
 
     override fun onDestroy() {
-        super.onDestroy()
-        if (player.isReleased) {
-            Timber.tag("MusicService").e("Trying to stop an already dead service. Aborting.")
-            return
-        }
-
         Timber.tag("MusicService").e("Terminating MusicService.")
         deInitQueue()
-        stopForeground(STOP_FOREGROUND_DETACH)
 
+        mediaSession.player.stop()
         mediaSession.release()
-        player.removeListener(this)
-        player.removeListener(sleepTimer)
-        player.release()
-        stopSelf()
+        mediaSession.player.release()
+        super.onDestroy()
     }
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
