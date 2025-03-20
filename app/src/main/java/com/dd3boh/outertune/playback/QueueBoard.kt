@@ -851,8 +851,11 @@ class QueueBoard(queues: MutableList<MultiQueueObject> = ArrayList()) {
      *
      * @param index
      */
-    fun setCurrQueuePosIndex(index: Int) {
-        getCurrentQueue()?.setCurrentQueuePos(index)
+    fun setCurrQueuePosIndex(index: Int, player: MusicService) {
+        getCurrentQueue()?.let {
+            it.setCurrentQueuePos(index)
+            saveQueue(it, player = player)
+        }
     }
 
 

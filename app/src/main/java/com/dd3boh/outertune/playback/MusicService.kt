@@ -324,7 +324,7 @@ class MusicService : MediaLibraryService(),
 
                         updateNotification() // also updates when queue changes
 
-                        queueBoard.setCurrQueuePosIndex(player.currentMediaItemIndex)
+                        queueBoard.setCurrQueuePosIndex(player.currentMediaItemIndex, this@MusicService)
                         queueTitle = q?.title
                     }
                 })
@@ -906,7 +906,7 @@ class MusicService : MediaLibraryService(),
      */
     fun triggerShuffle() {
         val oldIndex = player.currentMediaItemIndex
-        queueBoard.setCurrQueuePosIndex(oldIndex)
+        queueBoard.setCurrQueuePosIndex(oldIndex, this)
         val currentQueue = queueBoard.getCurrentQueue() ?: return
 
         // shuffle and update player playlist
