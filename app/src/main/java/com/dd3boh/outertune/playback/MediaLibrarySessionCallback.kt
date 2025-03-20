@@ -83,13 +83,13 @@ class MediaLibrarySessionCallback @Inject constructor(
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }
 
-//    override fun onPlaybackResumption(
-//        mediaSession: MediaSession,
-//        controller: MediaSession.ControllerInfo
-//    ): ListenableFuture<MediaItemsWithStartPosition> {
-//        // Already handled by the player. This just shuts up the exception
-//        return SettableFuture.create<MediaItemsWithStartPosition>()
-//    }
+    override fun onPlaybackResumption(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo
+    ): ListenableFuture<MediaItemsWithStartPosition> {
+        // Already handled by the player. This just shuts up the exception
+        return SettableFuture.create<MediaItemsWithStartPosition>()
+    }
 
     override fun onGetLibraryRoot(
         session: MediaLibrarySession,
