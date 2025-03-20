@@ -149,7 +149,6 @@ import com.dd3boh.outertune.constants.SlimNavBarKey
 import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.SearchHistory
-import com.dd3boh.outertune.extensions.toEnum
 import com.dd3boh.outertune.playback.DownloadUtil
 import com.dd3boh.outertune.playback.MusicService
 import com.dd3boh.outertune.playback.MusicService.MusicBinder
