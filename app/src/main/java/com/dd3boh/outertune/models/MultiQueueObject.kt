@@ -1,5 +1,6 @@
 package com.dd3boh.outertune.models
 
+import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastSumBy
 
 /**
@@ -43,7 +44,10 @@ data class MultiQueueObject(
      * Returns the index of current queue position considering shuffle state
      */
     fun getQueuePosShuffled(): Int {
-        if (queuePos < 0) { // I don't even...
+        if (queuePos < 0 || queuePos >= queue.size) { // I don't even...
+            // possible issues with migrating some queues, notably from 0.7.4 to newer versions. Reset shuffle parts
+            queue.fastForEachIndexed { index, s -> s.shuffleIndex = index }
+            shuffled = false
             queuePos = 0
             return 0
         }
