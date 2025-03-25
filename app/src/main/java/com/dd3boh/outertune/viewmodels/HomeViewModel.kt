@@ -144,16 +144,21 @@ class HomeViewModel @Inject constructor(
 
         isLoading.value = false
     }
-
-
+    
+    private val _isLoadingMore = MutableStateFlow(false)
     fun loadMoreYouTubeItems(continuation: String?) {
-        if (continuation == null) return
+        if (continuation == null || _isLoadingMore.value) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val nextSections = YouTube.home(continuation).getOrNull() ?: return@launch
+            _isLoadingMore.value = true
+            val nextSections = YouTube.home(continuation).getOrNull() ?: run {
+                _isLoadingMore.value = false
+                return@launch
+            }
             homePage.value = nextSections.copy(
-                homePage.value?.sections.orEmpty() + nextSections.sections
+                sections = homePage.value?.sections.orEmpty() + nextSections.sections
             )
+            _isLoadingMore.value = false
         }
     }
 
