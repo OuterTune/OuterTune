@@ -126,6 +126,9 @@ android {
         disable += "ByteOrderMark"
     }
 
+    androidResources {
+        generateLocaleConfig = true
+    }
 }
 
 ksp {
