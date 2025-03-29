@@ -1,5 +1,6 @@
 package com.dd3boh.outertune.models
 
+import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastSumBy
 
@@ -41,16 +42,30 @@ data class MultiQueueObject(
     }
 
     /**
+     * Retrieve the song at current position in the queue
+     */
+    fun getCurrentSong(): MediaMetadata? {
+        validateQueuePos()
+        return queue[queuePos]
+    }
+
+    /**
+     * Retrieve a song given a song ID. Returns null if no song is found
+     */
+    fun findSong(mediaId: String): MediaMetadata? {
+        val currentSong = getCurrentSong()
+        if (currentSong?.id == mediaId) {
+            return currentSong
+        }
+
+        return queue.fastFirstOrNull { it.id == mediaId }
+    }
+
+    /**
      * Returns the index of current queue position considering shuffle state
      */
     fun getQueuePosShuffled(): Int {
-        if (queuePos < 0 || queuePos >= queue.size) { // I don't even...
-            // possible issues with migrating some queues, notably from 0.7.4 to newer versions. Reset shuffle parts
-            queue.fastForEachIndexed { index, s -> s.shuffleIndex = index }
-            shuffled = false
-            queuePos = 0
-            return 0
-        }
+        validateQueuePos()
         return if (shuffled) {
             queue[queuePos].shuffleIndex
         } else {
@@ -72,6 +87,15 @@ data class MultiQueueObject(
             }
 
             queuePos = newQueuePos
+        }
+    }
+
+    fun validateQueuePos() {
+        if (queuePos < 0 || queuePos >= queue.size) { // I don't even...
+            // possible issues with migrating some queues, notably from 0.7.4 to newer versions. Reset shuffle parts
+            queue.fastForEachIndexed { index, s -> s.shuffleIndex = index }
+            shuffled = false
+            queuePos = 0
         }
     }
 
