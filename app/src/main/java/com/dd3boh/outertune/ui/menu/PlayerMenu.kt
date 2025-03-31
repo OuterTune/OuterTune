@@ -377,8 +377,7 @@ fun PlayerMenu(
                         value = sleepTimerValue,
                         onValueChange = { sleepTimerValue = it },
                         valueRange = 1f..120f,
-                        modifier = Modifier
-                            .padding(bottom = 16.dp)
+                        modifier = Modifier.padding(bottom = 16.dp)
                     )
 
                     FlowRow(
@@ -736,7 +735,7 @@ fun getNextInterval(targetMin: Long): Pair<String, Float> {
     }
 
     // Format the time
-    val timeString = targetTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+    val timeString = targetTime.format(DateTimeFormatter.ofPattern("HH:mm a"))
 
     // Calculate minutes between now and target
     val minutesBetween = ChronoUnit.MINUTES.between(now, targetTime).toFloat()
