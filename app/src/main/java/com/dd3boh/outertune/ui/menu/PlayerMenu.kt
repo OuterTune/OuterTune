@@ -401,20 +401,22 @@ fun PlayerMenu(
                                     }
                                 }
                             )
-                        }.sortedBy { it.duration } + TimeChip(
-                            duration = Float.MAX_VALUE,
-                            composable = {
-                                OutlinedButton(
-                                    onClick = {
-                                        showSleepTimerDialog = false
-                                        playerConnection.service.sleepTimer.start(-1)
-                                    },
-                                    modifier = Modifier.height(40.dp)
-                                ) {
-                                    Text(stringResource(R.string.end_of_song))
+                        }.sortedBy { it.duration } + remember {
+                            TimeChip(
+                                duration = Float.MAX_VALUE,
+                                composable = {
+                                    OutlinedButton(
+                                        onClick = {
+                                            showSleepTimerDialog = false
+                                            playerConnection.service.sleepTimer.start(-1)
+                                        },
+                                        modifier = Modifier.height(40.dp)
+                                    ) {
+                                        Text(stringResource(R.string.end_of_song))
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
 
                         timeChips.forEach { timeChip ->
                             Box(
