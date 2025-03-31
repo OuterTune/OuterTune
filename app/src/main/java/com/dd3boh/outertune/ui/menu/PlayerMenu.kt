@@ -334,12 +334,11 @@ fun PlayerMenu(
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
-                            .padding(bottom = 8.dp)
-                            .clip(shape = RoundedCornerShape(25.dp))
+                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp)
+                            .clip(shape = RoundedCornerShape(8.dp))
                             .clickable {
                                 showDialog = true
                             }
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     )
 
                     // manual input
