@@ -106,6 +106,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
@@ -741,7 +742,8 @@ fun getNextInterval(targetMin: Long): Pair<String, Float> {
     }
 
     // Format the time
-    val timeString = targetTime.format(DateTimeFormatter.ofPattern("HH:mm a"))
+    val timeString = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
+        .format(Date(targetTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()))
 
     // Calculate minutes between now and target
     val minutesBetween = ChronoUnit.MINUTES.between(now, targetTime).toFloat()
