@@ -131,15 +131,15 @@
         <item quantity="one">%d Wiedergabeliste</item>
         <item quantity="other">%d Wiedergabelisten</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d Woche</item>
         <item quantity="other">%d Wochen</item>
     </plurals>
-    <plurals name="n_month" tools:ignore="MissingQuantity">
+    <plurals name="n_month">
         <item quantity="one">%d Monat</item>
         <item quantity="other">%d Monate</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d Jahr</item>
         <item quantity="other">%d Jahre</item>
     </plurals>

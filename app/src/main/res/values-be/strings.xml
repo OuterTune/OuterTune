@@ -135,7 +135,7 @@
         <item quantity="many">%d плей-лістоў</item>
         <item quantity="other">%d плей-лістоў</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d тыдзень</item>
         <item quantity="few">%d тыдні</item>
         <item quantity="many">%d тыдняў</item>
@@ -147,7 +147,7 @@
         <item quantity="many">%d месяцаў</item>
         <item quantity="other">%d месяцаў</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d год</item>
         <item quantity="few">%d гады</item>
         <item quantity="many">%d raдоў</item>

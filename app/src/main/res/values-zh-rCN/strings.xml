@@ -127,7 +127,7 @@
     <plurals name="n_playlist">
         <item quantity="other">%d 个播放列表</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="other">%d 周</item>
     </plurals>
     <plurals name="n_month">

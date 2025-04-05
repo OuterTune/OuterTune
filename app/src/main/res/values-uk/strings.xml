@@ -165,19 +165,19 @@
         <item quantity="many">%d плейлистів</item>
         <item quantity="other">%d плейлистів</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d тиждень</item>
         <item quantity="few">%d тижні</item>
         <item quantity="many">%d тижнів</item>
         <item quantity="other">%d тижнів</item>
     </plurals>
-    <plurals name="n_month" tools:ignore="MissingQuantity">
+    <plurals name="n_month">
         <item quantity="one">%d місяць</item>
         <item quantity="few">%d місяці</item>
         <item quantity="many">%d місяців</item>
         <item quantity="other">%d місяців</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d рік</item>
         <item quantity="few">%d роки</item>
         <item quantity="many">%d років</item>

@@ -287,4 +287,21 @@
     <string name="auto_load_more">Carica automaticamente più canzoni</string>
     <string name="auto_skip_next_on_error">Salta alla prossima canzone quando si verifica un errore</string>
     <string name="auto_load_more_desc">Aggiungi automaticamente canzoni quando si raggiunge la fine della coda, se possibile</string>
+    <string name="enable_lrclib">Abilita il provider di testi LcrLib</string>
+    <string name="grid_cell_size">Dimensione delle celle della griglia</string>
+    <string name="auto_skip_next_on_error_desc">Garantisci la tua esperienza di riproduzione continua</string>
+    <string name="stop_music_on_task_clear">Interrompi la musica quando l\'attività è interrotta</string>
+    <string name="listen_history">Cronologia ascolti</string>
+    <string name="search_history">Cronologia ricerche</string>
+    <string name="disable_screenshot">Disabilita screenshot</string>
+    <string name="disable_screenshot_desc">Quando questa opzione è attiva, gli screenshot e la visualizzazione dell\'app nei Recenti sono disabilitati.</string>
+    <string name="hide_explicit">Nascondi contenuti espliciti</string>
+    <string name="discord_integration">Integrazione Discord</string>
+    <string name="discord_information">OuterTune usa la libreria KizzyRPC per impostare lo stato del tuo account Discord. Ciò comporta l\'uso della connessione Discord Gateway, che può essere considerata una violazione dei TOS di Discord. Tuttavia, non ci sono casi noti di account utente sospesi per questo motivo. Usalo a tuo rischio e pericolo.\n\nOuterTune estrarrà solo il tuo token e tutto il resto verrà archiviato localmente.</string>
+    <string name="options">Opzioni</string>
+    <string name="use_login_for_browse">Usa il login per navigare nei contenuti</string>
+    <string name="preview">Anteprima</string>
+    <string name="login_failed">Login fallito</string>
+    <string name="logout">Logout</string>
+    <string name="use_login_for_browse_desc">Ciò può influenzare il contenuto che vedi e ad esempio mostra album solo premium se hai effettuato l\'accesso con un account Premium</string>
 </resources>

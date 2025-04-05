@@ -106,7 +106,7 @@
     <string name="sort_by_year">Год</string>
     <string name="sort_by_song_count">Количество треков</string>
     <string name="sort_by_length">Длительность</string>
-    <string name="sort_by_play_time">Количество воспр</string>
+    <string name="sort_by_play_time">Время воспроизведения</string>
     <string name="sort_by_custom">Польз. порядок</string>
     <!-- Dialog -->
     <string name="media_id">Идентификатор медиа</string>
@@ -165,19 +165,19 @@
         <item quantity="many">%d плейлистов</item>
         <item quantity="other">%d плейлистов</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d неделя</item>
         <item quantity="few">%d недели</item>
         <item quantity="many">%d недель</item>
         <item quantity="other">%d недель</item>
     </plurals>
-    <plurals name="n_month" tools:ignore="MissingQuantity">
+    <plurals name="n_month">
         <item quantity="one">%d месяц</item>
         <item quantity="few">%d месяца</item>
         <item quantity="many">%d месяцев</item>
         <item quantity="other">%d месяцев</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d год</item>
         <item quantity="few">%d года</item>
         <item quantity="many">%d лет</item>

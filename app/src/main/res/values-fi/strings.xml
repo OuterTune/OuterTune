@@ -131,15 +131,15 @@
         <item quantity="one">%d soittolista</item>
         <item quantity="other">%d soittolistaa</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d viikko</item>
         <item quantity="other">%d viikkoa</item>
     </plurals>
-    <plurals name="n_month" tools:ignore="MissingQuantity">
+    <plurals name="n_month">
         <item quantity="one">%d kuukausi</item>
         <item quantity="other">%d kuukautta</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d vuosi</item>
         <item quantity="other">%d vuotta</item>
     </plurals>

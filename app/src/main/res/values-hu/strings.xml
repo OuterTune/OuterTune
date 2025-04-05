@@ -132,15 +132,15 @@
         <item quantity="one">%d lejátszólista</item>
         <item quantity="other">%d lejátszólista</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d hét</item>
         <item quantity="other">%d hét</item>
     </plurals>
-    <plurals name="n_month" tools:ignore="MissingQuantity">
+    <plurals name="n_month">
         <item quantity="one">%d hónap</item>
         <item quantity="other">%d hónap</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d év</item>
         <item quantity="other">%d év</item>
     </plurals>

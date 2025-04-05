@@ -132,15 +132,15 @@
         <item quantity="one">%d afspeellijst</item>
         <item quantity="other">%d afspeellijsten</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d week</item>
         <item quantity="other">%d weken</item>
     </plurals>
-    <plurals name="n_month" tools:ignore="MissingQuantity">
+    <plurals name="n_month">
         <item quantity="one">%d maand</item>
         <item quantity="other">%d maanden</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d jaar</item>
         <item quantity="other">%d jaren</item>
     </plurals>

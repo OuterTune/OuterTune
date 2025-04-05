@@ -132,15 +132,15 @@
         <item quantity="one">%d فهرست‌پخش</item>
         <item quantity="other">%d فهرست‌پخش‌ها</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d هفته</item>
         <item quantity="other">%d هفته‌ها</item>
     </plurals>
-    <plurals name="n_month" tools:ignore="MissingQuantity">
+    <plurals name="n_month">
         <item quantity="one">%d ماه</item>
         <item quantity="other">%d ماه‌ها</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d سال</item>
         <item quantity="other">%d سال‌ها</item>
     </plurals>

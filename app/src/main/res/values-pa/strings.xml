@@ -132,15 +132,15 @@
         <item quantity="one">%d ਪਲੇਲਿਸਟ</item>
         <item quantity="other">%d ਪਲੇਲਿਸਟਾਂ</item>
     </plurals>
-    <plurals name="n_week" tools:ignore="MissingQuantity">
+    <plurals name="n_week">
         <item quantity="one">%d ਹਫ਼ਤਾ</item>
         <item quantity="other">%d ਹਫ਼ਤੇ</item>
     </plurals>
-    <plurals name="n_month" tools:ignore="MissingQuantity">
+    <plurals name="n_month">
         <item quantity="one">%d ਮਹੀਨਾ</item>
         <item quantity="other">%d ਮਹੀਨੇ</item>
     </plurals>
-    <plurals name="n_year" tools:ignore="MissingQuantity">
+    <plurals name="n_year">
         <item quantity="one">%d ਸਾਲ</item>
         <item quantity="other">%d ਸਾਲ</item>
     </plurals>
