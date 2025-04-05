@@ -108,7 +108,8 @@ fun SongMenu(
     val download by LocalDownloadUtil.current.getDownload(originalSong.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
 
-    val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
+    val currentFormatState = database.format(originalSong.id).collectAsState(initial = null)
+    val currentFormat = currentFormatState.value
 
     var showEditDialog by rememberSaveable {
         mutableStateOf(false)
