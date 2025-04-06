@@ -2,7 +2,9 @@ package com.dd3boh.outertune.ui.screens.settings
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +20,8 @@ import androidx.compose.material.icons.automirrored.rounded.ManageSearch
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ClearAll
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Lyrics
@@ -35,8 +39,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -73,6 +79,7 @@ fun LibrarySettings(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val database = LocalDatabase.current
+    val haptic = LocalHapticFeedback.current
 
     val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(
         key = PauseListenHistoryKey,
@@ -178,17 +185,28 @@ fun LibrarySettings(
 
 
 
-        PreferenceGroupTitle(
-            title = stringResource(R.string.advanced),
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(
                     onClick = {
-                        showAdvanced = true
+                        showAdvanced = !showAdvanced
+                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                     }
                 )
-        )
-
+        ) {
+            PreferenceGroupTitle(
+                title = stringResource(R.string.advanced),
+                modifier = Modifier
+            )
+            Icon(
+                imageVector = if (showAdvanced) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                contentDescription = null,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+            )
+        }
         AnimatedVisibility(showAdvanced) {
             Column {
                 SwitchPreference(
