@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
@@ -38,7 +37,6 @@ import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.DynamicThemeKey
 import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
 import com.dd3boh.outertune.constants.PureBlackKey
-import com.dd3boh.outertune.constants.ShowLikedAndDownloadedPlaylist
 import com.dd3boh.outertune.constants.SlimNavBarKey
 import com.dd3boh.outertune.ui.component.EnumListPreference
 import com.dd3boh.outertune.ui.component.IconButton
@@ -58,7 +56,6 @@ fun AppearanceSettings(
     val (playerBackground, onPlayerBackgroundChange) = rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
-    val (showLikedAndDownloadedPlaylist, onShowLikedAndDownloadedPlaylistChange) = rememberPreference(key = ShowLikedAndDownloadedPlaylist, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = false)
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
         it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -112,13 +109,6 @@ fun AppearanceSettings(
             values = availableBackgroundStyles
         )
 
-        // MOVE TO library
-        SwitchPreference(
-            title = { Text(stringResource(R.string.show_liked_and_downloaded_playlist)) },
-            icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, null) },
-            checked = showLikedAndDownloadedPlaylist,
-            onCheckedChange = onShowLikedAndDownloadedPlaylistChange
-        )
         SwitchPreference(
             title = { Text(stringResource(R.string.slim_navbar_title)) },
             description = stringResource(R.string.slim_navbar_description),
@@ -151,8 +141,4 @@ enum class DarkMode {
 
 enum class PlayerBackgroundStyle {
     DEFAULT, GRADIENT, BLUR
-}
-
-enum class LyricsPosition {
-    LEFT, CENTER, RIGHT
 }

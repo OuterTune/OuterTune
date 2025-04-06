@@ -15,15 +15,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Interests
-import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SdCard
-import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -65,9 +63,9 @@ fun SettingsScreen(
             onClick = { navController.navigate("settings/interface") }
         )
         PreferenceEntry(
-            title = { Text(stringResource(R.string.content)) },
-            icon = { Icon(Icons.Rounded.Language, null) },
-            onClick = { navController.navigate("settings/content") }
+            title = { Text(stringResource(R.string.library)) },
+            icon = { Icon(Icons.AutoMirrored.Rounded.LibraryBooks, null) },
+            onClick = { navController.navigate("settings/library") }
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.player_and_audio)) },
@@ -78,16 +76,6 @@ fun SettingsScreen(
             title = { Text(stringResource(R.string.local_player_settings_title)) },
             icon = { Icon(Icons.Rounded.SdCard, null) },
             onClick = { navController.navigate("settings/local") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.storage)) },
-            icon = { Icon(Icons.Rounded.Storage, null) },
-            onClick = { navController.navigate("settings/storage") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.privacy)) },
-            icon = { Icon(Icons.Rounded.Security, null) },
-            onClick = { navController.navigate("settings/privacy") }
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.backup_restore)) },

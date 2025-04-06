@@ -22,7 +22,6 @@ import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.ClearAll
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.GraphicEq
-import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.NoCell
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -132,12 +131,6 @@ fun PlayerSettings(
             icon = { Icon(Icons.Rounded.Autorenew, null) },
             checked = autoLoadMore,
             onCheckedChange = onAutoLoadMoreChange
-        )
-        // lyrics settings
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.lyrics_settings_title)) },
-            icon = { Icon(Icons.Rounded.Lyrics, null) },
-            onClick = { navController.navigate("settings/player/lyrics") }
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.min_playback_duration)) },

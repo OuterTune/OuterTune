@@ -187,12 +187,13 @@ import com.dd3boh.outertune.ui.screens.search.OnlineSearchScreen
 import com.dd3boh.outertune.ui.screens.settings.AboutScreen
 import com.dd3boh.outertune.ui.screens.settings.AppearanceSettings
 import com.dd3boh.outertune.ui.screens.settings.BackupAndRestore
-import com.dd3boh.outertune.ui.screens.settings.ContentSettings
+import com.dd3boh.outertune.ui.screens.settings.AccountSyncSettings
 import com.dd3boh.outertune.ui.screens.settings.DEFAULT_ENABLED_TABS
 import com.dd3boh.outertune.ui.screens.settings.DarkMode
 import com.dd3boh.outertune.ui.screens.settings.ExperimentalSettings
 import com.dd3boh.outertune.ui.screens.settings.InterfaceSettings
 import com.dd3boh.outertune.ui.screens.settings.LibraryFilter
+import com.dd3boh.outertune.ui.screens.settings.LibrarySettings
 import com.dd3boh.outertune.ui.screens.settings.LocalPlayerSettings
 import com.dd3boh.outertune.ui.screens.settings.LyricsSettings
 import com.dd3boh.outertune.ui.screens.settings.PlayerBackgroundStyle
@@ -1207,14 +1208,17 @@ class MainActivity : ComponentActivity() {
                                 composable("settings/interface") {
                                     InterfaceSettings(navController, scrollBehavior)
                                 }
-                                composable("settings/content") {
-                                    ContentSettings(navController, scrollBehavior)
+                                composable("settings/library") {
+                                    LibrarySettings(navController, scrollBehavior)
+                                }
+                                composable("settings/library/lyrics") {
+                                    LyricsSettings(navController, scrollBehavior)
+                                }
+                                composable("settings/account_sync") {
+                                    AccountSyncSettings(navController, scrollBehavior)
                                 }
                                 composable("settings/player") {
                                     PlayerSettings(navController, scrollBehavior)
-                                }
-                                composable("settings/player/lyrics") {
-                                    LyricsSettings(navController, scrollBehavior)
                                 }
                                 composable("settings/storage") {
                                     StorageSettings(navController, scrollBehavior)
