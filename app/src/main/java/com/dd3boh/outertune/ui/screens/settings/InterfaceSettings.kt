@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Reorder
+import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.Tab
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -59,6 +60,7 @@ import com.dd3boh.outertune.constants.LanguageCodeToName
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.SYSTEM_DEFAULT
 import com.dd3boh.outertune.constants.SwipeToQueueKey
+import com.dd3boh.outertune.constants.SwipeToSkip
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.extensions.move
 import com.dd3boh.outertune.ui.component.ActionPromptDialog
@@ -92,6 +94,7 @@ fun InterfaceSettings(
     )
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberPreference(DefaultOpenTabKey, defaultValue = "home")
 
+    val (swipeToSkip, onSwipeToSkipChange) = rememberPreference(SwipeToSkip, defaultValue = true)
     val (swipe2Queue, onSwipe2QueueChange) = rememberPreference(SwipeToQueueKey, defaultValue = true)
 
     val (contentLanguage, onContentLanguageChange) = rememberPreference(
@@ -246,6 +249,13 @@ fun InterfaceSettings(
             icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistAdd, null) },
             checked = swipe2Queue,
             onCheckedChange = onSwipe2QueueChange
+        )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.swipe_to_skip_title)) },
+            description = stringResource(R.string.swipe_to_skip_description),
+            icon = { Icon(Icons.Rounded.Swipe, null) },
+            checked = swipeToSkip,
+            onCheckedChange = onSwipeToSkipChange
         )
 
         PreferenceGroupTitle(
