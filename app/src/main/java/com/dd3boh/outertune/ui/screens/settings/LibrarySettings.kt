@@ -174,10 +174,6 @@ fun LibrarySettings(
             checked = flatSubfolders,
             onCheckedChange = onFlatSubfoldersChange
         )
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.grp_proxy)
-        )
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_proxy)) },
             checked = proxyEnabled,
