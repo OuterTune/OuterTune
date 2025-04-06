@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Interests
 import androidx.compose.material.icons.rounded.Palette
@@ -52,6 +53,11 @@ fun SettingsScreen(
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
             .verticalScroll(rememberScrollState())
     ) {
+        PreferenceEntry(
+            title = { Text("Account & Sync") },
+            icon = { Icon(Icons.Rounded.AccountCircle, null) },
+            onClick = { navController.navigate("settings/account_sync") }
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.appearance)) },
             icon = { Icon(Icons.Rounded.Palette, null) },

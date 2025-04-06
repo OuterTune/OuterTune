@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ManageSearch
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ClearAll
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.History
@@ -35,6 +36,7 @@ import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.FlatSubfoldersKey
+import com.dd3boh.outertune.constants.InnerTubeCookieKey
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
 import com.dd3boh.outertune.constants.PauseRemoteListenHistoryKey
 import com.dd3boh.outertune.constants.PauseSearchHistoryKey
@@ -52,6 +54,7 @@ import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
+import com.zionhuang.innertube.utils.parseCookieString
 import java.net.Proxy
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +69,10 @@ fun LibrarySettings(
         key = PauseListenHistoryKey,
         defaultValue = false
     )
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
     val (pauseRemoteListenHistory, onPauseRemoteListenHistoryChange) = rememberPreference(
         key = PauseRemoteListenHistoryKey,
         defaultValue = false
@@ -102,6 +109,11 @@ fun LibrarySettings(
             title = "content"
         )
         PreferenceEntry(
+            title = { Text("Account & Sync") },
+            icon = { Icon(Icons.Rounded.AccountCircle, null) },
+            onClick = { navController.navigate("settings/account_sync") }
+        )
+        PreferenceEntry(
             title = { Text(stringResource(R.string.lyrics_settings_title)) },
             icon = { Icon(Icons.Rounded.Lyrics, null) },
             onClick = { navController.navigate("settings/library/lyrics") }
@@ -127,7 +139,7 @@ fun LibrarySettings(
             icon = { Icon(Icons.Rounded.History, null) },
             checked = pauseRemoteListenHistory,
             onCheckedChange = onPauseRemoteListenHistoryChange,
-            isEnabled = !pauseListenHistory
+            isEnabled = !pauseListenHistory && isLoggedIn
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.clear_listen_history)) },
