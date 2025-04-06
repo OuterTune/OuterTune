@@ -301,7 +301,7 @@ fun AccountSyncSettings(
     }
 
     TopAppBar(
-        title = { Text("Account & Sync") },
+        title = { Text(stringResource(R.string.grp_account_sync)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

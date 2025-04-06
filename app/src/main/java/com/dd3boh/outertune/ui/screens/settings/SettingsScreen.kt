@@ -59,7 +59,7 @@ fun SettingsScreen(
     ) {
         Spacer(Modifier.height(SettingsTopBarHeight))
         PreferenceEntry(
-            title = { Text("Account & Sync") },
+            title = { Text(stringResource(R.string.grp_account_sync)) },
             icon = { Icon(Icons.Rounded.AccountCircle, null) },
             onClick = { navController.navigate("settings/account_sync") }
         )

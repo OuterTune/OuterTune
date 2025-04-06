@@ -219,7 +219,7 @@ fun InterfaceSettings(
     ) {
         Spacer(Modifier.height(SettingsTopBarHeight))
         PreferenceGroupTitle(
-            title = "nav bar"
+            title = stringResource(R.string.grp_layout)
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.tab_arrangement)) },
@@ -312,10 +312,6 @@ fun InterfaceSettings(
 
                 onContentCountryChange(newValue)
             }
-        )
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.advanced)
         )
     }
 
