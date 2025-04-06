@@ -1,7 +1,11 @@
 package com.dd3boh.outertune.ui.screens.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -100,6 +104,9 @@ fun LibrarySettings(
     var showClearSearchHistoryDialog by remember {
         mutableStateOf(false)
     }
+    var showAdvanced by remember {
+        mutableStateOf(false)
+    }
 
     Column(
         Modifier
@@ -164,41 +171,56 @@ fun LibrarySettings(
             onClick = { showClearSearchHistoryDialog = true }
         )
 
+
+
         PreferenceGroupTitle(
-            title = stringResource(R.string.advanced)
+            title = stringResource(R.string.advanced),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    onClick = {
+                        showAdvanced = true
+                    }
+                )
         )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.show_liked_and_downloaded_playlist)) },
-            icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, null) },
-            checked = showLikedAndDownloadedPlaylist,
-            onCheckedChange = onShowLikedAndDownloadedPlaylistChange
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.flat_subfolders_title)) },
-            description = stringResource(R.string.flat_subfolders_description),
-            icon = { Icon(Icons.Rounded.FolderCopy, null) },
-            checked = flatSubfolders,
-            onCheckedChange = onFlatSubfoldersChange
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_proxy)) },
-            checked = proxyEnabled,
-            onCheckedChange = onProxyEnabledChange
-        )
-        AnimatedVisibility(proxyEnabled) {
-            ListPreference(
-                title = { Text(stringResource(R.string.proxy_type)) },
-                selectedValue = proxyType,
-                values = listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS),
-                valueText = { it.name },
-                onValueSelected = onProxyTypeChange
-            )
-            EditTextPreference(
-                title = { Text(stringResource(R.string.proxy_url)) },
-                value = proxyUrl,
-                onValueChange = onProxyUrlChange
-            )
+
+        AnimatedVisibility(showAdvanced) {
+            Column {
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.show_liked_and_downloaded_playlist)) },
+                    icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, null) },
+                    checked = showLikedAndDownloadedPlaylist,
+                    onCheckedChange = onShowLikedAndDownloadedPlaylistChange
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.flat_subfolders_title)) },
+                    description = stringResource(R.string.flat_subfolders_description),
+                    icon = { Icon(Icons.Rounded.FolderCopy, null) },
+                    checked = flatSubfolders,
+                    onCheckedChange = onFlatSubfoldersChange
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.enable_proxy)) },
+                    checked = proxyEnabled,
+                    onCheckedChange = onProxyEnabledChange
+                )
+                AnimatedVisibility(proxyEnabled) {
+                    ListPreference(
+                        title = { Text(stringResource(R.string.proxy_type)) },
+                        selectedValue = proxyType,
+                        values = listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS),
+                        valueText = { it.name },
+                        onValueSelected = onProxyTypeChange
+                    )
+                    EditTextPreference(
+                        title = { Text(stringResource(R.string.proxy_url)) },
+                        value = proxyUrl,
+                        onValueChange = onProxyUrlChange
+                    )
+                }
+            }
         }
+        Spacer(Modifier.height(96.dp))
     }
 
 

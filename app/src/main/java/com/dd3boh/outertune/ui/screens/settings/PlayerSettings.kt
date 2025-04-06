@@ -9,7 +9,12 @@
 
 package com.dd3boh.outertune.ui.screens.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -37,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
@@ -110,6 +116,10 @@ fun PlayerSettings(
         )
     }
 
+    var showAdvanced by remember {
+        mutableStateOf(false)
+    }
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -175,28 +185,40 @@ fun PlayerSettings(
         )
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.prefs_advanced)
+            title = stringResource(R.string.advanced),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    onClick = {
+                        showAdvanced = true
+                    }
+                )
         )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
-            icon = { Icon(Icons.Rounded.ClearAll, null) },
-            checked = stopMusicOnTaskClear,
-            onCheckedChange = onStopMusicOnTaskClearChange
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.audio_offload)) },
-            description = stringResource(R.string.audio_offload_description),
-            icon = { Icon(Icons.Rounded.Bolt, null) },
-            checked = audioOffload,
-            onCheckedChange = onAudioOffloadChange
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.keep_alive_title)) },
-            description = stringResource(R.string.keep_alive_description),
-            icon = { Icon(Icons.Rounded.NoCell, null) },
-            checked = keepAlive,
-            onCheckedChange = onKeepAliveChange
-        )
+        AnimatedVisibility(showAdvanced) {
+            Column {
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
+                    icon = { Icon(Icons.Rounded.ClearAll, null) },
+                    checked = stopMusicOnTaskClear,
+                    onCheckedChange = onStopMusicOnTaskClearChange
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.audio_offload)) },
+                    description = stringResource(R.string.audio_offload_description),
+                    icon = { Icon(Icons.Rounded.Bolt, null) },
+                    checked = audioOffload,
+                    onCheckedChange = onAudioOffloadChange
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.keep_alive_title)) },
+                    description = stringResource(R.string.keep_alive_description),
+                    icon = { Icon(Icons.Rounded.NoCell, null) },
+                    checked = keepAlive,
+                    onCheckedChange = onKeepAliveChange
+                )
+            }
+        }
+        Spacer(Modifier.height(96.dp))
     }
 
     TopAppBar(
