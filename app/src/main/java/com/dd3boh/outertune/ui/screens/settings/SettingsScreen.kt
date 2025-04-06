@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Interests
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -57,6 +58,11 @@ fun SettingsScreen(
             title = { Text(stringResource(R.string.appearance)) },
             icon = { Icon(Icons.Rounded.Palette, null) },
             onClick = { navController.navigate("settings/appearance") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.grp_interface)) },
+            icon = { Icon(Icons.Rounded.Interests, null) },
+            onClick = { navController.navigate("settings/interface") }
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.content)) },
