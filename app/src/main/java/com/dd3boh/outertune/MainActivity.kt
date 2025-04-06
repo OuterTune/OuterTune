@@ -185,9 +185,9 @@ import com.dd3boh.outertune.ui.screens.search.LocalSearchScreen
 import com.dd3boh.outertune.ui.screens.search.OnlineSearchResult
 import com.dd3boh.outertune.ui.screens.search.OnlineSearchScreen
 import com.dd3boh.outertune.ui.screens.settings.AboutScreen
+import com.dd3boh.outertune.ui.screens.settings.AccountSyncSettings
 import com.dd3boh.outertune.ui.screens.settings.AppearanceSettings
 import com.dd3boh.outertune.ui.screens.settings.BackupAndRestore
-import com.dd3boh.outertune.ui.screens.settings.AccountSyncSettings
 import com.dd3boh.outertune.ui.screens.settings.DEFAULT_ENABLED_TABS
 import com.dd3boh.outertune.ui.screens.settings.DarkMode
 import com.dd3boh.outertune.ui.screens.settings.ExperimentalSettings
@@ -198,7 +198,6 @@ import com.dd3boh.outertune.ui.screens.settings.LocalPlayerSettings
 import com.dd3boh.outertune.ui.screens.settings.LyricsSettings
 import com.dd3boh.outertune.ui.screens.settings.PlayerBackgroundStyle
 import com.dd3boh.outertune.ui.screens.settings.PlayerSettings
-import com.dd3boh.outertune.ui.screens.settings.PrivacySettings
 import com.dd3boh.outertune.ui.screens.settings.SettingsScreen
 import com.dd3boh.outertune.ui.screens.settings.StorageSettings
 import com.dd3boh.outertune.ui.theme.ColorSaver
@@ -1222,9 +1221,6 @@ class MainActivity : ComponentActivity() {
                                 }
                                 composable("settings/storage") {
                                     StorageSettings(navController, scrollBehavior)
-                                }
-                                composable("settings/privacy") {
-                                    PrivacySettings(navController, scrollBehavior)
                                 }
                                 composable("settings/backup_restore") {
                                     BackupAndRestore(navController, scrollBehavior)
