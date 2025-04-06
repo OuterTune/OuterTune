@@ -15,6 +15,7 @@ import androidx.compose.material.icons.rounded.ClearAll
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Lyrics
+import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -112,6 +113,11 @@ fun LibrarySettings(
             title = { Text("Account & Sync") },
             icon = { Icon(Icons.Rounded.AccountCircle, null) },
             onClick = { navController.navigate("settings/account_sync") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.local_player_settings_title)) },
+            icon = { Icon(Icons.Rounded.SdCard, null) },
+            onClick = { navController.navigate("settings/local") }
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.lyrics_settings_title)) },
