@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.DragHandle
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Reorder
 import androidx.compose.material.icons.rounded.Tab
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,10 +49,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.ContentCountryKey
+import com.dd3boh.outertune.constants.ContentLanguageKey
+import com.dd3boh.outertune.constants.CountryCodeToName
 import com.dd3boh.outertune.constants.DefaultOpenTabKey
 import com.dd3boh.outertune.constants.EnabledFiltersKey
 import com.dd3boh.outertune.constants.EnabledTabsKey
+import com.dd3boh.outertune.constants.LanguageCodeToName
 import com.dd3boh.outertune.constants.ListItemHeight
+import com.dd3boh.outertune.constants.SYSTEM_DEFAULT
 import com.dd3boh.outertune.constants.SwipeToQueueKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.extensions.move
@@ -66,8 +73,10 @@ import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.decodeFilterString
 import com.dd3boh.outertune.utils.encodeFilterString
 import com.dd3boh.outertune.utils.rememberPreference
+import com.zionhuang.innertube.YouTube
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +91,14 @@ fun InterfaceSettings(
         defaultValue = DEFAULT_ENABLED_FILTERS
     )
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberPreference(DefaultOpenTabKey, defaultValue = "home")
+
     val (swipe2Queue, onSwipe2QueueChange) = rememberPreference(SwipeToQueueKey, defaultValue = true)
+
+    val (contentLanguage, onContentLanguageChange) = rememberPreference(
+        key = ContentLanguageKey,
+        defaultValue = "system"
+    )
+    val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
 
 
     var dragInfo by remember {
@@ -196,16 +212,6 @@ fun InterfaceSettings(
         PreferenceGroupTitle(
             title = "nav bar"
         )
-        ListPreference(
-            title = { Text(stringResource(R.string.default_open_tab)) },
-            icon = { Icon(Icons.Rounded.Tab, null) },
-            selectedValue = Screens.getAllScreens().find { it.route == defaultOpenTab } ?: Screens.Home,
-            onValueSelected = { screen ->
-                onDefaultOpenTabChange(screen.route)
-            },
-            values = Screens.getAllScreens().filter { Screens.getScreens(enabledTabs).contains(it) },
-            valueText = { stringResource(it.titleId) }
-        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.tab_arrangement)) },
             icon = { Icon(Icons.Rounded.Reorder, null) },
@@ -220,6 +226,16 @@ fun InterfaceSettings(
                 showFilterArrangement = true
             }
         )
+        ListPreference(
+            title = { Text(stringResource(R.string.default_open_tab)) },
+            icon = { Icon(Icons.Rounded.Tab, null) },
+            selectedValue = Screens.getAllScreens().find { it.route == defaultOpenTab } ?: Screens.Home,
+            onValueSelected = { screen ->
+                onDefaultOpenTabChange(screen.route)
+            },
+            values = Screens.getAllScreens().filter { Screens.getScreens(enabledTabs).contains(it) },
+            valueText = { stringResource(it.titleId) }
+        )
 
         PreferenceGroupTitle(
             title = "behaviour"
@@ -232,6 +248,55 @@ fun InterfaceSettings(
             onCheckedChange = onSwipe2QueueChange
         )
 
+        PreferenceGroupTitle(
+            title = stringResource(R.string.grp_localization)
+        )
+        ListPreference(
+            title = { Text(stringResource(R.string.content_language)) },
+            icon = { Icon(Icons.Rounded.Language, null) },
+            selectedValue = contentLanguage,
+            values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
+            valueText = {
+                LanguageCodeToName.getOrElse(it) {
+                    stringResource(R.string.system_default)
+                }
+            },
+            onValueSelected = { newValue ->
+                val locale = Locale.getDefault()
+                val languageTag = locale.toLanguageTag().replace("-Hant", "")
+
+                YouTube.locale = YouTube.locale.copy(
+                    hl = newValue.takeIf { it != SYSTEM_DEFAULT }
+                        ?: locale.language.takeIf { it in LanguageCodeToName }
+                        ?: languageTag.takeIf { it in LanguageCodeToName }
+                        ?: "en"
+                )
+
+                onContentLanguageChange(newValue)
+            }
+        )
+        ListPreference(
+            title = { Text(stringResource(R.string.content_country)) },
+            icon = { Icon(Icons.Rounded.LocationOn, null) },
+            selectedValue = contentCountry,
+            values = listOf(SYSTEM_DEFAULT) + CountryCodeToName.keys.toList(),
+            valueText = {
+                CountryCodeToName.getOrElse(it) {
+                    stringResource(R.string.system_default)
+                }
+            },
+            onValueSelected = { newValue ->
+                val locale = Locale.getDefault()
+
+                YouTube.locale = YouTube.locale.copy(
+                    gl = newValue.takeIf { it != SYSTEM_DEFAULT }
+                        ?: locale.country.takeIf { it in CountryCodeToName }
+                        ?: "US"
+                )
+
+                onContentCountryChange(newValue)
+            }
+        )
 
         PreferenceGroupTitle(
             title = stringResource(R.string.advanced)
