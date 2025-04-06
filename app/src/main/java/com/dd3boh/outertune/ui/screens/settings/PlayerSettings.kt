@@ -9,17 +9,11 @@
 
 package com.dd3boh.outertune.ui.screens.settings
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -30,8 +24,6 @@ import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.ClearAll
-import androidx.compose.material.icons.rounded.ExpandLess
-import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.NoCell
@@ -46,10 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -73,6 +62,7 @@ import com.dd3boh.outertune.ui.component.EnumListPreference
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
+import com.dd3boh.outertune.ui.component.SettingsClickToReveal
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberEnumPreference
@@ -84,8 +74,6 @@ fun PlayerSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val haptic = LocalHapticFeedback.current
-
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         key = AudioQualityKey,
         defaultValue = AudioQuality.AUTO
@@ -110,9 +98,6 @@ fun PlayerSettings(
         mutableStateOf(false)
     }
 
-    var showAdvanced by remember {
-        mutableStateOf(false)
-    }
 
     Column(
         Modifier
@@ -173,57 +158,33 @@ fun PlayerSettings(
             onCheckedChange = onSkipOnErrorChange
         )
 
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(
-                    onClick = {
-                        showAdvanced = !showAdvanced
-                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                    }
-                )
-        ) {
-            PreferenceGroupTitle(
-                title = stringResource(R.string.advanced),
-                modifier = Modifier
+        SettingsClickToReveal(stringResource(R.string.advanced)) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.persistent_queue)) },
+                description = stringResource(R.string.persistent_queue_desc_ot),
+                icon = { Icon(Icons.AutoMirrored.Rounded.QueueMusic, null) },
+                checked = persistentQueue,
+                onCheckedChange = onPersistentQueueChange
             )
-            Icon(
-                imageVector = if (showAdvanced) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                contentDescription = null,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.min_playback_duration)) },
+                icon = { Icon(Icons.Rounded.Sync, null) },
+                onClick = { showMinPlaybackDur = true }
             )
-        }
-        AnimatedVisibility(showAdvanced) {
-            Column {
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.persistent_queue)) },
-                    description = stringResource(R.string.persistent_queue_desc_ot),
-                    icon = { Icon(Icons.AutoMirrored.Rounded.QueueMusic, null) },
-                    checked = persistentQueue,
-                    onCheckedChange = onPersistentQueueChange
-                )
-                PreferenceEntry(
-                    title = { Text(stringResource(R.string.min_playback_duration)) },
-                    icon = { Icon(Icons.Rounded.Sync, null) },
-                    onClick = { showMinPlaybackDur = true }
-                )
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.audio_offload)) },
-                    description = stringResource(R.string.audio_offload_description),
-                    icon = { Icon(Icons.Rounded.Bolt, null) },
-                    checked = audioOffload,
-                    onCheckedChange = onAudioOffloadChange
-                )
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.keep_alive_title)) },
-                    description = stringResource(R.string.keep_alive_description),
-                    icon = { Icon(Icons.Rounded.NoCell, null) },
-                    checked = keepAlive,
-                    onCheckedChange = onKeepAliveChange
-                )
-            }
+            SwitchPreference(
+                title = { Text(stringResource(R.string.audio_offload)) },
+                description = stringResource(R.string.audio_offload_description),
+                icon = { Icon(Icons.Rounded.Bolt, null) },
+                checked = audioOffload,
+                onCheckedChange = onAudioOffloadChange
+            )
+            SwitchPreference(
+                title = { Text(stringResource(R.string.keep_alive_title)) },
+                description = stringResource(R.string.keep_alive_description),
+                icon = { Icon(Icons.Rounded.NoCell, null) },
+                checked = keepAlive,
+                onCheckedChange = onKeepAliveChange
+            )
         }
         Spacer(Modifier.height(96.dp))
     }

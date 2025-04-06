@@ -1,13 +1,9 @@
 package com.dd3boh.outertune.ui.screens.settings
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -20,8 +16,6 @@ import androidx.compose.material.icons.automirrored.rounded.ManageSearch
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ClearAll
-import androidx.compose.material.icons.rounded.ExpandLess
-import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Lyrics
@@ -39,10 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -65,6 +56,7 @@ import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.ListPreference
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
+import com.dd3boh.outertune.ui.component.SettingsClickToReveal
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberEnumPreference
@@ -79,7 +71,6 @@ fun LibrarySettings(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val database = LocalDatabase.current
-    val haptic = LocalHapticFeedback.current
 
     val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(
         key = PauseListenHistoryKey,
@@ -113,9 +104,6 @@ fun LibrarySettings(
         mutableStateOf(false)
     }
     var showClearSearchHistoryDialog by remember {
-        mutableStateOf(false)
-    }
-    var showAdvanced by remember {
         mutableStateOf(false)
     }
 
@@ -183,64 +171,38 @@ fun LibrarySettings(
             onClick = { showClearSearchHistoryDialog = true }
         )
 
-
-
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(
-                    onClick = {
-                        showAdvanced = !showAdvanced
-                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                    }
-                )
-        ) {
-            PreferenceGroupTitle(
-                title = stringResource(R.string.advanced),
-                modifier = Modifier
+        SettingsClickToReveal(stringResource(R.string.advanced)) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_liked_and_downloaded_playlist)) },
+                icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, null) },
+                checked = showLikedAndDownloadedPlaylist,
+                onCheckedChange = onShowLikedAndDownloadedPlaylistChange
             )
-            Icon(
-                imageVector = if (showAdvanced) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                contentDescription = null,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+            SwitchPreference(
+                title = { Text(stringResource(R.string.flat_subfolders_title)) },
+                description = stringResource(R.string.flat_subfolders_description),
+                icon = { Icon(Icons.Rounded.FolderCopy, null) },
+                checked = flatSubfolders,
+                onCheckedChange = onFlatSubfoldersChange
             )
-        }
-        AnimatedVisibility(showAdvanced) {
-            Column {
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.show_liked_and_downloaded_playlist)) },
-                    icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, null) },
-                    checked = showLikedAndDownloadedPlaylist,
-                    onCheckedChange = onShowLikedAndDownloadedPlaylistChange
+            SwitchPreference(
+                title = { Text(stringResource(R.string.enable_proxy)) },
+                checked = proxyEnabled,
+                onCheckedChange = onProxyEnabledChange
+            )
+            AnimatedVisibility(proxyEnabled) {
+                ListPreference(
+                    title = { Text(stringResource(R.string.proxy_type)) },
+                    selectedValue = proxyType,
+                    values = listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS),
+                    valueText = { it.name },
+                    onValueSelected = onProxyTypeChange
                 )
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.flat_subfolders_title)) },
-                    description = stringResource(R.string.flat_subfolders_description),
-                    icon = { Icon(Icons.Rounded.FolderCopy, null) },
-                    checked = flatSubfolders,
-                    onCheckedChange = onFlatSubfoldersChange
+                EditTextPreference(
+                    title = { Text(stringResource(R.string.proxy_url)) },
+                    value = proxyUrl,
+                    onValueChange = onProxyUrlChange
                 )
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.enable_proxy)) },
-                    checked = proxyEnabled,
-                    onCheckedChange = onProxyEnabledChange
-                )
-                AnimatedVisibility(proxyEnabled) {
-                    ListPreference(
-                        title = { Text(stringResource(R.string.proxy_type)) },
-                        selectedValue = proxyType,
-                        values = listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS),
-                        valueText = { it.name },
-                        onValueSelected = onProxyTypeChange
-                    )
-                    EditTextPreference(
-                        title = { Text(stringResource(R.string.proxy_url)) },
-                        value = proxyUrl,
-                        onValueChange = onProxyUrlChange
-                    )
-                }
             }
         }
         Spacer(Modifier.height(96.dp))
