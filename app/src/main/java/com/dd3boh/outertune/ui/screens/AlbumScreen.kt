@@ -434,6 +434,7 @@ fun AlbumScreen(
                     inSelectMode = inSelectMode,
                     isSelected = selection.contains(song.id),
                     navController = navController,
+                    snackbarHostState = snackbarHostState,
                     modifier = Modifier.fillMaxWidth().animateItem()
                 )
             }

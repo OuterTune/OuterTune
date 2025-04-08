@@ -489,12 +489,13 @@ fun LocalPlaylistScreen(
                         },
                         inSelectMode = inSelectMode,
                         isSelected = selection.contains(song.song.id),
+                        playlistSong = song,
+                        playlistBrowseId = playlist?.id,
                         navController = navController,
+                        snackbarHostState = snackbarHostState,
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background),
-                        playlistSong = song,
-                        playlistBrowseId = playlist?.id,
                     )
                 }
             }
