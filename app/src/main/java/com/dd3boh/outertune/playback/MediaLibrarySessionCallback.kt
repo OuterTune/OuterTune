@@ -296,7 +296,7 @@ class MediaLibrarySessionCallback @Inject constructor(
                     .setTitle(song.title)
                     .setSubtitle(artists.joinToString { it.name })
                     .setArtist(artists.joinToString { it.name })
-                    .setArtworkUri(song.thumbnailUrl?.toUri())
+                    .setArtworkUri(if (song.isLocal) null else song.thumbnailUrl?.toUri())
                     .setIsPlayable(true)
                     .setIsBrowsable(false)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)

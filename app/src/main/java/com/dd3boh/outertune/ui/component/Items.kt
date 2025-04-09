@@ -1109,7 +1109,7 @@ fun MediaMetadataListItem(
     ),
     thumbnailContent = {
         ItemThumbnail(
-            thumbnailUrl = mediaMetadata.thumbnailUrl,
+            thumbnailUrl = if (mediaMetadata.isLocal) mediaMetadata.localPath else mediaMetadata.thumbnailUrl,
             isActive = isActive,
             isPlaying = isPlaying,
             shape = RoundedCornerShape(ThumbnailCornerRadius),

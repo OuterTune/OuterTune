@@ -119,7 +119,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -132,7 +131,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -166,7 +164,7 @@ class MusicService : MediaLibraryService(),
     @Inject
     lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
 
-    private val scope = CoroutineScope(Dispatchers.Main) + Job()
+    private val scope = CoroutineScope(Dispatchers.Main)
     private val binder = MusicBinder()
 
     private lateinit var connectivityManager: ConnectivityManager
