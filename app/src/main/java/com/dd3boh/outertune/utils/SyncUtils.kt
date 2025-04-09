@@ -18,7 +18,6 @@ import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.extensions.isInternetConnected
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.DownloadUtil
-import com.dd3boh.outertune.ui.utils.MAX_CONCURRENT_JOBS
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.ArtistItem
@@ -105,6 +104,10 @@ class SyncUtils @Inject constructor(
      * Singleton syncRemoteLikedSongs
      */
     suspend fun syncRemoteLikedSongs() {
+        if (!context.isInternetConnected()) {
+            return
+        }
+
         if (!_isSyncingRemoteLikedSongs.compareAndSet(expect = false, update = true)) {
             Log.d(TAG, "Liked songs synchronization already in progress")
             return // Synchronization already in progress
@@ -160,6 +163,9 @@ class SyncUtils @Inject constructor(
      * Singleton syncRemoteSongs
      */
     suspend fun syncRemoteSongs() {
+        if (!context.isInternetConnected()) {
+            return
+        }
         if (!_isSyncingRemoteSongs.compareAndSet(expect = false, update = true)) {
             Log.i(TAG, "Library songs synchronization already in progress")
             return // Synchronization already in progress
@@ -216,6 +222,9 @@ class SyncUtils @Inject constructor(
      * Singleton syncRemoteAlbums
      */
     suspend fun syncRemoteAlbums() {
+        if (!context.isInternetConnected()) {
+            return
+        }
         if (!_isSyncingRemoteAlbums.compareAndSet(expect = false, update = true)) {
             Log.i(TAG, "Library albums synchronization already in progress")
             return // Synchronization already in progress
@@ -270,6 +279,9 @@ class SyncUtils @Inject constructor(
      * Singleton syncRemoteArtists
      */
     suspend fun syncRemoteArtists() {
+        if (!context.isInternetConnected()) {
+            return
+        }
         if (!_isSyncingRemoteArtists.compareAndSet(expect = false, update = true)) {
             Log.i(TAG, "Artist subscriptions synchronization already in progress")
             return // Synchronization already in progress
@@ -347,6 +359,9 @@ class SyncUtils @Inject constructor(
      * Singleton syncRemotePlaylists
      */
     suspend fun syncRemotePlaylists() {
+        if (!context.isInternetConnected()) {
+            return
+        }
         if (!_isSyncingRemotePlaylists.compareAndSet(expect = false, update = true)) {
             Log.i(TAG, "Library playlist synchronization already in progress")
             return
@@ -427,6 +442,9 @@ class SyncUtils @Inject constructor(
     }
 
     suspend fun syncPlaylist(browseId: String, playlistId: String) {
+        if (!context.isInternetConnected()) {
+            return
+        }
         YouTube.playlist(browseId).completed().onSuccess { playlistPage ->
             if (!context.isInternetConnected()) {
                 return
@@ -456,6 +474,9 @@ class SyncUtils @Inject constructor(
     }
 
     suspend fun syncRecentActivity() {
+        if (!context.isInternetConnected()) {
+            return
+        }
         YouTube.libraryRecentActivity().onSuccess { page ->
             val recentActivity = page.items.take(9).drop(1)
 
