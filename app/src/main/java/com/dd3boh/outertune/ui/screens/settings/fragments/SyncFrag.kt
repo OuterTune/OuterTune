@@ -9,19 +9,21 @@ package com.dd3boh.outertune.ui.screens.settings.fragments
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.SyncLock
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,10 +42,18 @@ import com.dd3boh.outertune.constants.LikedAutoDownloadKey
 import com.dd3boh.outertune.constants.LikedAutodownloadMode
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
 import com.dd3boh.outertune.constants.PauseRemoteListenHistoryKey
+import com.dd3boh.outertune.constants.SyncMode
+import com.dd3boh.outertune.constants.YtmSyncContent
 import com.dd3boh.outertune.constants.YtmSyncKey
+import com.dd3boh.outertune.constants.YtmSyncMode
+import com.dd3boh.outertune.ui.component.EnumListPreference
 import com.dd3boh.outertune.ui.component.ListPreference
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.SwitchPreference
+import com.dd3boh.outertune.utils.SyncContent
+import com.dd3boh.outertune.utils.SyncUtils
+import com.dd3boh.outertune.utils.decodeSyncString
+import com.dd3boh.outertune.utils.encodeSyncString
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.zionhuang.innertube.utils.parseCookieString
@@ -63,6 +73,11 @@ fun ColumnScope.SyncFrag() {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
+    val (syncContent, onSyncContentChange) = rememberPreference(
+        YtmSyncContent,
+        defaultValue = SyncUtils.DEFAULT_SYNC_CONTENT
+    )
+    val (syncMode, onSyncModeChange) = rememberEnumPreference(key = YtmSyncMode, defaultValue = SyncMode.RO)
     val pauseListenHistory by rememberPreference(key = PauseListenHistoryKey, defaultValue = false)
     val (pauseRemoteListenHistory, onPauseRemoteListenHistoryChange) = rememberPreference(
         key = PauseRemoteListenHistoryKey,
@@ -81,6 +96,14 @@ fun ColumnScope.SyncFrag() {
     // TODO: move to home screen as button?
     // TODO: rename scanner_manual_btn to sync_manual_btn
 
+    SwitchPreference(
+        title = { Text(stringResource(R.string.ytm_sync)) },
+        icon = { Icon(Icons.Rounded.Sync, null) },
+        checked = ytmSync,
+        onCheckedChange = onYtmSyncChange,
+        isEnabled = isLoggedIn
+    )
+
     PreferenceEntry(
         title = { Text(stringResource(R.string.scanner_manual_btn)) },
         icon = { Icon(Icons.Rounded.Sync, null) },
@@ -88,24 +111,76 @@ fun ColumnScope.SyncFrag() {
             Toast.makeText(context, context.getString(R.string.sync_progress_active), Toast.LENGTH_SHORT).show()
             coroutineScope.launch(Dispatchers.Main) {
                 syncUtils.syncAll()
-                Toast.makeText(context, context.getString(R.string.sync_progress_active), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.sync_progress_success), Toast.LENGTH_SHORT).show()
             }
         },
         isEnabled = isLoggedIn
     )
 
-    SyncProgressItem(stringResource(R.string.songs), isSyncingRemoteSongs)
-    SyncProgressItem(stringResource(R.string.liked_songs), isSyncingRemoteLikedSongs)
-    SyncProgressItem(stringResource(R.string.artists), isSyncingRemoteArtists)
-    SyncProgressItem(stringResource(R.string.albums), isSyncingRemoteAlbums)
-    SyncProgressItem(stringResource(R.string.playlists), isSyncingRemotePlaylists)
+    val enabledContent = decodeSyncString(syncContent).sortedBy { it.name }
+    encodeSyncString(enabledContent.toList() + SyncContent.NULL)
+    SyncContent.entries.filterNot { it == SyncContent.NULL }.forEach { item ->
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 48.dp, vertical = 4.dp)
+        ) {
+            val title = when (item) {
+                SyncContent.ALBUMS -> stringResource(R.string.albums)
+                SyncContent.ARTISTS -> stringResource(R.string.artists)
+                SyncContent.PLAYLISTS -> stringResource(R.string.playlists)
+                SyncContent.LIKED_SONGS -> stringResource(R.string.liked_songs)
+                SyncContent.PRIVATE_SONGS -> stringResource(R.string.songs)
+                else -> ""
+            }
+            val syncProgressIndicator = when (item) {
+                SyncContent.ALBUMS -> isSyncingRemoteAlbums
+                SyncContent.ARTISTS -> isSyncingRemoteArtists
+                SyncContent.PLAYLISTS -> isSyncingRemotePlaylists
+                SyncContent.LIKED_SONGS -> isSyncingRemoteLikedSongs
+                SyncContent.PRIVATE_SONGS -> isSyncingRemoteSongs
+                else -> false
+            }
 
-    SwitchPreference(
-        title = { Text(stringResource(R.string.ytm_sync)) },
-        icon = { Icon(Icons.Rounded.Sync, null) },
-        checked = ytmSync,
-        onCheckedChange = onYtmSyncChange,
-        isEnabled = isLoggedIn
+            if (syncProgressIndicator) {
+                Row(
+                    modifier = Modifier.padding(14.dp)
+                ) {
+                    SyncProgressItem(true)
+                }
+            } else {
+                Checkbox(
+                    checked = enabledContent.contains(item),
+                    onCheckedChange = { checked ->
+                        val updated = enabledContent.toMutableList()
+                        if (checked) {
+                            updated.add(item)
+                        } else {
+                            updated.removeAll { it == item }
+                        }
+                        onSyncContentChange(encodeSyncString(updated))
+                    },
+                    enabled = isLoggedIn
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+
+    EnumListPreference(
+        title = { Text(stringResource(R.string.sync_mode)) },
+        icon = { Icon(Icons.Rounded.SyncLock, null) },
+        selectedValue = syncMode,
+        onValueSelected = onSyncModeChange,
+        valueText = {
+            when (it) {
+                SyncMode.RO -> stringResource(R.string.sync_mode_ro)
+                SyncMode.RW -> stringResource(R.string.sync_mode_rw)
+            }
+        }
     )
     SwitchPreference(
         title = { Text(stringResource(R.string.pause_remote_listen_history)) },
@@ -131,15 +206,13 @@ fun ColumnScope.SyncFrag() {
 }
 
 @Composable
-fun SyncProgressItem(text: String, isSyncing: Boolean) {
+fun SyncProgressItem(isSyncing: Boolean, modifier: Modifier = Modifier) {
     AnimatedVisibility(isSyncing) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            modifier = modifier
         ) {
-            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-            Spacer(Modifier.width(12.dp))
-            Text(text)
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
         }
     }
 }
