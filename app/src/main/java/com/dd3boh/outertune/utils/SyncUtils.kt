@@ -512,3 +512,12 @@ class SyncUtils @Inject constructor(
         return remote
     }
 }
+
+enum class SyncContent {
+    ALBUMS,
+    ARTISTS,
+    LIKED_SONGS,
+    PLAYLISTS,
+    PRIVATE_SONGS,
+    NULL
+}

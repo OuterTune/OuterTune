@@ -54,6 +54,44 @@ fun encodeFilterString(list: List<LibraryFilter>): String {
     return encoded
 }
 
+/**
+ * Converts the enable sync items list (string) to SyncContent
+ *
+ * @param str Encoded string
+ */
+fun decodeSyncString(str: String): List<SyncContent> {
+    return str.toCharArray().map {
+        when (it) {
+            'A' -> SyncContent.ALBUMS
+            'R' -> SyncContent.ARTISTS
+            'P' -> SyncContent.PLAYLISTS
+            'L' -> SyncContent.LIKED_SONGS
+            'S' -> SyncContent.PRIVATE_SONGS
+            else -> SyncContent.NULL
+        }
+    }.distinct()
+}
+
+/**
+ * Converts the SyncContent filters list to string
+ *
+ * @param list Decoded SyncContent list
+ */
+fun encodeSyncString(list: List<SyncContent>): String {
+    var encoded = ""
+    list.forEach {
+        encoded += when (it) {
+            SyncContent.ALBUMS -> 'A'
+            SyncContent.ARTISTS -> 'R'
+            SyncContent.PLAYLISTS -> 'P'
+            SyncContent.LIKED_SONGS -> 'L'
+            SyncContent.PRIVATE_SONGS -> 'S'
+            else -> ""
+        }
+    }
+    return encoded
+}
+
 
 /**
  * Check if a package with the specified package name is installed
