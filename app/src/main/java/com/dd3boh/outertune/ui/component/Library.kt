@@ -254,10 +254,11 @@ fun LibraryPlaylistGridItem(
         .fillMaxWidth()
         .combinedClickable(
             onClick = {
-                if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
-                    navController.navigate("online_playlist/${playlist.playlist.browseId}")
-                else
+                if (playlist.playlist.isEditable || playlist.playlist.isLocal || playlist.playlist.browseId == null || playlist.songCount != 0) {
                     navController.navigate("local_playlist/${playlist.id}")
+                } else {
+                    navController.navigate("online_playlist/${playlist.playlist.browseId}")
+                }
             },
             onLongClick = {
                 menuState.show {

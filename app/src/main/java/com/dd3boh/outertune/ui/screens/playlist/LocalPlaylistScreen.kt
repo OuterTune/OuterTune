@@ -451,10 +451,11 @@ fun LocalPlaylistScreen(
                 items = mutableSongs,
                 key = { _, song -> song.map.id }
             ) { index, song ->
+                println("wtf " +song.song.song.title)
                 ReorderableItem(
                     state = reorderableState,
                     key = song.map.id,
-                    enabled = playlist?.playlist?.browseId == null
+                    enabled = editable
                 ) {
                     SongListItem(
                         song = song.song,

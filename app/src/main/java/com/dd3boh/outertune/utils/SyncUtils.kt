@@ -416,7 +416,7 @@ class SyncUtils @Inject constructor(
                                 localPlaylist = PlaylistEntity(
                                     name = remotePlaylist.title,
                                     browseId = remotePlaylist.id,
-                                    isEditable = remotePlaylist.isEditable,
+                                    isEditable = remotePlaylist.isEditable || remotePlaylist.author == null, // for some reason null == your account
                                     bookmarkedAt = LocalDateTime.now(),
                                     thumbnailUrl = remotePlaylist.thumbnail,
                                     remoteSongCount = remotePlaylist.songCountText?.let {

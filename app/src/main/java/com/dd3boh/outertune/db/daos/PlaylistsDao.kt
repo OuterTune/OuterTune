@@ -172,7 +172,7 @@ interface PlaylistsDao {
         update(playlistEntity.copy(
             name = playlistItem.title,
             browseId = playlistItem.id,
-            isEditable = playlistItem.isEditable,
+            isEditable = playlistItem.isEditable || playlistItem.author == null, // for some reason null == your account,
             thumbnailUrl = playlistItem.thumbnail,
             remoteSongCount = playlistItem.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
             playEndpointParams = playlistItem.playEndpoint?.params,
