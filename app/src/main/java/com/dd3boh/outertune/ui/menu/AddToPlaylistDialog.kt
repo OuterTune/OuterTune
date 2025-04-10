@@ -29,12 +29,15 @@ import androidx.compose.ui.unit.dp
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListThumbnailSize
+import com.dd3boh.outertune.constants.SyncMode
+import com.dd3boh.outertune.constants.YtmSyncMode
 import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.ui.component.CreatePlaylistDialog
 import com.dd3boh.outertune.ui.component.DefaultDialog
 import com.dd3boh.outertune.ui.component.ListDialog
 import com.dd3boh.outertune.ui.component.ListItem
 import com.dd3boh.outertune.ui.component.PlaylistListItem
+import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,6 +52,9 @@ fun AddToPlaylistDialog(
 ) {
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
+
+    val syncMode by rememberEnumPreference(key = YtmSyncMode, defaultValue = SyncMode.RO)
+
     var playlists by remember {
         mutableStateOf(emptyList<Playlist>())
     }
@@ -70,8 +76,14 @@ fun AddToPlaylistDialog(
     }
 
     LaunchedEffect(Unit) {
-        database.editablePlaylistsByCreateDateAsc().collect {
-            playlists = it.asReversed()
+        if (syncMode == SyncMode.RO) {
+            database.localPlaylistsByCreateDateAsc().collect {
+                playlists = it.asReversed()
+            }
+        } else {
+            database.editablePlaylistsByCreateDateAsc().collect {
+                playlists = it.asReversed()
+            }
         }
     }
 

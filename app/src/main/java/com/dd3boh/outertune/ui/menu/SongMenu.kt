@@ -65,7 +65,9 @@ import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.ListThumbnailSize
+import com.dd3boh.outertune.constants.SyncMode
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
+import com.dd3boh.outertune.constants.YtmSyncMode
 import com.dd3boh.outertune.db.entities.Event
 import com.dd3boh.outertune.db.entities.PlaylistSong
 import com.dd3boh.outertune.db.entities.Song
@@ -84,6 +86,7 @@ import com.dd3boh.outertune.ui.component.TextFieldDialog
 import com.dd3boh.outertune.ui.utils.imageCache
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.makeTimeString
+import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -102,8 +105,10 @@ fun SongMenu(
     val downloadUtil = LocalDownloadUtil.current
     val clipboardManager = LocalClipboard.current
     val syncUtils = LocalSyncUtils.current
-
     val playerConnection = LocalPlayerConnection.current ?: return
+
+    val syncMode by rememberEnumPreference(key = YtmSyncMode, defaultValue = SyncMode.RO)
+
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
     val download by LocalDownloadUtil.current.getDownload(originalSong.id).collectAsState(initial = null)
@@ -323,7 +328,7 @@ fun SongMenu(
             showChoosePlaylistDialog = true
         }
 
-        if (playlistSong != null) {
+        if (playlistSong != null && (playlistSong.song.song.isLocal || syncMode == SyncMode.RW)) {
             GridMenuItem(
                 icon = Icons.Rounded.PlaylistRemove,
                 title = R.string.remove_from_playlist
