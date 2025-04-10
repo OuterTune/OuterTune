@@ -92,7 +92,6 @@ class SyncUtils @Inject constructor(
     /**
      * Like single song
      */
-    @OptIn(ExperimentalCoroutinesApi::class)
     fun likeSong(s: SongEntity) {
         CoroutineScope(syncCoroutine).launch {
             YouTube.likeVideo(s.id, s.liked)
@@ -102,7 +101,6 @@ class SyncUtils @Inject constructor(
     /**
      * Add/remove to library single song
      */
-    @OptIn(ExperimentalCoroutinesApi::class)
     fun changeInLibrary(s: SongEntity) {
         CoroutineScope(syncCoroutine).launch {
             // we don't have an api call yet
