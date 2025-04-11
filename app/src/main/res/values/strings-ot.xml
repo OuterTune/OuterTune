@@ -35,6 +35,7 @@ while also allowing users to translate our app as well. New, specific strings to
 <!-- Menu -->
     <string name="select">Selection mode</string>
     <string name="like_all">Like all</string>
+    <string name="more_settings">More settings</string>
     <string name="delete_lyric_confirm">Do you really want to delete the stored lyrics for \"%s\"?</string>
 
 <!-- Player -->
