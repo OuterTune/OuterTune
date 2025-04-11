@@ -421,16 +421,14 @@ fun HomeScreen(
                         )
                     }
 
-                    if (isLoggedIn) {
-                        NavigationTile(
-                            title = stringResource(R.string.account),
-                            icon = Icons.Rounded.Person,
-                            onClick = {
-                                navController.navigate("account")
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                    NavigationTile(
+                        title = stringResource(R.string.account),
+                        icon = Icons.Rounded.Person,
+                        onClick = {
+                            navController.navigate("account")
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
 
