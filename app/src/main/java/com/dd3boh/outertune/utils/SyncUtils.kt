@@ -10,6 +10,8 @@ package com.dd3boh.outertune.utils
 
 import android.content.Context
 import android.util.Log
+import com.dd3boh.outertune.constants.SyncConflictResolution
+import com.dd3boh.outertune.constants.YtmSyncConflict
 import com.dd3boh.outertune.constants.YtmSyncContent
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.ArtistEntity
@@ -17,6 +19,7 @@ import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.PlaylistSongMap
 import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.extensions.isInternetConnected
+import com.dd3boh.outertune.extensions.toEnum
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.DownloadUtil
 import com.zionhuang.innertube.YouTube
@@ -38,6 +41,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
@@ -87,6 +91,11 @@ class SyncUtils @Inject constructor(
 
     private fun checkEnabled(item: SyncContent): Boolean {
         return decodeSyncString(context.dataStore.get(YtmSyncContent, DEFAULT_SYNC_CONTENT)).contains(item)
+    }
+
+    private fun checkOverwrite(item: SyncConflictResolution): Boolean {
+        return context.dataStore.get(YtmSyncConflict, SyncConflictResolution.ADD_ONLY.name)
+            .toEnum(defaultValue = SyncConflictResolution.ADD_ONLY) == item
     }
 
     /**
@@ -187,21 +196,21 @@ class SyncUtils @Inject constructor(
                 return
             }
 
-            /*
-            // Identify local songs to remove
-            val songsToRemoveFromLibrary = database.songsByNameAsc().first()
-                .filterNot { it.song.isLocal }
-                .filterNot { localSong -> remoteSongs.any { it.id == localSong.id } }
+            if (checkOverwrite(SyncConflictResolution.OVERWRITE_WITH_REMOTE)) {
+                // Identify local songs to remove
+                val songsToRemoveFromLibrary = database.songsByNameAsc().first()
+                    .filterNot { it.song.isLocal }
+                    .filterNot { localSong -> remoteSongs.any { it.id == localSong.id } }
 
-            // Remove local songs from the database
-            coroutineScope {
-                songsToRemoveFromLibrary.forEach { song ->
-                    launch(Dispatchers.IO) {
-                        database.update(song.song.toggleLibrary())
+                // Remove local songs from the database
+                coroutineScope {
+                    songsToRemoveFromLibrary.forEach { song ->
+                        launch(Dispatchers.IO) {
+                            database.update(song.song.toggleLibrary())
+                        }
                     }
                 }
             }
-             */
 
             // Inset or mark songs to library
             coroutineScope {
@@ -246,16 +255,18 @@ class SyncUtils @Inject constructor(
                 return
             }
 
-            // Identify local albums to remove
-            val albumsToRemoveFromLibrary = database.albumsLikedAsc().first()
-                .filterNot { it.album.isLocal }
-                .filterNot { localAlbum -> remoteAlbums.any { it.id == localAlbum.id } }
+            if (checkOverwrite(SyncConflictResolution.OVERWRITE_WITH_REMOTE)) {
+                // Identify local albums to remove
+                val albumsToRemoveFromLibrary = database.albumsLikedAsc().first()
+                    .filterNot { it.album.isLocal }
+                    .filterNot { localAlbum -> remoteAlbums.any { it.id == localAlbum.id } }
 
-            // Remove albums from local database
-            coroutineScope {
-                albumsToRemoveFromLibrary.forEach { album ->
-                    launch(Dispatchers.IO) {
-                        database.update(album.album.localToggleLike())
+                // Remove albums from local database
+                coroutineScope {
+                    albumsToRemoveFromLibrary.forEach { album ->
+                        launch(Dispatchers.IO) {
+                            database.update(album.album.localToggleLike())
+                        }
                     }
                 }
             }
@@ -317,16 +328,18 @@ class SyncUtils @Inject constructor(
                 return
             }
 
-            // Get local artists
-            val artistsToRemoveFromSubscriptions = database.artistsBookmarkedAsc().first()
-                .filterNot { it.artist.isLocal }
-                .filterNot { localArtist -> likedArtists.any { it.id == localArtist.id } }
+            if (checkOverwrite(SyncConflictResolution.OVERWRITE_WITH_REMOTE)) {
+                // Get local artists
+                val artistsToRemoveFromSubscriptions = database.artistsBookmarkedAsc().first()
+                    .filterNot { it.artist.isLocal }
+                    .filterNot { localArtist -> likedArtists.any { it.id == localArtist.id } }
 
-            // Remove local artists from the database
-            coroutineScope {
-                artistsToRemoveFromSubscriptions.forEach { artist ->
-                    launch(Dispatchers.IO) {
-                        database.update(artist.artist.localToggleLike())
+                // Remove local artists from the database
+                coroutineScope {
+                    artistsToRemoveFromSubscriptions.forEach { artist ->
+                        launch(Dispatchers.IO) {
+                            database.update(artist.artist.localToggleLike())
+                        }
                     }
                 }
             }
@@ -389,17 +402,19 @@ class SyncUtils @Inject constructor(
 
                 val localPlaylists = database.playlistInLibraryAsc().first()
 
-                // Identify playlists to remove
-                val playlistsToRemove = localPlaylists
-                    .filterNot { it.playlist.isLocal }
-                    .filterNot { it.playlist.browseId == null }
-                    .filterNot { localPlaylist -> remotePlaylists.any { it.id == localPlaylist.playlist.browseId } }
+                if (checkOverwrite(SyncConflictResolution.OVERWRITE_WITH_REMOTE)) {
+                    // Identify playlists to remove
+                    val playlistsToRemove = localPlaylists
+                        .filterNot { it.playlist.isLocal }
+                        .filterNot { it.playlist.browseId == null }
+                        .filterNot { localPlaylist -> remotePlaylists.any { it.id == localPlaylist.playlist.browseId } }
 
-                // Remove playlists from the database
-                coroutineScope {
-                    playlistsToRemove.forEach { playlist ->
-                        launch(Dispatchers.IO) {
-                            database.update(playlist.playlist.localToggleLike())
+                    // Remove playlists from the database
+                    coroutineScope {
+                        playlistsToRemove.forEach { playlist ->
+                            launch(Dispatchers.IO) {
+                                database.update(playlist.playlist.localToggleLike())
+                            }
                         }
                     }
                 }
