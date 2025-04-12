@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.dd3boh.outertune.LocalNetworkConnected
 import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
@@ -67,6 +68,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ColumnScope.SyncFrag() {
     val context = LocalContext.current
+    val isNetworkConnected = LocalNetworkConnected.current
     val syncUtils = LocalSyncUtils.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -118,7 +120,7 @@ fun ColumnScope.SyncFrag() {
                 Toast.makeText(context, context.getString(R.string.sync_progress_success), Toast.LENGTH_SHORT).show()
             }
         },
-        isEnabled = isLoggedIn
+        isEnabled = isLoggedIn && isNetworkConnected
     )
 
     val enabledContent = decodeSyncString(syncContent).sortedBy { it.name }

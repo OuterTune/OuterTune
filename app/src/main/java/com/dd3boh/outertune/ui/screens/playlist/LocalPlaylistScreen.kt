@@ -84,6 +84,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
+import com.dd3boh.outertune.LocalNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -546,6 +547,7 @@ fun LocalPlaylistHeader(
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val isNetworkConnected = LocalNetworkConnected.current
     val scope = rememberCoroutineScope()
 
     val playlistLength = remember(songs) {
@@ -705,7 +707,8 @@ fun LocalPlaylistHeader(
                                     }
                                     snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
                                 }
-                            }
+                            },
+                            enabled = isNetworkConnected
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Sync,

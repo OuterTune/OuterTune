@@ -334,23 +334,22 @@ fun AlbumMenu(
                 showSelectArtistDialog = true
             }
         }
-        if (isNetworkConnected) {
-            GridMenuItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Rounded.Sync,
-                        contentDescription = null,
-                        modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
-                    )
-                },
-                title = R.string.refetch
-            ) {
-                refetchIconDegree -= 360
-                scope.launch(Dispatchers.IO) {
-                    YouTube.album(album.id).onSuccess {
-                        database.transaction {
-                            update(album.album, it)
-                        }
+        GridMenuItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.Sync,
+                    contentDescription = null,
+                    modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
+                )
+            },
+            title = R.string.refetch,
+            enabled = isNetworkConnected
+        ) {
+            refetchIconDegree -= 360
+            scope.launch(Dispatchers.IO) {
+                YouTube.album(album.id).onSuccess {
+                    database.transaction {
+                        update(album.album, it)
                     }
                 }
             }
