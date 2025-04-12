@@ -85,7 +85,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="player_background_default">Follow theme</string>
     <string name="player_background_gradient">Gradient</string>
     <string name="player_background_style">Player background style</string>
-    <string name="show_liked_and_downloaded_playlist">Show liked and downloaded playlists in library</string>
+    <string name="show_liked_and_downloaded_playlist">Show playlists for liked and downloaded songs in library</string>
     <string name="slim_navbar_title">Slim navbar</string>
     <string name="slim_navbar_description">Remove text labels to reduce navbar height</string>
     <string name="tab_arrangement">Arrange tabs</string>
