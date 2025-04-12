@@ -615,7 +615,7 @@ object YouTube {
 
     suspend fun getChannelId(browseId: String): String {
         artist(browseId).onSuccess {
-            return it.artist.channelId!!
+            return it.artist.channelId ?: ""
         }
         return ""
     }
