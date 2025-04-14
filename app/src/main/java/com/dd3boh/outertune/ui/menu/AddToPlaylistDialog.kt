@@ -30,7 +30,7 @@ import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListThumbnailSize
 import com.dd3boh.outertune.constants.SyncMode
-import com.dd3boh.outertune.constants.YtmSyncMode
+import com.dd3boh.outertune.constants.YtmSyncModeKey
 import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.ui.component.CreatePlaylistDialog
 import com.dd3boh.outertune.ui.component.DefaultDialog
@@ -53,7 +53,7 @@ fun AddToPlaylistDialog(
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
 
-    val syncMode by rememberEnumPreference(key = YtmSyncMode, defaultValue = SyncMode.RO)
+    val syncMode by rememberEnumPreference(key = YtmSyncModeKey, defaultValue = SyncMode.RO)
 
     var playlists by remember {
         mutableStateOf(emptyList<Playlist>())

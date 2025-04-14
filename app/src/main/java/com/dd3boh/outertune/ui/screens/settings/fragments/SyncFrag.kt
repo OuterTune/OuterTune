@@ -46,10 +46,10 @@ import com.dd3boh.outertune.constants.PauseListenHistoryKey
 import com.dd3boh.outertune.constants.PauseRemoteListenHistoryKey
 import com.dd3boh.outertune.constants.SyncConflictResolution
 import com.dd3boh.outertune.constants.SyncMode
-import com.dd3boh.outertune.constants.YtmSyncConflict
-import com.dd3boh.outertune.constants.YtmSyncContent
+import com.dd3boh.outertune.constants.YtmSyncConflictKey
+import com.dd3boh.outertune.constants.YtmSyncContentKey
 import com.dd3boh.outertune.constants.YtmSyncKey
-import com.dd3boh.outertune.constants.YtmSyncMode
+import com.dd3boh.outertune.constants.YtmSyncModeKey
 import com.dd3boh.outertune.ui.component.EnumListPreference
 import com.dd3boh.outertune.ui.component.ListPreference
 import com.dd3boh.outertune.ui.component.PreferenceEntry
@@ -79,11 +79,11 @@ fun ColumnScope.SyncFrag() {
     }
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
     val (syncContent, onSyncContentChange) = rememberPreference(
-        YtmSyncContent,
+        YtmSyncContentKey,
         defaultValue = SyncUtils.DEFAULT_SYNC_CONTENT
     )
-    val (syncConflict, onSyncConflictChange) = rememberEnumPreference(key = YtmSyncConflict, defaultValue = SyncConflictResolution.ADD_ONLY)
-    val (syncMode, onSyncModeChange) = rememberEnumPreference(key = YtmSyncMode, defaultValue = SyncMode.RO)
+    val (syncConflict, onSyncConflictChange) = rememberEnumPreference(key = YtmSyncConflictKey, defaultValue = SyncConflictResolution.ADD_ONLY)
+    val (syncMode, onSyncModeChange) = rememberEnumPreference(key = YtmSyncModeKey, defaultValue = SyncMode.RO)
     val pauseListenHistory by rememberPreference(key = PauseListenHistoryKey, defaultValue = false)
     val (pauseRemoteListenHistory, onPauseRemoteListenHistoryChange) = rememberPreference(
         key = PauseRemoteListenHistoryKey,

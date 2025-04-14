@@ -11,8 +11,8 @@ package com.dd3boh.outertune.utils
 import android.content.Context
 import android.util.Log
 import com.dd3boh.outertune.constants.SyncConflictResolution
-import com.dd3boh.outertune.constants.YtmSyncConflict
-import com.dd3boh.outertune.constants.YtmSyncContent
+import com.dd3boh.outertune.constants.YtmSyncConflictKey
+import com.dd3boh.outertune.constants.YtmSyncContentKey
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.ArtistEntity
 import com.dd3boh.outertune.db.entities.PlaylistEntity
@@ -90,11 +90,11 @@ class SyncUtils @Inject constructor(
     }
 
     private fun checkEnabled(item: SyncContent): Boolean {
-        return decodeSyncString(context.dataStore.get(YtmSyncContent, DEFAULT_SYNC_CONTENT)).contains(item)
+        return decodeSyncString(context.dataStore.get(YtmSyncContentKey, DEFAULT_SYNC_CONTENT)).contains(item)
     }
 
     private fun checkOverwrite(item: SyncConflictResolution): Boolean {
-        return context.dataStore.get(YtmSyncConflict, SyncConflictResolution.ADD_ONLY.name)
+        return context.dataStore.get(YtmSyncConflictKey, SyncConflictResolution.ADD_ONLY.name)
             .toEnum(defaultValue = SyncConflictResolution.ADD_ONLY) == item
     }
 

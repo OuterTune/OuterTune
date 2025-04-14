@@ -27,9 +27,9 @@ val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
  */
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val YtmSyncKey = booleanPreferencesKey("ytmSync")
-val YtmSyncContent = stringPreferencesKey("ytmSyncContent")
-val YtmSyncMode = stringPreferencesKey("ytmSyncMode")
-val YtmSyncConflict = stringPreferencesKey("ytmSyncConflict")
+val YtmSyncContentKey = stringPreferencesKey("ytmSyncContent")
+val YtmSyncModeKey = stringPreferencesKey("ytmSyncMode")
+val YtmSyncConflictKey = stringPreferencesKey("ytmSyncConflict")
 val LikedAutoDownloadKey = stringPreferencesKey("likedAutoDownloadKey")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
