@@ -7,7 +7,6 @@ import com.dd3boh.outertune.constants.PlaylistFilter
 import com.dd3boh.outertune.constants.PlaylistSortType
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.Album
-import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.db.entities.LocalItem
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.extensions.isSyncEnabled
@@ -201,7 +200,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             load()
             if (context.isSyncEnabled()) { // defaults to true
-                viewModelScope.launch(Dispatchers.IO) { syncUtils.syncAll() }
+                viewModelScope.launch(Dispatchers.IO) { syncUtils.tryAutoSync() }
             }
         }
     }

@@ -116,7 +116,7 @@ fun ColumnScope.SyncFrag() {
         onClick = {
             Toast.makeText(context, context.getString(R.string.sync_progress_active), Toast.LENGTH_SHORT).show()
             coroutineScope.launch(Dispatchers.Main) {
-                syncUtils.syncAll()
+                syncUtils.tryAutoSync(true)
                 Toast.makeText(context, context.getString(R.string.sync_progress_success), Toast.LENGTH_SHORT).show()
             }
         },

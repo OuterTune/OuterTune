@@ -10,6 +10,8 @@ package com.dd3boh.outertune.utils
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.preferences.core.edit
+import com.dd3boh.outertune.constants.LastFullSyncKey
 import com.dd3boh.outertune.constants.SyncConflictResolution
 import com.dd3boh.outertune.constants.YtmSyncConflictKey
 import com.dd3boh.outertune.constants.YtmSyncContentKey
@@ -41,11 +43,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -74,18 +76,31 @@ class SyncUtils @Inject constructor(
     val syncCoroutine = newSingleThreadContext("syncUtils")
 
     private val TAG = "SyncUtils"
+    private val syncCd = 60000 * 30
 
     companion object {
         const val DEFAULT_SYNC_CONTENT = "ARPLS"
     }
 
-    suspend fun syncAll() {
+    suspend fun tryAutoSync(bypassCd: Boolean = false) {
+        Log.d(TAG, "Starting auto sync job")
+        if (!bypassCd) {
+            val lastSync = context.dataStore.get(LastFullSyncKey, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+            val currentTime = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            if (currentTime - lastSync > syncCd) {
+                Log.d(TAG, "Aborting auto sync. ${(currentTime - lastSync) * 60000} minutes until eligible")
+                return
+            }
+        }
         coroutineScope {
             launch { syncRemoteLikedSongs() }
             launch { syncRemoteSongs() }
             launch { syncRemoteAlbums() }
             launch { syncRemoteArtists() }
             launch { syncRemotePlaylists() }
+            context.dataStore.edit { settings ->
+                settings[LastFullSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            }
         }
     }
 
