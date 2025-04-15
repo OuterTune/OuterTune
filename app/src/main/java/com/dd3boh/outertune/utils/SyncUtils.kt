@@ -10,8 +10,15 @@ package com.dd3boh.outertune.utils
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.dd3boh.outertune.constants.LastAlbumSyncKey
+import com.dd3boh.outertune.constants.LastArtistSyncKey
 import com.dd3boh.outertune.constants.LastFullSyncKey
+import com.dd3boh.outertune.constants.LastLibSongSyncKey
+import com.dd3boh.outertune.constants.LastLikeSongSyncKey
+import com.dd3boh.outertune.constants.LastPlaylistSyncKey
+import com.dd3boh.outertune.constants.LastRecentActivitySyncKey
 import com.dd3boh.outertune.constants.SyncConflictResolution
 import com.dd3boh.outertune.constants.YtmSyncConflictKey
 import com.dd3boh.outertune.constants.YtmSyncContentKey
@@ -21,6 +28,7 @@ import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.PlaylistSongMap
 import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.extensions.isInternetConnected
+import com.dd3boh.outertune.extensions.isSyncEnabled
 import com.dd3boh.outertune.extensions.toEnum
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.DownloadUtil
@@ -107,6 +115,15 @@ class SyncUtils @Inject constructor(
     private fun checkEnabled(item: SyncContent): Boolean {
         return decodeSyncString(context.dataStore.get(YtmSyncContentKey, DEFAULT_SYNC_CONTENT)).contains(item)
     }
+    private fun checkPartialSyncEligibility(key: Preferences.Key<Long>): Boolean {
+        val lastSync = context.dataStore.get(key, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+        val currentTime = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+        if (currentTime - lastSync > syncCd) {
+            Log.d(TAG, "Aborting auto sync. ${(currentTime - lastSync) * 60000} minutes until eligible")
+            return false
+        }
+        return true
+    }
 
     private fun checkOverwrite(item: SyncConflictResolution): Boolean {
         return context.dataStore.get(YtmSyncConflictKey, SyncConflictResolution.ADD_ONLY.name)
@@ -134,8 +151,11 @@ class SyncUtils @Inject constructor(
     /**
      * Singleton syncRemoteLikedSongs
      */
-    suspend fun syncRemoteLikedSongs() {
-        if (!checkEnabled(SyncContent.LIKED_SONGS) || !context.isInternetConnected()) {
+    suspend fun syncRemoteLikedSongs(bypassCd: Boolean = false) {
+        if (context.isSyncEnabled() || !checkEnabled(SyncContent.LIKED_SONGS) || !context.isInternetConnected()) {
+            return
+        }
+        if (!bypassCd && !checkPartialSyncEligibility(LastLikeSongSyncKey)) {
             return
         }
 
@@ -148,7 +168,7 @@ class SyncUtils @Inject constructor(
             Log.d(TAG, "Liked songs synchronization started")
 
             // Get remote and local liked songs
-            YouTube.playlist("LM").completed().onSuccess{ page->
+            YouTube.playlist("LM").completed().onSuccess { page ->
                 if (!context.isInternetConnected()) {
                     return
                 }
@@ -185,6 +205,9 @@ class SyncUtils @Inject constructor(
             val songs = database.likedSongsNotDownloaded().first().map { it.song }
             downloadUtil.autoDownloadIfLiked(songs)
         } finally {
+            context.dataStore.edit { settings ->
+                settings[LastLikeSongSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            }
             Log.i(TAG, "Liked songs synchronization ended")
             _isSyncingRemoteLikedSongs.value = false
         }
@@ -193,13 +216,16 @@ class SyncUtils @Inject constructor(
     /**
      * Singleton syncRemoteSongs
      */
-    suspend fun syncRemoteSongs() {
-        if (!checkEnabled(SyncContent.PRIVATE_SONGS) || !context.isInternetConnected()) {
+    suspend fun syncRemoteSongs(bypassCd: Boolean = false) {
+        if (context.isSyncEnabled() || !checkEnabled(SyncContent.PRIVATE_SONGS) || !context.isInternetConnected()) {
             return
         }
         if (!_isSyncingRemoteSongs.compareAndSet(expect = false, update = true)) {
             Log.i(TAG, "Library songs synchronization already in progress")
             return // Synchronization already in progress
+        }
+        if (!bypassCd && !checkPartialSyncEligibility(LastLibSongSyncKey)) {
+            return
         }
 
         try {
@@ -244,6 +270,9 @@ class SyncUtils @Inject constructor(
                 jobs.joinAll()
             }
         } finally {
+            context.dataStore.edit { settings ->
+                settings[LastLibSongSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            }
             Log.i(TAG, "Library songs synchronization ended")
             _isSyncingRemoteSongs.value = false
         }
@@ -252,20 +281,24 @@ class SyncUtils @Inject constructor(
     /**
      * Singleton syncRemoteAlbums
      */
-    suspend fun syncRemoteAlbums() {
-        if (!checkEnabled(SyncContent.ALBUMS) || !context.isInternetConnected()) {
+    suspend fun syncRemoteAlbums(bypassCd: Boolean = false) {
+        if (context.isSyncEnabled() || !checkEnabled(SyncContent.ALBUMS) || !context.isInternetConnected()) {
             return
         }
         if (!_isSyncingRemoteAlbums.compareAndSet(expect = false, update = true)) {
             Log.i(TAG, "Library albums synchronization already in progress")
             return // Synchronization already in progress
         }
+        if (!bypassCd && !checkPartialSyncEligibility(LastAlbumSyncKey)) {
+            return
+        }
 
         try {
             Log.i(TAG, "Library albums synchronization started")
 
             // Get remote albums (from library and uploads)
-            val remoteAlbums = getRemoteData<AlbumItem>("FEmusic_liked_albums", "FEmusic_library_privately_owned_releases")
+            val remoteAlbums =
+                getRemoteData<AlbumItem>("FEmusic_liked_albums", "FEmusic_library_privately_owned_releases")
             if (!context.isInternetConnected()) {
                 return
             }
@@ -303,6 +336,9 @@ class SyncUtils @Inject constructor(
                 }
             }
         } finally {
+            context.dataStore.edit { settings ->
+                settings[LastAlbumSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            }
             Log.i(TAG, "Library albums synchronization ended")
             _isSyncingRemoteAlbums.value = false // Use the correct AtomicBoolean
         }
@@ -311,13 +347,16 @@ class SyncUtils @Inject constructor(
     /**
      * Singleton syncRemoteArtists
      */
-    suspend fun syncRemoteArtists() {
-        if (!checkEnabled(SyncContent.ARTISTS) || !context.isInternetConnected()) {
+    suspend fun syncRemoteArtists(bypassCd: Boolean = false) {
+        if (context.isSyncEnabled() || !checkEnabled(SyncContent.ARTISTS) || !context.isInternetConnected()) {
             return
         }
         if (!_isSyncingRemoteArtists.compareAndSet(expect = false, update = true)) {
             Log.i(TAG, "Artist subscriptions synchronization already in progress")
             return // Synchronization already in progress
+        }
+        if (!bypassCd && !checkPartialSyncEligibility(LastArtistSyncKey)) {
+            return
         }
 
         try {
@@ -334,8 +373,8 @@ class SyncUtils @Inject constructor(
             )
             val remoteArtists = mutableListOf<ArtistItem>().apply {
                 addAll(likedArtists)
-                addAll(trackArtists.filterNot {
-                    trackArtist -> likedArtists.any { it.id == trackArtist.id }
+                addAll(trackArtists.filterNot { trackArtist ->
+                    likedArtists.any { it.id == trackArtist.id }
                 })
             }
 
@@ -385,6 +424,9 @@ class SyncUtils @Inject constructor(
                 }
             }
         } finally {
+            context.dataStore.edit { settings ->
+                settings[LastArtistSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            }
             Log.i(TAG, "Artist subscriptions synchronization ended")
             _isSyncingRemoteArtists.value = false
         }
@@ -393,12 +435,15 @@ class SyncUtils @Inject constructor(
     /**
      * Singleton syncRemotePlaylists
      */
-    suspend fun syncRemotePlaylists() {
-        if (!checkEnabled(SyncContent.PLAYLISTS) || !context.isInternetConnected()) {
+    suspend fun syncRemotePlaylists(bypassCd: Boolean = false) {
+        if (context.isSyncEnabled() || !checkEnabled(SyncContent.PLAYLISTS) || !context.isInternetConnected()) {
             return
         }
         if (!_isSyncingRemotePlaylists.compareAndSet(expect = false, update = true)) {
             Log.i(TAG, "Library playlist synchronization already in progress")
+            return
+        }
+        if (!bypassCd && !checkPartialSyncEligibility(LastPlaylistSyncKey)) {
             return
         }
 
@@ -412,7 +457,7 @@ class SyncUtils @Inject constructor(
                 }
 
                 val remotePlaylists = page.items.filterIsInstance<PlaylistItem>()
-                    .filterNot { it.id == "LM" ||  it.id == "SE" }
+                    .filterNot { it.id == "LM" || it.id == "SE" }
                     .reversed()
 
                 val localPlaylists = database.playlistInLibraryAsc().first()
@@ -473,6 +518,9 @@ class SyncUtils @Inject constructor(
                 }
             }
         } finally {
+            context.dataStore.edit { settings ->
+                settings[LastPlaylistSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            }
             _isSyncingRemotePlaylists.value = false
             Log.i(TAG, "Library playlist synchronization ended")
         }
@@ -511,8 +559,11 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun syncRecentActivity() {
-        if (!context.isInternetConnected()) {
+    suspend fun syncRecentActivity(bypassCd: Boolean = false) {
+        if (context.isSyncEnabled() || !context.isInternetConnected()) {
+            return
+        }
+        if (!bypassCd && !checkPartialSyncEligibility(LastRecentActivitySyncKey)) {
             return
         }
         YouTube.libraryRecentActivity().onSuccess { page ->
@@ -525,6 +576,10 @@ class SyncUtils @Inject constructor(
                     recentActivity.reversed().forEach { database.insertRecentActivityItem(it) }
                 }
             }
+        }
+
+        context.dataStore.edit { settings ->
+            settings[LastRecentActivitySyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
         }
     }
 

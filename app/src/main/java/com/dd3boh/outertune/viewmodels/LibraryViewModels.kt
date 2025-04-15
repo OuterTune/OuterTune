@@ -93,8 +93,12 @@ class LibrarySongsViewModel @Inject constructor(
     private val excludedScanPaths = context.dataStore[ExcludedScanPathsKey]?: ""
     val localSongDirectoryTree: MutableStateFlow<DirectoryTree?> = getLocalSongs(database)
 
-    fun syncLibrarySongs() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteSongs() } }
-    fun syncLikedSongs() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteLikedSongs() } }
+    fun syncLibrarySongs(bypassCd: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteSongs(bypassCd) }
+    }
+    fun syncLikedSongs(bypassCd: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteLikedSongs(bypassCd) }
+    }
 
     /**
      * Get local songs asynchronously, as a full directory tree
@@ -159,7 +163,9 @@ class LibraryArtistsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    fun syncArtists() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteArtists() } }
+    fun syncArtists(bypassCd: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteArtists(bypassCd) }
+    }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -203,7 +209,9 @@ class LibraryAlbumsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    fun syncAlbums() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteAlbums() } }
+    fun syncAlbums(bypassCd: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemoteAlbums(bypassCd) }
+    }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -252,7 +260,9 @@ class LibraryPlaylistsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    fun syncPlaylists() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemotePlaylists() } }
+    fun syncPlaylists(bypassCd: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncRemotePlaylists(bypassCd) }
+    }
 }
 
 @HiltViewModel
@@ -260,7 +270,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
 class LibraryViewModel @Inject constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
-    syncUtils: SyncUtils
+    private val syncUtils: SyncUtils
 ) : ViewModel() {
 
     val isSyncingRemoteLikedSongs = syncUtils.isSyncingRemoteLikedSongs
@@ -301,6 +311,10 @@ class LibraryViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun syncAll(bypassCd: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) { syncUtils.tryAutoSync(bypassCd) }
+    }
 }
 
 @HiltViewModel

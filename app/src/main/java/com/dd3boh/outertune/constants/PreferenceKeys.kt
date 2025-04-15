@@ -30,14 +30,22 @@ val YtmSyncKey = booleanPreferencesKey("ytmSync")
 val YtmSyncContentKey = stringPreferencesKey("ytmSyncContent")
 val YtmSyncModeKey = stringPreferencesKey("ytmSyncMode")
 val YtmSyncConflictKey = stringPreferencesKey("ytmSyncConflict")
-val LastFullSyncKey = longPreferencesKey("lastFullSync")
-val LastPartialSyncKey = longPreferencesKey("lastPartialSync")
 val LikedAutoDownloadKey = stringPreferencesKey("likedAutoDownloadKey")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
 val ProxyEnabledKey = booleanPreferencesKey("proxyEnabled")
 val ProxyUrlKey = stringPreferencesKey("proxyUrl")
 val ProxyTypeKey = stringPreferencesKey("proxyType")
+
+// sync time tracks
+val LastFullSyncKey = longPreferencesKey("lastFullSync")
+val LastLikeSongSyncKey = longPreferencesKey("lastLikeSongSync")
+val LastLibSongSyncKey = longPreferencesKey("lastLibSongSync")
+val LastAlbumSyncKey = longPreferencesKey("lastAlbumSync")
+val LastArtistSyncKey = longPreferencesKey("lastArtistSync")
+val LastPlaylistSyncKey = longPreferencesKey("lastPlaylistSync")
+val LastRecentActivitySyncKey = longPreferencesKey("lastRecentActivitySync")
+
 
 enum class SyncMode {
     RO, RW, // USER_CHOICE

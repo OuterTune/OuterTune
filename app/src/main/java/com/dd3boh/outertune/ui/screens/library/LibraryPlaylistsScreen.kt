@@ -26,11 +26,15 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -66,6 +70,7 @@ import com.dd3boh.outertune.constants.PlaylistSortType
 import com.dd3boh.outertune.constants.PlaylistSortTypeKey
 import com.dd3boh.outertune.constants.PlaylistViewTypeKey
 import com.dd3boh.outertune.constants.ShowLikedAndDownloadedPlaylist
+import com.dd3boh.outertune.constants.SongFilter
 import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.extensions.isSyncEnabled
 import com.dd3boh.outertune.ui.component.CreatePlaylistDialog
@@ -83,6 +88,7 @@ import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.LibraryPlaylistsViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryPlaylistsScreen(
     navController: NavController,
@@ -107,6 +113,7 @@ fun LibraryPlaylistsScreen(
 
     val playlists by viewModel.allPlaylists.collectAsState()
     val isSyncingRemotePlaylists by viewModel.isSyncingRemotePlaylists.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     val likedPlaylist = PlaylistEntity(id = "liked", name = stringResource(id = R.string.liked_songs))
     val downloadedPlaylist = PlaylistEntity(id = "downloaded", name = stringResource(id = R.string.downloaded_songs))
@@ -118,7 +125,7 @@ fun LibraryPlaylistsScreen(
 
     var showCreatePlaylistDialog by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) { if (context.isSyncEnabled()) viewModel.syncPlaylists() }
+    LaunchedEffect(Unit) { viewModel.syncPlaylists() }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -167,9 +174,7 @@ fun LibraryPlaylistsScreen(
             currentValue = filter,
             onValueUpdate = {
                 filter = it
-                if (context.isSyncEnabled()) {
-                    if (it == PlaylistFilter.LIBRARY) viewModel.syncPlaylists()
-                }
+                if (it == PlaylistFilter.LIBRARY) viewModel.syncPlaylists()
             },
             isLoading = { filter ->
                 filter == PlaylistFilter.LIBRARY && isSyncingRemotePlaylists
@@ -229,7 +234,15 @@ fun LibraryPlaylistsScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isSyncingRemotePlaylists,
+                onRefresh = {
+                    viewModel.syncPlaylists()
+                }
+            ),
     ) {
         when (viewType) {
             LibraryViewType.LIST -> {
@@ -413,6 +426,14 @@ fun LibraryPlaylistsScreen(
                 )
             }
         }
+
+        Indicator(
+            isRefreshing = isSyncingRemotePlaylists,
+            state = pullRefreshState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+        )
 
     }
 }

@@ -18,11 +18,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -47,6 +52,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.MainActivity
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
@@ -73,7 +79,9 @@ import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.LibrarySongsViewModel
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibrarySongsScreen(
     navController: NavController,
@@ -81,6 +89,7 @@ fun LibrarySongsScreen(
     libraryFilterContent: @Composable (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val snackbarHostState = remember { SnackbarHostState() }
@@ -95,6 +104,7 @@ fun LibrarySongsScreen(
     val songs by viewModel.allSongs.collectAsState()
     val isSyncingRemoteLikedSongs by viewModel.isSyncingRemoteLikedSongs.collectAsState()
     val isSyncingRemoteSongs by viewModel.isSyncingRemoteSongs.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     val lazyListState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -136,12 +146,10 @@ fun LibrarySongsScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (context.isSyncEnabled()) {
-            when (filter) {
-                SongFilter.LIKED -> viewModel.syncLikedSongs()
-                SongFilter.LIBRARY -> viewModel.syncLibrarySongs()
-                else -> return@LaunchedEffect
-            }
+        when (filter) {
+            SongFilter.LIKED -> viewModel.syncLikedSongs()
+            SongFilter.LIBRARY -> viewModel.syncLibrarySongs()
+            else -> return@LaunchedEffect
         }
     }
 
@@ -155,10 +163,8 @@ fun LibrarySongsScreen(
             currentValue = filter,
             onValueUpdate = {
                 filter = it
-                if (context.isSyncEnabled()) {
-                    if (it == SongFilter.LIKED) viewModel.syncLikedSongs()
-                    else if (it == SongFilter.LIBRARY) viewModel.syncLibrarySongs()
-                }
+                if (it == SongFilter.LIKED) viewModel.syncLikedSongs()
+                else if (it == SongFilter.LIBRARY) viewModel.syncLibrarySongs()
             },
             isLoading = { filter ->
                 (filter == SongFilter.LIKED && isSyncingRemoteLikedSongs) || (filter == SongFilter.LIBRARY && isSyncingRemoteSongs)
@@ -202,7 +208,19 @@ fun LibrarySongsScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isSyncingRemoteLikedSongs || isSyncingRemoteSongs,
+                onRefresh = {
+                    when (filter) {
+                        SongFilter.LIKED -> viewModel.syncLikedSongs(true)
+                        SongFilter.LIBRARY -> viewModel.syncLibrarySongs(true)
+                        else -> return@pullToRefresh
+                    }
+                }
+            ),
     ) {
         LazyColumn(
             state = lazyListState,
@@ -302,7 +320,13 @@ fun LibrarySongsScreen(
             }
         )
 
-
+        Indicator(
+            isRefreshing = isSyncingRemoteLikedSongs || isSyncingRemoteSongs,
+            state = pullRefreshState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+        )
         FloatingFooter(visible = inSelectMode && songs != null) {
             val s: List<Song> = (songs as Iterable<Song>).toList()
             SelectHeader(

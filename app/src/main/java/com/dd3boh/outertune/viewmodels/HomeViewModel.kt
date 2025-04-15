@@ -199,9 +199,7 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             load()
-            if (context.isSyncEnabled()) { // defaults to true
-                viewModelScope.launch(Dispatchers.IO) { syncUtils.tryAutoSync() }
-            }
+            viewModelScope.launch(Dispatchers.IO) { syncUtils.tryAutoSync() }
         }
     }
 }
