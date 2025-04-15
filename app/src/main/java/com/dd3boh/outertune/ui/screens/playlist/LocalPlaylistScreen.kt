@@ -87,6 +87,7 @@ import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalNetworkConnected
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AlbumThumbnailSize
 import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
@@ -99,7 +100,6 @@ import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.constants.YtmSyncModeKey
 import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.db.entities.PlaylistSong
-import com.dd3boh.outertune.db.entities.PlaylistSongMap
 import com.dd3boh.outertune.extensions.move
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.toMediaMetadata
@@ -125,8 +125,6 @@ import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.LocalPlaylistViewModel
 import com.zionhuang.innertube.YouTube
-import com.zionhuang.innertube.models.SongItem
-import com.zionhuang.innertube.utils.completed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -549,6 +547,7 @@ fun LocalPlaylistHeader(
     val database = LocalDatabase.current
     val isNetworkConnected = LocalNetworkConnected.current
     val scope = rememberCoroutineScope()
+    val syncUtils = LocalSyncUtils.current
 
     val playlistLength = remember(songs) {
         songs.fastSumBy { it.song.song.duration }
@@ -687,24 +686,8 @@ fun LocalPlaylistHeader(
                     if (playlist.playlist.browseId != null) {
                         IconButton(
                             onClick = {
-                                scope.launch(Dispatchers.IO) {
-                                    val playlistPage =
-                                        YouTube.playlist(playlist.playlist.browseId).completed().getOrNull()
-                                            ?: return@launch
-                                    database.transaction {
-                                        clearPlaylist(playlist.id)
-                                        playlistPage.songs
-                                            .map(SongItem::toMediaMetadata)
-                                            .onEach(::insert)
-                                            .mapIndexed { position, song ->
-                                                PlaylistSongMap(
-                                                    songId = song.id,
-                                                    playlistId = playlist.id,
-                                                    position = position
-                                                )
-                                            }
-                                            .forEach(::insert)
-                                    }
+                                scope.launch {
+                                    syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
                                     snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
                                 }
                             },
