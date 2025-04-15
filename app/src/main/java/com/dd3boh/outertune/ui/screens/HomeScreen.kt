@@ -36,6 +36,7 @@ import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.Casino
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
@@ -68,6 +69,7 @@ import com.dd3boh.outertune.constants.GridThumbnailHeight
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.ListThumbnailSize
+import com.dd3boh.outertune.constants.LocalLibraryEnableKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.db.entities.Artist
@@ -158,6 +160,7 @@ fun HomeScreen(
     val forgottenFavoritesLazyGridState = rememberLazyGridState()
     val recentActivityGridState = rememberLazyGridState()
 
+    val localLibEnable by rememberPreference(LocalLibraryEnableKey, defaultValue = true)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
@@ -407,16 +410,25 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    if (isLoggedIn) {
+                    if (localLibEnable) {
                         NavigationTile(
-                            title = stringResource(R.string.account),
-                            icon = Icons.Rounded.Person,
+                            title = stringResource(R.string.scanner_local_title),
+                            icon = Icons.Rounded.SdCard,
                             onClick = {
-                                navController.navigate("account")
+                                navController.navigate("settings/local")
                             },
                             modifier = Modifier.weight(1f)
                         )
                     }
+
+                    NavigationTile(
+                        title = stringResource(R.string.account),
+                        icon = Icons.Rounded.Person,
+                        onClick = {
+                            navController.navigate("account")
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
 

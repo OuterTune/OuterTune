@@ -2,6 +2,8 @@ package com.dd3boh.outertune.constants
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -24,6 +26,8 @@ val SearchFilterHeight = 48.dp
 val ListThumbnailSize = 48.dp
 val GridThumbnailHeight = 128.dp
 val AlbumThumbnailSize = 144.dp
+@OptIn(ExperimentalMaterial3Api::class)
+val SettingsTopBarHeight = TopAppBarDefaults.TopAppBarExpandedHeight + 32.dp
 
 val ThumbnailCornerRadius = 6.dp
 val MenuCornerRadius = 16.dp

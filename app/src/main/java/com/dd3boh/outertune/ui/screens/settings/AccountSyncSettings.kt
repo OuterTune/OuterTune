@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2025 OuterTune Project
+ * Copyright (C) 2024 z-huang/InnerTune
+ * Copyright (C) 2025 O‌ute‌rTu‌ne Project
  *
  * SPDX-License-Identifier: GPL-3.0
  *
@@ -8,6 +9,7 @@
 
 package com.dd3boh.outertune.ui.screens.settings
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -18,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -30,53 +31,39 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
-import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.SettingsTopBarHeight
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
-import com.dd3boh.outertune.ui.component.SwitchPreference
-import com.dd3boh.outertune.ui.screens.settings.fragments.LocalScannerExtraFrag
-import com.dd3boh.outertune.ui.screens.settings.fragments.LocalScannerFrag
+import com.dd3boh.outertune.ui.screens.settings.fragments.AccountFrag
+import com.dd3boh.outertune.ui.screens.settings.fragments.SyncFrag
 import com.dd3boh.outertune.ui.utils.backToMain
-import com.dd3boh.outertune.utils.rememberPreference
 
-
+@SuppressLint("PrivateResource")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocalPlayerSettings(
+fun AccountSyncSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val (autoScan, onAutoScanChange) = rememberPreference(AutomaticScannerKey, defaultValue = false)
-
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.height(SettingsTopBarHeight))
-        // automatic scanner
-        SwitchPreference(
-            title = { Text(stringResource(R.string.auto_scanner_title)) },
-            description = stringResource(R.string.auto_scanner_description),
-            icon = { Icon(Icons.Rounded.Autorenew, null) },
-            checked = autoScan,
-            onCheckedChange = onAutoScanChange
+        PreferenceGroupTitle(
+            title = stringResource(R.string.account)
         )
+        AccountFrag(navController)
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.grp_manual_scanner)
+            title = stringResource(R.string.sync)
         )
-        LocalScannerFrag()
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.grp_extra_scanner_settings)
-        )
-        LocalScannerExtraFrag()
+        SyncFrag()
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.local_player_settings_title)) },
+        title = { Text(stringResource(R.string.grp_account_sync)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
@@ -91,3 +78,4 @@ fun LocalPlayerSettings(
         scrollBehavior = scrollBehavior
     )
 }
+

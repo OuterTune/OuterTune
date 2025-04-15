@@ -2,12 +2,25 @@ package com.dd3boh.outertune.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -16,25 +29,35 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.AccountNameKey
 import com.dd3boh.outertune.constants.GridThumbnailHeight
+import com.dd3boh.outertune.constants.InnerTubeCookieKey
+import com.dd3boh.outertune.constants.SettingsTopBarHeight
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.LocalMenuState
+import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.YouTubeGridItem
 import com.dd3boh.outertune.ui.component.shimmer.GridItemPlaceHolder
 import com.dd3boh.outertune.ui.component.shimmer.ShimmerHost
 import com.dd3boh.outertune.ui.menu.YouTubeAlbumMenu
 import com.dd3boh.outertune.ui.menu.YouTubeArtistMenu
 import com.dd3boh.outertune.ui.menu.YouTubePlaylistMenu
+import com.dd3boh.outertune.ui.screens.settings.fragments.AccountFrag
 import com.dd3boh.outertune.ui.utils.backToMain
+import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.AccountViewModel
+import com.zionhuang.innertube.utils.parseCookieString
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -47,6 +70,12 @@ fun AccountScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+    val accountName by rememberPreference(AccountNameKey, stringResource(R.string.not_logged_in))
+
     val playlists by viewModel.playlists.collectAsState()
 
     val albums by viewModel.albums.collectAsState()
@@ -55,8 +84,21 @@ fun AccountScreen(
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
-        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+        contentPadding = LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom).asPaddingValues()
     ) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Spacer(Modifier.height(SettingsTopBarHeight))
+        }
+        stickyHeader {
+            if (!isLoggedIn) {
+                Column {
+                    PreferenceGroupTitle(
+                        title = stringResource(R.string.account)
+                    )
+                    AccountFrag(navController)
+                }
+            }
+        }
         items(
             items = playlists.orEmpty(),
             key = { it.id }
@@ -141,7 +183,31 @@ fun AccountScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.account)) },
+        title = {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = accountName,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (isLoggedIn) {
+                    IconButton(
+                        onClick = {
+                            navController.navigate("settings/account_sync")
+                        },
+                        onLongClick = { },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Settings,
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+        },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

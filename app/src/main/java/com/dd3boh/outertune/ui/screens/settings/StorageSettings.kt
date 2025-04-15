@@ -11,7 +11,11 @@ package com.dd3boh.outertune.ui.screens.settings
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -46,6 +50,7 @@ import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.MaxImageCacheSizeKey
 import com.dd3boh.outertune.constants.MaxSongCacheSizeKey
+import com.dd3boh.outertune.constants.SettingsTopBarHeight
 import com.dd3boh.outertune.constants.SongSortType
 import com.dd3boh.outertune.extensions.tryOrNull
 import com.dd3boh.outertune.playback.ExoDownloadService
@@ -124,9 +129,10 @@ fun StorageSettings(
 
     Column(
         Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
+        Spacer(Modifier.height(SettingsTopBarHeight))
         PreferenceGroupTitle(
             title = stringResource(R.string.downloaded_songs)
         )

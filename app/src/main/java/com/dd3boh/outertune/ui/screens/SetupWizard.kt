@@ -9,6 +9,7 @@
 package com.dd3boh.outertune.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,25 +39,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.automirrored.rounded.NavigateBefore
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Autorenew
-import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.MusicVideo
 import androidx.compose.material.icons.rounded.NotInterested
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.RadioButtonChecked
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -89,8 +90,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -100,31 +99,39 @@ import com.dd3boh.outertune.constants.AccountChannelHandleKey
 import com.dd3boh.outertune.constants.AccountEmailKey
 import com.dd3boh.outertune.constants.AccountNameKey
 import com.dd3boh.outertune.constants.AutomaticScannerKey
+import com.dd3boh.outertune.constants.ContentCountryKey
+import com.dd3boh.outertune.constants.ContentLanguageKey
+import com.dd3boh.outertune.constants.CountryCodeToName
 import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.DataSyncIdKey
 import com.dd3boh.outertune.constants.FirstSetupPassed
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
+import com.dd3boh.outertune.constants.LanguageCodeToName
 import com.dd3boh.outertune.constants.LibraryFilterKey
 import com.dd3boh.outertune.constants.LocalLibraryEnableKey
 import com.dd3boh.outertune.constants.LyricTrimKey
 import com.dd3boh.outertune.constants.PureBlackKey
+import com.dd3boh.outertune.constants.SYSTEM_DEFAULT
+import com.dd3boh.outertune.constants.UseLoginForBrowse
 import com.dd3boh.outertune.constants.VisitorDataKey
-import com.dd3boh.outertune.db.entities.ArtistEntity
-import com.dd3boh.outertune.db.entities.Song
-import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.ui.component.EnumListPreference
-import com.dd3boh.outertune.ui.component.InfoLabel
-import com.dd3boh.outertune.ui.component.PreferenceEntry
+import com.dd3boh.outertune.ui.component.ListPreference
+import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.ResizableIconButton
+import com.dd3boh.outertune.ui.component.SettingsClickToReveal
 import com.dd3boh.outertune.ui.component.SwitchPreference
-import com.dd3boh.outertune.ui.component.TextFieldDialog
 import com.dd3boh.outertune.ui.screens.settings.DarkMode
 import com.dd3boh.outertune.ui.screens.settings.LibraryFilter
+import com.dd3boh.outertune.ui.screens.settings.fragments.AccountFrag
+import com.dd3boh.outertune.ui.screens.settings.fragments.LocalScannerExtraFrag
+import com.dd3boh.outertune.ui.screens.settings.fragments.LocalScannerFrag
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
+import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.utils.parseCookieString
-import java.time.LocalDateTime
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetupWizard(
     navController: NavController,
@@ -135,6 +142,13 @@ fun SetupWizard(
     val uriHandler = LocalUriHandler.current
 
     val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference(FirstSetupPassed, defaultValue = false)
+
+    // theme & interface
+    val (contentLanguage, onContentLanguageChange) = rememberPreference(
+        key = ContentLanguageKey,
+        defaultValue = "system"
+    )
+    val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
 
     // content prefs
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -152,6 +166,7 @@ fun SetupWizard(
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
     val (ytmSync, onYtmSyncChange) = rememberPreference(LyricTrimKey, defaultValue = true)
+    val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
 
     // local media prefs
     val (localLibEnable, onLocalLibEnableChange) = rememberPreference(LocalLibraryEnableKey, defaultValue = true)
@@ -178,7 +193,7 @@ fun SetupWizard(
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -420,29 +435,6 @@ fun SetupWizard(
 
                     // appearance
                     1 -> {
-                        val dummySong = Song(
-                            artists = listOf(
-                                ArtistEntity(
-                                    id = "uwu",
-                                    name = "Artist",
-                                    isLocal = true
-                                )
-                            ),
-                            song = SongEntity(
-                                id = "owo",
-                                title = "Title",
-                                duration = 310,
-                                inLibrary = LocalDateTime.now(),
-                                isLocal = true,
-                                localPath = "/storage"
-                            ),
-                        )
-
-                        val dummySongs = ArrayList<Song>()
-                        for (i in 0..4) {
-                            dummySongs.add(dummySong)
-                        }
-
                         Text(
                             text = stringResource(R.string.grp_interface),
                             style = MaterialTheme.typography.headlineLarge,
@@ -472,18 +464,57 @@ fun SetupWizard(
                             checked = pureBlack,
                             onCheckedChange = onPureBlackChange
                         )
+
+                        ListPreference(
+                            title = { Text(stringResource(R.string.content_language)) },
+                            icon = { Icon(Icons.Rounded.Language, null) },
+                            selectedValue = contentLanguage,
+                            values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
+                            valueText = {
+                                LanguageCodeToName.getOrElse(it) {
+                                    stringResource(R.string.system_default)
+                                }
+                            },
+                            onValueSelected = { newValue ->
+                                val locale = Locale.getDefault()
+                                val languageTag = locale.toLanguageTag().replace("-Hant", "")
+
+                                YouTube.locale = YouTube.locale.copy(
+                                    hl = newValue.takeIf { it != SYSTEM_DEFAULT }
+                                        ?: locale.language.takeIf { it in LanguageCodeToName }
+                                        ?: languageTag.takeIf { it in LanguageCodeToName }
+                                        ?: "en"
+                                )
+
+                                onContentLanguageChange(newValue)
+                            }
+                        )
+                        ListPreference(
+                            title = { Text(stringResource(R.string.content_country)) },
+                            icon = { Icon(Icons.Rounded.LocationOn, null) },
+                            selectedValue = contentCountry,
+                            values = listOf(SYSTEM_DEFAULT) + CountryCodeToName.keys.toList(),
+                            valueText = {
+                                CountryCodeToName.getOrElse(it) {
+                                    stringResource(R.string.system_default)
+                                }
+                            },
+                            onValueSelected = { newValue ->
+                                val locale = Locale.getDefault()
+
+                                YouTube.locale = YouTube.locale.copy(
+                                    gl = newValue.takeIf { it != SYSTEM_DEFAULT }
+                                        ?: locale.country.takeIf { it in CountryCodeToName }
+                                        ?: "US"
+                                )
+
+                                onContentCountryChange(newValue)
+                            }
+                        )
                     }
 
                     // account
                     2 -> {
-                        var showToken: Boolean by remember {
-                            mutableStateOf(false)
-                        }
-
-                        var showTokenEditor by remember {
-                            mutableStateOf(false)
-                        }
-
                         Text(
                             text = stringResource(R.string.account),
                             style = MaterialTheme.typography.headlineLarge,
@@ -493,86 +524,8 @@ fun SetupWizard(
                                 .padding(horizontal = 24.dp, vertical = 8.dp)
                         )
 
+                        AccountFrag(navController)
 
-                        PreferenceEntry(
-                            title = { Text(if (isLoggedIn) accountName else stringResource(R.string.login)) },
-                            description = if (isLoggedIn) {
-                                accountEmail.takeIf { it.isNotEmpty() }
-                                    ?: accountChannelHandle.takeIf { it.isNotEmpty() }
-                            } else null,
-                            icon = { Icon(Icons.Rounded.Person, null) },
-                            onClick = { navController.navigate("login") }
-                        )
-                        if (isLoggedIn) {
-                            PreferenceEntry(
-                                title = { Text(stringResource(R.string.logout)) },
-                                icon = { Icon(Icons.AutoMirrored.Rounded.Logout, null) },
-                                onClick = {
-                                    onInnerTubeCookieChange("")
-                                }
-                            )
-                        }
-                        if (showTokenEditor) {
-                            TextFieldDialog(
-                                modifier = Modifier,
-                                initialTextFieldValue = TextFieldValue(innerTubeCookie),
-                                onDone = { data ->
-                                    data.split("\n").forEach {
-                                        if (it.startsWith("***INNERTUBE COOKIE*** =")) {
-                                            onInnerTubeCookieChange(it.substringAfter("***INNERTUBE COOKIE*** ="))
-                                        } else if (it.startsWith("***VISITOR DATA*** =")) {
-                                            onVisitorDataChange(it.substringAfter("***VISITOR DATA*** ="))
-                                        } else if (it.startsWith("***DATASYNC ID*** =")) {
-                                            onDataSyncIdChange(it.substringAfter("***DATASYNC ID*** ="))
-                                        } else if (it.startsWith("***ACCOUNT NAME*** =")) {
-                                            onAccountNameChange(it.substringAfter("***ACCOUNT NAME*** ="))
-                                        } else if (it.startsWith("***ACCOUNT EMAIL*** =")) {
-                                            onAccountEmailChange(it.substringAfter("***ACCOUNT EMAIL*** ="))
-                                        } else if (it.startsWith("***ACCOUNT CHANNEL HANDLE*** =")) {
-                                            onAccountChannelHandleChange(it.substringAfter("***ACCOUNT CHANNEL HANDLE*** ="))
-                                        }
-                                    }
-                                },
-                                onDismiss = { showTokenEditor = false },
-                                singleLine = false,
-                                maxLines = 20,
-                                isInputValid = {
-                                    it.isNotEmpty() &&
-                                            try {
-                                                "SAPISID" in parseCookieString(it)
-                                                true
-                                            } catch (e: Exception) {
-                                                false
-                                            }
-                                },
-                                extraContent = {
-                                    InfoLabel(text = stringResource(R.string.token_adv_login_description))
-                                }
-                            )
-                        }
-                        PreferenceEntry(
-                            title = {
-                                if (showToken) {
-                                    Text(stringResource(R.string.token_shown))
-                                    Text(
-                                        text = if (isLoggedIn) innerTubeCookie else stringResource(R.string.not_logged_in),
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Light,
-                                        overflow = TextOverflow.Ellipsis,
-                                        maxLines = 1 // just give a preview so user knows it's at least there
-                                    )
-                                } else {
-                                    Text(stringResource(R.string.token_hidden))
-                                }
-                            },
-                            onClick = {
-                                if (showToken == false) {
-                                    showToken = true
-                                } else {
-                                    showTokenEditor = true
-                                }
-                            },
-                        )
                         SwitchPreference(
                             title = { Text(stringResource(R.string.ytm_sync)) },
                             icon = { Icon(Icons.Rounded.Lyrics, null) },
@@ -580,7 +533,6 @@ fun SetupWizard(
                             onCheckedChange = onYtmSyncChange,
                             isEnabled = isLoggedIn
                         )
-
                     }
 
                     // local media
@@ -603,25 +555,25 @@ fun SetupWizard(
                             onCheckedChange = onLocalLibEnableChange
                         )
 
-                        // automatic scanner
-                        SwitchPreference(
-                            title = { Text(stringResource(R.string.auto_scanner_title)) },
-                            description = stringResource(R.string.auto_scanner_description),
-                            icon = { Icon(Icons.Rounded.Autorenew, null) },
-                            checked = autoScan,
-                            onCheckedChange = onAutoScanChange,
-                            isEnabled = localLibEnable
-                        )
+                        AnimatedVisibility(localLibEnable) {
+                            Column {
+                                SwitchPreference(
+                                    title = { Text(stringResource(R.string.auto_scanner_title)) },
+                                    description = stringResource(R.string.auto_scanner_description),
+                                    icon = { Icon(Icons.Rounded.Autorenew, null) },
+                                    checked = autoScan,
+                                    onCheckedChange = onAutoScanChange
+                                )
+                                PreferenceGroupTitle(
+                                    title = stringResource(R.string.grp_manual_scanner)
+                                )
+                                LocalScannerFrag()
 
-
-                        PreferenceEntry(
-                            title = { Text(stringResource(R.string.oobe_local_scan_tooltip)) },
-                            icon = { Icon(Icons.Rounded.Backup, null) },
-                            onClick = {
-                                navController.navigate("settings/local")
-                            },
-                            isEnabled = localLibEnable
-                        )
+                                SettingsClickToReveal(stringResource(R.string.grp_extra_scanner_settings)) {
+                                    LocalScannerExtraFrag()
+                                }
+                            }
+                        }
                     }
 
                     // exiting
