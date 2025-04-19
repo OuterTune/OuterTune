@@ -97,3 +97,5 @@ lint/tmp/
 
 # misc
 .DS_Store
+
+/ffMetadataEx
