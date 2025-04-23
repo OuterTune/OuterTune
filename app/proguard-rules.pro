@@ -72,8 +72,8 @@
     public static boolean isLoggable(java.lang.String, int);
     public static int v(...);
     public static int d(...);
-    public static int i(...);
     ## Leave warnings and errors in release builds
+    #public static int i(...);
     #public static int w(...);
     #public static int e(...);
 }

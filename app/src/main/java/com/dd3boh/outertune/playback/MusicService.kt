@@ -18,6 +18,7 @@ import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Binder
+import android.util.Log
 import android.widget.Toast
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -206,6 +207,7 @@ class MusicService : MediaLibraryService(),
 
     var consecutivePlaybackErr = 0
 
+    val TAG = MusicService::class.simpleName.toString()
     override fun onCreate() {
         super.onCreate()
 
