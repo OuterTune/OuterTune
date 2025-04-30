@@ -21,7 +21,7 @@ fun parseChallengeData(rawChallengeData: String): String {
         val descrambled = descramble(scrambled[1].jsonPrimitive.content)
         Json.parseToJsonElement(descrambled).jsonArray
     } else {
-        scrambled[1].jsonArray
+        scrambled[0].jsonArray
     }
 
     val messageId = challengeData[0].jsonPrimitive.content
