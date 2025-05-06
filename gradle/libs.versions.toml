@@ -1,4 +1,5 @@
 [versions]
+adaptive = "1.1.0"
 androidGradlePlugin = "8.9.1"
 annotation = "1.9.1"
 kotlin = "2.1.20"
@@ -13,6 +14,7 @@ ksp = "2.1.20-2.0.0"
 taglib = "1.0.0"
 
 [libraries]
+adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 error-prone-core = { module = "com.google.errorprone:error_prone_core", version = "2.38.0" }
 guava = { group = "com.google.guava", name = "guava", version = "33.4.8-android" }
