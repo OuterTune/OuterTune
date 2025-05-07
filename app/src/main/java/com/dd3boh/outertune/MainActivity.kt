@@ -647,9 +647,14 @@ class MainActivity : ComponentActivity() {
                     )
 
                     val playerAwareWindowInsets =
-                        remember(bottomInset, shouldShowNavigationBar, playerBottomSheetState.isDismissed) {
+                        remember(bottomInset, useRail, shouldShowNavigationBar, playerBottomSheetState.isDismissed) {
                             var bottom = bottomInset
-                            if (shouldShowNavigationBar) bottom += NavigationBarHeight
+
+                            if (shouldShowNavigationBar) {
+                                // It looks kinda ugly at the very bottom.
+                                bottom += if (useRail) 16.dp else NavigationBarHeight
+                            }
+
                             if (!playerBottomSheetState.isDismissed) bottom += MiniPlayerHeight
                             windowsInsets
                                 .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
@@ -1026,7 +1031,11 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         }
                                                     }
-                                                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp))
+                                                    .background(
+                                                        MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                                            6.dp
+                                                        )
+                                                    )
                                             ) {
                                                 navigationItems.fastForEach { screen ->
                                                     NavigationBarItem(
