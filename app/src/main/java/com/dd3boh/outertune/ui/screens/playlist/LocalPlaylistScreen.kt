@@ -232,7 +232,7 @@ fun LocalPlaylistScreen(
                     }
 
                     viewModel.viewModelScope.launch(Dispatchers.IO) {
-                        playlistEntity.browseId?.let { YouTube.renamePlaylist(it, name) }
+                        playlistEntity.browseId?.let { YouTube.updatePlaylist(playlistId = it, name = name) }
                     }
                 }
             )

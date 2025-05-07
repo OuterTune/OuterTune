@@ -43,4 +43,16 @@ sealed class Action {
         val action: String = "ACTION_SET_PLAYLIST_NAME",
         val playlistName: String
     ) : Action()
+
+    @Serializable
+    data class SetPlaylistDescriptionAction(
+        val action: String = "ACTION_SET_PLAYLIST_DESCRIPTION",
+        val playlistDescription: String
+    ): Action()
+
+    @Serializable
+    data class SetPlaylistPrivacyAction(
+        val action: String = "ACTION_SET_PLAYLIST_PRIVACY",
+        val playlistPrivacy: String
+    ): Action()
 }

@@ -131,7 +131,7 @@ fun PlaylistMenu(
                 }
 
                 coroutineScope.launch(Dispatchers.IO) {
-                    playlist.playlist.browseId?.let { YouTube.renamePlaylist(it, name) }
+                    playlist.playlist.browseId?.let { YouTube.updatePlaylist(playlistId = it, name = name) }
                 }
             }
         )

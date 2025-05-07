@@ -652,8 +652,19 @@ object YouTube {
         innerTube.createPlaylist(WEB_REMIX, title).body<CreatePlaylistResponse>().playlistId
     }
 
-    suspend fun renamePlaylist(playlistId: String, name: String) = runCatching {
-        innerTube.renamePlaylist(WEB_REMIX, playlistId, name)
+    suspend fun updatePlaylist(
+        playlistId: String,
+        name: String? = null,
+        description: String? = null,
+        privacyStatus: String? = null
+    ) = runCatching {
+        innerTube.updatePlaylist(
+            client = WEB_REMIX,
+            playlistId = playlistId,
+            name = name,
+            description = description,
+            privacyStatus = privacyStatus
+        )
     }
 
     suspend fun deletePlaylist(playlistId: String) = runCatching {
