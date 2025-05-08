@@ -12,6 +12,8 @@ package com.dd3boh.outertune
 import android.app.Application
 import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
@@ -165,6 +167,15 @@ class App : Application(), ImageLoaderFactory {
     companion object {
         lateinit var instance: App
             private set
+
+        /**
+         * Can be called from any thread
+         */
+        fun toast(text: String, duration: Int) {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(instance, text, duration).show()
+            }
+        }
 
         fun forgetAccount(context: Context) {
             runBlocking {

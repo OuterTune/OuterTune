@@ -17,6 +17,8 @@ import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.zionhuang.innertube.models.YouTubeLocale
+import com.zionhuang.innertube.models.body.CreatePlaylistBody
+import com.zionhuang.innertube.models.body.EditPlaylistBody
 import com.zionhuang.innertube.models.getContinuation
 import com.zionhuang.innertube.models.getItems
 import com.zionhuang.innertube.models.oddElements
@@ -648,8 +650,17 @@ object YouTube {
         innerTube.moveSongPlaylist(WEB_REMIX, playlistId, setVideoId, successorSetVideoId)
     }
 
-    fun createPlaylist(title: String) = runBlocking {
-        innerTube.createPlaylist(WEB_REMIX, title).body<CreatePlaylistResponse>().playlistId
+    fun createPlaylist(
+        title: String,
+        description: String = "",
+        privacyStatus: String = CreatePlaylistBody.PrivacyStatus.PUBLIC
+    ) = runBlocking {
+        innerTube.createPlaylist(
+            client = WEB_REMIX,
+            title = title,
+            description = description,
+            privacyStatus = privacyStatus
+        ).body<CreatePlaylistResponse>().playlistId
     }
 
     suspend fun updatePlaylist(
