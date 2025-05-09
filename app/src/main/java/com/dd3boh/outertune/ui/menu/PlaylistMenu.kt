@@ -56,6 +56,7 @@ import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.ui.component.DefaultDialog
 import com.dd3boh.outertune.ui.component.DownloadGridMenu
+import com.dd3boh.outertune.ui.component.EditPlaylistDialog
 import com.dd3boh.outertune.ui.component.GridMenu
 import com.dd3boh.outertune.ui.component.GridMenuItem
 import com.dd3boh.outertune.ui.component.PlaylistListItem
@@ -116,24 +117,9 @@ fun PlaylistMenu(
     }
 
     if (showEditDialog) {
-        TextFieldDialog(
-            icon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
-            title = { Text(text = stringResource(R.string.edit_playlist)) },
-            onDismiss = { showEditDialog = false },
-            initialTextFieldValue = TextFieldValue(
-                playlist.playlist.name,
-                TextRange(playlist.playlist.name.length)
-            ),
-            onDone = { name ->
-                onDismiss()
-                database.query {
-                    update(playlist.playlist.copy(name = name))
-                }
-
-                coroutineScope.launch(Dispatchers.IO) {
-                    playlist.playlist.browseId?.let { YouTube.updatePlaylist(playlistId = it, name = name) }
-                }
-            }
+        EditPlaylistDialog(
+            playlist = playlist.playlist,
+            onDismiss = { showEditDialog = false }
         )
     }
 

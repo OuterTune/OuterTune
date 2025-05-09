@@ -5,6 +5,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.zionhuang.innertube.YouTube
+import com.zionhuang.innertube.models.body.CreatePlaylistBody
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -20,6 +21,10 @@ data class PlaylistEntity(
     val browseId: String? = null,
     @ColumnInfo(name = "isEditable", defaultValue = true.toString())
     val isEditable: Boolean = true,
+    @ColumnInfo(defaultValue = "")
+    val description: String = "",
+    @ColumnInfo(defaultValue = CreatePlaylistBody.PrivacyStatus.PUBLIC)
+    val privacyStatus: String = CreatePlaylistBody.PrivacyStatus.PUBLIC,
     val bookmarkedAt: LocalDateTime? = null,
     val thumbnailUrl: String? = null,
     val remoteSongCount: Int? = null,

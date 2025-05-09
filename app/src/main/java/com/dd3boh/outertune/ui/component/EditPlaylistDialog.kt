@@ -23,6 +23,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -69,59 +70,44 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 @Composable
-fun CreatePlaylistDialog(
+fun EditPlaylistDialog(
     onDismiss: () -> Unit,
-    initialTextFieldValue: String? = null,
-    allowSyncing: Boolean = true,
+    playlist: PlaylistEntity
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
 
     var isLoading by remember { mutableStateOf(false) }
-    var title by remember { mutableStateOf(initialTextFieldValue ?: "") }
-    var description by remember { mutableStateOf("") }
-    var privacyStatus by remember { mutableStateOf(CreatePlaylistBody.PrivacyStatus.PUBLIC) }
-    var syncedPlaylist by remember { mutableStateOf(allowSyncing && context.isUserLoggedIn()) }
-
-    val focusRequester = remember {
-        FocusRequester()
-    }
-
-    LaunchedEffect(Unit) {
-        delay(300)
-        focusRequester.requestFocus()
-    }
+    var title by remember { mutableStateOf(playlist.name) }
+    var description by remember { mutableStateOf(playlist.description) }
+    var privacyStatus by remember { mutableStateOf(playlist.privacyStatus) }
 
     fun onDone() {
         isLoading = true
 
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val browseId = if(!syncedPlaylist) null else YouTube.createPlaylist(
-                    title = title,
-                    description = description,
-                    privacyStatus = privacyStatus
-                )
+                playlist.browseId?.also { id ->
+                    YouTube.updatePlaylist(
+                        playlistId = id,
+                        name = title.takeIf { title != playlist.name },
+                        description = description.takeIf { description != playlist.description },
+                        privacyStatus = privacyStatus.takeIf { privacyStatus != playlist.privacyStatus }
+                    )
+                }
 
                 database.query {
-                    insert(
-                        PlaylistEntity(
-                            name = title,
-                            description = description,
-                            privacyStatus = privacyStatus,
-                            browseId = browseId,
-                            bookmarkedAt = LocalDateTime.now(),
-                            isEditable = true,
-                            isLocal = !syncedPlaylist // && check that all songs are non-local
-                        )
-                    )
+                    update(playlist.copy(
+                        name = title,
+                        description = description,
+                        privacyStatus = privacyStatus
+                    ))
                 }
 
                 onDismiss()
             } catch (e: Exception) {
                 reportException(e)
-                toast("Failed to create an playlist!", 1)
+                toast("Failed to update an playlist!", 1)
                 isLoading = false
             }
         }
@@ -135,8 +121,8 @@ fun CreatePlaylistDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                Text(text = stringResource(R.string.create_playlist))
+                Icon(imageVector = Icons.Rounded.Edit, contentDescription = null)
+                Text(text = stringResource(R.string.edit_playlist))
             }
         },
 
@@ -168,9 +154,7 @@ fun CreatePlaylistDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 TextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester),
+                    modifier = Modifier.fillMaxWidth(),
                     value = title,
                     onValueChange = { title = it },
                     placeholder = { Text(stringResource(R.string.playlist_name)) },
@@ -190,44 +174,7 @@ fun CreatePlaylistDialog(
                     colors = OutlinedTextFieldDefaults.colors()
                 )
 
-                if(allowSyncing && context.isUserLoggedIn()) {
-                    Spacer(Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .toggleable(
-                                value = syncedPlaylist,
-                                onValueChange = { syncedPlaylist = it },
-                                role = Role.Switch
-                            ),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.create_sync_playlist),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-
-                            Text(
-                                text = stringResource(R.string.create_sync_playlist_description),
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.fillMaxWidth(0.7f)
-                            )
-                        }
-
-                        Switch(
-                            modifier = Modifier.padding(top = 8.dp),
-                            checked = syncedPlaylist,
-                            onCheckedChange = null // null recommended for accessibility with screen readers
-                        )
-                    }
-                }
-
-                if(syncedPlaylist) {
+                if(!playlist.isLocal) {
                     val privacyStatuses = listOf(
                         "Public" to CreatePlaylistBody.PrivacyStatus.PUBLIC,
                         "Unlisted" to CreatePlaylistBody.PrivacyStatus.UNLISTED,
