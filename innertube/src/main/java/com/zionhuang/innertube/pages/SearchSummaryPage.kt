@@ -88,6 +88,8 @@ data class SearchSummaryPage(
                         id = renderer.onTap.browseEndpoint.browseId.removePrefix("VL"),
                         title = renderer.header.musicCardShelfHeaderBasicRenderer.title.runs?.joinToString(separator = "") { it.text }
                             ?: return null,
+                        description = "",
+                        privacyStatus = "",
                         author = Artist(
                             id = null,
                             name = renderer.subtitle.runs?.joinToString { it.text } ?: return null
@@ -184,6 +186,8 @@ data class SearchSummaryPage(
                         title = renderer.flexColumns.firstOrNull()
                             ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
                             ?.firstOrNull()?.text ?: return null,
+                        description = "",
+                        privacyStatus = "PUBLIC",
                         author = secondaryLine.getOrNull(1)?.firstOrNull()?.let {
                             Artist(
                                 name = it.text,

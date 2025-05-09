@@ -128,6 +128,8 @@ data class ArtistPage(
                     PlaylistItem(
                         id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL") ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                        description = "",
+                        privacyStatus = "PUBLIC",
                         author = Artist(
                             name = renderer.subtitle?.runs?.lastOrNull()?.text ?: return null,
                             id = null

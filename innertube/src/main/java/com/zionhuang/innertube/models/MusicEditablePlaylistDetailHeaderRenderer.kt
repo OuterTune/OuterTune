@@ -31,5 +31,7 @@ data class MusicDetailHeaderRenderer(
 
 @Serializable
 data class MusicPlaylistEditHeaderRenderer(
-    val editTitle: Runs?
+    val editTitle: Runs?,
+    val privacy: String?,
+    val description: Runs?
 )

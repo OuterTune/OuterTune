@@ -1,5 +1,6 @@
 package com.zionhuang.innertube
 
+import com.sun.jndi.toolkit.dir.SearchFilter
 import com.zionhuang.innertube.models.AccountInfo
 import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.Artist
@@ -61,6 +62,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
 import java.net.Proxy
 import kotlin.random.Random
 
@@ -328,6 +330,7 @@ object YouTube {
 
         val base = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
         val header = base?.musicResponsiveHeaderRenderer ?: base?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
+        val editHeader = base?.musicEditablePlaylistDetailHeaderRenderer?.editHeader?.musicPlaylistEditHeaderRenderer
 
         val editable = base?.musicEditablePlaylistDetailHeaderRenderer != null
 
@@ -335,6 +338,8 @@ object YouTube {
             playlist = PlaylistItem(
                 id = playlistId,
                 title = header?.title?.runs?.firstOrNull()?.text!!,
+                description =  editHeader?.description?.runs?.getOrNull(0)?.text ?: "",
+                privacyStatus = editHeader?.privacy ?: "PUBLIC",
                 author = header.straplineTextOne?.runs?.firstOrNull()?.let {
                     Artist(
                         name = it.text,
