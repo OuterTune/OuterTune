@@ -35,10 +35,10 @@ synchronization, local media playback, multiple queues, and a new take on UI des
 ## Screenshots
 
 <p>
-    <img src="./assets/screenshot1.png" height="400" alt="Player interface" />
-    <img src="./assets/screenshot4.png" height="400" alt="Real-time lyrics" />
-    <img src="./assets/screenshot2.png" height="400" alt="Material You" />
-    <img src="./assets/screenshot3.png" height="400" alt="Sync with YouTube Music" />
+    <img src="./assets/screenshot1.png" width="33%" alt="Player interface" />
+    <img src="./assets/screenshot4.png" width="33%" alt="Real-time lyrics" />
+    <img src="./assets/screenshot2.png" width="33%" alt="Material You" />
+    <img src="./assets/screenshot3.png" width="100%" alt="Sync with YouTube Music" />
 </p>
 
 > [!WARNING]
