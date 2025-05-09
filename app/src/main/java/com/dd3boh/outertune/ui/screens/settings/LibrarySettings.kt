@@ -117,7 +117,7 @@ fun LibrarySettings(
             .verticalScroll(rememberScrollState())
     ) {
         PreferenceGroupTitle(
-            title = "content"
+            title = stringResource(R.string.content)
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.grp_account_sync)) },

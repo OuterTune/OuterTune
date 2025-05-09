@@ -66,6 +66,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="settings_debug">Debug</string>
 
     <string name="grp_account_sync">Account and sync</string>
+    <string name="grp_sync">Sync</string>
     <string name="grp_audio">Audio</string>
     <string name="grp_extra_scanner_settings">Additional scanner settings</string>
     <string name="grp_general">General</string>

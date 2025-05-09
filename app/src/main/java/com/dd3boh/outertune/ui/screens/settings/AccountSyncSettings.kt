@@ -51,7 +51,7 @@ fun AccountSyncSettings(
         AccountFrag(navController)
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.sync)
+            title = stringResource(R.string.grp_sync)
         )
         SyncFrag()
     }
