@@ -250,7 +250,7 @@ fun InterfaceSettings(
         )
 
         PreferenceGroupTitle(
-            title = "behaviour"
+            title = stringResource(R.string.grp_behavior)
         )
         SwitchPreference(
             title = { Text(stringResource(R.string.swipe2Queue)) },
