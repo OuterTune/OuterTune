@@ -119,7 +119,7 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
     - These include generating JSON, Entity classes, migration conflict resolution, bumping database version etc.
 
 ### 🙋‍♂️ Community Translators  
-- [Vishal Singh](https://github.com/vishusingh24) — Hindi Translation via Weblate
+- [Vishal Singh](https://github.com/vishussingh24) — Hindi Translation via Weblate
 
 
 ## Thanks to all contributors!
