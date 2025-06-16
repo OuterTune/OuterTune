@@ -181,4 +181,16 @@
     <string name="action_shuffle_off">सफल बंद</string>
     <string name="repeat_mode_off">दोहराएं मोड बंद</string>
     <string name="repeat_mode_all">कतार को दोहराएं</string>
+    <string name="android_auto">एंड्रॉइड ऑटो</string>
+    <string name="folders">फ़ोल्डर</string>
+    <string name="library">संग्रह</string>
+    <string name="recent_activity">गतिविधि</string>
+    <string name="local_history">स्थानीय</string>
+    <string name="queue_local_history">स्थानीय इतिहास</string>
+    <string name="queue_remote_history">दूरस्थ इतिहास</string>
+    <string name="remote_history">दूरस्थ</string>
+    <string name="library_empty">यहाँ आपकी संग्रह की सामग्री दिखाई देगी</string>
+    <string name="missing_media_permission_warning">स्थानीय मीडिया के लिए स्टोरेज अनुमति आवश्यक है। अनुमति देने के लिए क्लिक करें।</string>
+
+
 </resources>

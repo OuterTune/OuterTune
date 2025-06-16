@@ -116,11 +116,4 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 - Clearly state if a database version increment is required
 - You are require to make sure migration works from the previous database version
 - Commits modifying the database version should be all be contained in that single commit
-    - These include generating JSON, Entity classes, migration conflict resolution, bumping database version etc.
-
-### 🙋‍♂️ Community Translators  
-- [Vishal Singh](https://github.com/vishussingh24) — Hindi Translation via Weblate
-
-
-## Thanks to all contributors!
-
+- These include generating JSON, Entity classes, migration conflict resolution, bumping database version etc.
