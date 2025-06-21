@@ -37,11 +37,11 @@ synchronization, local media playback, multiple queues, and a new take on UI des
 
 ## Screenshots
 
-<img src="./assets/main-interface.webp" width="600" alt="Main player interface" />
+<img src="./assets/main-interface.jpg" alt="Main player interface" />
 <br/><br/>
-<img src="./assets/player.webp" width="600" alt="Player interface"/>
+<img src="./assets/player.jpg" alt="Player interface"/>
 <br/><br/>
-<img src="./assets/ytm-sync.webp" width="600" alt="Sync with YouTube Music"/>
+<img src="./assets/ytm-sync.jpg" alt="Sync with YouTube Music"/>
 
 > [!WARNING]
 >
