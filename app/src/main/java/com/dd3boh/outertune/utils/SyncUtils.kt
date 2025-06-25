@@ -195,7 +195,7 @@ class SyncUtils @Inject constructor(
                 coroutineScope {
                     songsToUnlike.forEach { song ->
                         launch(Dispatchers.IO) {
-                            database.update(song.song.localToggleLike())
+                            database.update(song.song.unlike())
                         }
                     }
                 }
@@ -205,9 +205,9 @@ class SyncUtils @Inject constructor(
                     val localSong = database.song(remoteSong.id).firstOrNull()
                     database.transaction {
                         if (localSong == null) {
-                            insert(remoteSong.toMediaMetadata(), SongEntity::localToggleLike)
-                        } else if (!localSong.song.liked) {
-                            update(localSong.song.localToggleLike())
+                            insert(remoteSong.toMediaMetadata(), SongEntity::like)
+                        } else {
+                            update(localSong.song.like())
                         }
                     }
                 }
