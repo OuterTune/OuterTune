@@ -411,7 +411,7 @@ class MainActivity : ComponentActivity() {
             val (scanPaths) = rememberPreference(ScanPathsKey, defaultValue = "")
             val (excludedScanPaths) = rememberPreference(ExcludedScanPathsKey, defaultValue = "")
             val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
-            val (lookupYtmArtists) = rememberPreference(LookupYtmArtistsKey, defaultValue = true)
+            val (lookupYtmArtists) = rememberPreference(LookupYtmArtistsKey, defaultValue = false)
             val (autoScan) = rememberPreference(AutomaticScannerKey, defaultValue = false)
 
             // updater
