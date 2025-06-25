@@ -1,7 +1,7 @@
 [versions]
 aboutLibraries = "12.2.0"
 adaptive = "1.1.0"
-androidGradlePlugin = "8.7.3"
+androidGradlePlugin = "8.10.1"
 annotation = "1.9.1"
 kotlin = "2.1.21"
 compose = "1.8.2"
