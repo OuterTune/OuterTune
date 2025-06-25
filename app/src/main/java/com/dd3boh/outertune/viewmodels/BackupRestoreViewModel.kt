@@ -56,7 +56,7 @@ class BackupRestoreViewModel @Inject constructor( // TODO: make these calls non-
         }
     }
 
-    fun restore(uri: Uri) {
+    fun restore(uri: Uri, player: MusicService?) {
         runCatching {
             context.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
@@ -84,13 +84,16 @@ class BackupRestoreViewModel @Inject constructor( // TODO: make these calls non-
                     }
                 }
             }
-            // TODO: This argument is a new instance so stopService will not remove anything
-            context.stopService(Intent(context, MusicService::class.java))
-            context.startActivity(Intent(context, MainActivity::class.java))
+
+            val stopIntent = Intent(context, MusicService::class.java)
+            context.stopService(stopIntent)
+            val startIntent = Intent(context, MainActivity::class.java)
+            startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(startIntent)
             exitProcess(0)
         }.onFailure {
             reportException(it)
-            Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -43,7 +43,7 @@ class DownloadDirectoryManagerOt(private val context: Context, private var dir: 
             mainDir = null
             allDirs = mutableListOf()
             reportException(e)
-            Toast.makeText(context, "Failed to initiate download manager: " + e.message, Toast.LENGTH_LONG).show()
+//            Toast.makeText(context, "Failed to initiate download manager: " + e.message, Toast.LENGTH_LONG).show()
         }
     }
 
