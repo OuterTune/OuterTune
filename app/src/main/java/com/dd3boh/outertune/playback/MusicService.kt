@@ -914,11 +914,8 @@ class MusicService : MediaLibraryService(),
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         val q = queueBoard.getCurrentQueue()!!
+        player.setShuffleOrder(ShuffleOrder.UnshuffledShuffleOrder(q.getSize()))
         if (q.shuffled == shuffleModeEnabled) return
-
-        if (shuffleModeEnabled) {
-            player.setShuffleOrder(ShuffleOrder.UnshuffledShuffleOrder(q.getSize()))
-        }
         triggerShuffle()
     }
 
