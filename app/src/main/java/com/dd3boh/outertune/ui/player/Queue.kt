@@ -385,14 +385,14 @@ fun BoxScope.QueueContent(
 
 
     LaunchedEffect(queueWindows, detachedQueue) { // add to songs list & scroll
+        if (isSearching) return@LaunchedEffect
         if (detachedQueue != null) {
             mutableSongs.apply {
                 clear()
                 addAll(detachedQueue!!.getCurrentQueueShuffled())
             }
-
-            if (isSearching) return@LaunchedEffect
             detachedQueue?.let {
+                delay(300)
                 lazySongsListState.animateScrollToItem(it.getQueuePosShuffled())
             }
             return@LaunchedEffect
@@ -404,26 +404,20 @@ fun BoxScope.QueueContent(
         }
 
         if (currentWindowIndex != -1 && !isSearching) {
+            delay(300)
             lazySongsListState.animateScrollToItem(currentWindowIndex)
         }
 
-        selectedItems.fastForEachReversed { uidHash ->
-            if (queueWindows.find { it.uid.hashCode() == uidHash } == null) {
-                selectedItems.remove(uidHash)
-            }
-        }
-    }
-
-    LaunchedEffect(mutableSongs) { // scroll to song
-        if (isSearching) return@LaunchedEffect
-        if (currentWindowIndex != -1) {
-            lazySongsListState.animateScrollToItem(currentWindowIndex)
-        }
+        selectedItems.clear()
     }
 
     LaunchedEffect(mqExpand) { // scroll to queue
         if (mqExpand) {
             lazyQueuesListState.animateScrollToItem(playingQueue)
+            if (currentWindowIndex != -1) {
+                delay(300)
+                lazySongsListState.animateScrollToItem(currentWindowIndex)
+            }
         }
     }
 
