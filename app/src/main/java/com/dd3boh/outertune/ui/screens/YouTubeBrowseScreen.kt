@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
@@ -42,7 +43,6 @@ import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.ArtistItem
 import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SongItem
-import com.zionhuang.innertube.models.WatchEndpoint
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -112,6 +112,7 @@ fun YouTubeBrowseScreen(
                                         )
 
                                         is PlaylistItem -> YouTubePlaylistMenu(
+                                            navController = navController,
                                             playlist = item,
                                             coroutineScope = coroutineScope,
                                             onDismiss = menuState::dismiss
@@ -161,6 +162,7 @@ fun YouTubeBrowseScreen(
                 )
             }
         },
+        windowInsets = TopBarInsets,
         scrollBehavior = scrollBehavior
     )
 }

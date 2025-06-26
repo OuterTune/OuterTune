@@ -1,9 +1,15 @@
 package com.dd3boh.outertune.utils
 
-import com.dd3boh.outertune.db.entities.Artist
+import android.net.Uri
+import com.dd3boh.outertune.db.entities.Album
+import com.dd3boh.outertune.db.entities.ArtistEntity
 import java.math.BigInteger
-import java.net.URLEncoder
 import java.security.MessageDigest
+import kotlin.math.absoluteValue
+
+/*
+IMPORTANT: Put any string utils that require composable in outertne/ui/utils/StringUtils.kt
+ */
 
 fun makeTimeString(duration: Long?): String {
     if (duration == null || duration < 0) return ""
@@ -31,28 +37,76 @@ fun joinByBullet(vararg str: String?) =
         it.isNullOrEmpty()
     }.joinToString(separator = " • ")
 
-fun String.urlEncode(): String = URLEncoder.encode(this, "UTF-8")
+fun String.urlEncode(): String = Uri.encode(this)
 
+fun fixFilePath(path: String) = "/" + path.split('/').filterNot { it.isEmpty() }.joinToString("/") + "/"
 
-/**
+fun formatFileSize(sizeBytes: Long): String {
+    val prefix = if (sizeBytes < 0) "-" else ""
+    var result: Long = sizeBytes.absoluteValue
+    var suffix = "B"
+    if (result > 900) {
+        suffix = "KB"
+        result /= 1024
+    }
+    if (result > 900) {
+        suffix = "MB"
+        result /= 1024
+    }
+    if (result > 900) {
+        suffix = "GB"
+        result /= 1024
+    }
+    if (result > 900) {
+        suffix = "TB"
+        result /= 1024
+    }
+    if (result > 900) {
+        suffix = "PB"
+        result /= 1024
+    }
+    return "$prefix$result $suffix"
+}
+
+/*
  * Whacko methods
  */
 
 /**
  * Find the matching string, if not found the closest super string
  */
-fun closestMatch(query: String, stringList: List<Artist>): Artist? {
+fun closestMatch(query: String, stringList: List<ArtistEntity>): ArtistEntity? {
     // Check for exact match first
 
-    val exactMatch = stringList.find { query.lowercase() == it.artist.name.lowercase() }
+    val exactMatch = stringList.find { query.lowercase() == it.name.lowercase() }
     if (exactMatch != null) {
         return exactMatch
     }
 
     // Check for query as substring in any of the strings
-    val substringMatches = stringList.filter { it.artist.name.contains(query) }
+    val substringMatches = stringList.filter { it.name.contains(query) }
     if (substringMatches.isNotEmpty()) {
-        return substringMatches.minByOrNull { it.artist.name.length }
+        return substringMatches.minByOrNull { it.name.length }
+    }
+
+    return null
+}
+
+/**
+ * Find the matching string, if not found the closest super string
+ */
+fun closestAlbumMatch(query: String, stringList: List<Album>): Album? {
+    // Check for exact match first
+
+    val exactMatch = stringList.find { query.lowercase() == it.title.lowercase() }
+    if (exactMatch != null) {
+        return exactMatch
+    }
+
+    // Check for query as substring in any of the strings
+    val substringMatches = stringList.filter { it.title.contains(query) }
+    if (substringMatches.isNotEmpty()) {
+        return substringMatches.minByOrNull { it.title.length }
     }
 
     return null
@@ -90,4 +144,24 @@ fun numberToAlpha(l: Long): String {
             alphabetMap[it.digitToInt()]
         }
     }.joinToString("")
+}
+
+/**
+ * Compare two version‐strings, returning:
+ *   > 0 if v1 > v2
+ *   < 0 if v1 < v2
+ *   = 0 if they’re considered equal
+ */
+fun compareVersion(v1: String, v2: String): Int {
+    fun normalize(v: String) = v.substringBefore('-')
+    val parts1 = normalize(v1).split('.').map { it.toIntOrNull() ?: 0 }
+    val parts2 = normalize(v2).split('.').map { it.toIntOrNull() ?: 0 }
+
+    val max = maxOf(parts1.size, parts2.size)
+    for (i in 0 until max) {
+        val n1 = parts1.getOrElse(i) { 0 }
+        val n2 = parts2.getOrElse(i) { 0 }
+        if (n1 != n2) return n1 - n2
+    }
+    return 0
 }

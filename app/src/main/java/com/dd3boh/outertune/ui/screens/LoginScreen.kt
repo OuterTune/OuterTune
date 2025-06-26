@@ -28,6 +28,7 @@ import com.dd3boh.outertune.constants.AccountEmailKey
 import com.dd3boh.outertune.constants.AccountNameKey
 import com.dd3boh.outertune.constants.DataSyncIdKey
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.constants.VisitorDataKey
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.utils.backToMain
@@ -60,8 +61,11 @@ fun LoginScreen(
         factory = { context ->
             WebView(context).apply {
                 webViewClient = object : WebViewClient() {
-                    override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
-                        if (url.startsWith("https://music.youtube.com")) {
+                    override fun onPageFinished(view: WebView, url: String?) {
+                        loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
+                        loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
+
+                        if (url?.startsWith("https://music.youtube.com") == true) {
                             innerTubeCookie = CookieManager.getInstance().getCookie(url)
                             GlobalScope.launch {
                                 YouTube.accountInfo().onSuccess {
@@ -73,11 +77,6 @@ fun LoginScreen(
                                 }
                             }
                         }
-                    }
-
-                    override fun onPageFinished(view: WebView, url: String?) {
-                        loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
-                        loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
                     }
                 }
                 settings.apply {
@@ -95,12 +94,12 @@ fun LoginScreen(
                     @JavascriptInterface
                     fun onRetrieveDataSyncId(newDataSyncId: String?) {
                         if (newDataSyncId != null) {
-                            dataSyncId = newDataSyncId
+                            dataSyncId = newDataSyncId.substringBefore("||")
                         }
                     }
                 }, "Android")
                 webView = this
-                loadUrl("https://accounts.google.com/ServiceLogin?ltmpl=music&service=youtube&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F")
+                loadUrl("https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fmusic.youtube.com")
             }
         }
     )
@@ -117,7 +116,8 @@ fun LoginScreen(
                     contentDescription = null
                 )
             }
-        }
+        },
+        windowInsets = TopBarInsets,
     )
 
     BackHandler(enabled = webView?.canGoBack() == true) {

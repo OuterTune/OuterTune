@@ -184,39 +184,41 @@ fun LibraryPlaylistListItem(
         androidx.compose.material3.IconButton(
             onClick = {
                 menuState.show {
-                    if (playlist.playlist.isEditable || playlist.songCount != 0) {
+                    // TODO: investigate why song count is needed. Remove if not needed
+                    if (playlist.playlist.isEditable || playlist.playlist.isLocal || playlist.playlist.browseId == null || playlist.songCount != 0) {
                         PlaylistMenu(
+                            navController = navController,
                             playlist = playlist,
                             coroutineScope = coroutineScope,
                             onDismiss = menuState::dismiss
                         )
                     } else {
-                        playlist.playlist.browseId?.let { browseId ->
-                            YouTubePlaylistMenu(
-                                playlist = PlaylistItem(
-                                    id = browseId,
-                                    title = playlist.playlist.name,
-                                    author = null,
-                                    songCountText = null,
-                                    thumbnail = playlist.thumbnails.getOrNull(0),
-                                    playEndpoint = WatchEndpoint(
-                                        playlistId = browseId,
-                                        params = playlist.playlist.playEndpointParams
-                                    ),
-                                    shuffleEndpoint = WatchEndpoint(
-                                        playlistId = browseId,
-                                        params = playlist.playlist.shuffleEndpointParams
-                                    ),
-                                    radioEndpoint = WatchEndpoint(
-                                        playlistId = "RDAMPL$browseId",
-                                        params = playlist.playlist.radioEndpointParams
-                                    ),
-                                    isEditable = false
+                        val browseId = playlist.playlist.browseId
+                        YouTubePlaylistMenu(
+                            navController = navController,
+                            playlist = PlaylistItem(
+                                id = browseId,
+                                title = playlist.playlist.name,
+                                author = null,
+                                songCountText = null,
+                                thumbnail = playlist.thumbnails.getOrNull(0),
+                                playEndpoint = WatchEndpoint(
+                                    playlistId = browseId,
+                                    params = playlist.playlist.playEndpointParams
                                 ),
-                                coroutineScope = coroutineScope,
-                                onDismiss = menuState::dismiss
-                            )
-                        }
+                                shuffleEndpoint = WatchEndpoint(
+                                    playlistId = browseId,
+                                    params = playlist.playlist.shuffleEndpointParams
+                                ),
+                                radioEndpoint = WatchEndpoint(
+                                    playlistId = "RDAMPL$browseId",
+                                    params = playlist.playlist.radioEndpointParams
+                                ),
+                                isEditable = false
+                            ),
+                            coroutineScope = coroutineScope,
+                            onDismiss = menuState::dismiss
+                        )
                     }
                 }
                 haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
@@ -231,10 +233,11 @@ fun LibraryPlaylistListItem(
     modifier = modifier
         .fillMaxWidth()
         .clickable {
-            if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
-                navController.navigate("online_playlist/${playlist.playlist.browseId}")
-            else
+            if (playlist.playlist.isEditable || playlist.playlist.isLocal || playlist.playlist.browseId == null || playlist.songCount != 0) {
                 navController.navigate("local_playlist/${playlist.id}")
+            } else {
+                navController.navigate("online_playlist/${playlist.playlist.browseId}")
+            }
         }
 )
 
@@ -253,15 +256,17 @@ fun LibraryPlaylistGridItem(
         .fillMaxWidth()
         .combinedClickable(
             onClick = {
-                if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
-                    navController.navigate("online_playlist/${playlist.playlist.browseId}")
-                else
+                if (playlist.playlist.isEditable || playlist.playlist.isLocal || playlist.playlist.browseId == null || playlist.songCount != 0) {
                     navController.navigate("local_playlist/${playlist.id}")
+                } else {
+                    navController.navigate("online_playlist/${playlist.playlist.browseId}")
+                }
             },
             onLongClick = {
                 menuState.show {
                     if (playlist.playlist.isEditable || playlist.songCount != 0) {
                         PlaylistMenu(
+                            navController = navController,
                             playlist = playlist,
                             coroutineScope = coroutineScope,
                             onDismiss = menuState::dismiss
@@ -269,6 +274,7 @@ fun LibraryPlaylistGridItem(
                     } else {
                         playlist.playlist.browseId?.let { browseId ->
                             YouTubePlaylistMenu(
+                                navController = navController,
                                 playlist = PlaylistItem(
                                     id = browseId,
                                     title = playlist.playlist.name,

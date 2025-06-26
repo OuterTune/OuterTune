@@ -47,6 +47,7 @@ import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.CONTENT_TYPE_ALBUM
 import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.GridThumbnailHeight
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.LibraryAlbumGridItem
 import com.dd3boh.outertune.ui.component.LocalMenuState
@@ -145,6 +146,7 @@ fun ArtistAlbumsScreen(
                     )
                 }
             },
+            windowInsets = TopBarInsets,
             scrollBehavior = scrollBehavior
         )
 

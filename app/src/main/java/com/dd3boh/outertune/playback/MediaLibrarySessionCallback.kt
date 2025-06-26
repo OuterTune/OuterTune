@@ -4,8 +4,10 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.core.net.toUri
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.LibraryResult
@@ -16,16 +18,17 @@ import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
-import com.dd3boh.outertune.BuildConfig
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.MediaSessionConstants
 import com.dd3boh.outertune.constants.SongSortType
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.Song
+import com.dd3boh.outertune.extensions.metadata
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.extensions.toggleRepeatMode
 import com.dd3boh.outertune.extensions.toggleShuffleMode
+import com.dd3boh.outertune.utils.reportException
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -34,13 +37,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.plus
-import timber.log.Timber
 import javax.inject.Inject
-import kotlin.collections.map
 
 class MediaLibrarySessionCallback @Inject constructor(
     @ApplicationContext val context: Context,
@@ -49,6 +51,7 @@ class MediaLibrarySessionCallback @Inject constructor(
 ) : MediaLibrarySession.Callback {
     private val TAG = MediaLibrarySessionCallback::class.simpleName.toString()
     private val scope = CoroutineScope(Dispatchers.Main) + Job()
+    lateinit var service: MusicService
     var toggleLike: () -> Unit = {}
     var toggleStartRadio: () -> Unit = {}
     var toggleLibrary: () -> Unit = {}
@@ -83,13 +86,13 @@ class MediaLibrarySessionCallback @Inject constructor(
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }
 
-//    override fun onPlaybackResumption(
-//        mediaSession: MediaSession,
-//        controller: MediaSession.ControllerInfo
-//    ): ListenableFuture<MediaItemsWithStartPosition> {
-//        // Already handled by the player. This just shuts up the exception
-//        return SettableFuture.create<MediaItemsWithStartPosition>()
-//    }
+    override fun onPlaybackResumption(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo
+    ): ListenableFuture<MediaItemsWithStartPosition> {
+        // Already handled by the player. This just shuts up the exception
+        return SettableFuture.create<MediaItemsWithStartPosition>()
+    }
 
     override fun onGetLibraryRoot(
         session: MediaLibrarySession,
@@ -193,16 +196,19 @@ class MediaLibrarySessionCallback @Inject constructor(
         mediaItems: MutableList<MediaItem>,
         startIndex: Int,
         startPositionMs: Long,
-    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = scope.future {
+    ): ListenableFuture<MediaItemsWithStartPosition> = scope.future {
         // Play from Android Auto
-        val defaultResult = MediaSession.MediaItemsWithStartPosition(emptyList(), startIndex, startPositionMs)
+        Log.d(TAG, "MediaLibrarySessionCallback.onSetMediaItems")
+        val defaultResult = MediaItemsWithStartPosition(emptyList(), startIndex, startPositionMs)
         val path = mediaItems.firstOrNull()?.mediaId?.split("/")
             ?: return@future defaultResult
-        when (path.firstOrNull()) {
+        Log.d(TAG, "Path: " + path.joinToString(";"))
+
+        val queue: Triple<List<MediaItem>, Int, Long> = when (path.firstOrNull()) {
             MusicService.SONG -> {
                 val songId = path.getOrNull(1) ?: return@future defaultResult
                 val allSongs = database.songsByCreateDateAsc().first()
-                MediaSession.MediaItemsWithStartPosition(
+                Triple(
                     allSongs.map { it.toMediaItem() },
                     allSongs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0,
                     startPositionMs
@@ -213,7 +219,7 @@ class MediaLibrarySessionCallback @Inject constructor(
                 val songId = path.getOrNull(2) ?: return@future defaultResult
                 val artistId = path.getOrNull(1) ?: return@future defaultResult
                 val songs = database.artistSongsByCreateDateAsc(artistId).first()
-                MediaSession.MediaItemsWithStartPosition(
+                Triple(
                     songs.map { it.toMediaItem() },
                     songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0,
                     startPositionMs
@@ -224,7 +230,7 @@ class MediaLibrarySessionCallback @Inject constructor(
                 val songId = path.getOrNull(2) ?: return@future defaultResult
                 val albumId = path.getOrNull(1) ?: return@future defaultResult
                 val albumWithSongs = database.albumWithSongs(albumId).first() ?: return@future defaultResult
-                MediaSession.MediaItemsWithStartPosition(
+                Triple(
                     albumWithSongs.songs.map { it.toMediaItem() },
                     albumWithSongs.songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0,
                     startPositionMs
@@ -241,15 +247,42 @@ class MediaLibrarySessionCallback @Inject constructor(
                         list.map { it.song }
                     }
                 }.first()
-                MediaSession.MediaItemsWithStartPosition(
+                Triple(
                     songs.map { it.toMediaItem() },
                     songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0,
                     startPositionMs
                 )
             }
 
-            else -> defaultResult
+            MusicService.SEARCH -> {
+                val songId = path.getOrNull(2) ?: return@future defaultResult
+                val searchQuery = path.getOrNull(1) ?: return@future defaultResult
+                var results = combine(
+                    database.searchSongs(searchQuery),
+                    database.searchArtistSongs(searchQuery),
+                ) { songs, artistSongs ->
+                    (songs + artistSongs).distinctBy { it.id }
+                }
+
+                val items = results.first().map { it.toMediaItem() }
+                val index = items.indexOfFirst { it.mediaId == songId }
+                Triple(items, if (index > 0) index else 0, C.TIME_UNSET)
+            }
+
+            else -> Triple(emptyList<MediaItem>(), startIndex, startPositionMs)
         }
+
+        val queueTitle = context.getString(R.string.android_auto)
+        service.queueBoard.addQueue(
+            queueTitle,
+            queue.first.map { it.metadata },
+            shuffled = false,
+            replace = true,
+            delta = false,
+            startIndex = queue.second
+        )
+        service.queueTitle = queueTitle
+        MediaItemsWithStartPosition(queue.first, queue.second, queue.third)
     }
 
     override fun onSearch(
@@ -258,11 +291,42 @@ class MediaLibrarySessionCallback @Inject constructor(
         query: String,
         params: MediaLibraryService.LibraryParams?
     ): ListenableFuture<LibraryResult<Void>> {
-        if (BuildConfig.DEBUG) {
-            Timber.tag(TAG).d("MediaLibrarySessionCallback.onSearch: $query")
+        Log.d(TAG, "MediaLibrarySessionCallback.onSearch: $query")
+        session.notifySearchResultChanged(browser, query, 1, params)
+        return Futures.immediateFuture(LibraryResult.ofVoid())
+    }
+
+    override fun onGetSearchResult(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        page: Int,
+        pageSize: Int,
+        params: MediaLibraryService.LibraryParams?
+    ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+        Log.d(TAG, "MediaLibrarySessionCallback.onGetSearchResult: $query")
+        return scope.future {
+            if (query.isEmpty()) {
+                return@future LibraryResult.ofItemList(emptyList(), params)
+            }
+
+            try {
+                var results = combine(
+                    database.searchSongs(query),
+                    database.searchArtistSongs(query),
+                ) { songs, artistSongs ->
+                    (songs + artistSongs).distinctBy { it.id }
+                }
+
+                val items = results.first()
+                    .map { it.toMediaItem(path = "${MusicService.SEARCH}/$query", isPlayable = true, isBrowsable = true) }
+                LibraryResult.ofItemList(items, params)
+            } catch (e: Exception) {
+                Log.d(TAG, "Could not get search results")
+                reportException(e)
+                LibraryResult.ofItemList(emptyList(), params)
+            }
         }
-        session.notifySearchResultChanged(browser, query, 0, params)
-        return Futures.immediateFuture(LibraryResult.ofVoid(params))
     }
 
     private fun drawableUri(@DrawableRes id: Int) = Uri.Builder()
@@ -288,7 +352,7 @@ class MediaLibrarySessionCallback @Inject constructor(
             )
             .build()
 
-    private fun Song.toMediaItem(path: String) =
+    private fun Song.toMediaItem(path: String, isPlayable: Boolean = true, isBrowsable: Boolean = false) =
         MediaItem.Builder()
             .setMediaId("$path/$id")
             .setMediaMetadata(
@@ -296,9 +360,9 @@ class MediaLibrarySessionCallback @Inject constructor(
                     .setTitle(song.title)
                     .setSubtitle(artists.joinToString { it.name })
                     .setArtist(artists.joinToString { it.name })
-                    .setArtworkUri(song.thumbnailUrl?.toUri())
-                    .setIsPlayable(true)
-                    .setIsBrowsable(false)
+                    .setArtworkUri(if (song.isLocal) null else song.thumbnailUrl?.toUri())
+                    .setIsPlayable(isPlayable)
+                    .setIsBrowsable(isBrowsable)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                     .build()
             )

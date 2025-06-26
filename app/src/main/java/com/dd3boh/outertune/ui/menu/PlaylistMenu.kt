@@ -1,6 +1,9 @@
 package com.dd3boh.outertune.ui.menu
 
 import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -11,6 +14,7 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Output
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlaylistRemove
 import androidx.compose.material.icons.rounded.Radio
@@ -41,6 +45,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalNetworkConnected
@@ -52,7 +57,6 @@ import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
-import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.ui.component.DefaultDialog
@@ -61,14 +65,17 @@ import com.dd3boh.outertune.ui.component.GridMenu
 import com.dd3boh.outertune.ui.component.GridMenuItem
 import com.dd3boh.outertune.ui.component.PlaylistListItem
 import com.dd3boh.outertune.ui.component.TextFieldDialog
+import com.dd3boh.outertune.utils.reportException
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.WatchEndpoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 @Composable
 fun PlaylistMenu(
+    navController: NavController,
     playlist: Playlist,
     coroutineScope: CoroutineScope,
     onDismiss: () -> Unit,
@@ -81,6 +88,28 @@ fun PlaylistMenu(
     val dbPlaylist by database.playlist(playlist.id).collectAsState(initial = playlist)
     var songs by remember {
         mutableStateOf(emptyList<Song>())
+    }
+
+    val m3uLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("audio/x-mpegurl")
+    ) { uri: Uri? ->
+        uri?.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    var result = "#EXTM3U\n"
+                    songs.forEach { s ->
+                        val se = s.song
+                        result += "#EXTINF:${se.duration},${s.artists.joinToString(";") { it.name }} - ${s.title}\n"
+                        result += if (se.isLocal) se.localPath else "https://music.youtube.com/watch?v=${se.id}\n"
+                    }
+                    context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        outputStream.write(result.toByteArray(Charsets.UTF_8))
+                    }
+                } catch (e: IOException) {
+                    reportException(e)
+                }
+            }
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -98,8 +127,9 @@ fun PlaylistMenu(
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
+            val remaining = songs.filterNot { downloads[it.id]?.state == Download.STATE_COMPLETED }
             downloadState =
-                if (songs.all { downloads[it.id]?.state == Download.STATE_COMPLETED })
+                if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s.id == it.key } }.isEmpty())
                     Download.STATE_COMPLETED
                 else if (songs.all {
                         downloads[it.id]?.state == Download.STATE_QUEUED
@@ -231,11 +261,11 @@ fun PlaylistMenu(
     AddToQueueDialog(
         isVisible = showChooseQueueDialog,
         onAdd = { queueName ->
-            queueBoard.addQueue(
-                queueName, songs.map { it.toMediaMetadata() }, playerConnection,
+            playerConnection.service.queueBoard.addQueue(
+                queueName, songs.map { it.toMediaMetadata() },
                 forceInsert = true, delta = false
             )
-            queueBoard.setCurrQueue(playerConnection)
+            playerConnection.service.queueBoard.setCurrQueue()
         },
         onDismiss = {
             showChooseQueueDialog = false
@@ -247,6 +277,7 @@ fun PlaylistMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = {
             coroutineScope.launch(Dispatchers.IO) {
@@ -406,6 +437,12 @@ fun PlaylistMenu(
                 context.startActivity(Intent.createChooser(intent, null))
                 onDismiss()
             }
+        }
+        GridMenuItem(
+            icon = Icons.Rounded.Output,
+            title = R.string.m3u_export
+        ) {
+            m3uLauncher.launch("playlist.m3u")
         }
     }
 }

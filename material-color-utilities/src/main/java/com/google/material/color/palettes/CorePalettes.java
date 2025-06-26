@@ -23,25 +23,23 @@ package com.google.material.color.palettes;
  * with appearance preferences.
  */
 public final class CorePalettes {
-    public TonalPalette primary;
-    public TonalPalette secondary;
-    public TonalPalette tertiary;
-    public TonalPalette neutral;
-    public TonalPalette neutralVariant;
+  public TonalPalette primary;
+  public TonalPalette secondary;
+  public TonalPalette tertiary;
+  public TonalPalette neutral;
+  public TonalPalette neutralVariant;
 
-    /**
-     * Creates a new CorePalettes.
-     */
-    public CorePalettes(
-            TonalPalette primary,
-            TonalPalette secondary,
-            TonalPalette tertiary,
-            TonalPalette neutral,
-            TonalPalette neutralVariant) {
-        this.primary = primary;
-        this.secondary = secondary;
-        this.tertiary = tertiary;
-        this.neutral = neutral;
-        this.neutralVariant = neutralVariant;
-    }
+  /** Creates a new CorePalettes. */
+  public CorePalettes(
+      TonalPalette primary,
+      TonalPalette secondary,
+      TonalPalette tertiary,
+      TonalPalette neutral,
+      TonalPalette neutralVariant) {
+    this.primary = primary;
+    this.secondary = secondary;
+    this.tertiary = tertiary;
+    this.neutral = neutral;
+    this.neutralVariant = neutralVariant;
+  }
 }

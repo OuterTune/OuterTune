@@ -8,12 +8,16 @@
 
 package com.dd3boh.outertune.ui.screens
 
-import android.provider.Settings
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,55 +36,48 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.automirrored.rounded.List
-import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.automirrored.rounded.NavigateBefore
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Autorenew
-import androidx.compose.material.icons.rounded.Backup
-import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.Lyrics
-import androidx.compose.material.icons.rounded.MusicVideo
-import androidx.compose.material.icons.rounded.NotInterested
-import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.RadioButtonChecked
-import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Sync
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Button
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ripple
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -88,81 +85,71 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.navigation.NavController
 import com.dd3boh.outertune.BuildConfig
+import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.R
-import com.dd3boh.outertune.constants.AccountChannelHandleKey
-import com.dd3boh.outertune.constants.AccountEmailKey
-import com.dd3boh.outertune.constants.AccountNameKey
 import com.dd3boh.outertune.constants.AutomaticScannerKey
-import com.dd3boh.outertune.constants.DarkModeKey
-import com.dd3boh.outertune.constants.FirstSetupPassed
+import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
+import com.dd3boh.outertune.constants.DownloadPathKey
+import com.dd3boh.outertune.constants.EnabledTabsKey
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
-import com.dd3boh.outertune.constants.LibraryFilter
 import com.dd3boh.outertune.constants.LibraryFilterKey
 import com.dd3boh.outertune.constants.LocalLibraryEnableKey
 import com.dd3boh.outertune.constants.LyricTrimKey
-import com.dd3boh.outertune.constants.NavigationBarHeight
-import com.dd3boh.outertune.constants.NewInterfaceKey
-import com.dd3boh.outertune.constants.PureBlackKey
-import com.dd3boh.outertune.db.entities.ArtistEntity
-import com.dd3boh.outertune.db.entities.Song
-import com.dd3boh.outertune.db.entities.SongEntity
-import com.dd3boh.outertune.extensions.move
-import com.dd3boh.outertune.ui.component.ChipsLazyRow
-import com.dd3boh.outertune.ui.component.EnumListPreference
+import com.dd3boh.outertune.constants.OOBE_VERSION
+import com.dd3boh.outertune.constants.OobeStatusKey
+import com.dd3boh.outertune.constants.ScanPathsKey
+import com.dd3boh.outertune.constants.ThumbnailCornerRadius
+import com.dd3boh.outertune.ui.component.ActionPromptDialog
+import com.dd3boh.outertune.ui.component.IconLabelButton
 import com.dd3boh.outertune.ui.component.InfoLabel
 import com.dd3boh.outertune.ui.component.PreferenceEntry
-import com.dd3boh.outertune.ui.component.ResizableIconButton
-import com.dd3boh.outertune.ui.component.SongListItem
+import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SwitchPreference
-import com.dd3boh.outertune.ui.component.TextFieldDialog
-import com.dd3boh.outertune.ui.screens.settings.DarkMode
-import com.dd3boh.outertune.ui.screens.settings.NavigationTab
-import com.dd3boh.outertune.utils.decodeTabString
+import com.dd3boh.outertune.ui.screens.Screens.LibraryFilter
+import com.dd3boh.outertune.ui.screens.settings.fragments.AccountFrag
+import com.dd3boh.outertune.ui.screens.settings.fragments.LocalScannerFrag
+import com.dd3boh.outertune.ui.screens.settings.fragments.LocalizationFrag
+import com.dd3boh.outertune.ui.screens.settings.fragments.ThemeAppFrag
+import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
+import com.dd3boh.outertune.utils.scanners.stringFromUriList
+import com.dd3boh.outertune.utils.scanners.uriListFromString
 import com.zionhuang.innertube.utils.parseCookieString
 import kotlinx.coroutines.delay
-import java.time.LocalDateTime
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetupWizard(
     navController: NavController,
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
     val layoutDirection = LocalLayoutDirection.current
     val uriHandler = LocalUriHandler.current
 
-    val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference(FirstSetupPassed, defaultValue = false)
+    var oobeStatus by rememberPreference(OobeStatusKey, defaultValue = 0)
 
     // content prefs
-    val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
-    val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
-    val (newInterfaceStyle, onNewInterfaceStyleChange) = rememberPreference(key = NewInterfaceKey, defaultValue = true)
     var filter by rememberEnumPreference(LibraryFilterKey, LibraryFilter.ALL)
 
 
-    val accountName by rememberPreference(AccountNameKey, "")
-    val accountEmail by rememberPreference(AccountEmailKey, "")
-    val accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
-    val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
@@ -171,21 +158,32 @@ fun SetupWizard(
     // local media prefs
     val (localLibEnable, onLocalLibEnableChange) = rememberPreference(LocalLibraryEnableKey, defaultValue = true)
     val (autoScan, onAutoScanChange) = rememberPreference(AutomaticScannerKey, defaultValue = false)
+    val (enabledTabs, onEnabledTabsChange) = rememberPreference(EnabledTabsKey, defaultValue = DEFAULT_ENABLED_TABS)
 
-    var position by remember {
-        mutableIntStateOf(0)
-    }
-
-    val MAX_POS = 4
-
-    if (position > 0) {
-        BackHandler {
-            position -= 1
+    LaunchedEffect(localLibEnable) {
+        val containsFolders = enabledTabs.contains('F')
+        if (localLibEnable && !containsFolders) {
+            onEnabledTabsChange(enabledTabs + "F")
+        } else if (!localLibEnable && containsFolders) {
+            onEnabledTabsChange(enabledTabs.filterNot { it == 'F' })
         }
     }
 
-    if (firstSetupPassed) {
-        navController.navigateUp()
+
+    LaunchedEffect(oobeStatus) {
+        if (oobeStatus >= OOBE_VERSION) {
+            navController.backToMain()
+        }
+    }
+
+    val MAX_POS = 5
+
+    BackHandler {
+        if (oobeStatus > 0) {
+            oobeStatus -= 1
+        } else {
+            // user may not dismiss via back
+        }
     }
 
     val navBar = @Composable {
@@ -193,13 +191,13 @@ fun SetupWizard(
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
-                    if (position > 0) {
-                        position -= 1
+                    if (oobeStatus > 0) {
+                        oobeStatus -= 1
                     }
                     haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                 }
@@ -217,7 +215,7 @@ fun SetupWizard(
             }
 
             LinearProgressIndicator(
-                progress = { position.toFloat() / MAX_POS },
+                progress = { oobeStatus.toFloat() / MAX_POS },
 //                color = ProgressIndicatorDefaults.linearColor,
 //                trackColor = MaterialTheme.colorScheme.primary,
                 strokeCap = StrokeCap.Butt,
@@ -231,26 +229,26 @@ fun SetupWizard(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
-                    if (position == 1) {
+                    if (oobeStatus == 1) {
                         filter = LibraryFilter.ALL // hax
                     }
 
-                    if (position < MAX_POS) {
-                        position += 1
+                    if (oobeStatus < MAX_POS) {
+                        oobeStatus += 1
                     }
 
                     haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                 }
             ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.NavigateNext,
+                    contentDescription = null
+                )
                 Text(
                     text = stringResource(R.string.action_next),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.NavigateNext,
-                    contentDescription = null
                 )
             }
         }
@@ -258,7 +256,7 @@ fun SetupWizard(
 
     Scaffold(
         bottomBar = {
-            if (position > 0 && position < MAX_POS) {
+            if (oobeStatus > 0 && oobeStatus < MAX_POS) {
                 Box(
                     Modifier
                         .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom))
@@ -291,12 +289,13 @@ fun SetupWizard(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(horizontal = 16.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 16.dp))
 
-                when (position) {
+                when (oobeStatus) {
                     0 -> { // landing page
                         Image(
                             painter = painterResource(R.drawable.launcher_monochrome),
@@ -309,104 +308,58 @@ fun SetupWizard(
                                         NavigationBarDefaults.Elevation
                                     )
                                 )
-                                .clickable { }
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                }
                         )
-                        Column(verticalArrangement = Arrangement.Center) {
-                            Text(
-                                text = stringResource(R.string.oobe_welcome_message),
-                                style = MaterialTheme.typography.headlineLarge,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp, vertical = 8.dp)
+
+                        Text(
+                            text = stringResource(R.string.oobe_welcome_message),
+                            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, top = 48.dp, end = 16.dp, bottom = 16.dp)
+                        ) {
+                            OobeFeatureRow(
+                                title = stringResource(R.string.oobe_ytm_integration),
+                                description = stringResource(R.string.oobe_ytm_integration_description),
+                                icon = Icons.Rounded.MusicNote,
+                                MaterialTheme.colorScheme.secondary
+                            )
+                            OobeFeatureRow(
+                                title = stringResource(R.string.oobe_ad_free_exp),
+                                description = stringResource(R.string.oobe_ad_free_exp_description),
+                                icon = Icons.Rounded.Block,
+                                Color.Red
+                            )
+                            OobeFeatureRow(
+                                title = stringResource(R.string.oobe_cross_platform_sync),
+                                description = stringResource(R.string.oobe_cross_platform_sync_description),
+                                icon = Icons.Rounded.Sync,
+                                MaterialTheme.colorScheme.tertiary
+                            )
+                            OobeFeatureRow(
+                                title = stringResource(R.string.oobe_local_music_support),
+                                description = stringResource(R.string.oobe_local_music_support_description),
+                                icon = Icons.Rounded.SdCard,
+                                MaterialTheme.colorScheme.onSurface
                             )
                         }
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 48.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.MusicVideo,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                                Text(
-                                    text = stringResource(R.string.oobe_ytm_content_description),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp, vertical = 8.dp)
-                                )
-                            }
 
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.NotInterested,
-                                    tint = Color.Red,
-                                    contentDescription = null
-                                )
-                                Text(
-                                    text = stringResource(R.string.oobe_ad_free_description),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp, vertical = 8.dp)
-                                )
-                            }
-
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Sync,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.tertiary
-                                )
-                                Text(
-                                    text = stringResource(R.string.oobe_ytm_sync_description),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp, vertical = 8.dp)
-                                )
-                            }
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.SdCard,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                )
-                                Text(
-                                    text = stringResource(R.string.oobe_local_playback_description),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp, vertical = 8.dp)
-                                )
-                            }
-                        }
-
-
-                        // maybe add quick restore from backup here
                         Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 48.dp)
+                                .padding(horizontal = 48.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             TextButton(
                                 onClick = {
@@ -415,19 +368,19 @@ fun SetupWizard(
                             ) {
                                 Text(
                                     text = stringResource(R.string.oobe_use_backup),
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
 
                             TextButton(
                                 onClick = {
-                                    onFirstSetupPassedChange(true)
+                                    oobeStatus = OOBE_VERSION
                                     navController.navigateUp()
                                 }
                             ) {
                                 Text(
                                     text = stringResource(R.string.action_skip),
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }
@@ -435,454 +388,402 @@ fun SetupWizard(
 
                     // appearance
                     1 -> {
-                        val dummySong = Song(
-                            artists = listOf(
-                                ArtistEntity(
-                                    id = "uwu",
-                                    name = "Artist",
-                                    isLocal = true
-                                )
-                            ),
-                            song = SongEntity(
-                                id = "owo",
-                                title = "Title",
-                                duration = 310,
-                                inLibrary = LocalDateTime.now(),
-                                isLocal = true,
-                                localPath = "/storage"
-                            ),
+                        Icon(
+                            imageVector = Icons.Rounded.DarkMode,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .padding(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
-
-                        val dummySongs = ArrayList<Song>()
-                        for (i in 0..4) {
-                            dummySongs.add(dummySong)
-                        }
 
                         Text(
                             text = stringResource(R.string.grp_interface),
-                            style = MaterialTheme.typography.headlineLarge,
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 8.dp)
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                         )
 
-                        // interface style
-                        SwitchPreference(
-                            title = { Text(stringResource(R.string.new_interface)) },
-                            icon = { Icon(Icons.Rounded.Palette, null) },
-                            checked = newInterfaceStyle,
-                            onCheckedChange = onNewInterfaceStyleChange
+                        Text(
+                            text = stringResource(R.string.oobe_interface_subtitle),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
                         )
 
-                        // light/dark theme
-                        EnumListPreference(
-                            title = { Text(stringResource(R.string.dark_theme)) },
-                            icon = { Icon(Icons.Rounded.DarkMode, null) },
-                            selectedValue = darkMode,
-                            onValueSelected = onDarkModeChange,
-                            valueText = {
-                                when (it) {
-                                    DarkMode.ON -> stringResource(R.string.dark_theme_on)
-                                    DarkMode.OFF -> stringResource(R.string.dark_theme_off)
-                                    DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
-                                }
-                            }
-                        )
-                        SwitchPreference(
-                            title = { Text(stringResource(R.string.pure_black)) },
-                            icon = { Icon(Icons.Rounded.Contrast, null) },
-                            checked = pureBlack,
-                            onCheckedChange = onPureBlackChange
-                        )
 
-                        Column(
-                            Modifier.background(MaterialTheme.colorScheme.secondary.copy(0.2f))
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Spacer(Modifier.height(16.dp))
-
-                            if (newInterfaceStyle) {
-                                // for new layout
-                                val filterString = when (filter) {
-                                    LibraryFilter.ALBUMS -> stringResource(R.string.albums)
-                                    LibraryFilter.ARTISTS -> stringResource(R.string.artists)
-                                    LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
-                                    LibraryFilter.SONGS -> stringResource(R.string.songs)
-                                    LibraryFilter.FOLDERS -> stringResource(R.string.folders)
-                                    LibraryFilter.ALL -> ""
-                                }
-
-                                val defaultFilter: Collection<Pair<LibraryFilter, String>> =
-                                    decodeTabString("HSABL").map {
-                                        when (it) {
-                                            NavigationTab.ALBUM -> LibraryFilter.ALBUMS to stringResource(R.string.albums)
-                                            NavigationTab.ARTIST -> LibraryFilter.ARTISTS to stringResource(R.string.artists)
-                                            NavigationTab.PLAYLIST -> LibraryFilter.PLAYLISTS to stringResource(R.string.playlists)
-                                            NavigationTab.SONG -> LibraryFilter.SONGS to stringResource(R.string.songs)
-                                            NavigationTab.FOLDERS -> LibraryFilter.FOLDERS to stringResource(R.string.folders)
-                                            else -> LibraryFilter.ALL to stringResource(R.string.home) // there is no all filter, use as null value
-                                        }
-                                    }.filterNot { it.first == LibraryFilter.ALL }
-
-                                val chips = remember { SnapshotStateList<Pair<LibraryFilter, String>>() }
-
-                                var filterSelected by remember {
-                                    mutableStateOf(filter)
-                                }
-
-                                LaunchedEffect(Unit) {
-                                    if (filter == LibraryFilter.ALL)
-                                        chips.addAll(defaultFilter)
-                                    else
-                                        chips.add(filter to filterString)
-                                }
-
-                                val animatorDurationScale = Settings.Global.getFloat(
-                                    context.contentResolver,
-                                    Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f
-                                ).toLong()
-
-                                suspend fun animationBasedDelay(value: Long) {
-                                    delay(value * animatorDurationScale)
-                                }
-
-                                // Update the filters list in a proper way so that the animations of the LazyRow can work.
-                                LaunchedEffect(filter) {
-                                    val filterIndex = defaultFilter.indexOf(defaultFilter.find { it.first == filter })
-                                    val currentPairIndex = if (chips.size > 0) defaultFilter.indexOf(chips[0]) else -1
-                                    val currentPair = if (chips.size > 0) chips[0] else null
-
-                                    if (filter == LibraryFilter.ALL) {
-                                        defaultFilter.reversed().fastForEachIndexed { index, it ->
-                                            val curFilterIndex = defaultFilter.indexOf(it)
-                                            if (!chips.contains(it)) {
-                                                chips.add(0, it)
-                                                if (currentPairIndex > curFilterIndex) animationBasedDelay(100)
-                                                else {
-                                                    currentPair?.let {
-                                                        animationBasedDelay(2)
-                                                        chips.move(chips.indexOf(it), 0)
-                                                    }
-                                                    animationBasedDelay(80 + (index * 30).toLong())
-                                                }
-                                            }
-                                        }
-                                        animationBasedDelay(100)
-                                        filterSelected = LibraryFilter.ALL
-                                    } else {
-                                        filterSelected = filter
-                                        chips.filter { it.first != filter }
-                                            .onEachIndexed { index, it ->
-                                                if (chips.contains(it)) {
-                                                    chips.remove(it)
-                                                    if (index > filterIndex) animationBasedDelay(150 + 30 * index.toLong())
-                                                    else animationBasedDelay(80)
-                                                }
-                                            }
-                                    }
-                                }
-
-                                // filter chips
-                                Row {
-                                    ChipsLazyRow(
-                                        chips = chips,
-                                        currentValue = filter,
-                                        onValueUpdate = {
-                                            filter = if (filter == LibraryFilter.ALL)
-                                                it
-                                            else
-                                                LibraryFilter.ALL
-                                        },
-                                        modifier = Modifier.weight(1f),
-                                        selected = { it == filterSelected }
-                                    )
-
-                                    if (filter != LibraryFilter.SONGS) {
-                                        IconButton(
-                                            onClick = {},
-                                            modifier = Modifier.padding(end = 6.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Rounded.List,
-                                                contentDescription = null
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            // sort header
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            ) {
-                                SortHeaderDummy()
-
-                                Spacer(Modifier.weight(1f))
-
-                                Text(
-                                    text = pluralStringResource(R.plurals.n_song, dummySongs.size, dummySongs.size),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-
-
-                            // sample UI
-                            Column {
-                                dummySongs.forEach { song ->
-                                    SongListItem(
-                                        song = song,
-                                        onPlay = {},
-                                        onSelectedChange = {},
-                                        inSelectMode = null,
-                                        isSelected = false,
-                                        navController = navController,
-                                        enableSwipeToQueue = false,
-                                        disableShowMenu = true
-                                    )
-                                }
-                            }
-
-
-                            val navigationItems =
-                                if (!newInterfaceStyle) Screens.getScreens("HSABL") else Screens.MainScreensNew
-                            NavigationBar(
-                                windowInsets = WindowInsets(0, 0, 0, 0),
-                                modifier = Modifier.height(NavigationBarHeight)
-                            ) {
-                                navigationItems.fastForEach { screen ->
-                                    NavigationBarItem(
-                                        selected = false,
-                                        icon = {
-                                            Icon(
-                                                screen.icon,
-                                                contentDescription = null
-                                            )
-                                        },
-                                        label = {
-                                            Text(
-                                                text = stringResource(screen.titleId),
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        },
-                                        onClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                        }
-                                    )
-                                }
-                            }
+                          ThemeAppFrag()
                         }
 
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            LocalizationFrag()
+                        }
                     }
 
                     // account
                     2 -> {
-                        var showToken: Boolean by remember {
-                            mutableStateOf(false)
-                        }
-
-                        var showTokenEditor by remember {
-                            mutableStateOf(false)
-                        }
+                        Icon(
+                            imageVector = Icons.Rounded.AccountCircle,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .padding(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
 
                         Text(
-                            text = stringResource(R.string.account),
-                            style = MaterialTheme.typography.headlineLarge,
+                            text = stringResource(R.string.oobe_ytm_logon_title),
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 8.dp)
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                        )
+
+                        Text(
+                            text = stringResource(R.string.oobe_ytm_logon_subtitle),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
                         )
 
 
-                        PreferenceEntry(
-                            title = { Text(if (isLoggedIn) accountName else stringResource(R.string.login)) },
-                            description = if (isLoggedIn) {
-                                accountEmail.takeIf { it.isNotEmpty() }
-                                    ?: accountChannelHandle.takeIf { it.isNotEmpty() }
-                            } else null,
-                            icon = { Icon(Icons.Rounded.Person, null) },
-                            onClick = { navController.navigate("login") }
-                        )
-                        if (isLoggedIn) {
-                            PreferenceEntry(
-                                title = { Text(stringResource(R.string.logout)) },
-                                icon = { Icon(Icons.AutoMirrored.Rounded.Logout, null) },
-                                onClick = {
-                                    onInnerTubeCookieChange("")
-                                }
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            AccountFrag(navController)
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            SwitchPreference(
+                                title = { Text(stringResource(R.string.ytm_sync)) },
+                                icon = { Icon(Icons.Rounded.Lyrics, null) },
+                                checked = ytmSync,
+                                onCheckedChange = onYtmSyncChange,
+                                isEnabled = isLoggedIn
                             )
                         }
-                        if (showTokenEditor) {
-                            TextFieldDialog(
-                                modifier = Modifier,
-                                initialTextFieldValue = TextFieldValue(innerTubeCookie),
-                                onDone = { onInnerTubeCookieChange(it) },
-                                onDismiss = { showTokenEditor = false },
-                                singleLine = false,
-                                maxLines = 20,
-                                isInputValid = {
-                                    it.isNotEmpty() &&
-                                            try {
-                                                "SAPISID" in parseCookieString(it)
-                                                true
-                                            } catch (e: Exception) {
-                                                false
-                                            }
-                                },
-                                extraContent = {
-                                    InfoLabel(text = stringResource(R.string.token_adv_login_description))
-                                }
-                            )
-                        }
-                        PreferenceEntry(
-                            title = {
-                                if (showToken) {
-                                    Text(stringResource(R.string.token_shown))
-                                    Text(
-                                        text = if (isLoggedIn) innerTubeCookie else stringResource(R.string.not_logged_in),
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Light,
-                                        overflow = TextOverflow.Ellipsis,
-                                        maxLines = 1 // just give a preview so user knows it's at least there
-                                    )
-                                } else {
-                                    Text(stringResource(R.string.token_hidden))
-                                }
-                            },
-                            onClick = {
-                                if (showToken == false) {
-                                    showToken = true
-                                } else {
-                                    showTokenEditor = true
-                                }
-                            },
-                        )
-                        SwitchPreference(
-                            title = { Text(stringResource(R.string.ytm_sync)) },
-                            icon = { Icon(Icons.Rounded.Lyrics, null) },
-                            checked = ytmSync,
-                            onCheckedChange = onYtmSyncChange,
-                            isEnabled = isLoggedIn
-                        )
-
                     }
 
                     // local media
                     3 -> {
-                        Text(
-                            text = stringResource(R.string.local_player_settings_title),
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold,
+                        Icon(
+                            imageVector = Icons.Rounded.LibraryMusic,
+                            contentDescription = null,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 8.dp)
+                                .size(80.dp)
+                                .padding(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
 
-
-                        SwitchPreference(
-                            title = { Text(stringResource(R.string.local_library_enable_title)) },
-                            description = stringResource(R.string.local_library_enable_description),
-                            icon = { Icon(Icons.Rounded.SdCard, null) },
-                            checked = localLibEnable,
-                            onCheckedChange = onLocalLibEnableChange
+                        Text(
+                            text = stringResource(R.string.oobe_local_media_title),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                         )
 
-                        // automatic scanner
-                        SwitchPreference(
-                            title = { Text(stringResource(R.string.auto_scanner_title)) },
-                            description = stringResource(R.string.auto_scanner_description),
-                            icon = { Icon(Icons.Rounded.Autorenew, null) },
-                            checked = autoScan,
-                            onCheckedChange = onAutoScanChange,
-                            isEnabled = localLibEnable
+                        Text(
+                            text = stringResource(R.string.oobe_local_media_subtitle),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
                         )
 
-
-                        PreferenceEntry(
-                            title = { Text(stringResource(R.string.oobe_local_scan_tooltip)) },
-                            icon = { Icon(Icons.Rounded.Backup, null) },
-                            onClick = {
-                                navController.navigate("settings/local")
-                            },
-                            isEnabled = localLibEnable
-                        )
-                    }
-
-                    // exiting
-                    4 -> {
-
-                        Column(verticalArrangement = Arrangement.Center) {
-                            Text(
-                                text = stringResource(R.string.oobe_complete),
-                                style = MaterialTheme.typography.headlineLarge,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            SwitchPreference(
+                                title = { Text(stringResource(R.string.local_library_enable_title)) },
+                                description = stringResource(R.string.local_library_enable_description),
+                                icon = { Icon(Icons.Rounded.SdCard, null) },
+                                checked = localLibEnable,
+                                onCheckedChange = onLocalLibEnableChange
                             )
                         }
 
-
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(vertical = 20.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.Top,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.info),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                                )
-                            }
-
-                            Spacer(Modifier.height(4.dp))
-
-
-                            Row {
-                                IconButton(
-                                    onClick = { uriHandler.openUri("https://github.com/DD3Boh/OuterTune") }
+                        AnimatedVisibility(localLibEnable) {
+                            Column {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                ElevatedCard(
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.github),
-                                        contentDescription = null
+                                    SwitchPreference(
+                                        title = { Text(stringResource(R.string.auto_scanner_title)) },
+                                        description = stringResource(R.string.auto_scanner_description),
+                                        icon = { Icon(Icons.Rounded.Autorenew, null) },
+                                        checked = autoScan,
+                                        onCheckedChange = onAutoScanChange
                                     )
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                ElevatedCard(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    PreferenceGroupTitle(
+                                        title = stringResource(R.string.grp_manual_scanner)
+                                    )
+
+
+                                    LocalScannerFrag()
                                 }
                             }
 
-                            Spacer(Modifier.height(8.dp))
+                        }
+                    }
+
+                    // downloads
+                    4 -> {
+                        val downloadUtil = LocalDownloadUtil.current
+                        val (downloadPath, onDownloadPathChange) = rememberPreference(DownloadPathKey, "")
+                        val (scanPaths, onScanPathsChange) = rememberPreference(ScanPathsKey, defaultValue = "")
+
+                        var showDlPathDialog: Boolean by remember {
+                            mutableStateOf(false)
                         }
 
 
-                        Row {
+                        Icon(
+                            imageVector = Icons.Rounded.Download,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .padding(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+
+                        Text(
+                            text = stringResource(R.string.oobe_downloads_title),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                        )
+
+                        Text(
+                            text = stringResource(R.string.oobe_downloads_subtitle),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
+                        )
+
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            PreferenceEntry(
+                                title = { Text(stringResource(R.string.dl_main_path_title)) },
+                                onClick = {
+                                    showDlPathDialog = true
+                                },
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        InfoLabel(stringResource(R.string.dl_oobe_tooltip))
+
+
+                        if (showDlPathDialog) {
+                            var tempFilePath by remember {
+                                mutableStateOf<Uri?>(null)
+                            }
+                            LaunchedEffect(downloadPath) {
+                                tempFilePath = uriListFromString(downloadPath).firstOrNull()
+                            }
+
+                            ActionPromptDialog(
+                                titleBar = {
+                                    Text(
+                                        text = stringResource(R.string.dl_main_path_title),
+                                        style = MaterialTheme.typography.titleLarge,
+                                    )
+                                },
+                                onDismiss = {
+                                    showDlPathDialog = false
+                                    tempFilePath = null
+                                },
+                                onConfirm = {
+                                    tempFilePath?.let { f ->
+                                        val uris = stringFromUriList(listOfNotNull(f))
+                                        onDownloadPathChange(uris)
+                                    }
+
+                                    showDlPathDialog = false
+                                    tempFilePath = null
+
+                                    coroutineScope.launch {
+                                        delay(1000)
+                                        downloadUtil.cd()
+                                        downloadUtil.scanDownloads()
+                                    }
+                                },
+                                onReset = {
+                                    tempFilePath = null
+                                },
+                                onCancel = {
+                                    showDlPathDialog = false
+                                    tempFilePath = null
+                                },
+                                isInputValid = uriListFromString(scanPaths).none {
+                                    // download path cannot a scan path, or a subdir of a scan path
+                                    tempFilePath.toString().length <= it.toString().length && tempFilePath.toString()
+                                        .contains(it.toString())
+                                }
+                            ) {
+
+                                val dirPickerLauncher = rememberLauncherForActivityResult(
+                                    ActivityResultContracts.OpenDocumentTree()
+                                ) { uri ->
+                                    if (tempFilePath.toString() == uri.toString()) return@rememberLauncherForActivityResult
+                                    if (uri?.path != null) {
+                                        // Take persistable URI permission
+                                        val contentResolver = context.contentResolver
+                                        val takeFlags: Int =
+                                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                                        contentResolver.takePersistableUriPermission(uri, takeFlags)
+
+                                        tempFilePath = uri
+                                    }
+                                }
+
+                                val valid = uriListFromString(scanPaths).none {
+                                    // download path cannot a scan path, or a subdir of a scan path
+                                    tempFilePath.toString().length <= it.toString().length && tempFilePath.toString()
+                                        .contains(it.toString())
+                                }
+
+                                Text(
+                                    text = stringResource(R.string.dl_main_path_description),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(horizontal = 4.dp)
+                                )
+                                Spacer(Modifier.padding(vertical = 8.dp))
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                        .border(
+                                            2.dp,
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                            RoundedCornerShape(ThumbnailCornerRadius)
+                                        )
+                                        .background(if (valid) Color.Transparent else MaterialTheme.colorScheme.errorContainer)
+                                ) {
+                                    tempFilePath?.let {
+                                        Text(
+                                            text = it.toString(),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.padding(8.dp)
+                                        )
+                                    }
+                                }
+
+                                // add folder button
+                                Column {
+                                    Button(onClick = { dirPickerLauncher.launch(null) }) {
+                                        Text(stringResource(R.string.scan_paths_add_folder))
+                                    }
+
+                                    InfoLabel(
+                                        text = stringResource(R.string.scan_paths_tooltip),
+                                        modifier = Modifier.padding(vertical = 16.dp)
+                                    )
+
+                                    if (!valid) {
+                                        InfoLabel(
+                                            text = stringResource(R.string.scanner_rejected_dir),
+                                            isError = true,
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // exit page
+                    5 -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Check,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .padding(16.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = stringResource(R.string.oobe_complete_title),
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.oobe_complete),
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(vertical = 16.dp)
+                            ) {
+                                IconLabelButton(
+                                    text = "GitHub",
+                                    icon = Icons.Rounded.Code,
+                                    onClick = { uriHandler.openUri("https://github.com/OuterTune/OuterTune") },
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                )
+
+                                IconLabelButton(
+                                    text = "Wiki",
+                                    icon = Icons.Outlined.Info,
+                                    onClick = { uriHandler.openUri("https://github.com/OuterTune/OuterTune/wiki") },
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                )
+                            }
                             Text(
                                 text = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) | ${BuildConfig.FLAVOR}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.secondary
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 8.dp)
                             )
                         }
                     }
                 }
             }
 
-            if (position == 0 || position == MAX_POS) {
+            if (oobeStatus == 0 || oobeStatus == MAX_POS) {
                 FloatingActionButton(
                     modifier = Modifier
                         .padding(16.dp)
                         .align(Alignment.BottomEnd),
                     onClick = {
-                        if (position == 0) {
-                            position += 1
+                        if (oobeStatus == 0) {
+                            oobeStatus += 1
                         } else {
-                            onFirstSetupPassedChange(true)
+                            oobeStatus = OOBE_VERSION
                             navController.navigateUp()
                         }
                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
@@ -900,68 +801,55 @@ fun SetupWizard(
 
 
 @Composable
-private fun SortHeaderDummy(
-    modifier: Modifier = Modifier,
-) {
-    var menuExpanded by remember { mutableStateOf(false) }
-    var sortDescending by remember { mutableStateOf(false) }
+private fun OobeFeatureRow(title: String, description: String?, icon: ImageVector, tint: Color) {
+    val haptic = LocalHapticFeedback.current
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.padding(vertical = 8.dp)
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+            },
     ) {
-        Text(
-            text = stringResource(R.string.sort_by_name),
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.labelLarge,
+        Row(
             modifier = Modifier
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(bounded = false)
-                ) {
-                    menuExpanded = !menuExpanded
-                }
-                .padding(horizontal = 4.dp, vertical = 8.dp)
-        )
-
-        val dummyOptions = listOf("Artist", "Name", "Date added", "Date modified", "Date released")
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false },
-            modifier = Modifier.widthIn(min = 172.dp)
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ) {
-
-            dummyOptions.forEach { type ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = type,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Normal
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = if (type == "Name") Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
-                            contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        menuExpanded = false
-                    }
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                description?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
-
-
-        ResizableIconButton(
-            icon = if (sortDescending) Icons.Rounded.ArrowDownward else Icons.Rounded.ArrowUpward,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .size(32.dp)
-                .padding(8.dp),
-            onClick = { sortDescending = !sortDescending }
-        )
-
     }
 }

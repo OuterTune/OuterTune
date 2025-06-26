@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_history">Kohalik</string>
+    <string name="folders">Kaustad</string>
+    <string name="android_auto">Android Auto</string>
+    <string name="library">Muusikakogu</string>
+    <string name="queue_local_history">Ajalugu (kohalik)</string>
+    <string name="remote_history">Serveris</string>
+    <string name="library_empty">Sinu muusikakogu saab olema nähtav siin</string>
+    <string name="queue_remote_history">Ajalugu (serveris)</string>
+</resources>

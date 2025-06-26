@@ -1,11 +1,14 @@
 package com.dd3boh.outertune.ui.screens.library
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import android.content.pm.PackageManager
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -19,18 +22,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -40,6 +51,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.MainActivity
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AlbumFilter
 import com.dd3boh.outertune.constants.AlbumFilterKey
@@ -52,18 +64,19 @@ import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.GridThumbnailHeight
 import com.dd3boh.outertune.constants.LibraryViewType
 import com.dd3boh.outertune.constants.LibraryViewTypeKey
-import com.dd3boh.outertune.extensions.isSyncEnabled
+import com.dd3boh.outertune.constants.LocalLibraryEnableKey
 import com.dd3boh.outertune.ui.component.ChipsRow
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
 import com.dd3boh.outertune.ui.component.LibraryAlbumGridItem
 import com.dd3boh.outertune.ui.component.LibraryAlbumListItem
 import com.dd3boh.outertune.ui.component.LocalMenuState
 import com.dd3boh.outertune.ui.component.SortHeader
+import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.LibraryAlbumsViewModel
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryAlbumsScreen(
     navController: NavController,
@@ -87,16 +100,18 @@ fun LibraryAlbumsScreen(
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(AlbumSortTypeKey, AlbumSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(AlbumSortDescendingKey, true)
+    val localLibEnable by rememberPreference(LocalLibraryEnableKey, defaultValue = true)
 
     val albums by viewModel.allAlbums.collectAsState()
     val isSyncingLibraryAlbums by viewModel.isSyncingRemoteAlbums.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     val lazyListState = rememberLazyListState()
     val lazyGridState = rememberLazyGridState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
 
-    LaunchedEffect(Unit) { if (context.isSyncEnabled()) viewModel.syncAlbums() }
+    LaunchedEffect(Unit) { viewModel.syncAlbums() }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -109,38 +124,59 @@ fun LibraryAlbumsScreen(
     }
 
     val filterContent = @Composable {
-        Row {
-            ChipsRow(
-                chips = listOf(
-                    AlbumFilter.LIKED to stringResource(R.string.filter_liked),
-                    AlbumFilter.LIBRARY to stringResource(R.string.filter_library),
-                    AlbumFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
-                ),
-                currentValue = filter,
-                onValueUpdate = {
-                    filter = it
-                    if (context.isSyncEnabled()) {
-                        if (it == AlbumFilter.LIBRARY) viewModel.syncAlbums()
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                isLoading = { filter -> filter == AlbumFilter.LIBRARY && isSyncingLibraryAlbums }
-            )
-
-            IconButton(
-                onClick = {
-                    albumViewType = albumViewType.toggle()
-                },
-                modifier = Modifier.padding(end = 6.dp)
-            ) {
-                Icon(
-                    imageVector =
-                    when (albumViewType) {
-                        LibraryViewType.LIST -> Icons.AutoMirrored.Rounded.List
-                        LibraryViewType.GRID -> Icons.Rounded.GridView
+        var showStoragePerm by remember {
+            mutableStateOf(context.checkSelfPermission(MEDIA_PERMISSION_LEVEL) != PackageManager.PERMISSION_GRANTED)
+        }
+        Column {
+            if (localLibEnable && showStoragePerm) {
+                TextButton(
+                    onClick = {
+                        showStoragePerm =
+                            false // allow user to hide error when clicked. This also makes the code a lot nicer too...
+                        (context as MainActivity).permissionLauncher.launch(MEDIA_PERMISSION_LEVEL)
                     },
-                    contentDescription = null
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.error)
+                ) {
+                    Text(
+                        text = stringResource(R.string.missing_media_permission_warning),
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+            Row {
+                ChipsRow(
+                    chips = listOf(
+                        AlbumFilter.LIKED to stringResource(R.string.filter_liked),
+                        AlbumFilter.LIBRARY to stringResource(R.string.filter_library),
+                        AlbumFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
+                    ),
+                    currentValue = filter,
+                    onValueUpdate = {
+                        filter = it
+                        if (it == AlbumFilter.LIBRARY) viewModel.syncAlbums()
+                    },
+                    modifier = Modifier.weight(1f),
+                    isLoading = { filter -> filter == AlbumFilter.LIBRARY && isSyncingLibraryAlbums }
                 )
+
+                IconButton(
+                    onClick = {
+                        albumViewType = albumViewType.toggle()
+                    },
+                    modifier = Modifier.padding(end = 6.dp)
+                ) {
+                    Icon(
+                        imageVector =
+                            when (albumViewType) {
+                                LibraryViewType.LIST -> Icons.AutoMirrored.Rounded.List
+                                LibraryViewType.GRID -> Icons.Rounded.GridView
+                            },
+                        contentDescription = null
+                    )
+                }
             }
         }
     }
@@ -181,7 +217,15 @@ fun LibraryAlbumsScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isSyncingLibraryAlbums,
+                onRefresh = {
+                    viewModel.syncAlbums(true)
+                }
+            ),
     ) {
         when (viewType) {
             LibraryViewType.LIST ->
@@ -280,5 +324,13 @@ fun LibraryAlbumsScreen(
                     }
                 }
         }
+
+        Indicator(
+            isRefreshing = isSyncingLibraryAlbums,
+            state = pullRefreshState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+        )
     }
 }

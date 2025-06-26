@@ -33,3 +33,16 @@ include(":material-color-utilities")
 //        substitute(module("com.github.teamnewpipe:NewPipeExtractor")).using(project(":extractor"))
 //    }
 //}
+
+
+// Use a local copy of taglib by uncommenting the lines below.
+// We assume, that OuterTune and taglib have the same parent directory.
+//
+// Use a local copy of taglib
+//includeBuild("../taglib") {
+//    dependencySubstitution {
+//        substitute(module("com.kyant:taglib"))
+//    }
+//}
+
+include(":ffMetadataEx")

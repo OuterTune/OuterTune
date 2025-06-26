@@ -83,13 +83,14 @@ import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AlbumThumbnailSize
-import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.AutoResizeText
+import com.dd3boh.outertune.ui.component.FloatingFooter
 import com.dd3boh.outertune.ui.component.FontSizeRange
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.LocalMenuState
@@ -156,8 +157,9 @@ fun AlbumScreen(
         val songs = albumWithSongs?.songs?.map { it.id }
         if (songs.isNullOrEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
+            val remaining = songs.filterNot { downloads[it]?.state == Download.STATE_COMPLETED }
             downloadState =
-                if (songs.all { downloads[it]?.state == Download.STATE_COMPLETED })
+                if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s == it.key } }.isEmpty())
                     Download.STATE_COMPLETED
                 else if (songs.all {
                         downloads[it]?.state == Download.STATE_QUEUED
@@ -172,7 +174,8 @@ fun AlbumScreen(
 
     LazyColumn(
         state = state,
-        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+        modifier = Modifier.padding(bottom = if (inSelectMode) 64.dp else 0.dp)
     ) {
         val albumWithSongsLocal = albumWithSongs
         if (albumWithSongsLocal != null && albumWithSongsLocal.songs.isNotEmpty()) {
@@ -359,7 +362,8 @@ fun AlbumScreen(
                                     ListQueue(
                                         title = albumWithSongsLocal.album.title,
                                         items = albumWithSongs?.songs?.mapNotNull { it.toMediaMetadata() }?.toList()?: emptyList(),
-                                        playlistId = albumWithSongsLocal.album.playlistId
+                                        playlistId = albumWithSongsLocal.album.playlistId,
+                                        startShuffled = true,
                                     )
                                 )
                             },
@@ -377,33 +381,6 @@ fun AlbumScreen(
                     }
                 }
             }
-
-            stickyHeader(
-                key = "header",
-                contentType = CONTENT_TYPE_HEADER
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 16.dp)
-                ) {
-                    if (inSelectMode) {
-                        SelectHeader(
-                            selectedItems = selection.mapNotNull { id ->
-                                albumWithSongsLocal.songs.find { it.song.id == id }
-                            }.map { it.toMediaMetadata() },
-                            totalItemCount = albumWithSongsLocal.songs.size,
-                            onSelectAll = {
-                                selection.clear()
-                                selection.addAll(albumWithSongsLocal.songs.map { it.id })
-                            },
-                            onDeselectAll = { selection.clear() },
-                            menuState = menuState,
-                            onDismiss = onExitSelectionMode
-                        )
-                    }
-                }
-            }
-
 
             itemsIndexed(
                 items = albumWithSongs!!.songs,
@@ -433,6 +410,7 @@ fun AlbumScreen(
                     inSelectMode = inSelectMode,
                     isSelected = selection.contains(song.id),
                     navController = navController,
+                    snackbarHostState = snackbarHostState,
                     modifier = Modifier.fillMaxWidth().animateItem()
                 )
             }
@@ -529,12 +507,32 @@ fun AlbumScreen(
                 )
             }
         },
+        windowInsets = TopBarInsets,
         scrollBehavior = scrollBehavior
     )
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        FloatingFooter(inSelectMode) {
+            val albumWithSongsLocal = albumWithSongs
+            if (albumWithSongsLocal != null && albumWithSongsLocal.songs.isNotEmpty()) {
+                SelectHeader(
+                    navController = navController,
+                    selectedItems = selection.mapNotNull { id ->
+                        albumWithSongsLocal.songs.find { it.song.id == id }
+                    }.map { it.toMediaMetadata() },
+                    totalItemCount = albumWithSongsLocal.songs.size,
+                    onSelectAll = {
+                        selection.clear()
+                        selection.addAll(albumWithSongsLocal.songs.map { it.id })
+                    },
+                    onDeselectAll = { selection.clear() },
+                    menuState = menuState,
+                    onDismiss = onExitSelectionMode
+                )
+            }
+        }
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier

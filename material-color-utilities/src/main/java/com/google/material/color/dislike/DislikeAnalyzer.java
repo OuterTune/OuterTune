@@ -29,31 +29,29 @@ import com.google.material.color.hct.Hct;
  */
 public final class DislikeAnalyzer {
 
-    private DislikeAnalyzer() {
-        throw new UnsupportedOperationException();
+  private DislikeAnalyzer() {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Returns true if color is disliked.
+   *
+   * <p>Disliked is defined as a dark yellow-green that is not neutral.
+   */
+  public static boolean isDisliked(Hct hct) {
+    final boolean huePasses = Math.round(hct.getHue()) >= 90.0 && Math.round(hct.getHue()) <= 111.0;
+    final boolean chromaPasses = Math.round(hct.getChroma()) > 16.0;
+    final boolean tonePasses = Math.round(hct.getTone()) < 65.0;
+
+    return huePasses && chromaPasses && tonePasses;
+  }
+
+  /** If color is disliked, lighten it to make it likable. */
+  public static Hct fixIfDisliked(Hct hct) {
+    if (isDisliked(hct)) {
+      return Hct.from(hct.getHue(), hct.getChroma(), 70.0);
     }
 
-    /**
-     * Returns true if color is disliked.
-     *
-     * <p>Disliked is defined as a dark yellow-green that is not neutral.
-     */
-    public static boolean isDisliked(Hct hct) {
-        final boolean huePasses = Math.round(hct.getHue()) >= 90.0 && Math.round(hct.getHue()) <= 111.0;
-        final boolean chromaPasses = Math.round(hct.getChroma()) > 16.0;
-        final boolean tonePasses = Math.round(hct.getTone()) < 65.0;
-
-        return huePasses && chromaPasses && tonePasses;
-    }
-
-    /**
-     * If color is disliked, lighten it to make it likable.
-     */
-    public static Hct fixIfDisliked(Hct hct) {
-        if (isDisliked(hct)) {
-            return Hct.from(hct.getHue(), hct.getChroma(), 70.0);
-        }
-
-        return hct;
-    }
+    return hct;
+  }
 }

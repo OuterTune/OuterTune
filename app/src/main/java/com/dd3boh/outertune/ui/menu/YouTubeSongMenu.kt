@@ -45,12 +45,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.ListThumbnailSize
@@ -60,7 +62,6 @@ import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
-import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.ui.component.DownloadGridMenu
 import com.dd3boh.outertune.ui.component.GridMenu
@@ -85,6 +86,8 @@ fun YouTubeSongMenu(
     val downloadUtil = LocalDownloadUtil.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val syncUtils = LocalSyncUtils.current
+
     val librarySong by database.song(song.id).collectAsState(initial = null)
     val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
     val artists = remember {
@@ -108,9 +111,11 @@ fun YouTubeSongMenu(
     AddToQueueDialog(
         isVisible = showChooseQueueDialog,
         onAdd = { queueName ->
-            queueBoard.addQueue(queueName, listOf(song.toMediaMetadata()), playerConnection,
-                forceInsert = true, delta = false)
-            queueBoard.setCurrQueue(playerConnection)
+            playerConnection.service.queueBoard.addQueue(
+                queueName, listOf(song.toMediaMetadata()),
+                forceInsert = true, delta = false
+            )
+            playerConnection.service.queueBoard.setCurrQueue()
         },
         onDismiss = {
             showChooseQueueDialog = false
@@ -122,6 +127,7 @@ fun YouTubeSongMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = { playlist ->
             database.transaction {
@@ -204,11 +210,16 @@ fun YouTubeSongMenu(
                 onClick = {
                     database.transaction {
                         librarySong.let { librarySong ->
+                            val s: SongEntity
                             if (librarySong == null) {
                                 insert(song.toMediaMetadata(), SongEntity::toggleLike)
+                                s = song.toMediaMetadata().toSongEntity().let(SongEntity::toggleLike)
                             } else {
-                                update(librarySong.song.toggleLike())
+                                s = librarySong.song.toggleLike()
+                                update(s)
                             }
+
+                            syncUtils.likeSong(s)
                         }
                     }
                 }
@@ -259,7 +270,7 @@ fun YouTubeSongMenu(
             showChoosePlaylistDialog = true
         }
         DownloadGridMenu(
-            state = download?.state,
+            state = if (downloadUtil.getCustomDownload(song.id)) STATE_COMPLETED else download?.state,
             onDownload = {
                 database.transaction {
                     insert(song.toMediaMetadata())

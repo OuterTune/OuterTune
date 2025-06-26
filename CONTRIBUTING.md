@@ -19,6 +19,19 @@ cost of compatibility.
 
 # Contributing to OuterTune
 
+## Translations
+
+We use Weblate to translate OuterTune. For more details or to get started,
+visit [our Weblate page](https://hosted.weblate.org/projects/outertune/).
+Thank you for the libre tier!
+
+### Important
+
+- Translators should submit strings through Weblate, however if there are changes that cannot be accomplished via
+  Weblate, you may submit a pull request manually
+- Make sure new strings are in the right place, which is `strings-ot.xml` for OuterTune strings
+- If they are ported from upstream InnerTune (ex. when syncing upstream), they go into `strings.xml`
+
 ## Submitting a pull request
 
 To make everyone's life easier, there are a set of guidelines that are to be followed when submitting pull requests.
@@ -32,18 +45,18 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 ## Commiting guidelines
 
 - Prefix commits with tags, and provide descriptions if necessary. These are generally done in format:
-  `tag: commit_name`. [Example](https://github.com/DD3Boh/OuterTune/commit/798e8366227dd2cc38355224c733dbf7e8ffcee0)
+  `tag: commit_name`. [Example](https://github.com/OuterTune/OuterTune/commit/798e8366227dd2cc38355224c733dbf7e8ffcee0)
     - A list of tags commonly used is provided below
 - Commit descriptions are not required, but highly recommended
 - When porting/cherry-picking/stealing from other repositories or sources:
     - Maintain
-      authorship. [Example](https://github.com/DD3Boh/OuterTune/commit/b0dc59682190b41f0200e9df5174322acaa3d40d)
+      authorship. [Example](https://github.com/OuterTune/OuterTune/commit/b0dc59682190b41f0200e9df5174322acaa3d40d)
     - If this is not possible please provide the source in the commit
-      description. [Example](https://github.com/DD3Boh/OuterTune/pull/59/commits/e40325dd86ac2c30347cfd4f9e92bbf15a0d0c82)
+      description. [Example](https://github.com/OuterTune/OuterTune/pull/59/commits/e40325dd86ac2c30347cfd4f9e92bbf15a0d0c82)
 - IMPORTANT: When merging `dev` into your branch
     - Best: Please rebase over dev
     - Less good: Merging dev into your branch via merge commit. We do not like this as it clobbers the commit history.
-      If you do this, your pull request will be squashed and merged
+      If you do this, your pull request will be rebased/squashed and merged
 - IMPORTANT: Merge conflicts
     - As per the previous point, please rebase and conflicts are to be resolve in the commits themselves
     - We may ask you to rebase your PR if merge conflicts are an issue when merging
@@ -51,7 +64,8 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 - If database schema changes are required, please state clearly if a version increment is required. Additional details
   are in the `Database schema changes` section
 - For multi-part commits where all parts are required for functionality, use
-  `[1/2], [2/2], etc`. [See example](https://github.com/DD3Boh/OuterTune/pull/59/commits)
+  `[1/2], [2/2], etc`. [See example](https://github.com/OuterTune/OuterTune/pull/59/commits)
+- Do not mess with translation files directly, this is managed with Weblate.
 
 ### Tags
 
@@ -62,15 +76,14 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 | readme        | Readme changes                                                                                      |
 | fixup         | Amendments to certain commits. this is generally done in the format `fixup: <old commit name here>` |
 
-| Tag (ui)    | Description                                                                        |
-|-------------|------------------------------------------------------------------------------------|
-| ui          | User interface                                                                     |
-| multiselect | Multi-select of songs/items in library                                             |
-| library     | Library general components. Use the specific ones below if it is a specific change |
-| artist      | Playlist screens & components                                                      |
-| album       | Album screens & components                                                         |
-| playlist    | Playlist screens & components                                                      |
-| songs       | Song screens & components                                                          |
+| Tag (ui) | Description                                                                        |
+|----------|------------------------------------------------------------------------------------|
+| ui       | User interface                                                                     |
+| library  | Library general components. Use the specific ones below if it is a specific change |
+| artist   | Playlist screens & components                                                      |
+| album    | Album screens & components                                                         |
+| playlist | Playlist screens & components                                                      |
+| songs    | Song screens & components                                                          |
 
 | Tag (Playback) | Description               |
 |----------------|---------------------------|
@@ -83,10 +96,16 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 | downloads      | Offline song downloads      |
 | innertube      | Innertube module            |
 
-| Tag (Misc)    | Description                                                      |
-|---------------|------------------------------------------------------------------|
-| `<file name>` | Changes for one single file, that to not fit into any other tags |
-| app           | General changes, or anything that does not fit any other tags    |
+| Tag (Local Media) | Description                      |
+|-------------------|----------------------------------|
+| lm                | General local library components | 
+| scanner           | Local media scanner              |
+
+| Tag (Misc)    | Description                                                                                     |
+|---------------|-------------------------------------------------------------------------------------------------|
+| `<file name>` | Changes for one single file, that to not fit into any other tags                                |
+| app           | General changes, or anything that does not fit any other tags. (For within the app module only) |
+| outertune     | General changes that span across multiple modules                                               |
 
 - Please use a tag if it already exists, however, if you are developing a new major feature, you are free to assign your
   own appropriate tag
@@ -97,4 +116,4 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 - Clearly state if a database version increment is required
 - You are require to make sure migration works from the previous database version
 - Commits modifying the database version should be all be contained in that single commit
-    - The generate json JSON, Entity classes, migration conflict resolution, etc.
+    - These include generating JSON, Entity classes, migration conflict resolution, bumping database version etc.

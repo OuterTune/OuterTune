@@ -2,6 +2,7 @@ package com.dd3boh.outertune.db.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import org.akanework.gramophone.logic.utils.SemanticLyrics
 
 @Entity(tableName = "lyrics")
 data class LyricsEntity(
@@ -10,5 +11,6 @@ data class LyricsEntity(
 ) {
     companion object {
         const val LYRICS_NOT_FOUND = "LYRICS_NOT_FOUND"
+        val uninitializedLyric = SemanticLyrics.UnsyncedLyrics(listOf(Pair(LYRICS_NOT_FOUND, null)))
     }
 }

@@ -102,6 +102,21 @@ interface PlaylistsDao {
     """)
     fun editablePlaylistsByCreateDateAsc(): Flow<List<Playlist>>
 
+    @Transaction
+    @Query("""
+        SELECT 
+            p.*, 
+            COUNT(psm.playlistId) AS songCount,
+            SUM(CASE WHEN s.dateDownload IS NOT NULL THEN 1 ELSE 0 END) AS downloadCount
+        FROM playlist p
+            LEFT JOIN playlist_song_map psm ON p.id = psm.playlistId
+            LEFT JOIN song s ON psm.songId = s.id
+        WHERE p.isLocal AND p.bookmarkedAt IS NOT NULL 
+        GROUP BY p.id
+        ORDER BY p.rowId
+    """)
+    fun localPlaylistsByCreateDateAsc(): Flow<List<Playlist>>
+
     @RawQuery(observedEntities = [PlaylistEntity::class])
     fun _getPlaylists(query: SupportSQLiteQuery): Flow<List<Playlist>>
 
@@ -157,7 +172,7 @@ interface PlaylistsDao {
         update(playlistEntity.copy(
             name = playlistItem.title,
             browseId = playlistItem.id,
-            isEditable = playlistItem.isEditable,
+            isEditable = playlistItem.isEditable || playlistItem.author == null, // for some reason null == your account,
             thumbnailUrl = playlistItem.thumbnail,
             remoteSongCount = playlistItem.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
             playEndpointParams = playlistItem.playEndpoint?.params,

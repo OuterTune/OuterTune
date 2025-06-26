@@ -117,7 +117,7 @@ fun BottomSheet(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        alpha = ((state.progress - 0.25f) * 4).coerceIn(0f, 1f)
+                        alpha = ((state.progress * 4 - 0.25f) * 4).coerceIn(0f, 1f)
                     }
                     .background(backgroundColor),
                 content = content

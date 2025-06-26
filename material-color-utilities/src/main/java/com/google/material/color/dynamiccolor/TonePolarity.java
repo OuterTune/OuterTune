@@ -19,15 +19,26 @@ package com.google.material.color.dynamiccolor;
 /**
  * Describes the relationship in lightness between two colors.
  *
- * <p>'nearer' and 'farther' describes closeness to the surface roles. For instance,
- * ToneDeltaPair(A, B, 10, 'nearer', stayTogether) states that A should be 10 lighter than B in
- * light mode, and 10 darker than B in dark mode.
+ * <p>'relative_darker' and 'relative_lighter' describes the tone adjustment relative to the surface
+ * color trend (white in light mode; black in dark mode). For instance, ToneDeltaPair(A, B, 10,
+ * 'relative_lighter', 'farther') states that A should be at least 10 lighter than B in light mode,
+ * and at least 10 darker than B in dark mode.
  *
  * <p>See `ToneDeltaPair` for details.
  */
 public enum TonePolarity {
-    DARKER,
-    LIGHTER,
-    NEARER,
-    FARTHER;
+  DARKER,
+  LIGHTER,
+  RELATIVE_DARKER,
+  RELATIVE_LIGHTER,
+  /**
+   * @deprecated Use {@link ToneDeltaPair.DeltaConstraint} instead.
+   */
+  @Deprecated
+  NEARER,
+  /**
+   * @deprecated Use {@link ToneDeltaPair.DeltaConstraint} instead.
+   */
+  @Deprecated
+  FARTHER;
 }

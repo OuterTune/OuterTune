@@ -40,7 +40,7 @@ class OnlineSearchSuggestionViewModel @Inject constructor(
                                 suggestions = result?.queries?.filter { query ->
                                     history.none { it.query == query }
                                 }.orEmpty(),
-                                items = result?.recommendedItems.orEmpty()
+                                items = result?.recommendedItems.orEmpty().distinctBy { it.id }
                             )
                         }
                 }

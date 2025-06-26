@@ -17,6 +17,6 @@ data class QueueEntity(
     val playlistId: String? = null,
 ) {
     companion object {
-        fun generateQueueId() = RandomStringUtils.random(8, false, true).toLong()
+        fun generateQueueId() = RandomStringUtils.insecure().next(8, false, true).toLong()
     }
 }

@@ -13,6 +13,7 @@ import com.dd3boh.outertune.db.entities.PlayCountEntity
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.extensions.reversed
+import com.dd3boh.outertune.utils.fixFilePath
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -33,24 +34,28 @@ interface SongsDao {
     fun searchSongs(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Song>>
 
     @Transaction
+    @Query("SELECT * FROM song WHERE title LIKE '%' || :query || '%' LIMIT :previewSize")
+    fun searchSongsInDb(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Song>>
+
+    @Transaction
     @Query("SELECT * FROM song WHERE title LIKE '%' || :query || '%' AND isLocal = 1 LIMIT :previewSize")
     fun searchSongsAllLocal(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Song>>
 
-    @Transaction
-    @Query("SELECT * FROM song WHERE isLocal = 1 and inLibrary IS NOT NULL")
-    fun allLocalSongs(): Flow<List<Song>>
 
+    /**
+     * Does not include unavailable songs
+     */
+    fun searchSongsAllLocalInDir(dir: String, query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Song>> {
+        return _searchSongsAllLocalInDir(fixFilePath(dir), query, previewSize)
+    }
+
+    @Transaction
     @Query("""
-        SELECT * FROM song
-        WHERE localPath IN (
-            SELECT localPath
-            FROM song
-            GROUP BY localPath
-            HAVING COUNT(*) > 1
-        )
-        ORDER BY localPath
-    """)
-    fun duplicatedLocalSongs(): Flow<List<SongEntity>>
+        SELECT * FROM song 
+        WHERE isLocal = 1 AND inLibrary IS NOT NULL AND localpath LIKE :dir || '%' AND title LIKE '%' || :query || '%'
+        LIMIT :previewSize
+        """)
+    fun _searchSongsAllLocalInDir(dir: String, query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Song>>
 
     @Transaction
     @Query("""
@@ -143,6 +148,52 @@ interface SongsDao {
             SongSortType.PLAY_TIME -> songsByPlayTimeAsc()
             SongSortType.PLAY_COUNT -> songsByPlayCountAsc()
         }.map { it.reversed(descending) }
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 1 and inLibrary IS NOT NULL")
+    fun allLocalSongs(): Flow<List<Song>>
+
+    @Transaction
+    @Query("""
+        SELECT * FROM song
+        WHERE isLocal = 1 AND localpath LIKE :filter || '%'
+    """)
+    fun localSongsInDir(filter: String): Flow<List<Song>>
+
+    /**
+     * Does not include unavailable songs
+     */
+    fun localSongsInDirShallow(filter: String): Flow<List<Song>> {
+        return _localSongsInDirShallow(fixFilePath(filter))
+    }
+
+    @Transaction
+    @Query("""
+        SELECT * FROM song
+        WHERE isLocal = 1 AND inLibrary IS NOT NULL AND localpath LIKE :filter || '%' 
+        AND instr(substr(localpath, length(:filter) + 1), '/') = 0
+        UNION
+        SELECT * FROM song
+        WHERE isLocal = 1 AND inLibrary IS NOT NULL AND localpath LIKE :filter || '%'
+        GROUP BY rtrim(localPath, replace(localPath, '/', ''))
+    """)
+    fun _localSongsInDirShallow(filter: String): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT count(*) FROM song WHERE isLocal = 1 and inLibrary IS NOT NULL AND localpath LIKE :path || '%'")
+    fun localSongCountInPath(path: String): Flow<Int>
+
+    @Query("""
+        SELECT * FROM song
+        WHERE localPath IN (
+            SELECT localPath
+            FROM song
+            GROUP BY localPath
+            HAVING COUNT(*) > 1
+        )
+        ORDER BY localPath
+    """)
+    fun duplicatedLocalSongs(): Flow<List<SongEntity>>
     // endregion
 
     // region Liked Songs Sort
@@ -210,31 +261,57 @@ interface SongsDao {
         }.map { it.reversed(descending) }
     // endregion
 
+    // region downloaded Songs utils
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL AND dateDownload IS NOT 0")
+    fun downloadedSongs(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload = 0")
+    fun downloadQueuedSongs(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL")
+    fun downloadedOrQueuedSongs(): Flow<List<Song>>
+
+    @Transaction
+    @Query("UPDATE song SET dateDownload = :dateDownload, localPath = :localPath WHERE id = :mediaId AND isLocal = 0")
+    fun registerDownloadSong(mediaId: String, dateDownload: LocalDateTime, localPath: String)
+
+    @Transaction
+    @Query("UPDATE song SET dateDownload = NULL, localPath = NULL WHERE id = :mediaId AND isLocal = 0")
+    fun removeDownloadSong(mediaId: String)
+
+    @Transaction
+    @Query("UPDATE song SET dateDownload = NULL, localPath = NULL WHERE isLocal = 0")
+    fun removeAllDownloadedSongs()
+    // endregion
+
     // region Downloaded Songs Sort
     @Transaction
-    @Query("SELECT * FROM song WHERE dateDownload IS NOT NULL ORDER BY dateDownload")
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL ORDER BY dateDownload")
     fun downloadNoLocalSongs(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isLocal OR dateDownload IS NOT NULL ORDER BY inLibrary")
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL ORDER BY inLibrary")
     fun downloadSongsByCreateDateAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isLocal OR dateDownload IS NOT NULL ORDER BY date")
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL ORDER BY date")
     fun downloadSongsByReleaseDateAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isLocal OR dateDownload IS NOT NULL ORDER BY dateModified")
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL ORDER BY dateModified")
     fun downloadSongsByDateModifiedAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isLocal OR dateDownload IS NOT NULL ORDER BY title COLLATE NOCASE ASC")
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL ORDER BY title COLLATE NOCASE ASC")
     fun downloadSongsByNameAsc(): Flow<List<Song>>
 
     @Transaction
     @Query("""
         SELECT * FROM song
-        WHERE isLocal OR dateDownload IS NOT NULL
+        WHERE isLocal = 0 AND dateDownload IS NOT NULL
         ORDER BY (
             SELECT LOWER(GROUP_CONCAT(name, ''))
             FROM artist
@@ -245,7 +322,7 @@ interface SongsDao {
     fun downloadSongsByArtistAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isLocal OR dateDownload IS NOT NULL ORDER BY totalPlayTime")
+    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL ORDER BY totalPlayTime")
     fun downloadSongsByPlayTimeAsc(): Flow<List<Song>>
 
     @RewriteQueriesToDropUnusedColumns
@@ -255,7 +332,7 @@ interface SongsDao {
             FROM playCount 
             WHERE playCount.song = song.id) AS pc 
         FROM song 
-        WHERE isLocal OR dateDownload IS NOT NULL
+        WHERE isLocal = 0 AND dateDownload IS NOT NULL
         ORDER BY pc ASC
     """)
     fun downloadSongsByPlayCountAsc(): Flow<List<Song>>
@@ -322,6 +399,9 @@ interface SongsDao {
     @Query("UPDATE song SET liked = 0, likedDate = null WHERE id = :songId")
     fun removeLike(songId: String)
 
+    @Query("UPDATE song SET dateDownload = :dateDownload WHERE id = :songId")
+    suspend fun updateDownloadStatus(songId: String, dateDownload: LocalDateTime?)
+
     @Query("UPDATE song SET inLibrary = null WHERE localPath = null")
     fun disableInvalidLocalSongs()
 
@@ -339,9 +419,6 @@ interface SongsDao {
      */
     @Query("UPDATE song SET inLibrary = :inLibrary, localPath = :localPath WHERE id = :songId")
     fun _updateLSP(songId: String, inLibrary: LocalDateTime?, localPath: String)
-
-    @Query("UPDATE song SET dateDownload = :dateDownload WHERE id = :songId")
-    suspend fun updateDownloadStatus(songId: String, dateDownload: LocalDateTime?)
     // endregion
 
     // region Deletes

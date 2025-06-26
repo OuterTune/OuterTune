@@ -1,10 +1,10 @@
 package com.dd3boh.outertune.lyrics
 
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
-import java.nio.file.Files
-import java.nio.file.Paths
+import org.akanework.gramophone.logic.utils.LrcUtils
+import org.akanework.gramophone.logic.utils.LrcUtils.loadAndParseLyricsFile
+import org.akanework.gramophone.logic.utils.SemanticLyrics
+import java.io.File
 
 
 object LocalLyricsProvider : LyricsProvider {
@@ -19,17 +19,20 @@ object LocalLyricsProvider : LyricsProvider {
      *
      * @param title file path of the song, NOT the song title
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun getLyrics(
         id: String,
         title: String,
         artist: String,
         duration: Int,
-    ): Result<String> = runCatching {
-        // ex .../music/song.ogg -> .../music/song.lrc
-        String(Files.readAllBytes(
-            Paths.get(title.substringBeforeLast('.') + ".lrc"))
-        )
+    ): Result<String> {
+        throw NotImplementedError()
+    }
+
+    fun getLyricsNew(
+        path: String,
+        parserOptions: LrcUtils.LrcParserOptions
+    ): SemanticLyrics? {
+        return loadAndParseLyricsFile(File(path), parserOptions)
     }
 
 }

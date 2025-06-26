@@ -56,7 +56,7 @@ object KuGou {
             getLyricsCandidate(keyword, duration)?.let { candidate ->
                 downloadLyrics(candidate.id, candidate.accesskey).content.decodeBase64String()
                     .normalize().let {
-                        if (it == "[00:01.58]纯音乐，请欣赏") {
+                        if ("纯音乐，请欣赏" in it || "酷狗音乐  就是歌多" in it) {
                             // instrumental tracks should report as having no lyrics
                             throw IllegalStateException("No lyrics candidate")
                         }

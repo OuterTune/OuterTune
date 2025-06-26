@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -51,12 +50,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
-import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.GridThumbnailHeight
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
+import com.dd3boh.outertune.ui.component.FloatingFooter
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.LocalMenuState
 import com.dd3boh.outertune.ui.component.SelectHeader
@@ -153,34 +153,9 @@ fun ArtistItemsScreen(
     if (itemsPage?.items?.firstOrNull() is SongItem) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            modifier = Modifier.padding(bottom = if (inSelectMode) 64.dp else 0.dp)
         ) {
-            item(
-                key = "header",
-                contentType = CONTENT_TYPE_HEADER
-            ) {
-                if (inSelectMode) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    ) {
-                        SelectHeader(
-                            selectedItems = selection.mapNotNull { songId ->
-                                songIndex[songId]
-                            }.map { it.toMediaMetadata() },
-                            totalItemCount = selection.size,
-                            onSelectAll = {
-                                selection.clear()
-                                selection.addAll(itemsPage?.items?.map { it.id }.orEmpty())
-                            },
-                            onDeselectAll = { selection.clear() },
-                            menuState = menuState,
-                            onDismiss = onExitSelectionMode
-                        )
-                    }
-                }
-            }
-
             itemsIndexed(
                 items = itemsPage?.items?.filterIsInstance<SongItem>().orEmpty(),
                 key = { _, item -> item.hashCode() }
@@ -327,6 +302,7 @@ fun ArtistItemsScreen(
                                         )
 
                                         is PlaylistItem -> YouTubePlaylistMenu(
+                                            navController = navController,
                                             playlist = item,
                                             coroutineScope = coroutineScope,
                                             onDismiss = menuState::dismiss
@@ -361,12 +337,29 @@ fun ArtistItemsScreen(
                 )
             }
         },
+        windowInsets = TopBarInsets,
         scrollBehavior = scrollBehavior
     )
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        FloatingFooter(inSelectMode) {
+            SelectHeader(
+                navController = navController,
+                selectedItems = selection.mapNotNull { songId ->
+                    songIndex[songId]
+                }.map { it.toMediaMetadata() },
+                totalItemCount = selection.size,
+                onSelectAll = {
+                    selection.clear()
+                    selection.addAll(itemsPage?.items?.map { it.id }.orEmpty())
+                },
+                onDeselectAll = { selection.clear() },
+                menuState = menuState,
+                onDismiss = onExitSelectionMode
+            )
+        }
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier

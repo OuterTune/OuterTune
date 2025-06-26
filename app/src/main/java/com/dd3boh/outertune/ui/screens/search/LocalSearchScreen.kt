@@ -164,6 +164,7 @@ fun LocalSearchScreen(
                                 inSelectMode = false,
                                 isSelected = false,
                                 navController = navController,
+                                snackbarHostState = snackbarHostState,
                                 modifier = Modifier.animateItem()
                             )
                         }

@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -68,12 +69,14 @@ import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.HistorySource
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.db.entities.EventWithSong
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.ChipsRow
+import com.dd3boh.outertune.ui.component.FloatingFooter
 import com.dd3boh.outertune.ui.component.HideOnScrollFAB
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.LocalMenuState
@@ -194,7 +197,7 @@ fun HistoryScreen(
             modifier = Modifier.windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current
                     .only(WindowInsetsSides.Top)
-            )
+            ).padding(bottom = if (inSelectMode) 64.dp else 0.dp)
         ) {
             stickyHeader(
                 key = "searchbar"
@@ -346,44 +349,6 @@ fun HistoryScreen(
                                 .fillMaxWidth()
                                 .background(MaterialTheme.colorScheme.surface)
                         )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface)
-                        ) {
-                            Spacer(modifier = Modifier.width(16.dp)) // why compose no margin...
-
-                            if (inSelectMode) {
-                                SelectHeader(
-                                    selectedItems = eventsMap.flatMap { group ->
-                                        group.value.filter { it.event.id in selection }
-                                    }.map { it.song.toMediaMetadata() },
-                                    totalItemCount = eventsMap.flatMap { group -> group.value.map { it.song } }.size,
-                                    onSelectAll = {
-                                        selection.clear()
-                                        selection.addAll(eventsMap.flatMap { group ->
-                                            group.value.map { it.event.id }
-                                        })
-                                    },
-                                    onDeselectAll = { selection.clear() },
-                                    menuState = menuState,
-                                    onDismiss = onExitSelectionMode,
-                                    onRemoveFromHistory = {
-                                        val sel = selection.mapNotNull { eventId ->
-                                            filteredEventIndex[eventId]?.event
-                                        }
-                                        database.query {
-                                            sel.forEach {
-                                                delete(it)
-                                            }
-                                        }
-                                    },
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(16.dp))
-                        }
                     }
 
                     itemsIndexed(
@@ -419,6 +384,7 @@ fun HistoryScreen(
                             inSelectMode = inSelectMode,
                             isSelected = selection.contains(event.event.id),
                             navController = navController,
+                            snackbarHostState = snackbarHostState,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem()
@@ -441,6 +407,43 @@ fun HistoryScreen(
                     )
                 )
             }
+        )
+
+        FloatingFooter(
+            visible = inSelectMode
+        ) {
+            SelectHeader(
+                navController = navController,
+                selectedItems = eventsMap.flatMap { group ->
+                    group.value.filter { it.event.id in selection }
+                }.map { it.song.toMediaMetadata() },
+                totalItemCount = eventsMap.flatMap { group -> group.value.map { it.song } }.size,
+                onSelectAll = {
+                    selection.clear()
+                    selection.addAll(eventsMap.flatMap { group ->
+                        group.value.map { it.event.id }
+                    })
+                },
+                onDeselectAll = { selection.clear() },
+                menuState = menuState,
+                onDismiss = onExitSelectionMode,
+                onRemoveFromHistory = {
+                    val sel = selection.mapNotNull { eventId ->
+                        filteredEventIndex[eventId]?.event
+                    }
+                    database.query {
+                        sel.forEach {
+                            delete(it)
+                        }
+                    }
+                },
+            )
+        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                .align(Alignment.BottomCenter)
         )
     }
 
@@ -479,6 +482,7 @@ fun HistoryScreen(
                     )
                 }
             }
-        }
+        },
+        windowInsets = TopBarInsets,
     )
 }

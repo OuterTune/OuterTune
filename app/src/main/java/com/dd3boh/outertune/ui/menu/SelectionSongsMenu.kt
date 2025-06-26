@@ -31,14 +31,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
-import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.DefaultDialog
 import com.dd3boh.outertune.ui.component.DownloadGridMenu
@@ -54,6 +55,7 @@ import java.time.LocalDateTime
  */
 @Composable
 fun SelectionMediaMetadataMenu(
+    navController: NavController,
     selection: List<MediaMetadata>,
     onDismiss: () -> Unit,
     clearAction: () -> Unit,
@@ -63,6 +65,7 @@ fun SelectionMediaMetadataMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val syncUtils = LocalSyncUtils.current
 
     val allInLibrary by remember(selection) { // exclude local songs
         mutableStateOf(selection.isNotEmpty() && selection.all { !it.isLocal && it.inLibrary != null })
@@ -84,8 +87,9 @@ fun SelectionMediaMetadataMenu(
             onDismiss()
         } else {
         downloadUtil.downloads.collect { downloads ->
+            val remaining = selection.filterNot { downloads[it.id]?.state == Download.STATE_COMPLETED }
             downloadState =
-                if (selection.all { downloads[it.id]?.state == Download.STATE_COMPLETED }) {
+                if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s.id == it.key } }.isEmpty()) {
                     Download.STATE_COMPLETED
                 } else if (selection.all {
                         downloads[it.id]?.state == Download.STATE_QUEUED
@@ -107,8 +111,13 @@ fun SelectionMediaMetadataMenu(
     AddToQueueDialog(
         isVisible = showChooseQueueDialog,
         onAdd = { queueName ->
-            queueBoard.addQueue(queueName, selection, playerConnection, forceInsert = true, delta = false)
-            queueBoard.setCurrQueue(playerConnection)
+            playerConnection.service.queueBoard.addQueue(
+                queueName,
+                selection,
+                forceInsert = true,
+                delta = false
+            )
+            playerConnection.service.queueBoard.setCurrQueue()
         },
         onDismiss = {
             showChooseQueueDialog = false
@@ -120,6 +129,7 @@ fun SelectionMediaMetadataMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = {
             selection.map {
@@ -272,11 +282,19 @@ fun SelectionMediaMetadataMenu(
             database.query {
                 if (allLiked) {
                     selection.forEach { song ->
-                        update(song.toSongEntity().toggleLike())
+                        val s = song.toSongEntity().toggleLike()
+                        update(s)
+                        if (!s.isLocal) {
+                            syncUtils.likeSong(s)
+                        }
                     }
                 } else {
                     selection.filter { !it.liked }.forEach { song ->
-                        update(song.toSongEntity().toggleLike())
+                        val s = song.toSongEntity().toggleLike()
+                        update(s)
+                        if (!s.isLocal) {
+                            syncUtils.likeSong(s)
+                        }
                     }
                 }
             }

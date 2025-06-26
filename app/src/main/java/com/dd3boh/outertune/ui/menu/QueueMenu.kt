@@ -14,25 +14,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.models.MultiQueueObject
-import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.ui.component.GridMenu
 import com.dd3boh.outertune.ui.component.GridMenuItem
 import com.dd3boh.outertune.ui.component.QueueListItem
 
 @Composable
 fun QueueMenu(
+    navController: NavController,
     mq: MultiQueueObject?,
     onDismiss: () -> Unit,
-    refreshUi: () -> Unit,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
 
     if (mq == null) {
         onDismiss()
-        refreshUi()
         return
     }
     val songs = mq.getCurrentQueueShuffled()
@@ -46,6 +45,7 @@ fun QueueMenu(
 
     // dialogs
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = { songs.map { it.id } },
         onDismiss = {
@@ -56,13 +56,17 @@ fun QueueMenu(
     AddToQueueDialog(
         isVisible = showChooseQueueDialog,
         onAdd = { queueName ->
-            queueBoard.addQueue(queueName, songs, playerConnection, forceInsert = true, delta = false)
-            queueBoard.setCurrQueue(playerConnection)
+            playerConnection.service.queueBoard.addQueue(
+                queueName,
+                songs,
+                forceInsert = true,
+                delta = false
+            )
+            playerConnection.service.queueBoard.setCurrQueue()
         },
         onDismiss = {
             showChooseQueueDialog = false
             onDismiss() // here we dismiss since we switch to the queue anyways
-            refreshUi()
         }
     )
 

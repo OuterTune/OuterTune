@@ -9,8 +9,6 @@
 
 package com.dd3boh.outertune.ui.component
 
-import android.content.Context
-import android.os.PowerManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
@@ -33,6 +31,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -51,6 +50,7 @@ import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.LibraryAddCheck
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.OfflinePin
+import androidx.compose.material.icons.rounded.OndemandVideo
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -71,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -95,6 +96,7 @@ import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.dd3boh.outertune.BuildConfig
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
@@ -102,14 +104,15 @@ import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.GridThumbnailHeight
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.ListThumbnailSize
-import com.dd3boh.outertune.constants.SwipeToQueueKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.PlaylistSong
+import com.dd3boh.outertune.db.entities.RecentActivityEntity
 import com.dd3boh.outertune.db.entities.Song
+import com.dd3boh.outertune.extensions.isPowerSaver
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.DirectoryTree
@@ -124,7 +127,6 @@ import com.dd3boh.outertune.ui.utils.getNSongsString
 import com.dd3boh.outertune.ui.utils.imageCache
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.makeTimeString
-import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.reportException
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.AlbumItem
@@ -134,6 +136,8 @@ import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.YTItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.any
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -161,8 +165,8 @@ inline fun ListItem(
                 .clip(RoundedCornerShape(8.dp))
                 .background(
                     color = // selected active
-                    if (isSelected == true) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                    else MaterialTheme.colorScheme.secondaryContainer
+                        if (isSelected == true) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                        else MaterialTheme.colorScheme.secondaryContainer
                 )
         } else if (isSelected == true) {
             modifier // inactive selected
@@ -359,8 +363,6 @@ fun SongListItem(
     inSelectMode: Boolean?,
     isSelected: Boolean,
     navController: NavController,
-    modifier: Modifier = Modifier,
-    enableSwipeToQueue: Boolean = true,
     albumIndex: Int? = null,
     showLikedIcon: Boolean = true,
     showInLibraryIcon: Boolean = true,
@@ -371,6 +373,9 @@ fun SongListItem(
     showDragHandle: Boolean = false,
     dragHandleModifier: Modifier? = null,
     disableShowMenu: Boolean = false,
+    enableSwipeToQueue: Boolean = true,
+    snackbarHostState: SnackbarHostState? = null,
+    modifier: Modifier = Modifier,
 ) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
@@ -381,14 +386,11 @@ fun SongListItem(
 
     val isActive = song.id == mediaMetadata?.id
 
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    val swipeToQueueEnabled by rememberPreference(SwipeToQueueKey, true)
-
     val listItem: @Composable () -> Unit = {
         ListItem(
             title = song.song.title,
             subtitle = joinByBullet(
+                (if (BuildConfig.DEBUG) song.song.id else ""),
                 song.artists.joinToString { it.name },
                 makeTimeString(song.song.duration * 1000L)
             ),
@@ -400,9 +402,14 @@ fun SongListItem(
                     Icon.Library()
                 }
                 if (showDownloadIcon) {
-                    val download by LocalDownloadUtil.current.getDownload(song.id)
-                        .collectAsState(initial = null)
-                    Icon.Download(download?.state)
+                    val downloadUtil = LocalDownloadUtil.current
+                    if (downloadUtil.getCustomDownload(song.id)) {
+                        Icon.Download(STATE_COMPLETED)
+                    } else {
+                        val download by downloadUtil.getDownload(song.id)
+                            .collectAsState(initial = null)
+                        Icon.Download(download?.state)
+                    }
                 }
                 if (showLocalIcon && song.song.isLocal) {
                     FolderCopy()
@@ -491,15 +498,12 @@ fun SongListItem(
         )
     }
 
-    if (swipeToQueueEnabled && enableSwipeToQueue) {
-        SwipeToQueueBox(
-            item = song.toMediaItem(),
-            content = { listItem() },
-            snackbarHostState = snackbarHostState
-        )
-    } else {
-        listItem()
-    }
+    SwipeToQueueBox(
+        item = song.toMediaItem(),
+        content = { listItem() },
+        snackbarHostState = snackbarHostState,
+        enabled = enableSwipeToQueue
+    )
 }
 
 @Composable
@@ -542,39 +546,54 @@ fun SongFolderItem(
     folderTitle: String? = null,
     menuState: MenuState,
     navController: NavController,
-    subtitle: String,
-) = ListItem(
-    title = folderTitle ?: folder.currentDir,
-    subtitle = subtitle,
-    thumbnailContent = {
-        Icon(
-            Icons.Rounded.Folder,
-            contentDescription = null,
-            modifier = modifier.size(48.dp)
-        )
-    },
-    trailingContent = {
-        val haptic = LocalHapticFeedback.current
-        IconButton(
-            onClick = {
-                menuState.show {
-                    FolderMenu(
-                        folder = folder,
-                        navController = navController,
-                        onDismiss = menuState::dismiss
-                    )
-                }
-                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+    subtitle: String?,
+) {
+    val database = LocalDatabase.current
+    var subDirSongCount by remember {
+        mutableIntStateOf(0)
+    }
+    LaunchedEffect(Unit) {
+        if (subtitle == null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                database.localSongCountInPath(folder.getFullSquashedDir()).first()
+                subDirSongCount = database.localSongCountInPath(folder.getFullSquashedDir()).first()
             }
-        ) {
-            Icon(
-                Icons.Rounded.MoreVert,
-                contentDescription = null
-            )
         }
-    },
-    modifier = modifier
-)
+    }
+
+    ListItem(
+        title = folderTitle ?: folder.currentDir,
+        subtitle = subtitle ?: pluralStringResource(R.plurals.n_song, subDirSongCount, subDirSongCount),
+        thumbnailContent = {
+            Icon(
+                Icons.Rounded.Folder,
+                contentDescription = null,
+                modifier = modifier.size(48.dp)
+            )
+        },
+        trailingContent = {
+            val haptic = LocalHapticFeedback.current
+            IconButton(
+                onClick = {
+                    menuState.show {
+                        FolderMenu(
+                            folder = folder,
+                            navController = navController,
+                            onDismiss = menuState::dismiss
+                        )
+                    }
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                }
+            ) {
+                Icon(
+                    Icons.Rounded.MoreVert,
+                    contentDescription = null
+                )
+            }
+        },
+        modifier = modifier
+    )
+}
 
 @Composable
 fun SongGridItem(
@@ -684,7 +703,7 @@ fun ArtistListItem(
         }
 
         // assume if they have a non local artist ID, they are not local
-        if (artist.artist.isLocalArtist) {
+        if (artist.artist.isLocal) {
             Icon(
                 Icons.Rounded.CloudOff,
                 contentDescription = null,
@@ -733,7 +752,7 @@ fun ArtistGridItem(
         }
 
         // assume if they have a non local artist ID, they are not local
-        if (artist.artist.isLocalArtist) {
+        if (artist.artist.isLocal) {
             Icon(
                 Icons.Rounded.CloudOff,
                 contentDescription = null,
@@ -799,7 +818,7 @@ fun AlbumListItem(
             if (songs.isEmpty()) return@LaunchedEffect
             downloadUtil.downloads.collect { downloads ->
                 downloadState = when {
-                    songs.all { downloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
+                    songs.all { s -> downloads[s.id]?.state == STATE_COMPLETED || downloadUtil.customDownloads.value.any { s.id == it.key } } -> STATE_COMPLETED
                     songs.all {
                         downloads[it.id]?.state in listOf(
                             STATE_QUEUED,
@@ -1004,10 +1023,10 @@ fun PlaylistListItem(
 ) = ListItem(
     title = playlist.playlist.name,
     subtitle =
-    if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null)
-        getNSongsString(playlist.playlist.remoteSongCount)
-    else
-        getNSongsString(playlist.songCount, playlist.downloadCount),
+        if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null)
+            getNSongsString(playlist.playlist.remoteSongCount)
+        else
+            getNSongsString(playlist.songCount, playlist.downloadCount),
     badges = {
         Icon(
             imageVector = if (playlist.playlist.isEditable) Icons.Rounded.Edit else Icons.Rounded.EditOff,
@@ -1063,10 +1082,10 @@ fun PlaylistGridItem(
 ) = GridItem(
     title = playlist.playlist.name,
     subtitle =
-    if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null)
-        getNSongsString(playlist.playlist.remoteSongCount)
-    else
-        getNSongsString(playlist.songCount, playlist.downloadCount),
+        if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null)
+            getNSongsString(playlist.playlist.remoteSongCount)
+        else
+            getNSongsString(playlist.songCount, playlist.downloadCount),
     badges = {
         if (playlist.downloadCount > 0) {
             Icon(
@@ -1116,7 +1135,7 @@ fun MediaMetadataListItem(
     ),
     thumbnailContent = {
         ItemThumbnail(
-            thumbnailUrl = mediaMetadata.thumbnailUrl,
+            thumbnailUrl = if (mediaMetadata.isLocal) mediaMetadata.localPath else mediaMetadata.thumbnailUrl,
             isActive = isActive,
             isPlaying = isPlaying,
             shape = RoundedCornerShape(ThumbnailCornerRadius),
@@ -1336,7 +1355,7 @@ fun YouTubeGridItem(
 
 @Composable
 fun YouTubeCardItem(
-    item: YTItem,
+    item: RecentActivityEntity,
     modifier: Modifier = Modifier,
     isActive: Boolean,
     isPlaying: Boolean,
@@ -1418,7 +1437,6 @@ fun YouTubeCardItem(
     }
 }
 
-
 @Composable
 fun ItemThumbnail(
     thumbnailUrl: String?,
@@ -1431,10 +1449,12 @@ fun ItemThumbnail(
     // ehhhh make a nicer thing for later
     val context = LocalContext.current
 
-    Box(
+    BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = modifier
     ) {
+        var isRectangularImage by remember { mutableStateOf(false) }
+
         if (albumIndex != null) {
             AnimatedVisibility(
                 visible = !isActive,
@@ -1451,6 +1471,7 @@ fun ItemThumbnail(
             AsyncImageLocal(
                 image = { imageCache.getLocalThumbnail(thumbnailUrl, true) },
                 contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(shape)
@@ -1460,14 +1481,45 @@ fun ItemThumbnail(
             AsyncImage(
                 model = thumbnailUrl,
                 contentDescription = null,
+                contentScale = ContentScale.Crop,
+                onSuccess = { success ->
+                    val width = success.result.drawable.intrinsicWidth
+                    val height = success.result.drawable.intrinsicHeight
+
+                    isRectangularImage = width.toFloat() / height != 1f
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(shape)
             )
         }
 
+        if (isRectangularImage) {
+            val radial = Brush.radialGradient(
+                0.0f to Color.Black.copy(alpha = 0.5f),
+                0.8f to Color.Black.copy(alpha = 0.05f),
+                1.0f to Color.Transparent,
+            )
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size((maxHeight / 3) + 6.dp)
+                    .offset(x = -maxHeight / 25)
+                    .background(brush = radial, shape = CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.OndemandVideo,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.padding(3.dp)
+                )
+            }
+        }
+
         PlayingIndicatorBox(
-            isActive = isActive && !(context.getSystemService(Context.POWER_SERVICE) as PowerManager).isPowerSaveMode,
+            isActive = isActive && !context.isPowerSaver(),
             playWhenReady = isPlaying,
             color = if (albumIndex != null) MaterialTheme.colorScheme.onBackground else Color.White,
             modifier = Modifier

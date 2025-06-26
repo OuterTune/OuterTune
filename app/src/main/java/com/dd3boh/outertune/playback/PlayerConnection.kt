@@ -19,17 +19,17 @@ import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
 import com.dd3boh.outertune.db.MusicDatabase
-import com.dd3boh.outertune.db.entities.LyricsEntity
+import com.dd3boh.outertune.db.entities.LyricsEntity.Companion.uninitializedLyric
 import com.dd3boh.outertune.extensions.currentMetadata
 import com.dd3boh.outertune.extensions.getCurrentQueueIndex
 import com.dd3boh.outertune.extensions.getQueueWindows
 import com.dd3boh.outertune.extensions.metadata
-import com.dd3boh.outertune.models.QueueBoard
 import com.dd3boh.outertune.playback.MusicService.MusicBinder
 import com.dd3boh.outertune.playback.queues.Queue
 import com.dd3boh.outertune.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import org.akanework.gramophone.logic.utils.SemanticLyrics
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
@@ -58,15 +59,9 @@ class PlayerConnection(
     val currentSong = mediaMetadata.flatMapLatest {
         database.song(it?.id)
     }
-    val currentLyrics = mediaMetadata.flatMapLatest { mediaMetadata ->
+    val currentLyrics: Flow<SemanticLyrics> = mediaMetadata.flatMapLatest { mediaMetadata ->
         if (mediaMetadata != null) {
-            val lyrics = service.lyricsHelper.getLyrics(mediaMetadata, database)
-            return@flatMapLatest flowOf(
-                LyricsEntity(
-                    id = mediaMetadata.id,
-                    lyrics = lyrics
-                )
-            )
+            return@flatMapLatest flowOf(service.lyricsHelper.getLyrics(mediaMetadata)?: uninitializedLyric)
         } else {
             return@flatMapLatest flowOf()
         }
@@ -83,6 +78,7 @@ class PlayerConnection(
     var queuePlaylistId = MutableStateFlow<String?>(null)
     val currentWindowIndex = MutableStateFlow(-1)
 
+    val shuffleModeEnabled = MutableStateFlow(false)
     val repeatMode = MutableStateFlow(REPEAT_MODE_OFF)
 
     val canSkipPrevious = MutableStateFlow(true)
@@ -101,11 +97,13 @@ class PlayerConnection(
         queueWindows.value = player.getQueueWindows()
         currentWindowIndex.value = player.getCurrentQueueIndex()
         currentMediaItemIndex.value = player.currentMediaItemIndex
+        shuffleModeEnabled.value = player.shuffleModeEnabled
         repeatMode.value = player.repeatMode
     }
 
     fun playQueue(queue: Queue, replace: Boolean = true, isRadio: Boolean = false, title: String? = null) {
         service.playQueue(queue, replace = replace, title = title, isRadio = isRadio)
+        queueTitle.value = service.queueTitle // hax for when seamlessly switching queues
     }
 
     /**
@@ -169,7 +167,12 @@ class PlayerConnection(
      * Shuffles the queue
      */
     fun triggerShuffle() {
-        service.triggerShuffle()
+        player.shuffleModeEnabled = !player.shuffleModeEnabled
+        updateCanSkipPreviousAndNext()
+    }
+
+    override fun onShuffleModeEnabledChanged(enabled: Boolean) {
+        shuffleModeEnabled.value = enabled
         updateCanSkipPreviousAndNext()
     }
 
@@ -201,9 +204,5 @@ class PlayerConnection(
 
     fun dispose() {
         player.removeListener(this)
-    }
-
-    companion object {
-        var queueBoard = QueueBoard()
     }
 }

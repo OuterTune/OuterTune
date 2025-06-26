@@ -1,7 +1,8 @@
 package com.dd3boh.outertune.models
 
 import androidx.compose.runtime.Immutable
-import com.dd3boh.outertune.db.entities.*
+import com.dd3boh.outertune.db.entities.Song
+import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.ui.utils.resize
 import com.zionhuang.innertube.models.SongItem
 import java.io.Serializable
@@ -25,7 +26,9 @@ data class MediaMetadata(
     val isLocal: Boolean = false,
     val localPath: String? = null,
     val liked: Boolean = false,
-    val composeUidWorkaround: Double = Math.random() // compose will crash without this hax
+    val composeUidWorkaround: Double = Math.random(), // compose will crash without this hax
+
+    var shuffleIndex: Int = -1
 ) : Serializable {
     data class Artist(
         val id: String?,
@@ -49,7 +52,7 @@ data class MediaMetadata(
         id = id,
         title = title,
         duration = duration,
-        thumbnailUrl = thumbnailUrl,
+        thumbnailUrl = if (isLocal) null else thumbnailUrl,
         albumId = album?.id,
         albumName = album?.title,
         year = year,
@@ -103,7 +106,7 @@ fun Song.toMediaMetadata() = MediaMetadata(
         )
     },
     duration = song.duration,
-    thumbnailUrl = song.thumbnailUrl,
+    thumbnailUrl = if (song.isLocal) null else song.thumbnailUrl,
     album = album?.let {
         MediaMetadata.Album(
             id = it.id,

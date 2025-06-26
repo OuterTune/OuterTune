@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 
 plugins {
     id("com.android.application")
@@ -7,18 +9,20 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
+
+    alias(libs.plugins.aboutlibraries)
 }
 
 android {
     namespace = "com.dd3boh.outertune"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.dd3boh.outertune"
-        minSdk = 24
-        targetSdk = 35
-        versionCode = 37
-        versionName = "0.7.3_rev1"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 60
+        versionName = "0.9.0-alpha3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -96,15 +100,19 @@ android {
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain(21)
     }
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-        jvmTarget = "17"
+        jvmTarget = "21"
+    }
+
+    tasks.withType<KotlinCompile> {
+        exclude("**/*FFMpegScanner.kt")
     }
 
     // for IzzyOnDroid
@@ -121,11 +129,12 @@ android {
     }
 
     lint {
-        disable += "MissingTranslation"
-        disable += "ImpliedQuantity"
-        disable += "ByteOrderMark"
+        lintConfig = file("app/lint.xml")
     }
 
+    androidResources {
+        generateLocaleConfig = true
+    }
 }
 
 ksp {
@@ -151,6 +160,8 @@ dependencies {
     implementation(libs.compose.reorderable)
     implementation(libs.compose.icons.extended)
 
+    implementation(libs.adaptive)
+
     implementation(libs.viewmodel)
     implementation(libs.viewmodel.compose)
 
@@ -165,7 +176,7 @@ dependencies {
     implementation(libs.media3)
     implementation(libs.media3.session)
     implementation(libs.media3.okhttp)
-    implementation(libs.media3.ui)
+    implementation(libs.media3.workmanager)
 
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
@@ -182,16 +193,17 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugaring)
 
-    implementation(libs.timber)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.serialization.json)
 
-    implementation(libs.nanojson)
-
-    implementation(libs.androidx.webkit)
+    implementation(libs.aboutlibraries.core)
+    implementation(libs.aboutlibraries.compose.m3)
 
     /*
     "JitPack builds are broken with the latest CMake version.
     Please download the [aar](https://github.com/Kyant0/taglib/releases) manually but not use maven."
      */
-//    implementation(libs.taglib)
-    implementation(files("../prebuilt/taglib_1.0.0.aar")) // prebuilt
+//    implementation(libs.taglib) // jitpack
+    implementation(files("../prebuilt/taglib-1.0.2-outertune-universal-release.aar")) // prebuilt
+//    implementation("com.kyant:taglib") // custom
 }

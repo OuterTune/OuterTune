@@ -7,14 +7,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.zionhuang.innertube.YouTube
-import com.zionhuang.innertube.pages.SearchSummaryPage
 import com.dd3boh.outertune.models.ItemsPage
 import com.dd3boh.outertune.utils.reportException
+import com.zionhuang.innertube.YouTube
+import com.zionhuang.innertube.pages.SearchSummaryPage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import java.net.URLDecoder
 import javax.inject.Inject
 
 @HiltViewModel

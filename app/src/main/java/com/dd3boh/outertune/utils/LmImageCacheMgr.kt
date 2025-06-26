@@ -12,11 +12,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import com.dd3boh.outertune.models.ImageCacheManager
-import javax.inject.Inject
+import androidx.core.graphics.scale
 
-class LmImageCacheMgr @Inject constructor(
-
-) {
+class LmImageCacheMgr {
 
     private var localImageCache = ImageCacheManager(300)
 
@@ -64,7 +62,7 @@ class LmImageCacheMgr @Inject constructor(
         } ?: return null
 
         if (resize) {
-            image = Bitmap.createScaledBitmap(image, 100, 100, false)
+            image = image.scale(100, 100, false)
         }
 
         localImageCache.cache(path, image, resize)

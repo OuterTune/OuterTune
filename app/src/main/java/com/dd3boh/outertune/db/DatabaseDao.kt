@@ -24,6 +24,8 @@ import com.dd3boh.outertune.db.entities.GenreEntity
 import com.dd3boh.outertune.db.entities.LyricsEntity
 import com.dd3boh.outertune.db.entities.QueueEntity
 import com.dd3boh.outertune.db.entities.QueueSongMap
+import com.dd3boh.outertune.db.entities.RecentActivityEntity
+import com.dd3boh.outertune.db.entities.RecentActivityType
 import com.dd3boh.outertune.db.entities.RelatedSongMap
 import com.dd3boh.outertune.db.entities.SearchHistory
 import com.dd3boh.outertune.db.entities.Song
@@ -35,7 +37,11 @@ import com.dd3boh.outertune.extensions.toSQLiteQuery
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.MultiQueueObject
 import com.dd3boh.outertune.models.toMediaMetadata
+import com.zionhuang.innertube.models.AlbumItem
+import com.zionhuang.innertube.models.ArtistItem
+import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SongItem
+import com.zionhuang.innertube.models.YTItem
 import com.zionhuang.innertube.pages.AlbumPage
 import kotlinx.coroutines.flow.Flow
 
@@ -168,6 +174,26 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
                 )
             )
         }
+        /*
+        mediaMetadata.album?.let {
+            val album = albumsByName(it.title)
+            val albumId = album?.id ?: GenreEntity.generateGenreId()
+            insert(
+                GenreEntity(
+                    id = albumId,
+                    title = it.title,
+                    isLocal = it.isLocal
+                )
+            )
+            insert(
+                SongAlbumMap(
+                    songId = mediaMetadata.id,
+                    albumId = albumId,
+                    index = album?.songCount ?: 0
+                )
+            )
+        }
+       */
     }
 
     @Transaction
@@ -260,6 +286,9 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
     @Delete
     fun delete(lyrics: LyricsEntity)
 
+    @Query("DELETE FROM lyrics where id = :id")
+    fun deleteLyricById(id: String)
+
     @Delete
     fun delete(searchHistory: SearchHistory)
 
@@ -271,8 +300,26 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
     fun nukeLocalGenre()
 
     @Transaction
-    @Query("DELETE FROM format")
-    fun nukeFormatEntities()
+    @Query("""
+DELETE FROM format 
+WHERE format.id IS NOT NULL 
+AND NOT EXISTS (
+    SELECT 1 FROM song WHERE song.id = format.id
+);
+    """)
+    fun nukeDanglingFormatEntities()
+
+    @Transaction
+    @Query("DELETE FROM lyrics WHERE lyrics.id IN (SELECT song.id FROM song WHERE song.isLocal)")
+    fun nukeLocalLyrics()
+
+    @Transaction
+    @Query("DELETE FROM lyrics WHERE lyrics.id NOT IN (SELECT song.id FROM song)")
+    fun nukeDanglingLyrics()
+
+    @Transaction
+    @Query("DELETE FROM playlist WHERE isLocal = 0")
+    fun nukeRemotePlaylists()
 
     @Transaction
     fun nukeLocalData() {
@@ -294,7 +341,7 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
      */
     @Transaction
     fun saveQueue(mq: MultiQueueObject) {
-        if (mq.queue.isEmpty() || mq.unShuffled.isEmpty()) {
+        if (mq.queue.isEmpty()) {
             return
         }
 
@@ -311,25 +358,20 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
 
         deleteAllQueueSongs(mq.id)
         // insert songs
-        mq.unShuffled.forEach {
-            insert(it)
-            insert(
-                QueueSongMap(
-                    queueId = mq.id,
-                    songId = it.id,
-                    shuffled = false
-                )
-            )
-        }
 
-        mq.queue.forEach {
+        // why does kotlin not have for i loop???
+        var i = 0
+        while (i < mq.getSize()) {
+            insert(mq.queue[i]) // make sure song exists
             insert(
                 QueueSongMap(
                     queueId = mq.id,
-                    songId = it.id,
-                    shuffled = true
+                    songId = mq.queue[i].id,
+                    index = i.toLong(),
+                    shuffledIndex = mq.queue[i].shuffleIndex.toLong()
                 )
             )
+            i ++
         }
     }
 
@@ -363,4 +405,73 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
             saveQueue(mq)
         }
     }
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insert(item: RecentActivityEntity)
+
+    @Delete
+    fun delete(item: RecentActivityEntity)
+
+    @Query("DELETE FROM recent_activity")
+    fun clearRecentActivity()
+
+    @Transaction
+    fun insertRecentActivityItem(item: YTItem) {
+        when (item) {
+            is AlbumItem -> {
+                insert(
+                    RecentActivityEntity(
+                        id = item.browseId,
+                        title = item.title,
+                        thumbnail = item.thumbnail,
+                        explicit = item.explicit,
+                        shareLink = item.shareLink,
+                        type = RecentActivityType.ALBUM,
+                        playlistId = item.playlistId,
+                        radioPlaylistId = null,
+                        shufflePlaylistId = null
+                    )
+                )
+            }
+
+            is PlaylistItem -> {
+                insert(
+                    RecentActivityEntity(
+                        id = item.id,
+                        title = item.title,
+                        thumbnail = item.thumbnail,
+                        explicit = item.explicit,
+                        shareLink = item.shareLink,
+                        type = RecentActivityType.PLAYLIST,
+                        playlistId = item.id,
+                        radioPlaylistId = item.radioEndpoint?.playlistId,
+                        shufflePlaylistId = item.shuffleEndpoint?.playlistId
+                    )
+                )
+            }
+
+            is ArtistItem -> {
+                insert(
+                    RecentActivityEntity(
+                        id = item.id,
+                        title = item.title,
+                        thumbnail = item.thumbnail,
+                        explicit = item.explicit,
+                        shareLink = item.shareLink,
+                        type = RecentActivityType.ARTIST,
+                        playlistId = item.playEndpoint?.playlistId,
+                        radioPlaylistId = item.radioEndpoint?.playlistId,
+                        shufflePlaylistId = item.shuffleEndpoint?.playlistId
+                    )
+                )
+            }
+
+            else -> {
+                // do nothing
+            }
+        }
+    }
+
+    @Query("SELECT * FROM recent_activity ORDER BY date DESC")
+    fun recentActivity(): Flow<List<RecentActivityEntity>>
 }
