@@ -113,6 +113,7 @@ import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.enumPreference
 import com.dd3boh.outertune.utils.get
 import com.dd3boh.outertune.utils.reportException
+import com.dd3boh.outertune.utils.scanners.documentFileFromFile
 import com.google.common.util.concurrent.MoreExecutors
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.SongItem
@@ -801,7 +802,17 @@ class MusicService : MediaLibraryService(),
                     )
                 }
 
-                return@Factory dataSpec.withUri(Uri.fromFile(file))
+                val uri = documentFileFromFile(file)?.uri
+                if (uri == null) {
+                    throw PlaybackException(
+                        "Error resolving file",
+                        Throwable(),
+                        PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND
+                    )
+                }
+
+                // file.toUri() seems not to be universally supported, causes EACCES exception. Use DocumentFile
+                return@Factory dataSpec.withUri(uri)
             }
 
             val isDownload =
