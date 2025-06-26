@@ -381,6 +381,7 @@ fun ColumnScope.DownloadsFrag() {
             val dirPickerLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.OpenDocumentTree()
             ) { uri ->
+                if (tempFilePath.toString() == uri.toString()) return@rememberLauncherForActivityResult
                 if (uri?.path != null) {
                     // Take persistable URI permission
                     val contentResolver = context.contentResolver
@@ -568,6 +569,7 @@ fun ColumnScope.DownloadsFrag() {
                 ActivityResultContracts.OpenDocumentTree()
             ) { uri ->
                 if (uri == null) return@rememberLauncherForActivityResult
+                if (tempScanPaths.any { it.toString() == uri.toString() }) return@rememberLauncherForActivityResult
                 val contentResolver = context.contentResolver
                 val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 contentResolver.takePersistableUriPermission(uri, takeFlags)

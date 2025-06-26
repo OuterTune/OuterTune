@@ -25,11 +25,11 @@ fun documentFileFromFile(file: File): DocumentFile? {
 }
 
 fun stringFromUriList(uris: List<Uri>): String {
-    return uris.joinToString("\n")
+    return uris.distinctBy { it.toString() }.joinToString("\n")
 }
 
 fun uriListFromString(str: String): List<Uri> {
-    return str.split("\n").map { it.toUri() }.filter { it.toString().isNotBlank() }
+    return str.split("\n").map { it.toUri() }.filter { it.toString().isNotBlank() }.distinctBy { it.toString() }
 }
 
 fun fileFromUri(context: Context, uri: Uri): File? {

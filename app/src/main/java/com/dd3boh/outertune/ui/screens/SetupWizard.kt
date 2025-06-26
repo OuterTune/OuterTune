@@ -648,6 +648,7 @@ fun SetupWizard(
                                 val dirPickerLauncher = rememberLauncherForActivityResult(
                                     ActivityResultContracts.OpenDocumentTree()
                                 ) { uri ->
+                                    if (tempFilePath.toString() == uri.toString()) return@rememberLauncherForActivityResult
                                     if (uri?.path != null) {
                                         // Take persistable URI permission
                                         val contentResolver = context.contentResolver
