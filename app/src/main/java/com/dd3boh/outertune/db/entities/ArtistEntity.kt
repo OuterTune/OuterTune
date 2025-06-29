@@ -27,9 +27,6 @@ data class ArtistEntity(
     val isYouTubeArtist: Boolean
         get() = id.startsWith("UC") || id.startsWith("FEmusic_library_privately_owned_artist")
 
-    val isLocalArtist: Boolean
-        get() = id.startsWith("LA")
-
     fun localToggleLike() = copy(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now(),
     )
@@ -45,6 +42,6 @@ data class ArtistEntity(
     }
 
     companion object {
-        fun generateArtistId() = "LA" + RandomStringUtils.random(8, true, false)
+        fun generateArtistId() = "LA" + RandomStringUtils.insecure().next(8, true, false)
     }
 }

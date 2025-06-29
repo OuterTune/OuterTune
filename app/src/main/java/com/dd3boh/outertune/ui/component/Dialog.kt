@@ -9,6 +9,7 @@
 
 package com.dd3boh.outertune.ui.component
 
+import android.content.ClipData
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -33,10 +34,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Minimize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -62,11 +62,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -74,6 +78,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.DialogCornerRadius
+import com.dd3boh.outertune.constants.MenuCornerRadius
 import com.dd3boh.outertune.db.entities.FormatEntity
 import com.dd3boh.outertune.models.MediaMetadata
 import kotlinx.coroutines.delay
@@ -86,6 +91,7 @@ fun DefaultDialog(
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
     buttons: (@Composable RowScope.() -> Unit)? = null,
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Dialog(
@@ -99,7 +105,7 @@ fun DefaultDialog(
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+                horizontalAlignment = horizontalAlignment,
                 modifier = modifier
                     .padding(24.dp)
             ) {
@@ -187,6 +193,7 @@ fun TextFieldDialog(
     singleLine: Boolean = true,
     maxLines: Int = if (singleLine) 1 else 10,
     isInputValid: (String) -> Boolean = { it.isNotEmpty() },
+    keyboardType: KeyboardType = KeyboardType.Text,
     onDone: (String) -> Unit,
     onDismiss: () -> Unit,
     extraContent: (@Composable () -> Unit)? = null,
@@ -232,7 +239,10 @@ fun TextFieldDialog(
             singleLine = singleLine,
             maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(),
-            keyboardOptions = KeyboardOptions(imeAction = if (singleLine) ImeAction.Done else ImeAction.None),
+            keyboardOptions = KeyboardOptions(
+                imeAction = if (singleLine) ImeAction.Done else ImeAction.None,
+                keyboardType = keyboardType
+            ),
             keyboardActions = KeyboardActions(
                 onDone = {
                     onDone(textFieldValue.text)
@@ -268,6 +278,7 @@ fun ActionPromptDialog(
     onConfirm: () -> Unit,
     onReset: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
+    isInputValid: Boolean = true,
     content: @Composable ColumnScope.() -> Unit = {}
 ) = BasicAlertDialog(
     onDismissRequest = { onDismiss() },
@@ -305,7 +316,7 @@ fun ActionPromptDialog(
                 horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (onReset != null)
+                if (onReset != null) {
                     Row(modifier = Modifier.weight(1f)) {
                         TextButton(
                             onClick = { onReset() },
@@ -313,19 +324,22 @@ fun ActionPromptDialog(
                             Text(stringResource(R.string.reset))
                         }
                     }
-
-                TextButton(
-                    onClick = { onConfirm() }
-                ) {
-                    Text(stringResource(android.R.string.ok))
                 }
 
-                if (onCancel != null)
+                if (onCancel != null) {
                     TextButton(
                         onClick = { onCancel() }
                     ) {
                         Text(stringResource(android.R.string.cancel))
                     }
+                }
+
+                TextButton(
+                    onClick = { onConfirm() },
+                    enabled = isInputValid
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
             }
         }
     }
@@ -385,15 +399,15 @@ fun CounterDialog(
                     IconButton(
                         onClick = {
                             if (tempValue.intValue < upperBound) {
-                                tempValue.value += 1
+                                tempValue.intValue += 1
                             }
                         },
                         onLongClick = {}
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary
+                        Text(
+                            text = "+",
+//                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge
                         )
                     }
 
@@ -401,15 +415,15 @@ fun CounterDialog(
                     IconButton(
                         onClick = {
                             if (tempValue.intValue > lowerBound) {
-                                tempValue.value -= 1
+                                tempValue.intValue -= 1
                             }
                         },
                         onLongClick = {}
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Minimize,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary
+                        Text(
+                            text = "—",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge
                         )
                     }
                 }
@@ -470,7 +484,7 @@ fun DetailsDialog(
     currentFormat: FormatEntity?,
     currentPlayCount: Int?,
     volume: Float,
-    clipboardManager: ClipboardManager,
+    clipboardManager: Clipboard,
     setVisibility: (newState: Boolean) -> Unit,
 ) {
     val context = LocalContext.current
@@ -524,7 +538,8 @@ fun DetailsDialog(
                     details.add(stringResource(R.string.loudness) to currentFormat?.loudnessDb?.let { "$it dB" })
                 }
 
-                details.addAll(mutableListOf(
+                details.addAll(
+                    mutableListOf(
                     stringResource(R.string.volume) to "${(volume * 100).toInt()}%",
                     stringResource(R.string.file_size) to currentFormat?.contentLength?.let {
                         // TODO: This should 1024 sized not 1000
@@ -553,7 +568,8 @@ fun DetailsDialog(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                             onClick = {
-                                clipboardManager.setText(AnnotatedString(displayText))
+                                val clipData = ClipData.newPlainText(label, AnnotatedString(displayText))
+                                clipboardManager.nativeClipboard.setPrimaryClip(clipData)
                                 Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
                             }
                         )
@@ -569,15 +585,45 @@ fun DetailsDialog(
 
 @Composable
 fun InfoLabel(
-    text: String
+    text: String,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
 ) = Row(
     verticalAlignment = Alignment.CenterVertically,
-    modifier = Modifier.padding(horizontal = 8.dp)
+    modifier = modifier.padding(horizontal = 8.dp)
 ) {
     Icon(
-        Icons.Outlined.Info,
+        if (isError) Icons.Outlined.Error else Icons.Outlined.Info,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.secondary,
+        tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
+        modifier = Modifier.padding(4.dp)
+    )
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(horizontal = 4.dp)
+    )
+}
+
+@Composable
+fun IconLabelButton(
+    text: String,
+    icon: ImageVector,
+    background: Color = MaterialTheme.colorScheme.secondaryContainer,
+    tint: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) = Row(
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = modifier
+        .background(background, RoundedCornerShape(MenuCornerRadius))
+        .padding(horizontal = 8.dp)
+        .clickable { onClick() }
+) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = tint,
         modifier = Modifier.padding(4.dp)
     )
     Text(

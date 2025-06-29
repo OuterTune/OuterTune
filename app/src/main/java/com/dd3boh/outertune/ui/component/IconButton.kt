@@ -7,7 +7,7 @@
  * For any other attributions, refer to the git commit history
  */
 
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+@file:Suppress("INVISIBLE_MEMBER")
 
 package com.dd3boh.outertune.ui.component
 
@@ -20,15 +20,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ripple
-import androidx.compose.material3.tokens.IconButtonTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -40,8 +43,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 
+// IconButtonTokens.StateLayerSize
+val stateLayerSize = 40.0.dp
 @Composable
 fun ResizableIconButton(
     @DrawableRes icon: Int,
@@ -106,9 +113,9 @@ fun IconButton(
     Box(
         modifier = modifier
             .minimumInteractiveComponentSize()
-            .size(IconButtonTokens.StateLayerSize)
+            .size(stateLayerSize)
             .clip(CircleShape)
-            .background(color = colors.containerColor(enabled))
+            .background(color = if (enabled) colors.containerColor else colors.disabledContainerColor)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -117,12 +124,30 @@ fun IconButton(
                 interactionSource = interactionSource,
                 indication = ripple(
                     bounded = false,
-                    radius = IconButtonTokens.StateLayerSize / 2
+                    radius = stateLayerSize / 2
                 )
             ),
         contentAlignment = Alignment.Center
     ) {
-        val contentColor = colors.contentColor(enabled)
+        val contentColor = if (enabled) colors.contentColor else colors.disabledContentColor
         CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
+    }
+}
+
+@Composable
+fun IconTextButton(
+    text: Int,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null)
+        TextButton(
+            onClick = onClick
+        ) {
+            Text(stringResource(text))
+        }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -19,6 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
@@ -28,6 +32,7 @@ import androidx.compose.material.icons.rounded.Equalizer
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material.icons.rounded.LibraryAddCheck
+import androidx.compose.material.icons.rounded.MoreTime
 import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Share
@@ -39,9 +44,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -56,12 +63,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -69,6 +83,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastSumBy
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.PlaybackParameters
+import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
@@ -78,7 +93,6 @@ import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
-import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.ui.component.BigSeekBar
 import com.dd3boh.outertune.ui.component.BottomSheetState
@@ -93,7 +107,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.round
@@ -110,16 +131,18 @@ fun PlayerMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
-    val clipboardManager = LocalClipboardManager.current
+    val clipboardManager = LocalClipboard.current
 
     val playerConnection = LocalPlayerConnection.current ?: return
     val playerVolume = playerConnection.service.playerVolume.collectAsState()
-    val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
-    val activityResultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
+    val currentFormatState = database.format(mediaMetadata.id).collectAsState(initial = null)
+    val currentFormat = currentFormatState.value
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
+
+    val activityResultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
 
     var showChooseQueueDialog by rememberSaveable {
         mutableStateOf(false)
@@ -134,8 +157,13 @@ fun PlayerMenu(
     AddToQueueDialog(
         isVisible = showChooseQueueDialog,
         onAdd = { queueName ->
-            queueBoard.addQueue(queueName, listOf(mediaMetadata), playerConnection, forceInsert = true, delta = false)
-            queueBoard.setCurrQueue(playerConnection)
+            playerConnection.service.queueBoard.addQueue(
+                queueName,
+                listOf(mediaMetadata),
+                forceInsert = true,
+                delta = false
+            )
+            playerConnection.service.queueBoard.setCurrQueue()
         },
         onDismiss = {
             showChooseQueueDialog = false
@@ -148,6 +176,7 @@ fun PlayerMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = { playlist ->
             database.transaction {
@@ -209,7 +238,10 @@ fun PlayerMenu(
         )
     }
 
-    val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
+    val sleepTimerEnabled = remember(
+        playerConnection.service.sleepTimer.triggerTime,
+        playerConnection.service.sleepTimer.pauseWhenSongEnd
+    ) {
         playerConnection.service.sleepTimer.isActive
     }
 
@@ -220,12 +252,16 @@ fun PlayerMenu(
     LaunchedEffect(sleepTimerEnabled) {
         if (sleepTimerEnabled) {
             while (isActive) {
-                sleepTimerTimeLeft = if (playerConnection.service.sleepTimer.pauseWhenSongEnd) {
+                val newSleepTimerTimeLeft = if (playerConnection.service.sleepTimer.pauseWhenSongEnd) {
                     playerConnection.player.duration - playerConnection.player.currentPosition
                 } else {
                     playerConnection.service.sleepTimer.triggerTime - System.currentTimeMillis()
                 }
                 delay(1000L)
+
+                withContext(Dispatchers.Main) {
+                    sleepTimerTimeLeft = newSleepTimerTimeLeft
+                }
             }
         }
     }
@@ -240,6 +276,9 @@ fun PlayerMenu(
 
     if (showSleepTimerDialog) {
         AlertDialog(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             properties = DialogProperties(usePlatformDefaultWidth = false),
             onDismissRequest = { showSleepTimerDialog = false },
             icon = { Icon(imageVector = Icons.Rounded.Timer, contentDescription = null) },
@@ -262,30 +301,148 @@ fun PlayerMenu(
                 }
             },
             text = {
+                val focusRequester = remember {
+                    FocusRequester()
+                }
+
+                var showDialog by remember {
+                    mutableStateOf(false)
+                }
+
+                LaunchedEffect(showDialog) {
+                    if (showDialog) {
+                        delay(300)
+                        focusRequester.requestFocus()
+                    }
+                }
+
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.minute,
-                            sleepTimerValue.roundToInt(),
-                            sleepTimerValue.roundToInt()
-                        ),
-                        style = MaterialTheme.typography.bodyLarge
+                    val pluralString = pluralStringResource(
+                        R.plurals.minute,
+                        sleepTimerValue.roundToInt(),
+                        sleepTimerValue.roundToInt()
                     )
+
+                    val endTime = System.currentTimeMillis() + (sleepTimerValue.roundToInt() * 60 * 1000).toLong()
+                    val calendarNow = Calendar.getInstance()
+                    val calendarEnd = Calendar.getInstance().apply { timeInMillis = endTime }
+
+                    // show date if it will span to next day
+                    val endTimeString =
+                        if (calendarNow.get(Calendar.DAY_OF_YEAR) == calendarEnd.get(Calendar.DAY_OF_YEAR) &&
+                            calendarNow.get(Calendar.YEAR) == calendarEnd.get(Calendar.YEAR)
+                        ) {
+                            SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
+                                .format(Date(endTime))
+                        } else {
+                            SimpleDateFormat.getDateTimeInstance(
+                                SimpleDateFormat.SHORT,
+                                SimpleDateFormat.SHORT,
+                                Locale.getDefault()
+                            ).format(Date(endTime))
+                        }
+
+                    Text(
+                        text = "$pluralString\n$endTimeString",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp)
+                            .clip(shape = RoundedCornerShape(8.dp))
+                            .clickable {
+                                showDialog = true
+                            }
+                    )
+
+                    // manual input
+                    if (showDialog) {
+                        val initialText = TextFieldValue(
+                            text = sleepTimerValue.roundToInt().toString(),
+                            selection = TextRange(0, sleepTimerValue.roundToInt().toString().length),
+                        )
+
+                        val (textFieldValue, onTextFieldValueChange) = remember {
+                            mutableStateOf(initialText)
+                        }
+
+                        TextField(
+                            value = textFieldValue,
+                            onValueChange = onTextFieldValueChange,
+                            placeholder = { pluralString },
+                            singleLine = true,
+                            leadingIcon = { Icon(Icons.Rounded.MoreTime, null) },
+                            colors = OutlinedTextFieldDefaults.colors(),
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Done,
+                                keyboardType = KeyboardType.Number
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    val text = textFieldValue.text.toFloatOrNull()
+                                    if (text != null) {
+                                        sleepTimerValue = textFieldValue.text.toFloatOrNull() ?: sleepTimerValue
+                                    }
+                                }
+                            ),
+                            modifier = Modifier
+                                .weight(weight = 1f, fill = false)
+                                .focusRequester(focusRequester)
+                        )
+                    }
 
                     Slider(
                         value = sleepTimerValue,
                         onValueChange = { sleepTimerValue = it },
-                        valueRange = 5f..120f,
-                        steps = (120 - 5) / 5 - 1,
+                        valueRange = 1f..120f,
+                        modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-                    OutlinedButton(
-                        onClick = {
-                            showSleepTimerDialog = false
-                            playerConnection.service.sleepTimer.start(-1)
-                        }
+                    FlowRow(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(stringResource(R.string.end_of_song))
+                        // Preset time options
+                        val timeIntervals = listOf(15L, 30L, 45L, 60L)
+
+                        // Create time chips for all intervals
+                        val timeChips = timeIntervals.map { interval ->
+                            val (timeString, duration) = getNextInterval(interval)
+                            TimeChip(
+                                duration = duration,
+                                composable = {
+                                    OutlinedButton(
+                                        onClick = { sleepTimerValue = duration },
+                                        modifier = Modifier.height(40.dp)
+                                    ) {
+                                        Text(timeString)
+                                    }
+                                }
+                            )
+                        }.sortedBy { it.duration } + remember {
+                            TimeChip(
+                                duration = Float.MAX_VALUE,
+                                composable = {
+                                    OutlinedButton(
+                                        onClick = {
+                                            showSleepTimerDialog = false
+                                            playerConnection.service.sleepTimer.start(-1)
+                                        },
+                                        modifier = Modifier.height(40.dp)
+                                    ) {
+                                        Text(stringResource(R.string.end_of_song))
+                                    }
+                                }
+                            )
+                        }
+
+                        timeChips.forEach { timeChip ->
+                            Box(
+                                modifier = Modifier
+                                    .padding(horizontal = 4.dp)
+                            ) {
+                                timeChip.composable()
+                            }
+                        }
                     }
                 }
             }
@@ -300,10 +457,10 @@ fun PlayerMenu(
         DetailsDialog(
             mediaMetadata = mediaMetadata,
             currentFormat = currentFormat,
-            currentPlayCount = librarySong?.playCount?.fastSumBy { it.count }?: 0,
+            currentPlayCount = librarySong?.playCount?.fastSumBy { it.count } ?: 0,
             volume = playerConnection.player.volume,
             clipboardManager = clipboardManager,
-            setVisibility = {showDetailsDialog = it }
+            setVisibility = { showDetailsDialog = it }
         )
     }
 
@@ -358,7 +515,7 @@ fun PlayerMenu(
         }
         if (!mediaMetadata.isLocal)
             DownloadGridMenu(
-                state = download?.state,
+                state = if (downloadUtil.getCustomDownload(mediaMetadata.id)) STATE_COMPLETED else download?.state,
                 onDownload = {
                     database.transaction {
                         insert(mediaMetadata)
@@ -581,4 +738,41 @@ fun <T> ValueAdjuster(
             )
         }
     }
+}
+
+data class TimeChip(
+    val duration: Float,
+    val composable: @Composable () -> Unit
+) : Comparable<TimeChip> {
+    override fun compareTo(other: TimeChip): Int {
+        return duration.compareTo(other.duration)
+    }
+}
+
+fun getNextInterval(targetMin: Long): Pair<String, Float> {
+    require(targetMin in 1..60) { "Interval must be between 1 and 60 minutes" }
+
+    val now = LocalDateTime.now()
+    val intervalMinutes = targetMin - now.minute
+
+    val targetTime: LocalDateTime = if (intervalMinutes > 0) {
+        // Within this hour
+        now.plusMinutes(intervalMinutes)
+    } else if (intervalMinutes < 0) {
+        // Next hour
+        now.plusHours(1).plusMinutes(targetMin - now.minute)
+//        now.plusMinutes((60 - now.minute) + targetMin)        // other way to calculate targetTime
+    } else {
+        // Equal to 0
+        now.plusHours(1)
+    }
+
+    // Format the time
+    val timeString = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
+        .format(Date(targetTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()))
+
+    // Calculate minutes between now and target
+    val minutesBetween = ChronoUnit.MINUTES.between(now, targetTime).toFloat()
+
+    return Pair(timeString, minutesBetween)
 }

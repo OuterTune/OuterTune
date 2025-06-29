@@ -95,8 +95,8 @@ fun <T> ListPreference(
     values: List<T>,
     valueText: @Composable (T) -> String,
     onValueSelected: (T) -> Unit,
+    onDisabled: (T) -> Boolean = { false },
     isEnabled: Boolean = true,
-    disabled: (T) -> Boolean = { false }
 ) {
     var showDialog by remember {
         mutableStateOf(false)
@@ -106,7 +106,7 @@ fun <T> ListPreference(
             onDismiss = { showDialog = false }
         ) {
             items(values) { value ->
-                val isDisabled = disabled(value)
+                val isDisabled = onDisabled(value)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -166,7 +166,7 @@ inline fun <reified T : Enum<T>> EnumListPreference(
         valueText = valueText,
         onValueSelected = onValueSelected,
         isEnabled = isEnabled,
-        disabled = disabled
+        onDisabled = disabled
     )
 }
 

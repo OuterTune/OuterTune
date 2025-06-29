@@ -3,9 +3,7 @@
     <string name="folders">文件夹</string>
     <string name="create_queue">新建队列</string>
     <string name="create_sync_playlist_description">注意：这允许与 YouTube Music 同步。这在以后是不可更改的。您无法将本地歌曲添加到同步的播放列表中。</string>
-    <string name="oobe_local_scan_tooltip">单击此处扫描歌曲</string>
     <string name="local_library_enable_description">禁用将在应用程序中隐藏本地库</string>
-    <string name="oobe_ytm_sync_description">帐户同步</string>
     <string name="slim_navbar_description">删除文本标签以降低导航栏高度</string>
     <string name="library">图书馆</string>
     <string name="recent_activity">最近的活动</string>
@@ -21,9 +19,8 @@
     <string name="err_play_next_on_error">发生错误。播放下一首</string>
     <string name="err_stop_on_error">发生错误。播放暂停</string>
     <string name="err_stop_on_too_many_errors">太多错误。播放暂停</string>
-    <string name="wait_to_reconnect">等待重新连接</string>"&gt;
-
-<string name="sort_by_date_modified">修改日期</string>
+    <string name="wait_to_reconnect">等待重新连接</string>
+    <string name="sort_by_date_modified">修改日期</string>
     <string name="sort_by_date_released">发布日期</string>
     <string name="sort_by_like_date">收藏日期</string>
     <string name="sort_by_play_count">播放次数</string>
@@ -66,7 +63,7 @@
     <string name="keep_alive_description">使用持久性前台服务来防止 OuterTune 在后台关闭。</string>
     <string name="persistent_queue_desc_ot">应用程序启动时恢复以前打开的队列</string>
     <string name="min_playback_duration">最短播放时间</string>
-    <string name="min_playback_duration_description">一首歌曲在被视为‘播放过’之前，必须播放的最小时间。</string>
+    <string name="min_playback_duration_description">一首歌曲在被标记为“播放过”之前，必须播放完</string>
     <string name="swipe2Queue">滑动到队列</string>
     <string name="swipe2Queue_description">在歌曲上滑动，在当前播放歌曲后直接将其添加到下一个队列中</string>
     <string name="lyrics_settings_title">歌词</string>
@@ -80,7 +77,7 @@
     <string name="flat_subfolders_title">合并子文件夹</string>
     <string name="flat_subfolders_description">禁用以保留磁盘上的文件结构</string>
     <string name="import_innertune_tooltip">支持恢复 InnerTune 备份，但由于技术限制可能会出现异常</string>
-    <string name="import_m3u">导入播放列表 （m3u）</string>
+    <string name="m3u_import_playlist">导入播放列表 （m3u）</string>
     <string name="m3u_import_playlist_failed">导入播放列表失败</string>
     <string name="auto_scanner_title">自动扫描</string>
     <string name="scan_paths_title">配置扫描位置…</string>
@@ -112,14 +109,11 @@
     <string name="scanner_type_ffmpeg_ext">使用 FFMpeg 元数据提取器。需要安装外部软件包</string>
     <string name="scanner_variant_rescan">重新扫描整个音乐库并重新加载所有歌曲的元数据</string>
     <string name="scanner_online_artist_linking">尝试将本地文件的音乐人与 YouTube Music 上的音乐人相关联</string>
-    <string name="pause_remote_listen_history">与 YouTube Music 分享收听记录</string>
-    <string name="m3u_import_song_failed">无法导入：</string>
+    <string name="import_failed_songs">无法导入：</string>
     <string name="dev_settings_title">启用开发人员设置</string>
     <string name="dev_settings_description">显示用于开发的其他高级设置</string>
     <string name="oobe_welcome_message">欢迎来到 OuterTune</string>
     <string name="oobe_complete">设置完成</string>
-    <string name="oobe_ytm_content_description">YouTube Music 触手可及</string>
-    <string name="oobe_local_playback_description">本地音乐播放</string>
     <string name="oobe_use_backup">我有备份</string>
     <string name="action_back">返回</string>
     <string name="action_next">下一个</string>
@@ -134,6 +128,8 @@
     <string name="scanner_warning">默认情况下，扫描不会重新加载现有歌曲的任何元数据，除非你在上面另行指定。根据你的音乐库大小，可能需要一些时间。</string>
     <string name="scanner_strict_file_name_title">严格的文件名</string>
     <string name="scanner_strict_file_name_description">启用时，文件名将不会被忽略。例如，Song.ogg 将与 Song.flac 被视为不同的歌曲。扫描的灵敏度偏好仍然适用</string>
-    <string name="oobe_ad_free_description">无广告播放</string>
     <string name="token_adv_login_description">这是高级登录方法。作为门户网站的替代方法，您可以直接在此输入或更新登录令牌。例如，这可以加快在多个设备上登录的速度。请注意，应用程序无法解析的任何无效令牌格式都不会被接受</string>
+    <string name="queue_local_history">历史（本地）</string>
+    <string name="queue_remote_history">历史记录（远程）</string>
+    <string name="pause_remote_listen_history">与 YouTube Music 分享收听记录</string>
 </resources>

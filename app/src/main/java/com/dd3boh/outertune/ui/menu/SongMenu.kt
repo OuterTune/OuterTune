@@ -44,7 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,24 +55,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastSumBy
+import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.ListThumbnailSize
+import com.dd3boh.outertune.constants.SyncMode
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
+import com.dd3boh.outertune.constants.YtmSyncModeKey
 import com.dd3boh.outertune.db.entities.Event
 import com.dd3boh.outertune.db.entities.PlaylistSong
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
-import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
+import com.dd3boh.outertune.ui.component.AsyncImageLocal
 import com.dd3boh.outertune.ui.component.DetailsDialog
 import com.dd3boh.outertune.ui.component.DownloadGridMenu
 import com.dd3boh.outertune.ui.component.GridMenu
@@ -80,8 +84,10 @@ import com.dd3boh.outertune.ui.component.GridMenuItem
 import com.dd3boh.outertune.ui.component.ListDialog
 import com.dd3boh.outertune.ui.component.ListItem
 import com.dd3boh.outertune.ui.component.TextFieldDialog
+import com.dd3boh.outertune.ui.utils.imageCache
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.makeTimeString
+import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -98,15 +104,19 @@ fun SongMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
-    val clipboardManager = LocalClipboardManager.current
-
+    val clipboardManager = LocalClipboard.current
+    val syncUtils = LocalSyncUtils.current
     val playerConnection = LocalPlayerConnection.current ?: return
+
+    val syncMode by rememberEnumPreference(key = YtmSyncModeKey, defaultValue = SyncMode.RO)
+
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
     val download by LocalDownloadUtil.current.getDownload(originalSong.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
 
-    val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
+    val currentFormatState = database.format(originalSong.id).collectAsState(initial = null)
+    val currentFormat = currentFormatState.value
 
     var showEditDialog by rememberSaveable {
         mutableStateOf(false)
@@ -138,11 +148,11 @@ fun SongMenu(
     AddToQueueDialog(
         isVisible = showChooseQueueDialog,
         onAdd = { queueName ->
-            val shouldReload = queueBoard.addQueue(queueName, listOf(song.toMediaMetadata()), playerConnection,
-                forceInsert = true, delta = false)
-            if (shouldReload) {
-                queueBoard.setCurrQueue(playerConnection)
-            }
+            playerConnection.service.queueBoard.addQueue(
+                queueName, listOf(song.toMediaMetadata()),
+                forceInsert = true, delta = false
+            )
+            playerConnection.service.queueBoard.setCurrQueue()
         },
         onDismiss = {
             showChooseQueueDialog = false
@@ -154,6 +164,7 @@ fun SongMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = { playlist ->
             coroutineScope.launch(Dispatchers.IO) {
@@ -224,10 +235,10 @@ fun SongMenu(
         DetailsDialog(
             mediaMetadata = song.toMediaMetadata(),
             currentFormat = currentFormat,
-            currentPlayCount = song.playCount?.fastSumBy { it.count }?: 0,
+            currentPlayCount = song.playCount?.fastSumBy { it.count } ?: 0,
             volume = playerConnection.player.volume,
             clipboardManager = clipboardManager,
-            setVisibility = {showDetailsDialog = it }
+            setVisibility = { showDetailsDialog = it }
         )
     }
 
@@ -238,17 +249,34 @@ fun SongMenu(
             makeTimeString(song.song.duration * 1000L)
         ),
         thumbnailContent = {
-            AsyncImage(
-                model = if (song.song.isLocal) song.song.localPath else song.song.thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier.size(ListThumbnailSize).clip(RoundedCornerShape(ThumbnailCornerRadius))
-            )
+            if (song.song.isLocal) {
+                AsyncImageLocal(
+                    image = { imageCache.getLocalThumbnail(song.song.localPath, true) },
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(ListThumbnailSize)
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                )
+            } else {
+                AsyncImage(
+                    model = song.song.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(ListThumbnailSize)
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                )
+            }
         },
         trailingContent = {
             IconButton(
                 onClick = {
+                    val s = song.song.toggleLike()
                     database.query {
-                        update(song.song.toggleLike())
+                        update(s)
+                    }
+
+                    if (!s.isLocal) {
+                        syncUtils.likeSong(s)
                     }
                 }
             ) {
@@ -305,7 +333,7 @@ fun SongMenu(
             showChoosePlaylistDialog = true
         }
 
-        if (playlistSong != null) {
+        if (playlistSong != null && (playlistSong.song.song.isLocal || syncMode == SyncMode.RW)) {
             GridMenuItem(
                 icon = Icons.Rounded.PlaylistRemove,
                 title = R.string.remove_from_playlist
@@ -330,17 +358,21 @@ fun SongMenu(
 
         if (!song.song.isLocal)
             DownloadGridMenu(
-                state = download?.state,
+                state = if (downloadUtil.getCustomDownload(song.id)) STATE_COMPLETED else download?.state,
                 onDownload = {
                     downloadUtil.download(song.toMediaMetadata())
                 },
                 onRemoveDownload = {
-                    DownloadService.sendRemoveDownload(
-                        context,
-                        ExoDownloadService::class.java,
-                        song.id,
-                        false
-                    )
+                    if (song.song.localPath != null) {
+                        downloadUtil.delete(song)
+                    } else {
+                        DownloadService.sendRemoveDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            song.id,
+                            false
+                        )
+                    }
                 }
             )
 

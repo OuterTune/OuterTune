@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="song_added_to_queue">\"%s\" aggiunto alla coda</string>
-    <string name="like_all">Mi piace a tutto</string>
+    <string name="like_all">Mi piace tutto</string>
     <string name="library">Libreria</string>
     <string name="delete_lyric_confirm">Vuoi davvero cancellare i testi memorizzati per \"%s\"?</string>
     <string name="recent_activity">Attività recenti</string>
@@ -10,7 +10,7 @@
     <string name="create_queue">Nuova coda</string>
     <string name="queue_searched_songs_ot">Cerca:</string>
     <string name="song_added_to_queue_end">\"%s\" aggiunto alla fine della coda</string>
-    <string name="auto_playlist">Playliat automatica</string>
+    <string name="auto_playlist">Playlist automatica</string>
     <string name="select">Modalità selezione</string>
     <string name="sort_by_date_modified">Data di modifica</string>
     <string name="folders">Cartelle</string>
@@ -30,9 +30,9 @@
     <string name="new_interface">Nuovo layout dell\'interfaccia</string>
     <string name="attrib_zhuang">Zion Huang per InnerTune</string>
     <string name="grp_interface">Interfaccia</string>
-    <string name="show_liked_and_downloaded_playlist">Visualizza le playlist che ti piacciono e che hai scaricato in libreria</string>
+    <string name="show_liked_and_downloaded_playlist">Visualizza le playlist dei brani che piaciuti e scaricati nella libreria</string>
     <string name="slim_navbar_title">Barra di navigazione sottile</string>
-    <string name="import_m3u">Importa una playlist (m3u)</string>
+    <string name="m3u_import_playlist">Importa una playlist (m3u)</string>
     <string name="sync_progress_active">Sincronizzando con l\'account di YouYube…</string>
     <string name="sync_progress_success">Sincronizzazione completata</string>
     <string name="grp_audio">Audio</string>
@@ -121,23 +121,46 @@
     <string name="dev_settings_title">Abilita impostazioni sviluppatore</string>
     <string name="dev_settings_description">Rivela impostazioni avanzate aggiuntive destinate all\'uso in fase di sviluppo</string>
     <string name="oobe_welcome_message">Benvenuto in OuterTune</string>
-    <string name="oobe_ytm_content_description">YouTube Music a portata di mano</string>
-    <string name="oobe_ytm_sync_description">Sincronizzazione dell\'account</string>
-    <string name="oobe_local_playback_description">Riproduzione di musica locale</string>
     <string name="info">Informazione</string>
     <string name="oobe_use_backup">Ho un backup</string>
     <string name="action_back">Indietro</string>
     <string name="action_next">Successivo</string>
     <string name="action_skip">Salta</string>
-    <string name="oobe_ad_free_description">Riproduzione senza pubblicità</string>
     <string name="experimental_settings_title">Sperimentale</string>
-    <string name="pause_remote_listen_history">Condividi la cronologia degli ascolti con YouTube Music</string>
-    <string name="oobe_local_scan_tooltip">Clicca qui per cercare i brani</string>
-    <string name="m3u_import_song_failed">Impossibile importare:</string>
-    <string name="wait_to_reconnect">Attendi per riconnetterti</string>"&gt;
-
-<string name="err_play_next_on_error">Si è verificato un errore. Riproduzione successiva</string>
+    <string name="pause_remote_listen_history">Interrompi la condivisione della cronologia degli ascolti con YouTube Music</string>
+    <string name="import_failed_songs">Impossibile importare:</string>
+    <string name="wait_to_reconnect">Attendi per riconnetterti</string>
+    <string name="err_play_next_on_error">Si è verificato un errore. Riproduzione successiva</string>
     <string name="err_stop_on_error">Si è verificato un errore. Riproduzione interrotta</string>
     <string name="err_stop_on_too_many_errors">Troppi errori. Riproduzione interrotta</string>
     <string name="grp_general">Generale</string>
+    <string name="queue_remote_history">Cronologia (remota)</string>
+    <string name="queue_local_history">Cronologia (locale)</string>
+    <string name="scanner_btn_idle">Scansiona</string>
+    <string name="scanner_progress_complete">Scansione completata</string>
+    <string name="action_cancel">Annulla</string>
+    <string name="queues_title">Code</string>
+    <string name="queues_empty">Nessuna coda</string>
+    <string name="filter_arrangement">Organizzare i filtri</string>
+    <string name="restart_to_apply_changes">Riavviare l\'app per applicare le modifiche</string>
+    <string name="swipe_to_skip_title">Scorri orizzontalmente per cambiare conzone</string>
+    <string name="swipe_to_skip_description">Abilitare scorrimento orizzontale nel player per cambiare canzone</string>
+    <string name="android_auto">Android Auto</string>
+    <string name="sync_conflict_add_only">Mantieni tutti i contenuti locali, aggiungi nuovi contenuti remoti</string>
+    <string name="missing_media_permission_warning">Le autorizzazioni di archiviazione sono necessarie per i media locali. Fai clic per concedere l\'autorizzazione.</string>
+    <string name="sync_mode_ro">Solo lettura (Visualizza contenuto remoto</string>
+    <string name="more_settings">Altre impostazioni</string>
+    <string name="grp_library_and_content">Libreria e Contenuti</string>
+    <string name="grp_account_sync">Account e Sincronizzazione</string>
+    <string name="sync_conflict_overwrite">Sovrascrivi i contenuti locali con contenuti remoti</string>
+    <string name="sync_conflict_title">Risoluzione dei conflitti</string>
+    <string name="sync_mode">Modalità di sincronizzazione</string>
+    <string name="sync_mode_rw">Lettura e scrittura (consenti anche le modifiche al contenuto remoto)</string>
+    <string name="grp_sync">Sincronizzazione</string>
+    <string name="check_for_update">Controlla gli aggiornamenti</string>
+    <string name="grp_behavior">Comportamento</string>
+    <string name="checking_for_update">Verificare gli aggiornamenti</string>
+    <string name="library_empty">I contenuti della tua libreria verranno mostrati qui</string>
+    <string name="playlist_missing_note">Playlist mancanti? Fai clic qui per abilitare la modalità sync sead-write in impostazioni</string>
+    <string name="no_updates_available">Nessun aggiornamento disponibile</string>
 </resources>

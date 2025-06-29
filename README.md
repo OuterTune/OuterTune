@@ -4,13 +4,16 @@
 
 A Material 3 YouTube Music client & local music player for Android
 
-[![Latest release](https://img.shields.io/github/v/release/DD3Boh/OuterTune?include_prereleases)](https://github.com/DD3Boh/OuterTune/releases)
-[![License](https://img.shields.io/github/license/DD3Boh/OuterTune)](https://www.gnu.org/licenses/gpl-3.0)
-[![Downloads](https://img.shields.io/github/downloads/DD3Boh/OuterTune/total)](https://github.com/DD3Boh/OuterTune/releases)
+[![Latest release](https://img.shields.io/github/v/release/OuterTune/OuterTune?include_prereleases)](https://github.com/OuterTune/OuterTune/releases)
+[![License](https://img.shields.io/github/license/OuterTune/OuterTune)](https://www.gnu.org/licenses/gpl-3.0)
+[![Downloads](https://img.shields.io/github/downloads/OuterTune/OuterTune/total)](https://github.com/OuterTune/OuterTune/releases)
 
-[<img src="assets/badge_github.png" alt="Get it on GitHub" height="40">](https://github.com/DD3Boh/OuterTune/releases/latest)
-[<img src="assets/IzzyOnDroidButtonGreyBorder.svg" alt="Get it on IzzyOnDroid" height="40">](https://apt.izzysoft.de/fdroid/index/apk/com.dd3boh.outertune)
+
+<!-- use  "⠀⠀" for spacing -->
+[<img src="assets/badge_github.png" alt="Get it on GitHub" height="40">](https://github.com/OuterTune/OuterTune/releases/latest)⠀⠀
+[<img src="assets/IzzyOnDroidButtonGreyBorder.svg" alt="Get it on IzzyOnDroid" height="40">](https://apt.izzysoft.de/fdroid/index/apk/com.dd3boh.outertune)⠀⠀
 [<img src="assets/badge_obtainium.png" alt="Get it on Obtainium" height="40">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.dd3boh.outertune%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FDD3Boh%2FOuterTune%22%2C%22author%22%3A%22DD3Boh%22%2C%22name%22%3A%22OuterTune%22%2C%22preferredApkIndex%22%3A0%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Afalse%2C%5C%22fallbackToOlderReleases%5C%22%3Atrue%2C%5C%22filterReleaseTitlesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22filterReleaseNotesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22verifyLatestTag%5C%22%3Afalse%2C%5C%22dontSortReleasesList%5C%22%3Afalse%2C%5C%22useLatestAssetDateAsReleaseDate%5C%22%3Afalse%2C%5C%22trackOnly%5C%22%3Afalse%2C%5C%22versionExtractionRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22matchGroupToUse%5C%22%3A%5C%22%5C%22%2C%5C%22versionDetection%5C%22%3Atrue%2C%5C%22releaseDateAsVersion%5C%22%3Afalse%2C%5C%22useVersionCodeAsOSVersion%5C%22%3Afalse%2C%5C%22apkFilterRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22invertAPKFilter%5C%22%3Afalse%2C%5C%22autoApkFilterByArch%5C%22%3Atrue%2C%5C%22appName%5C%22%3A%5C%22%5C%22%2C%5C%22shizukuPretendToBeGooglePlay%5C%22%3Afalse%2C%5C%22allowInsecure%5C%22%3Afalse%2C%5C%22exemptFromBackgroundUpdates%5C%22%3Afalse%2C%5C%22skipUpdateNotifications%5C%22%3Afalse%2C%5C%22about%5C%22%3A%5C%22A%20Material%203%20YouTube%20Music%20client%20%26%20local%20music%20player%20for%20Android%5C%22%7D%22%2C%22overrideSource%22%3A%22GitHub%22%7D)
+
 
 ## Features
 
@@ -45,11 +48,6 @@ synchronization, local media playback, multiple queues, and a new take on UI des
 >If you're in a region where YouTube Music is not supported, you won't be able to use this app
 ***unless*** you have a proxy or VPN to connect to a YTM supported region.
 
-## Extras
-
-ffMetadataEx is an optional standalone plugin that contains the FFmpeg libraries required for the FFmpeg tag extractor.
-For more information and downloads, see https://github.com/OuterTune/ffMetadataEx
-
 ## FAQ
 
 ### Q: How to scrobble music to LastFM, LibreFM, ListenBrainz or GNU FM?
@@ -69,9 +67,9 @@ try [Pano Scrobbler](https://play.google.com/store/apps/details?id=com.arn.scrob
 We are looking for contributors, translators, and maintainers! If you would like to help out, or just wish to build the
 app yourself, please see the [building and contribution notes](./CONTRIBUTING.md).
 
-### Translating
+### Submitting Translations
 
-We use Weblate (thank you for the libre tier!) to translate OuterTune. You can help translate OuterTune with it!
+We use Weblate to translate OuterTune. For more details or to get started, visit our [Weblate page](https://hosted.weblate.org/projects/outertune/).
 
 <a href="https://hosted.weblate.org/projects/outertune/">
 <img src="https://hosted.weblate.org/widget/outertune/multi-auto.svg" alt="Translation status" />

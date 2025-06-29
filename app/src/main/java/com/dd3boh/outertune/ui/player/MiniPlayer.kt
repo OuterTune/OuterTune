@@ -13,22 +13,28 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.OndemandVideo
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Replay
@@ -44,9 +50,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -63,8 +71,8 @@ import com.dd3boh.outertune.constants.MiniPlayerHeight
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.MediaMetadata
-import com.dd3boh.outertune.ui.utils.imageCache
 import com.dd3boh.outertune.ui.component.AsyncImageLocal
+import com.dd3boh.outertune.ui.utils.imageCache
 
 @Composable
 fun MiniPlayer(
@@ -83,7 +91,6 @@ fun MiniPlayer(
         modifier = modifier
             .fillMaxWidth()
             .height(MiniPlayerHeight)
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
             .background(MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp))
     ) {
         LinearProgressIndicator(
@@ -97,6 +104,11 @@ fun MiniPlayer(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
+                .windowInsetsPadding(
+                    WindowInsets.systemBars
+                        .only(WindowInsetsSides.Horizontal)
+                        .add(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+                )
                 .fillMaxSize()
                 .padding(end = 6.dp),
         ) {
@@ -153,14 +165,19 @@ fun MiniMediaInfo(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
     ) {
-        Box(modifier = Modifier.padding(6.dp)) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .padding(6.dp)
+                .size(48.dp)
+        ) {
+            var isRectangularImage by remember { mutableStateOf(false) }
+
             if (mediaMetadata.isLocal) {
                 // local thumbnail arts
                 AsyncImageLocal(
                     image = { imageCache.getLocalThumbnail(mediaMetadata.localPath, true) },
                     contentDescription = null,
                     modifier = Modifier
-                        .size(48.dp)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .aspectRatio(ratio = 1f)
                 )
@@ -170,12 +187,42 @@ fun MiniMediaInfo(
                     model = mediaMetadata.thumbnailUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
+                    onSuccess = { success ->
+                        val width = success.result.drawable.intrinsicWidth
+                        val height = success.result.drawable.intrinsicHeight
+
+                        isRectangularImage = width.toFloat() / height != 1f
+                    },
                     modifier = Modifier
-                        .size(48.dp)
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                 )
             }
+
+            if (isRectangularImage) {
+                val radial = Brush.radialGradient(
+                    0.0f to Color.Black.copy(alpha = 0.5f),
+                    0.8f to Color.Black.copy(alpha = 0.05f),
+                    1.0f to Color.Transparent,
+                )
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size((maxHeight / 3) + 6.dp)
+                        .offset(x = -maxHeight / 25)
+                        .background(brush = radial, shape = CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.OndemandVideo,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.padding(3.dp)
+                    )
+                }
+            }
+
             androidx.compose.animation.AnimatedVisibility(
                 visible = error != null || isWaitingForNetwork,
                 enter = fadeIn(),
@@ -183,7 +230,6 @@ fun MiniMediaInfo(
             ) {
                 Box(
                     Modifier
-                        .size(48.dp)
                         .background(
                             color = Color.Black.copy(alpha = 0.6f),
                             shape = RoundedCornerShape(ThumbnailCornerRadius)

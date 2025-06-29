@@ -16,36 +16,46 @@
 
 package com.google.material.color.scheme;
 
+import com.google.material.color.dynamiccolor.ColorSpec.SpecVersion;
+import com.google.material.color.dynamiccolor.ColorSpecs;
 import com.google.material.color.dynamiccolor.DynamicScheme;
 import com.google.material.color.dynamiccolor.Variant;
 import com.google.material.color.hct.Hct;
-import com.google.material.color.palettes.TonalPalette;
-import com.google.material.color.utils.MathUtils;
 
-/**
- * A playful theme - the source color's hue does not appear in the theme.
- */
+/** A playful theme - the source color's hue does not appear in the theme. */
 public class SchemeExpressive extends DynamicScheme {
-    // NOMUTANTS--arbitrary increments/decrements, correctly, still passes tests.
-    private static final double[] HUES = {0, 21, 51, 121, 151, 191, 271, 321, 360};
-    private static final double[] SECONDARY_ROTATIONS = {45, 95, 45, 20, 45, 90, 45, 45, 45};
-    private static final double[] TERTIARY_ROTATIONS = {120, 120, 20, 45, 20, 15, 20, 120, 120};
 
-    public SchemeExpressive(Hct sourceColorHct, boolean isDark, double contrastLevel) {
-        super(
-                sourceColorHct,
-                Variant.EXPRESSIVE,
-                isDark,
-                contrastLevel,
-                TonalPalette.fromHueAndChroma(
-                        MathUtils.sanitizeDegreesDouble(sourceColorHct.getHue() + 240.0), 40.0),
-                TonalPalette.fromHueAndChroma(
-                        DynamicScheme.getRotatedHue(sourceColorHct, HUES, SECONDARY_ROTATIONS), 24.0),
-                TonalPalette.fromHueAndChroma(
-                        DynamicScheme.getRotatedHue(sourceColorHct, HUES, TERTIARY_ROTATIONS), 32.0),
-                TonalPalette.fromHueAndChroma(
-                        MathUtils.sanitizeDegreesDouble(sourceColorHct.getHue() + 15.0), 8.0),
-                TonalPalette.fromHueAndChroma(
-                        MathUtils.sanitizeDegreesDouble(sourceColorHct.getHue() + 15.0), 12.0));
-    }
+  public SchemeExpressive(Hct sourceColorHct, boolean isDark, double contrastLevel) {
+    this(sourceColorHct, isDark, contrastLevel, DEFAULT_SPEC_VERSION, DEFAULT_PLATFORM);
+  }
+
+  public SchemeExpressive(
+      Hct sourceColorHct,
+      boolean isDark,
+      double contrastLevel,
+      SpecVersion specVersion,
+      Platform platform) {
+    super(
+        sourceColorHct,
+        Variant.EXPRESSIVE,
+        isDark,
+        contrastLevel,
+        platform,
+        specVersion,
+        ColorSpecs.get(specVersion)
+            .getPrimaryPalette(Variant.EXPRESSIVE, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getSecondaryPalette(
+                Variant.EXPRESSIVE, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getTertiaryPalette(
+                Variant.EXPRESSIVE, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getNeutralPalette(Variant.EXPRESSIVE, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getNeutralVariantPalette(
+                Variant.EXPRESSIVE, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getErrorPalette(Variant.EXPRESSIVE, sourceColorHct, isDark, platform, contrastLevel));
+  }
 }

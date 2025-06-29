@@ -25,12 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.ui.menu.SelectionMediaMetadataMenu
 
 @Composable
 fun RowScope.SelectHeader(
+    navController: NavController,
     selectedItems: List<MediaMetadata>,
     totalItemCount: Int,
     onSelectAll: () -> Unit,
@@ -47,7 +49,9 @@ fun RowScope.SelectHeader(
     ) {
         Text(
             text = "${selectedItems.size}/${context.resources.getQuantityString(R.plurals.n_selected, totalItemCount, totalItemCount)}",
-            modifier = Modifier.weight(1f, false)
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .weight(1f, false)
         )
 
         // option menu
@@ -55,6 +59,7 @@ fun RowScope.SelectHeader(
             onClick = {
                 menuState.show {
                     SelectionMediaMetadataMenu(
+                        navController = navController,
                         selection = selectedItems,
                         onDismiss = menuState::dismiss,
                         clearAction = onDeselectAll,

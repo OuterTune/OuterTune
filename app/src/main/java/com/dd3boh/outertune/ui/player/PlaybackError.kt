@@ -28,10 +28,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.PlaybackException
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.DarkMode
 import com.dd3boh.outertune.constants.DarkModeKey
+import com.dd3boh.outertune.constants.PlayerBackgroundStyle
 import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
-import com.dd3boh.outertune.ui.screens.settings.DarkMode
-import com.dd3boh.outertune.ui.screens.settings.PlayerBackgroundStyle
 import com.dd3boh.outertune.utils.rememberEnumPreference
 
 @Composable

@@ -9,6 +9,7 @@
 package com.dd3boh.outertune.utils.scanners
 
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import com.dd3boh.outertune.db.entities.AlbumEntity
 import com.dd3boh.outertune.db.entities.ArtistEntity
 import com.dd3boh.outertune.db.entities.FormatEntity
@@ -17,12 +18,11 @@ import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.db.entities.SongEntity
 import com.dd3boh.outertune.models.SongTempData
 import com.dd3boh.outertune.ui.utils.ARTIST_SEPARATORS
-import com.dd3boh.outertune.ui.utils.DEBUG_SAVE_OUTPUT
-import com.dd3boh.outertune.ui.utils.EXTRACTOR_DEBUG
+import com.dd3boh.outertune.constants.DEBUG_SAVE_OUTPUT
+import com.dd3boh.outertune.constants.EXTRACTOR_DEBUG
 import com.dd3boh.outertune.ui.utils.EXTRACTOR_TAG
-import com.dd3boh.outertune.ui.utils.SCANNER_DEBUG
+import com.dd3boh.outertune.constants.SCANNER_DEBUG
 import com.kyant.taglib.TagLib
-import timber.log.Timber
 import java.io.File
 import java.lang.Integer.parseInt
 import java.time.Instant
@@ -36,20 +36,11 @@ class TagLibScanner : MetadataScanner {
     /**
      * Given a path to a file, extract necessary metadata.
      *
-     * @param path Full file path
-     */
-    override fun getAllMetadataFromPath(path: String): SongTempData {
-        throw NotImplementedError("TagLib extractor does not support direct paths. Please provide a file. This assumes the file exists.")
-    }
-
-    /**
-     * Given a path to a file, extract necessary metadata.
-     *
      * @param file Full file path
      */
     override fun getAllMetadataFromFile(file: File): SongTempData {
         if (EXTRACTOR_DEBUG)
-            Timber.tag(EXTRACTOR_TAG).d("Starting Full Extractor session on: ${file.path}")
+            Log.v(EXTRACTOR_TAG, "Starting Full Extractor session on: ${file.path}")
 
         ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
             val songId = SongEntity.generateSongId()
@@ -57,8 +48,7 @@ class TagLibScanner : MetadataScanner {
             var albumName: String? = null
             var year: Int? = null
             var date: LocalDateTime? = null
-            var codec: String? = null
-            var type: String? = null
+            var codec: String
             var bitrate: Int
             var sampleRate: Int
             var channels: Int
@@ -77,6 +67,7 @@ class TagLibScanner : MetadataScanner {
             channels = audioProperties.channels
             sampleRate = audioProperties.sampleRate
             bitrate = audioProperties.bitrate * 1000
+            codec = audioProperties.codec
 
 
             // Read metadata
@@ -104,7 +95,7 @@ class TagLibScanner : MetadataScanner {
                             }
                         }
 
-                        "ALBUM", "album" -> albumName == it
+                        "ALBUM", "album" -> albumName = it
                         "TITLE", "title" -> rawTitle = it
                         "GENRE", "genre" -> {
                             val splitGenres = it.split(ARTIST_SEPARATORS)
@@ -121,7 +112,6 @@ class TagLibScanner : MetadataScanner {
                                 }
                             } catch (e: Exception) {
                                 if (SCANNER_DEBUG) {
-                                    println("Could not parse date, trying to parse year...")
                                     e.printStackTrace()
                                 }
                                 try {
@@ -130,7 +120,6 @@ class TagLibScanner : MetadataScanner {
                                     }
                                 } catch (e: Exception) {
                                     if (SCANNER_DEBUG) {
-                                        println("Could not parse year")
                                         e.printStackTrace()
                                     }
                                 }
@@ -142,7 +131,7 @@ class TagLibScanner : MetadataScanner {
             }
 
             if (EXTRACTOR_DEBUG && DEBUG_SAVE_OUTPUT) {
-                Timber.tag(EXTRACTOR_TAG).d("Full output for: ${file.path} \n $allData")
+                Log.v(EXTRACTOR_TAG,"Full output for: ${file.path} \n $allData")
             }
 
 
@@ -158,15 +147,9 @@ class TagLibScanner : MetadataScanner {
 
             val duration: Long = (rawDuration / 1000).toLong()
 
-
             // should never be invalid if scanner even gets here fine...
             val dateModified = LocalDateTime.ofInstant(Instant.ofEpochMilli(file.lastModified()), ZoneOffset.UTC)
             val albumId = if (albumName != null) AlbumEntity.generateAlbumId() else null
-            val mime = if (type != null && codec != null) {
-                "${type?.trim()}/${codec?.trim()}"
-            } else {
-                "Unknown"
-            }
 
             /**
              * Parse the more complicated structures
@@ -177,7 +160,8 @@ class TagLibScanner : MetadataScanner {
                 id = albumId,
                 title = albumName,
                 songCount = 1,
-                duration = duration.toInt()
+                duration = duration.toInt(),
+                isLocal = true
             ) else null
 
 
@@ -191,7 +175,7 @@ class TagLibScanner : MetadataScanner {
                         id = songId,
                         title = title,
                         duration = duration.toInt(), // we use seconds for duration
-                        thumbnailUrl = file.path,
+                        thumbnailUrl = null,
                         albumId = albumId,
                         albumName = albumName,
                         year = year,
@@ -209,13 +193,13 @@ class TagLibScanner : MetadataScanner {
                 FormatEntity(
                     id = songId,
                     itag = -1,
-                    mimeType = "Not implemented", // mime,
-                    codecs = "Not implemented", //codec?.trim() ?: "Unknown",
+                    mimeType = "audio/$codec",
+                    codecs = codec,
                     bitrate = bitrate,
                     sampleRate = sampleRate,
                     contentLength = duration.toLong(),
                     loudnessDb = replayGain,
-                    playbackUrl = null
+                    playbackTrackingUrl = null
                 )
             )
         }

@@ -52,7 +52,6 @@ import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
-import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.playback.queues.YouTubeAlbumRadio
 import com.dd3boh.outertune.ui.component.DownloadGridMenu
 import com.dd3boh.outertune.ui.component.GridMenu
@@ -99,8 +98,9 @@ fun YouTubeAlbumMenu(
     LaunchedEffect(album) {
         val songs = album?.songs?.map { it.id } ?: return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
+            val remaining = songs.filterNot { downloads[it]?.state == Download.STATE_COMPLETED }
             downloadState =
-                if (songs.all { downloads[it]?.state == Download.STATE_COMPLETED })
+                if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s == it.key } }.isEmpty())
                     Download.STATE_COMPLETED
                 else if (songs.all {
                         downloads[it]?.state == Download.STATE_QUEUED
@@ -121,10 +121,12 @@ fun YouTubeAlbumMenu(
         isVisible = showChooseQueueDialog,
         onAdd = { queueName ->
             album?.songs?.let { song ->
-                queueBoard.addQueue(queueName, song.map { it.toMediaMetadata() }, playerConnection,
-                    forceInsert = true, delta = false)
+                playerConnection.service.queueBoard.addQueue(
+                    queueName, song.map { it.toMediaMetadata() },
+                    forceInsert = true, delta = false
+                )
             }
-            queueBoard.setCurrQueue(playerConnection)
+            playerConnection.service.queueBoard.setCurrQueue()
         },
         onDismiss = {
             showChooseQueueDialog = false
@@ -136,6 +138,7 @@ fun YouTubeAlbumMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = { playlist ->
             coroutineScope.launch(Dispatchers.IO) {

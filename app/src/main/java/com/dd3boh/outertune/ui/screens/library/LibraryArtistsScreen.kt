@@ -1,11 +1,15 @@
 package com.dd3boh.outertune.ui.screens.library
 
+import android.content.pm.PackageManager
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -18,18 +22,26 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -38,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
+import com.dd3boh.outertune.MainActivity
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ArtistFilter
 import com.dd3boh.outertune.constants.ArtistFilterKey
@@ -50,18 +63,19 @@ import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.GridThumbnailHeight
 import com.dd3boh.outertune.constants.LibraryViewType
 import com.dd3boh.outertune.constants.LibraryViewTypeKey
-import com.dd3boh.outertune.extensions.isSyncEnabled
+import com.dd3boh.outertune.constants.LocalLibraryEnableKey
 import com.dd3boh.outertune.ui.component.ChipsRow
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
 import com.dd3boh.outertune.ui.component.LibraryArtistGridItem
 import com.dd3boh.outertune.ui.component.LibraryArtistListItem
 import com.dd3boh.outertune.ui.component.LocalMenuState
 import com.dd3boh.outertune.ui.component.SortHeader
+import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.LibraryArtistsViewModel
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryArtistsScreen(
     navController: NavController,
@@ -74,6 +88,7 @@ fun LibraryArtistsScreen(
 
     var filter by rememberEnumPreference(ArtistFilterKey, ArtistFilter.LIKED)
     libraryFilterContent?.let { filter = ArtistFilter.LIKED }
+    val localLibEnable by rememberPreference(LocalLibraryEnableKey, defaultValue = true)
 
     var artistViewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
     val libraryViewType by rememberEnumPreference(LibraryViewTypeKey, LibraryViewType.GRID)
@@ -84,13 +99,14 @@ fun LibraryArtistsScreen(
 
     val artists by viewModel.allArtists.collectAsState()
     val isSyncingRemoteArtists by viewModel.isSyncingRemoteArtists.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     val lazyListState = rememberLazyListState()
     val lazyGridState = rememberLazyGridState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
 
-    LaunchedEffect(Unit) { if (context.isSyncEnabled()) viewModel.syncArtists() }
+    LaunchedEffect(Unit) { viewModel.syncArtists() }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -103,38 +119,65 @@ fun LibraryArtistsScreen(
     }
 
     val filterContent = @Composable {
-        Row {
-            ChipsRow(
-                chips = listOf(
-                    ArtistFilter.LIKED to stringResource(R.string.filter_liked),
-                    ArtistFilter.LIBRARY to stringResource(R.string.filter_library),
-                    ArtistFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
-                ),
-                currentValue = filter,
-                onValueUpdate = {
-                    filter = it
-                    if (context.isSyncEnabled()) {
-                        if (it == ArtistFilter.LIBRARY) viewModel.syncArtists()
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                isLoading = { filter -> filter == ArtistFilter.LIBRARY && isSyncingRemoteArtists }
-            )
-
-            IconButton(
-                onClick = {
-                    artistViewType = artistViewType.toggle()
-                },
-                modifier = Modifier.padding(end = 6.dp)
-            ) {
-                Icon(
-                    imageVector =
-                    when (artistViewType) {
-                        LibraryViewType.LIST -> Icons.AutoMirrored.Rounded.List
-                        LibraryViewType.GRID -> Icons.Rounded.GridView
+        var showStoragePerm by remember {
+            mutableStateOf(context.checkSelfPermission(MEDIA_PERMISSION_LEVEL) != PackageManager.PERMISSION_GRANTED)
+        }
+        Column {
+            if (localLibEnable && showStoragePerm) {
+                TextButton(
+                    onClick = {
+                        showStoragePerm =
+                            false // allow user to hide error when clicked. This also makes the code a lot nicer too...
+                        (context as MainActivity).permissionLauncher.launch(MEDIA_PERMISSION_LEVEL)
                     },
-                    contentDescription = null
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.error)
+                ) {
+                    Text(
+                        text = stringResource(R.string.missing_media_permission_warning),
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+            Row {
+                ChipsRow(
+                    chips = listOf(
+                        ArtistFilter.LIKED to stringResource(R.string.filter_liked),
+                        ArtistFilter.LIBRARY to stringResource(R.string.filter_library),
+                        ArtistFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
+                    ),
+                    currentValue = filter,
+                    onValueUpdate = {
+                        filter = it
+                        if ((it == ArtistFilter.LIBRARY || it == ArtistFilter.LIKED)
+                            && !isSyncingRemoteArtists
+                        ) viewModel.syncArtists()
+                    },
+                    modifier = Modifier.weight(1f),
+                    isLoading = {
+                        (it == ArtistFilter.LIBRARY || it == ArtistFilter.LIKED)
+                                && isSyncingRemoteArtists
+                    }
                 )
+
+                IconButton(
+                    onClick = {
+                        artistViewType = artistViewType.toggle()
+                    },
+                    modifier = Modifier.padding(end = 6.dp)
+                ) {
+                    Icon(
+                        imageVector =
+                            when (artistViewType) {
+                                LibraryViewType.LIST -> Icons.AutoMirrored.Rounded.List
+                                LibraryViewType.GRID -> Icons.Rounded.GridView
+                            },
+                        contentDescription = null
+                    )
+                }
             }
         }
     }
@@ -172,7 +215,15 @@ fun LibraryArtistsScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isSyncingRemoteArtists,
+                onRefresh = {
+                    viewModel.syncArtists(true)
+                }
+            ),
     ) {
         when (viewType) {
             LibraryViewType.LIST ->
@@ -269,5 +320,13 @@ fun LibraryArtistsScreen(
                     }
                 }
         }
+
+        Indicator(
+            isRefreshing = isSyncingRemoteArtists,
+            state = pullRefreshState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+        )
     }
 }

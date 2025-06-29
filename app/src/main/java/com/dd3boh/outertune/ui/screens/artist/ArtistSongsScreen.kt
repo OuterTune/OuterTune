@@ -47,8 +47,10 @@ import com.dd3boh.outertune.constants.ArtistSongSortDescendingKey
 import com.dd3boh.outertune.constants.ArtistSongSortType
 import com.dd3boh.outertune.constants.ArtistSongSortTypeKey
 import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
+import com.dd3boh.outertune.ui.component.FloatingFooter
 import com.dd3boh.outertune.ui.component.HideOnScrollFAB
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.LocalMenuState
@@ -101,10 +103,12 @@ fun ArtistSongsScreen(
 
     Box(
         modifier = Modifier.fillMaxSize()
+            .padding(bottom = 32.dp)
     ) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            modifier = Modifier.padding(bottom = if (inSelectMode) 64.dp else 0.dp)
         ) {
             item(
                 key = "header",
@@ -114,35 +118,19 @@ fun ArtistSongsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    if (inSelectMode) {
-                        SelectHeader(
-                            selectedItems = selection.mapNotNull { songId ->
-                                songs.find { it.id == songId }
-                            }.map { it.toMediaMetadata() },
-                            totalItemCount = songs.size,
-                            onSelectAll = {
-                                selection.clear()
-                                selection.addAll(songs.map { it.id })
-                            },
-                            onDeselectAll = { selection.clear() },
-                            menuState = menuState,
-                            onDismiss = onExitSelectionMode
-                        )
-                    } else {
-                        SortHeader(
-                            sortType = sortType,
-                            sortDescending = sortDescending,
-                            onSortTypeChange = onSortTypeChange,
-                            onSortDescendingChange = onSortDescendingChange,
-                            sortTypeText = { sortType ->
-                                when (sortType) {
-                                    ArtistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                    ArtistSongSortType.NAME -> R.string.sort_by_name
-                                    ArtistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                }
+                    SortHeader(
+                        sortType = sortType,
+                        sortDescending = sortDescending,
+                        onSortTypeChange = onSortTypeChange,
+                        onSortDescendingChange = onSortDescendingChange,
+                        sortTypeText = { sortType ->
+                            when (sortType) {
+                                ArtistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                ArtistSongSortType.NAME -> R.string.sort_by_name
+                                ArtistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
                             }
-                        )
-                    }
+                        }
+                    )
 
                     Spacer(Modifier.weight(1f))
 
@@ -189,6 +177,7 @@ fun ArtistSongsScreen(
                     inSelectMode = inSelectMode,
                     isSelected = selection.contains(song.id),
                     navController = navController,
+                    snackbarHostState = snackbarHostState,
                     modifier = Modifier
                         .fillMaxWidth()
                         .animateItem()
@@ -209,6 +198,7 @@ fun ArtistSongsScreen(
                     )
                 }
             },
+            windowInsets = TopBarInsets,
             scrollBehavior = scrollBehavior
         )
 
@@ -227,6 +217,22 @@ fun ArtistSongsScreen(
             }
         )
 
+        FloatingFooter(inSelectMode) {
+            SelectHeader(
+                navController = navController,
+                selectedItems = selection.mapNotNull { songId ->
+                    songs.find { it.id == songId }
+                }.map { it.toMediaMetadata() },
+                totalItemCount = songs.size,
+                onSelectAll = {
+                    selection.clear()
+                    selection.addAll(songs.map { it.id })
+                },
+                onDeselectAll = { selection.clear() },
+                menuState = menuState,
+                onDismiss = onExitSelectionMode
+            )
+        }
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier

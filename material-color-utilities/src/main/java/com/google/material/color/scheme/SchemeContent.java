@@ -16,14 +16,11 @@
 
 package com.google.material.color.scheme;
 
-import static java.lang.Math.max;
-
-import com.google.material.color.dislike.DislikeAnalyzer;
+import com.google.material.color.dynamiccolor.ColorSpec.SpecVersion;
+import com.google.material.color.dynamiccolor.ColorSpecs;
 import com.google.material.color.dynamiccolor.DynamicScheme;
 import com.google.material.color.dynamiccolor.Variant;
 import com.google.material.color.hct.Hct;
-import com.google.material.color.palettes.TonalPalette;
-import com.google.material.color.temperature.TemperatureCache;
 
 /**
  * A scheme that places the source color in Scheme.primaryContainer.
@@ -38,23 +35,37 @@ import com.google.material.color.temperature.TemperatureCache;
  * appearance.
  */
 public class SchemeContent extends DynamicScheme {
-    public SchemeContent(Hct sourceColorHct, boolean isDark, double contrastLevel) {
-        super(
-                sourceColorHct,
-                Variant.CONTENT,
-                isDark,
-                contrastLevel,
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), sourceColorHct.getChroma()),
-                TonalPalette.fromHueAndChroma(
-                        sourceColorHct.getHue(),
-                        max(sourceColorHct.getChroma() - 32.0, sourceColorHct.getChroma() * 0.5)),
-                TonalPalette.fromHct(
-                        DislikeAnalyzer.fixIfDisliked(
-                                new TemperatureCache(sourceColorHct)
-                                        .getAnalogousColors(/* count= */ 3, /* divisions= */ 6)
-                                        .get(2))),
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), sourceColorHct.getChroma() / 8.0),
-                TonalPalette.fromHueAndChroma(
-                        sourceColorHct.getHue(), (sourceColorHct.getChroma() / 8.0) + 4.0));
-    }
+
+  public SchemeContent(Hct sourceColorHct, boolean isDark, double contrastLevel) {
+    this(sourceColorHct, isDark, contrastLevel, DEFAULT_SPEC_VERSION, DEFAULT_PLATFORM);
+  }
+
+  public SchemeContent(
+      Hct sourceColorHct,
+      boolean isDark,
+      double contrastLevel,
+      SpecVersion specVersion,
+      Platform platform) {
+    super(
+        sourceColorHct,
+        Variant.CONTENT,
+        isDark,
+        contrastLevel,
+        platform,
+        specVersion,
+        ColorSpecs.get(specVersion)
+            .getPrimaryPalette(Variant.CONTENT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getSecondaryPalette(Variant.CONTENT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getTertiaryPalette(Variant.CONTENT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getNeutralPalette(Variant.CONTENT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getNeutralVariantPalette(
+                Variant.CONTENT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getErrorPalette(Variant.CONTENT, sourceColorHct, isDark, platform, contrastLevel));
+  }
 }
+

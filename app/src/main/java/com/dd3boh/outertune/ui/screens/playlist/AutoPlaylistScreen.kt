@@ -42,6 +42,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +54,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -81,9 +85,9 @@ import com.dd3boh.outertune.constants.SongSortDescendingKey
 import com.dd3boh.outertune.constants.SongSortType
 import com.dd3boh.outertune.constants.SongSortTypeKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.Song
-import com.dd3boh.outertune.extensions.isSyncEnabled
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
@@ -91,17 +95,18 @@ import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.AutoResizeText
 import com.dd3boh.outertune.ui.component.DefaultDialog
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
+import com.dd3boh.outertune.ui.component.FloatingFooter
 import com.dd3boh.outertune.ui.component.FontSizeRange
 import com.dd3boh.outertune.ui.component.LocalMenuState
 import com.dd3boh.outertune.ui.component.SelectHeader
 import com.dd3boh.outertune.ui.component.SongListItem
-import com.dd3boh.outertune.ui.component.SortHeader
 import com.dd3boh.outertune.ui.utils.getNSongsString
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.AutoPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 enum class PlaylistType {
@@ -116,6 +121,7 @@ fun AutoPlaylistScreen(
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val syncUtils = LocalSyncUtils.current
@@ -162,6 +168,7 @@ fun AutoPlaylistScreen(
     )
 
     val isSyncingRemoteLikedSongs by syncUtils.isSyncingRemoteLikedSongs.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     val thumbnail by viewModel.thumbnail.collectAsState()
     val mutableSongs = remember { mutableStateListOf<Song>() }
@@ -188,8 +195,9 @@ fun AutoPlaylistScreen(
         }
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
+            val remaining = songs.filterNot { downloads[it.id]?.state == Download.STATE_COMPLETED }
             downloadState =
-                if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED })
+                if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s.id == it.key } }.isEmpty())
                     Download.STATE_COMPLETED
                 else if (songs.all {
                         downloads[it.song.id]?.state == Download.STATE_QUEUED
@@ -204,7 +212,7 @@ fun AutoPlaylistScreen(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            if (playlistType == PlaylistType.LIKE && context.isSyncEnabled()) syncUtils.syncRemoteLikedSongs()
+            if (playlistType == PlaylistType.LIKE) syncUtils.syncRemoteLikedSongs()
         }
     }
 
@@ -253,11 +261,22 @@ fun AutoPlaylistScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isSyncingRemoteLikedSongs,
+                onRefresh = {
+                    coroutineScope.launch {
+                        syncUtils.syncRemoteLikedSongs(true)
+                    }
+                }
+            ),
     ) {
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            modifier = Modifier.padding(bottom = if (inSelectMode) 64.dp else 0.dp)
         ) {
             item {
                 Column(
@@ -459,47 +478,11 @@ fun AutoPlaylistScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
-                        if (inSelectMode) {
-                            SelectHeader(
-                                selectedItems = selection.mapNotNull { id ->
-                                    songs.find { it.song.id == id }
-                                }.map { it.toMediaMetadata() },
-                                totalItemCount = songs.size,
-                                onSelectAll = {
-                                    selection.clear()
-                                    selection.addAll(songs.map { it.song.id })
-                                },
-                                onDeselectAll = { selection.clear() },
-                                menuState = menuState,
-                                onDismiss = onExitSelectionMode
-                            )
-                        } else {
-                            SortHeader(
-                                sortType = sortType,
-                                sortDescending = sortDescending,
-                                onSortTypeChange = onSortTypeChange,
-                                onSortDescendingChange = onSortDescendingChange,
-                                sortTypeText = { sortType ->
-                                    when (sortType) {
-                                        SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        SongSortType.MODIFIED_DATE -> R.string.sort_by_date_modified
-                                        SongSortType.RELEASE_DATE -> R.string.sort_by_date_released
-                                        SongSortType.NAME -> R.string.sort_by_name
-                                        SongSortType.ARTIST -> R.string.sort_by_artist
-                                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                        SongSortType.PLAY_COUNT -> R.string.sort_by_play_count
-                                    }
-                                }
-                            )
-
-                            Spacer(Modifier.weight(1f))
-
-                            Text(
-                                text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        }
+                        Text(
+                            text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                     }
                 }
             } else {
@@ -542,6 +525,7 @@ fun AutoPlaylistScreen(
                     inSelectMode = inSelectMode,
                     isSelected = selection.contains(song.id),
                     navController = navController,
+                    snackbarHostState = snackbarHostState,
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.background),
@@ -561,9 +545,33 @@ fun AutoPlaylistScreen(
                     )
                 }
             },
+            windowInsets = TopBarInsets,
             scrollBehavior = scrollBehavior
         )
 
+        Indicator(
+            isRefreshing = isSyncingRemoteLikedSongs,
+            state = pullRefreshState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+        )
+        FloatingFooter(inSelectMode) {
+            SelectHeader(
+                navController = navController,
+                selectedItems = selection.mapNotNull { id ->
+                    songs.find { it.song.id == id }
+                }.map { it.toMediaMetadata() },
+                totalItemCount = songs.size,
+                onSelectAll = {
+                    selection.clear()
+                    selection.addAll(songs.map { it.song.id })
+                },
+                onDeselectAll = { selection.clear() },
+                menuState = menuState,
+                onDismiss = onExitSelectionMode
+            )
+        }
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier

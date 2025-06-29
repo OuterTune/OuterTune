@@ -21,14 +21,6 @@ interface MetadataScanner {
     /**
      * Given a path to a file, extract necessary metadata.
      *
-     * @param path Full file path
-     */
-    fun getAllMetadataFromPath(path: String): SongTempData
-
-
-    /**
-     * Given a path to a file, extract necessary metadata.
-     *
      * @param file Full file path
      */
     fun getAllMetadataFromFile(file: File): SongTempData

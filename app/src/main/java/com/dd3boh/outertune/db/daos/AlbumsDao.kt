@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
-import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
@@ -70,9 +69,8 @@ interface AlbumsDao : ArtistsDao {
     fun albumSongs(albumId: String): Flow<List<Song>>
 
     @Transaction
-    @RewriteQueriesToDropUnusedColumns
     @Query("""
-        SELECT *, count(song.dateDownload) downloadCount
+        SELECT album.*, count(song.dateDownload) downloadCount
         FROM album
             JOIN song ON album.id = song.albumId
             JOIN event ON song.id = event.songId
@@ -134,6 +132,9 @@ interface AlbumsDao : ArtistsDao {
 
     fun albumsInLibraryAsc() = albums(AlbumFilter.LIBRARY, AlbumSortType.CREATE_DATE, false)
     fun albumsLikedAsc() = albums(AlbumFilter.LIKED, AlbumSortType.CREATE_DATE, false)
+
+    @Query("SELECT * FROM album WHERE title = :name")
+    fun albumsByName(name: String): AlbumEntity?
 
     @Transaction
     @Query(
@@ -236,6 +237,10 @@ interface AlbumsDao : ArtistsDao {
     @Transaction
     @Query("DELETE FROM song_artist_map WHERE songId = :songID")
     fun unlinkSongArtists(songID: String)
+
+    @Transaction
+    @Query("DELETE FROM song_album_map WHERE songId = :songID")
+    fun unlinkSongAlbums(songID: String)
     // endregion
 
     // region Deletes

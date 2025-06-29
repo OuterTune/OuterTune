@@ -13,6 +13,7 @@ import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SectionListRenderer
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.YTItem
+import com.zionhuang.innertube.models.getItems
 import com.zionhuang.innertube.models.oddElements
 
 data class ArtistSection(
@@ -38,8 +39,8 @@ data class ArtistPage(
         private fun fromMusicShelfRenderer(renderer: MusicShelfRenderer): ArtistSection? {
             return ArtistSection(
                 title = renderer.title?.runs?.firstOrNull()?.text ?: "",
-                items = renderer.contents?.mapNotNull {
-                    fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer)
+                items = renderer.contents?.getItems()?.mapNotNull {
+                    fromMusicResponsiveListItemRenderer(it)
                 }?.ifEmpty { null } ?: return null,
                 moreEndpoint = renderer.title?.runs?.firstOrNull()?.navigationEndpoint?.browseEndpoint
             )
@@ -153,8 +154,8 @@ data class ArtistPage(
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         channelId = renderer.menu?.menuRenderer?.items?.find {
                             it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType == "SUBSCRIBE"
-                        }?.toggleMenuServiceItemRenderer?.defaultServiceEndpoint?.subscribeEndpoint?.channelIds?.firstOrNull() ?: return null,
-                        shuffleEndpoint = renderer.menu.menuRenderer.items.find {
+                        }?.toggleMenuServiceItemRenderer?.defaultServiceEndpoint?.subscribeEndpoint?.channelIds?.firstOrNull(),
+                        shuffleEndpoint = renderer.menu?.menuRenderer?.items?.find {
                             it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
                         }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
                         radioEndpoint = renderer.menu.menuRenderer.items.find {

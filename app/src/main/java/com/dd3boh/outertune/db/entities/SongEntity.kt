@@ -43,8 +43,6 @@ data class SongEntity(
     val localPath: String?,
     val dateDownload: LocalDateTime? = null, // doubles as "isDownloaded"
 ) {
-    val isLocalSong: Boolean
-        get() = id.startsWith("LA")
 
     fun localToggleLike() = copy(
         liked = !liked,
@@ -99,6 +97,6 @@ data class SongEntity(
     fun getDateModifiedLong(): Long? = dateModified?.toEpochSecond(ZoneOffset.UTC)
 
     companion object {
-        fun generateSongId() = "LA" + RandomStringUtils.random(8, true, false)
+        fun generateSongId() = "LS" + RandomStringUtils.insecure().next(8, true, false)
     }
 }

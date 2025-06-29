@@ -28,8 +28,6 @@ data class AlbumEntity(
     @ColumnInfo(name = "isLocal", defaultValue = false.toString())
     val isLocal: Boolean = false
 ) {
-    val isLocalAlbum: Boolean
-        get() = id.startsWith("LA")
 
     fun localToggleLike() = copy(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now()
@@ -44,6 +42,6 @@ data class AlbumEntity(
     }
 
     companion object {
-        fun generateAlbumId() = "LA" + RandomStringUtils.random(8, true, false)
+        fun generateAlbumId() = "LB" + RandomStringUtils.insecure().next(8, true, false)
     }
 }

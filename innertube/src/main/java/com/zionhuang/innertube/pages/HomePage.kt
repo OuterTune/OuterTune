@@ -7,13 +7,32 @@ import com.zionhuang.innertube.models.BrowseEndpoint
 import com.zionhuang.innertube.models.MusicCarouselShelfRenderer
 import com.zionhuang.innertube.models.MusicTwoRowItemRenderer
 import com.zionhuang.innertube.models.PlaylistItem
+import com.zionhuang.innertube.models.SectionListRenderer
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.YTItem
 import com.zionhuang.innertube.models.oddElements
 
 data class HomePage(
+    val chips: List<Chip>?,
     val sections: List<Section>,
+    val continuation: String? = null,
 ) {
+    data class Chip(
+        val title: String,
+        val endpoint: BrowseEndpoint?,
+        val deselectEndPoint: BrowseEndpoint?,
+    ) {
+        companion object {
+            fun fromChipCloudChipRenderer(renderer: SectionListRenderer.Header.ChipCloudRenderer.Chip): Chip? {
+                return Chip(
+                    title = renderer.chipCloudChipRenderer.text?.runs?.firstOrNull()?.text ?: return null,
+                    endpoint = renderer.chipCloudChipRenderer.navigationEndpoint.browseEndpoint,
+                    deselectEndPoint = renderer.chipCloudChipRenderer.onDeselectedCommand?.browseEndpoint,
+                )
+            }
+        }
+    }
+
     data class Section(
         val title: String,
         val label: String?,
@@ -100,7 +119,7 @@ data class HomePage(
                             }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
                             radioEndpoint = renderer.menu.menuRenderer.items.find {
                                 it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null
+                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
                         )
                     }
 

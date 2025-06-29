@@ -6,6 +6,7 @@ import com.zionhuang.innertube.models.Artist
 import com.zionhuang.innertube.models.MusicResponsiveHeaderRenderer
 import com.zionhuang.innertube.models.MusicResponsiveListItemRenderer
 import com.zionhuang.innertube.models.SongItem
+import com.zionhuang.innertube.models.getItems
 import com.zionhuang.innertube.models.oddElements
 import com.zionhuang.innertube.models.response.BrowseResponse
 import com.zionhuang.innertube.models.splitBySeparator
@@ -72,8 +73,8 @@ data class AlbumPage(
             val shelfRenderer = tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer ?:
                 response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer
 
-            val songs = shelfRenderer?.contents?.mapNotNull {
-                getSong(it.musicResponsiveListItemRenderer, album)
+            val songs = shelfRenderer?.contents?.getItems()?.mapNotNull {
+                getSong(it, album)
             }
             return songs ?: emptyList()
         }

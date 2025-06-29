@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.surfaceColorAtElevation
@@ -52,6 +54,7 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.BuildConfig
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.utils.backToMain
 
@@ -127,17 +130,46 @@ fun AboutScreen(
 
         Spacer(Modifier.height(4.dp))
 
-        Text(
-            text = "By Davide Garberi & Michael Zh.",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "By ",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            TextButton(
+                onClick = { uriHandler.openUri("https://github.com/DD3Boh") },
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text(
+                    text = "Davide Garberi ",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            Text(
+                text = "&",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            TextButton(
+                onClick = { uriHandler.openUri("https://github.com/mikooomich")},
+                contentPadding = PaddingValues( 0.dp)
+            ) {
+                Text(
+                    text = " Michael Zh.",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
 
         Spacer(Modifier.height(8.dp))
 
         Row {
             IconButton(
-                onClick = { uriHandler.openUri("https://github.com/DD3Boh/OuterTune") }
+                onClick = { uriHandler.openUri("https://github.com/OuterTune/OuterTune") }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.github),
@@ -165,6 +197,21 @@ fun AboutScreen(
             color = MaterialTheme.colorScheme.secondary
         )
 
+        Spacer(Modifier.height(64.dp))
+/*
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.attribution_title)) },
+            onClick = {
+                navController.navigate("settings/about/attribution")
+            }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.oss_licenses_title)) },
+            onClick = {
+                navController.navigate("settings/about/oss_licenses")
+            }
+        )
+*/
         // debug info
         if (showDebugInfo) {
             Spacer(Modifier.height(400.dp))
@@ -226,6 +273,7 @@ fun AboutScreen(
                 )
             }
         },
+        windowInsets = TopBarInsets,
         scrollBehavior = scrollBehavior
     )
 }

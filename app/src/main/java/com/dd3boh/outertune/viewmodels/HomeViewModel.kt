@@ -3,13 +3,12 @@ package com.dd3boh.outertune.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dd3boh.outertune.constants.PlaylistFilter
+import com.dd3boh.outertune.constants.PlaylistSortType
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.Album
-import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.db.entities.LocalItem
-import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.db.entities.Song
-import com.dd3boh.outertune.extensions.isSyncEnabled
 import com.dd3boh.outertune.models.SimilarRecommendation
 import com.dd3boh.outertune.utils.SyncUtils
 import com.dd3boh.outertune.utils.reportException
@@ -24,9 +23,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -45,9 +44,13 @@ class HomeViewModel @Inject constructor(
     val similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(null)
     val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
     val homePage = MutableStateFlow<HomePage?>(null)
+    val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
+    private val previousHomePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
-    val recentActivity = MutableStateFlow<List<YTItem>?>(null)
-    val recentPlaylistsDb = MutableStateFlow<List<Playlist>?>(null)
+    val playlists = database.playlists(PlaylistFilter.LIBRARY, PlaylistSortType.NAME, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    val recentActivity = database.recentActivity()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
     val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
@@ -129,45 +132,58 @@ class HomeViewModel @Inject constructor(
         }
 
         YouTube.explore().onSuccess { page ->
-            val artists: Set<String>
-            val favouriteArtists: Set<String>
-            database.artistsInLibraryAsc().first().let { list ->
-                artists = list.map(Artist::id).toHashSet()
-                favouriteArtists = list
-                    .filter { it.artist.bookmarkedAt != null }
-                    .map { it.id }
-                    .toHashSet()
-            }
-            explorePage.value = page.copy(
-                newReleaseAlbums = page.newReleaseAlbums
-                    .sortedBy { album ->
-                        if (album.artists.orEmpty().any { it.id in favouriteArtists }) 0
-                        else if (album.artists.orEmpty().any { it.id in artists }) 1
-                        else 2
-                    }
-            )
+            explorePage.value = page
         }.onFailure {
             reportException(it)
         }
 
-        YouTube.libraryRecentActivity().onSuccess { page ->
-            recentActivity.value = page.items.take(9).drop(1)
-
-            recentActivity.value!!.filterIsInstance<PlaylistItem>().forEach { item ->
-                val playlist = database.playlistByBrowseId(item.id).firstOrNull()
-                if (playlist != null) {
-                    recentPlaylistsDb.update { list ->
-                        list?.plusElement(playlist) ?: listOf(playlist)
-                    }
-                }
-            }
-        }
+        syncUtils.syncRecentActivity()
 
         allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
-                homePage.value?.sections?.flatMap { it.items }.orEmpty() +
-                explorePage.value?.newReleaseAlbums.orEmpty()
+                homePage.value?.sections?.flatMap { it.items }.orEmpty()
 
         isLoading.value = false
+    }
+    
+    private val _isLoadingMore = MutableStateFlow(false)
+    fun loadMoreYouTubeItems(continuation: String?) {
+        if (continuation == null || _isLoadingMore.value) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _isLoadingMore.value = true
+            val nextSections = YouTube.home(continuation).getOrNull() ?: run {
+                _isLoadingMore.value = false
+                return@launch
+            }
+            homePage.value = nextSections.copy(
+                chips = homePage.value?.chips,
+                sections = homePage.value?.sections.orEmpty() + nextSections.sections
+            )
+            _isLoadingMore.value = false
+        }
+    }
+
+    fun toggleChip(chip: HomePage.Chip?) {
+        if (chip == null || chip == selectedChip.value && previousHomePage.value != null) {
+            homePage.value = previousHomePage.value
+            previousHomePage.value = null
+            selectedChip.value = null
+            return
+        }
+
+        if (selectedChip.value == null) {
+            // store the actual homepage for deselecting chips
+            previousHomePage.value = homePage.value
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            val nextSections = YouTube.home(params = chip?.endpoint?.params).getOrNull() ?: return@launch
+            homePage.value = nextSections.copy(
+                chips = homePage.value?.chips,
+                sections = nextSections.sections,
+                continuation = nextSections.continuation
+            )
+            selectedChip.value = chip
+        }
     }
 
     fun refresh() {
@@ -182,9 +198,7 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             load()
-            if (context.isSyncEnabled()) { // defaults to true
-                viewModelScope.launch(Dispatchers.IO) { syncUtils.syncAll() }
-            }
+            viewModelScope.launch(Dispatchers.IO) { syncUtils.tryAutoSync() }
         }
     }
 }

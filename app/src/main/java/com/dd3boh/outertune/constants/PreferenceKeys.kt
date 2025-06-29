@@ -13,14 +13,14 @@ val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
-val NewInterfaceKey = booleanPreferencesKey("newInterface")
 val ShowLikedAndDownloadedPlaylist = booleanPreferencesKey("showLikedAndDownloadedPlaylist")
 val SwipeToQueueKey = booleanPreferencesKey("swipeToQueue")
 val FlatSubfoldersKey = booleanPreferencesKey("flatSubfolders")
+val TabletUiKey = booleanPreferencesKey("tabletUi")
 
 val EnabledTabsKey = stringPreferencesKey("enabledTabs")
+val EnabledFiltersKey = stringPreferencesKey("enabledFilters")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
-val DefaultOpenTabNewKey = stringPreferencesKey("defaultOpenTabNew")
 val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
 
 /**
@@ -28,6 +28,9 @@ val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
  */
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val YtmSyncKey = booleanPreferencesKey("ytmSync")
+val YtmSyncContentKey = stringPreferencesKey("ytmSyncContent")
+val YtmSyncModeKey = stringPreferencesKey("ytmSyncMode")
+val YtmSyncConflictKey = stringPreferencesKey("ytmSyncConflict")
 val LikedAutoDownloadKey = stringPreferencesKey("likedAutoDownloadKey")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
@@ -35,14 +38,20 @@ val ProxyEnabledKey = booleanPreferencesKey("proxyEnabled")
 val ProxyUrlKey = stringPreferencesKey("proxyUrl")
 val ProxyTypeKey = stringPreferencesKey("proxyType")
 
+// sync time tracks
+val LastFullSyncKey = longPreferencesKey("lastFullSync")
+val LastLikeSongSyncKey = longPreferencesKey("lastLikeSongSync")
+val LastLibSongSyncKey = longPreferencesKey("lastLibSongSync")
+val LastAlbumSyncKey = longPreferencesKey("lastAlbumSync")
+val LastArtistSyncKey = longPreferencesKey("lastArtistSync")
+val LastPlaylistSyncKey = longPreferencesKey("lastPlaylistSync")
+val LastRecentActivitySyncKey = longPreferencesKey("lastRecentActivitySync")
+
 
 /**
  * Player & audio
  */
 val AudioQualityKey = stringPreferencesKey("audioQuality")
-enum class AudioQuality {
-    AUTO, HIGH, LOW
-}
 val AudioOffload = booleanPreferencesKey("enableOffload")
 
 val PersistentQueueKey = booleanPreferencesKey("persistentQueue")
@@ -69,12 +78,17 @@ val MultilineLrcKey = booleanPreferencesKey("multilineLrc")
 val LyricTrimKey = booleanPreferencesKey("lyricTrim")
 val LyricSourcePrefKey = booleanPreferencesKey("preferLocalLyrics")
 val LyricFontSizeKey = intPreferencesKey("lyricFontSize")
+val LyricKaraokeEnable = booleanPreferencesKey("lyricKaraokeEnable")
+val LyricUpdateSpeed = stringPreferencesKey("lyricUpdateSpeed")
 
 
 /**
  * Storage
  */
+val DownloadExtraPathKey = stringPreferencesKey("dlExtraPath") // previously "downloadExtraPath"
+val DownloadPathKey = stringPreferencesKey("dlPath") // previously "downloadPath"
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
+val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
 
 
 /**
@@ -103,31 +117,16 @@ val ScannerImplKey = stringPreferencesKey("scannerImpl")
 val ScannerStrictExtKey = booleanPreferencesKey("scannerStrictExt")
 val LookupYtmArtistsKey = booleanPreferencesKey("lookupYtmArtists")
 
-val ScanPathsKey = stringPreferencesKey("scanPaths")
-val ExcludedScanPathsKey = stringPreferencesKey("excludedScanPaths")
+val ScanPathsKey = stringPreferencesKey("inclScanPaths") // previously "scanPaths"
+val ExcludedScanPathsKey = stringPreferencesKey("exclScanPaths") // previously "excludedScanPaths"
 val LastLocalScanKey = longPreferencesKey("lastLocalScan")
-
-
-enum class ScannerImpl {
-    TAGLIB,
-    FFMPEG_EXT,
-}
-
-/**
- * Specify how strict the metadata scanner should be
- */
-enum class ScannerMatchCriteria {
-    LEVEL_1, // Title only
-    LEVEL_2, // Title and artists
-    LEVEL_3, // Title, artists, albums
-}
-
 
 /**
  * Experimental settings
  */
 val DevSettingsKey = booleanPreferencesKey("devSettings")
-val FirstSetupPassed = booleanPreferencesKey("firstSetupPassed")
+val OobeStatusKey = intPreferencesKey("oobeStatus")
+val SwipeToSkip = booleanPreferencesKey("swipeToSkip")
 
 
 /**
@@ -160,72 +159,7 @@ val LibraryViewTypeKey = stringPreferencesKey("libraryViewType")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 
-enum class LibraryViewType {
-    LIST, GRID;
-
-    fun toggle() = when (this) {
-        LIST -> GRID
-        GRID -> LIST
-    }
-}
-
-enum class SongSortType {
-    CREATE_DATE, MODIFIED_DATE, RELEASE_DATE, NAME, ARTIST, PLAY_TIME, PLAY_COUNT
-}
-
-enum class PlaylistSongSortType {
-    CUSTOM, CREATE_DATE, NAME, ARTIST, PLAY_TIME
-}
-
-enum class ArtistSortType {
-    CREATE_DATE, NAME, SONG_COUNT, PLAY_TIME
-}
-
-enum class ArtistSongSortType {
-    CREATE_DATE, NAME, PLAY_TIME
-}
-
-enum class AlbumSortType {
-    CREATE_DATE, NAME, ARTIST, YEAR, SONG_COUNT, LENGTH, PLAY_TIME
-}
-
-enum class PlaylistSortType {
-    CREATE_DATE, NAME, SONG_COUNT
-}
-
-enum class LibrarySortType {
-    CREATE_DATE, NAME
-}
-
-enum class SongFilter {
-    LIBRARY, LIKED, DOWNLOADED
-}
-
-enum class ArtistFilter {
-    LIBRARY, LIKED, DOWNLOADED
-}
-
-enum class AlbumFilter {
-    LIBRARY, LIKED, DOWNLOADED
-}
-
-enum class PlaylistFilter {
-    LIBRARY, DOWNLOADED
-}
-
-enum class LibraryFilter {
-    ALL, ALBUMS, ARTISTS, PLAYLISTS, SONGS, FOLDERS
-}
-
 val SearchSourceKey = stringPreferencesKey("searchSource")
-
-enum class SearchSource {
-    LOCAL, ONLINE
-}
-
-enum class LikedAutodownloadMode {
-    OFF, ON, WIFI_ONLY
-}
 
 val VisitorDataKey = stringPreferencesKey("visitorData")
 val DataSyncIdKey = stringPreferencesKey("dataSyncId")
@@ -234,6 +168,13 @@ val AccountNameKey = stringPreferencesKey("accountName")
 val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 
+
+/**
+ * Misc
+ */
+val LastUpdateCheckKey = longPreferencesKey("lastUpdateCheck")
+val LastVersionKey = stringPreferencesKey("lastVersion")
+val UpdateAvailableKey = booleanPreferencesKey("updateAvailable")
 
 val LanguageCodeToName = mapOf(
     "af" to "Afrikaans",

@@ -76,6 +76,7 @@ import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AppBarHeight
+import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.db.entities.ArtistEntity
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.extensions.togglePlayPause
@@ -140,7 +141,7 @@ fun ArtistScreen(
 
     LaunchedEffect(libraryArtist) {
         // always show local page for local artists. Show local page remote artist when offline
-        showLocal = libraryArtist?.artist?.isLocalArtist == true
+        showLocal = libraryArtist?.artist?.isLocal == true
     }
 
     val artistHead = @Composable {
@@ -309,6 +310,7 @@ fun ArtistScreen(
                                 inSelectMode = false,
                                 isSelected = false,
                                 navController = navController,
+                                snackbarHostState = snackbarHostState,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .animateItem()
@@ -498,6 +500,7 @@ fun ArtistScreen(
                                                             )
 
                                                             is PlaylistItem -> YouTubePlaylistMenu(
+                                                                navController = navController,
                                                                 playlist = item,
                                                                 coroutineScope = coroutineScope,
                                                                 onDismiss = menuState::dismiss
@@ -517,7 +520,7 @@ fun ArtistScreen(
         }
 
         HideOnScrollFAB(
-            visible = librarySongs.isNotEmpty() && libraryArtist?.artist?.isLocalArtist != true,
+            visible = librarySongs.isNotEmpty() && libraryArtist?.artist?.isLocal != true,
             lazyListState = lazyListState,
             icon = if (showLocal) Icons.Rounded.LibraryMusic else Icons.Rounded.Language,
             onClick = {
@@ -586,6 +589,7 @@ fun ArtistScreen(
                     )
                 }
             },
+            windowInsets = TopBarInsets,
             scrollBehavior = scrollBehavior,
             colors = if (transparentAppBar) {
                 TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)

@@ -15,27 +15,46 @@
  */
 package com.google.material.color.scheme;
 
+import com.google.material.color.dynamiccolor.ColorSpec.SpecVersion;
+import com.google.material.color.dynamiccolor.ColorSpecs;
 import com.google.material.color.dynamiccolor.DynamicScheme;
 import com.google.material.color.dynamiccolor.Variant;
 import com.google.material.color.hct.Hct;
-import com.google.material.color.palettes.TonalPalette;
-import com.google.material.color.utils.MathUtils;
 
-/**
- * A calm theme, sedated colors that aren't particularly chromatic.
- */
+/** A calm theme, sedated colors that aren't particularly chromatic. */
 public class SchemeTonalSpot extends DynamicScheme {
-    public SchemeTonalSpot(Hct sourceColorHct, boolean isDark, double contrastLevel) {
-        super(
-                sourceColorHct,
-                Variant.TONAL_SPOT,
-                isDark,
-                contrastLevel,
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), 36.0),
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), 16.0),
-                TonalPalette.fromHueAndChroma(
-                        MathUtils.sanitizeDegreesDouble(sourceColorHct.getHue() + 60.0), 24.0),
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), 6.0),
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), 8.0));
-    }
+
+  public SchemeTonalSpot(Hct sourceColorHct, boolean isDark, double contrastLevel) {
+    this(sourceColorHct, isDark, contrastLevel, DEFAULT_SPEC_VERSION, DEFAULT_PLATFORM);
+  }
+
+  public SchemeTonalSpot(
+      Hct sourceColorHct,
+      boolean isDark,
+      double contrastLevel,
+      SpecVersion specVersion,
+      Platform platform) {
+    super(
+        sourceColorHct,
+        Variant.TONAL_SPOT,
+        isDark,
+        contrastLevel,
+        platform,
+        specVersion,
+        ColorSpecs.get(specVersion)
+            .getPrimaryPalette(Variant.TONAL_SPOT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getSecondaryPalette(
+                Variant.TONAL_SPOT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getTertiaryPalette(
+                Variant.TONAL_SPOT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getNeutralPalette(Variant.TONAL_SPOT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getNeutralVariantPalette(
+                Variant.TONAL_SPOT, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getErrorPalette(Variant.TONAL_SPOT, sourceColorHct, isDark, platform, contrastLevel));
+  }
 }

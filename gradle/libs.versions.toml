@@ -1,38 +1,41 @@
 [versions]
-androidGradlePlugin = "8.8.0"
+aboutLibraries = "12.2.0"
+adaptive = "1.1.0"
+androidGradlePlugin = "8.10.1"
 annotation = "1.9.1"
-kotlin = "2.1.0"
-compose = "1.7.7"
-lifecycle = "2.8.7"
-material3 = "1.3.1"
-media3 = "1.5.1"
-room = "2.6.1"
-hilt = "2.55"
-ktor = "3.0.3"
-ksp = "2.1.0-1.0.29"
+kotlin = "2.1.21"
+compose = "1.8.2"
+lifecycle = "2.9.1"
+material3 = "1.4.0-alpha15"
+media3 = "1.6.1"
+room = "2.7.1"
+hilt = "2.56.2"
+ktor = "3.1.3"
+ksp = "2.1.21-2.0.1"
 taglib = "1.0.0"
 
 [libraries]
+adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
-error-prone-core = { module = "com.google.errorprone:error_prone_core", version = "2.36.0" }
-guava = { group = "com.google.guava", name = "guava", version = "33.4.0-android" }
-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version = "1.10.1" }
+error-prone-core = { module = "com.google.errorprone:error_prone_core", version = "2.38.0" }
+guava = { group = "com.google.guava", name = "guava", version = "33.4.8-android" }
+coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version = "1.10.2" }
 concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.2.0" }
 
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
-activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.0" }
-navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.8.6" }
+activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.1" }
+navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.9.0" }
 hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
-datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.2" }
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.7" }
 
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "compose" }
-compose-ui = { group = "androidx.compose.ui", name = "ui", version = "1.8.0-beta01" }
+compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
 compose-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "compose" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
 compose-animation = { group = "androidx.compose.animation", name = "animation-graphics", version.ref = "compose" }
 compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version = "2.4.3" }
-compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "compose" }
+compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version = "1.7.8" }
 
 viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
@@ -41,14 +44,14 @@ material3 = { group = "androidx.compose.material3", name = "material3", version.
 
 coil = { group = "io.coil-kt", name = "coil-compose", version = "2.7.0" }
 
-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version = "1.3.2" }
+shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version = "1.3.3" }
 
 palette = { group = "androidx.palette", name = "palette", version = "1.0.0" }
 
 media3 = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 media3-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }
 media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+media3-workmanager = { group = "androidx.media3", name = "media3-exoplayer-workmanager", version.ref = "media3" }
 
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
@@ -67,21 +70,23 @@ ktor-serialization-json = { group = "io.ktor", name = "ktor-serialization-kotlin
 
 brotli = { group = "org.brotli", name = "dec", version = "0.1.2" }
 
-desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version = "2.1.4" }
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version = "2.1.5" }
 
 junit = { group = "junit", name = "junit", version = "4.13.2" }
 
-timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" }
+taglib = { group = "com.github.Kyant0", name = "taglib", version.ref = "taglib" }
 
-taglib = { module = "com.github.Kyant0:taglib", version.ref = "taglib" }
+#newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "v0.24.5" }
+newpipe-extractor = { group = "com.github.libre-tube", name = "NewPipeExtractor", version = "bcb7705" }
 
-newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "v0.24.5" }
-nanojson = { group = "com.github.TeamNewPipe", name = "nanojson", version = "1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751" }
 
-androidx-webkit = { group = "androidx.webkit", name = "webkit", version = "1.9.0" }
+aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
+aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+
+aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }

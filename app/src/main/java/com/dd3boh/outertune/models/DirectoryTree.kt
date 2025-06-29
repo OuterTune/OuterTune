@@ -8,11 +8,13 @@
 
 package com.dd3boh.outertune.models
 
+import android.util.Log
+import androidx.compose.ui.util.fastFirstOrNull
 import com.dd3boh.outertune.constants.SongSortType
 import com.dd3boh.outertune.db.entities.Song
-import com.dd3boh.outertune.ui.utils.SCANNER_DEBUG
-import com.dd3boh.outertune.ui.utils.STORAGE_ROOT
-import timber.log.Timber
+import com.dd3boh.outertune.constants.SCANNER_DEBUG
+import com.dd3boh.outertune.ui.utils.uninitializedDirectoryTree
+import com.dd3boh.outertune.utils.fixFilePath
 import java.time.ZoneOffset
 
 /**
@@ -20,7 +22,7 @@ import java.time.ZoneOffset
  *
  * @param path root directory start
  */
-class DirectoryTree(path: String) {
+class DirectoryTree(path: String, var culmSongs: CulmSongs) {
     companion object {
         const val TAG = "DirectoryTree"
         var directoryUID = 0
@@ -42,6 +44,8 @@ class DirectoryTree(path: String) {
 
     val uid = directoryUID
 
+    var isSkeleton = true
+
     init {
         // increment uid
         directoryUID++
@@ -50,55 +54,54 @@ class DirectoryTree(path: String) {
     /**
      * Instantiate a directory tree directly with songs
      */
-    constructor(path: String, files: ArrayList<Song>) : this(path) {
+    constructor(path: String, culmSongs: CulmSongs, files: ArrayList<Song>) : this(path, culmSongs) {
         this.files = files
     }
 
     /**
      * Instantiate a directory tree directly with subdirectories and songs
      */
-    constructor(path: String, subdirs: ArrayList<DirectoryTree>, files: ArrayList<Song>) : this(path) {
+    constructor(
+        path: String,
+        culmSongs: CulmSongs,
+        subdirs: ArrayList<DirectoryTree>,
+        files: ArrayList<Song>
+    ) : this(path, culmSongs) {
         this.subdirs = subdirs
         this.files = files
     }
 
     fun insert(path: String, song: Song) {
-//        println("curr path =" + path)
 
         // add a file
         if (path.indexOf('/') == -1) {
             files.add(song)
+            culmSongs.value++
             if (SCANNER_DEBUG)
-                Timber.tag(TAG).d("Adding song with path: $path")
+                Log.v(TAG, "Adding song with path: $path")
             return
         }
 
-        // there is still subdirs to process
-        var tmpPath = path
-        if (path[path.length - 1] == '/') {
-            tmpPath = path.substring(0, path.length - 1)
-        }
-
         // the first directory before the .
+        var tmpPath = if (path.first() == '/') path.substring(1) else path// assume all paths start with /
         val subdirPath = tmpPath.substringBefore('/')
 
         // create subdirs if they do not exist, then insert
-        var existingSubdir: DirectoryTree? = null
-        subdirs.forEach { subdir ->
-            if (subdir.currentDir == subdirPath) {
-                existingSubdir = subdir
-                return@forEach
-            }
-        }
-
+        var existingSubdir: DirectoryTree? = subdirs.fastFirstOrNull { it.currentDir == subdirPath }
         if (existingSubdir == null) {
-            val tree = DirectoryTree(subdirPath)
-            tree.parent = "$parent/$currentDir"
+            val tree = DirectoryTree(subdirPath, culmSongs)
+            tree.parent = if (parent == "") {
+                currentDir
+            } else if (parent == "/") {
+                "/$currentDir"
+            } else {
+                "$parent/$currentDir"
+            }
             tree.insert(tmpPath.substringAfter('/'), song)
             subdirs.add(tree)
 
         } else {
-            existingSubdir!!.insert(tmpPath.substringAfter('/'), song)
+            existingSubdir.insert(tmpPath.substringAfter('/'), song)
         }
     }
 
@@ -119,12 +122,12 @@ class DirectoryTree(path: String) {
      * @return song at path, or null if it does not exist
      */
     fun getSong(path: String): Song? {
-        Timber.tag(TAG).d("Searching for song, at path: $path")
+        Log.v(TAG, "Searching for song, at path: $path")
 
         // search for song in current dir
         if (path.indexOf('/') == -1) {
             val foundSong: Song = files.first { getFileName(it.song.localPath) == getFileName(path) }
-            Timber.tag(TAG).d("Searching for song, found?: ${foundSong.id} Name: ${foundSong.song.title}")
+            Log.v(TAG, "Searching for song, found?: ${foundSong.id} Name: ${foundSong.song.title}")
             return foundSong
         }
 
@@ -147,11 +150,7 @@ class DirectoryTree(path: String) {
         }
 
         // explore the subdirectory if it exists in
-        if (existingSubdir == null) {
-            return null
-        } else {
-            return existingSubdir!!.getSong(tmpPath.substringAfter('/'))
-        }
+        return existingSubdir?.getSong(tmpPath.substringAfter('/'))
     }
 
 
@@ -171,9 +170,35 @@ class DirectoryTree(path: String) {
     }
 
     /**
-     * Retrieve a list of all the songs, adhering to sort preferences. Subfolder structure will be completely ignored.
+     * Retrieve a list of all the songs in the current directory, adhering to sort preferences.
      */
     fun toSortedList(sortType: SongSortType, sortDescending: Boolean): List<Song> {
+        val songs = files.toMutableList()
+
+        // sort songs. Ignore any subfolder structure
+        songs.sortBy {
+            when (sortType) {
+                SongSortType.CREATE_DATE -> it.song.inLibrary?.toEpochSecond(ZoneOffset.UTC).toString()
+                SongSortType.MODIFIED_DATE -> it.song.getDateModifiedLong().toString()
+                SongSortType.RELEASE_DATE -> it.song.getDateLong().toString()
+                SongSortType.NAME -> it.song.title
+                SongSortType.ARTIST -> it.artists.firstOrNull()?.name
+                SongSortType.PLAY_TIME -> it.song.totalPlayTime.toString()
+                SongSortType.PLAY_COUNT -> it.playCount.toString()
+            }
+        }
+
+        if (sortDescending) {
+            songs.reverse()
+        }
+        return songs
+    }
+
+    /**
+     * Retrieve a list of all the songs in the current directory including subdirectories, adhering to sort preferences.
+     * Subfolder structure will be completely ignored.
+     */
+    fun toSortedListRecursive(sortType: SongSortType, sortDescending: Boolean): List<Song> {
         val songs = ArrayList<Song>()
 
         fun traverseTree(tree: DirectoryTree, result: ArrayList<Song>) {
@@ -192,7 +217,7 @@ class DirectoryTree(path: String) {
                 SongSortType.NAME -> it.song.title
                 SongSortType.ARTIST -> it.artists.firstOrNull()?.name
                 SongSortType.PLAY_TIME -> it.song.totalPlayTime.toString()
-                SongSortType.PLAY_COUNT -> it.song.totalPlayTime.toString() // TODO: This properly
+                SongSortType.PLAY_COUNT -> it.playCount.toString()
             }
         }
 
@@ -206,10 +231,16 @@ class DirectoryTree(path: String) {
      * Retrieves a modified version of this DirectoryTree.
      * All folders are recognized to be top level folders
      */
-    fun toFlattenedTree(): DirectoryTree {
-        val result = DirectoryTree(STORAGE_ROOT)
-        getSubdirsRecursive(this, result.subdirs)
+    fun getFlattenedSubdirs(includeEmpty: Boolean = false): List<DirectoryTree> {
+        val result = ArrayList<DirectoryTree>()
+        getSubdirsRecursive(this, result, includeEmpty = includeEmpty)
         return result
+    }
+
+    fun getSubDir(path: String): DirectoryTree {
+        val result = ArrayList<DirectoryTree>()
+        getSubdirsRecursive(this, result, includeEmpty = true)
+        return result.firstOrNull { fixFilePath(it.getFullPath()) == fixFilePath(path) } ?: uninitializedDirectoryTree
     }
 
     /**
@@ -225,26 +256,8 @@ class DirectoryTree(path: String) {
      * @return This object, after migrating
      */
     fun androidStorageWorkaround(): DirectoryTree {
-        var emulated: DirectoryTree? = null
-        var zero: DirectoryTree? = null
-
-        subdirs.forEach { subdir ->
-            if (subdir.currentDir == "emulated") {
-                emulated = subdir
-
-                subdir.subdirs.forEach {
-                    if (it.currentDir == "0") {
-                        zero = it
-                    }
-                }
-            }
-        }
-
-        // replace the emulated/0 path with "Internal"
-        if (emulated != null && zero != null) {
-            val newInternalStorage = DirectoryTree("Internal", zero!!.subdirs, zero!!.files)
-            subdirs = ArrayList(subdirs.filterNot { it.currentDir == "emulated" })
-            subdirs.add(newInternalStorage)
+        if (currentDir == "/" && subdirs.size == 1 && files.isEmpty()) {
+            return DirectoryTree("/storage", culmSongs, subdirs.first().subdirs, subdirs.first().files)
         }
 
         return this
@@ -267,18 +280,60 @@ class DirectoryTree(path: String) {
         return this
     }
 
+    fun getSquashedDir(): String {
+        // get full path of blank folders
+        // subdir size is 1, and filesize is 0
+
+        if (subdirs.size != 1 && files.size != 0) {
+            return currentDir
+        } else {
+            var ret = ""
+            var isEmpty = true
+            fun exploreSubdirs(dt: DirectoryTree) {
+                if (!isEmpty || dt.subdirs.size != 1 || dt.files.isNotEmpty()) {
+                    if (isEmpty) {
+                        ret += "/${dt.currentDir}"
+                    }
+                    isEmpty = false
+                    return
+                } else {
+                    ret += "/${dt.currentDir}"
+                    dt.subdirs.forEach {
+                        exploreSubdirs(it)
+                    }
+                }
+            }
+            exploreSubdirs(this)
+
+            return ret.trimStart() { it == '/' }.trimEnd { it == '/' }
+        }
+    }
+
+    fun getFullSquashedDir(): String {
+        return fixFilePath((parent + "/" + getSquashedDir()))
+    }
+
+    fun getFullPath(): String = "$parent/$currentDir"
+
     /**
      * Crawl the directory tree, add the subdirectories with songs to the list
      * @param it
      * @param result
      */
-    private fun getSubdirsRecursive(it: DirectoryTree, result: ArrayList<DirectoryTree>) {
-        if (it.files.size > 0) {
-            result.add(DirectoryTree(it.currentDir, it.files))
+    private fun getSubdirsRecursive(
+        it: DirectoryTree,
+        result: ArrayList<DirectoryTree>,
+        includeEmpty: Boolean = false
+    ) {
+        if (includeEmpty || it.files.isNotEmpty()) {
+            result.add(it)
         }
 
-        if (it.subdirs.size > 0) {
-            it.subdirs.forEach { getSubdirsRecursive(it, result) }
+        if (it.subdirs.isNotEmpty()) {
+            it.subdirs.forEach { getSubdirsRecursive(it, result, includeEmpty) }
         }
     }
 }
+
+
+data class CulmSongs(var value: Int)

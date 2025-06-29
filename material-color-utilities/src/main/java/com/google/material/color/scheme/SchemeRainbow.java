@@ -15,27 +15,44 @@
  */
 package com.google.material.color.scheme;
 
+import com.google.material.color.dynamiccolor.ColorSpec.SpecVersion;
+import com.google.material.color.dynamiccolor.ColorSpecs;
 import com.google.material.color.dynamiccolor.DynamicScheme;
 import com.google.material.color.dynamiccolor.Variant;
 import com.google.material.color.hct.Hct;
-import com.google.material.color.palettes.TonalPalette;
-import com.google.material.color.utils.MathUtils;
 
-/**
- * A playful theme - the source color's hue does not appear in the theme.
- */
+/** A playful theme - the source color's hue does not appear in the theme. */
 public class SchemeRainbow extends DynamicScheme {
-    public SchemeRainbow(Hct sourceColorHct, boolean isDark, double contrastLevel) {
-        super(
-                sourceColorHct,
-                Variant.RAINBOW,
-                isDark,
-                contrastLevel,
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), 48.0),
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), 16.0),
-                TonalPalette.fromHueAndChroma(
-                        MathUtils.sanitizeDegreesDouble(sourceColorHct.getHue() + 60.0), 24.0),
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), 0.0),
-                TonalPalette.fromHueAndChroma(sourceColorHct.getHue(), 0.0));
-    }
+
+  public SchemeRainbow(Hct sourceColorHct, boolean isDark, double contrastLevel) {
+    this(sourceColorHct, isDark, contrastLevel, DEFAULT_SPEC_VERSION, DEFAULT_PLATFORM);
+  }
+
+  public SchemeRainbow(
+      Hct sourceColorHct,
+      boolean isDark,
+      double contrastLevel,
+      SpecVersion specVersion,
+      Platform platform) {
+    super(
+        sourceColorHct,
+        Variant.RAINBOW,
+        isDark,
+        contrastLevel,
+        platform,
+        specVersion,
+        ColorSpecs.get(specVersion)
+            .getPrimaryPalette(Variant.RAINBOW, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getSecondaryPalette(Variant.RAINBOW, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getTertiaryPalette(Variant.RAINBOW, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getNeutralPalette(Variant.RAINBOW, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getNeutralVariantPalette(
+                Variant.RAINBOW, sourceColorHct, isDark, platform, contrastLevel),
+        ColorSpecs.get(specVersion)
+            .getErrorPalette(Variant.RAINBOW, sourceColorHct, isDark, platform, contrastLevel));
+  }
 }

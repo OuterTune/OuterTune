@@ -40,15 +40,17 @@ Delete this if it doesn't apply to your PR. -->
 
 <!-- Please mark WIP pull requests and "Draft" and only "Ready for review" once it is ready to be merged  -->
 
-- [ ] I read the [contribution guidelines](https://github.com/DD3Boh/OuterTune/blob/dev/CONTRIBUTING.md).
+- [ ] I have read and agreed to the [contribution guidelines](https://github.com/OuterTune/OuterTune/blob/dev/CONTRIBUTING.md).
 
-### Merge conflict resolution
+### Merging strategy / Merge conflict resolution
+
 Select only ONE. If you select none, or both, the first selection will used as your final choice
 
-- [ ] In the event of merge conflicts, I give permission for the developers to rebase or squash my code or apply merge
-  conflict amendments as needed
-- [ ] In the event of merge conflicts, I ***DO NOT*** give permission for the developers to modify my code to solve merge
-  conflicts. I understand in the event of a merge conflict, I will be responsible to resolve merge conflicts in a way
-  that adheres to the [contribution guidelines](https://github.com/DD3Boh/OuterTune/blob/dev/CONTRIBUTING.md)
+- [ ] When merging this pull request, or in the event of merge conflicts, I give permission for the merger to rebase,
+  or squash my code, or apply merge conflict amendments as needed
+- [ ] When merging this pull request, or in the event of merge conflicts, I ***DO NOT*** give permission for the
+  merger to modify my code to solve merge conflicts. I understand in the event of a merge conflict, I will be
+  responsible to resolve merge conflicts in a way that adheres to
+  the [contribution guidelines](https://github.com/OuterTune/OuterTune/blob/dev/CONTRIBUTING.md)
 
 <!-- This pull request template is based on Newpipe's:  https://github.com/TeamNewPipe/NewPipe/ -->

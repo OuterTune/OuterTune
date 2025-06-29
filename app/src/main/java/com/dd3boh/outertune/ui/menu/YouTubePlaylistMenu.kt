@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
@@ -47,7 +48,6 @@ import com.dd3boh.outertune.db.entities.PlaylistSongMap
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
-import com.dd3boh.outertune.playback.PlayerConnection.Companion.queueBoard
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.ui.component.DefaultDialog
@@ -66,6 +66,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun YouTubePlaylistMenu(
+    navController: NavController,
     playlist: PlaylistItem,
     songs: List<SongItem> = emptyList(),
     coroutineScope: CoroutineScope,
@@ -94,9 +95,11 @@ fun YouTubePlaylistMenu(
                         YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
                     }
                 }.let { songs ->
-                    queueBoard.addQueue(queueName, songs.map { it.toMediaMetadata() }, playerConnection,
-                        forceInsert = true, delta = false)
-                    queueBoard.setCurrQueue(playerConnection)
+                    playerConnection.service.queueBoard.addQueue(
+                        queueName, songs.map { it.toMediaMetadata() },
+                        forceInsert = true, delta = false
+                    )
+                    playerConnection.service.queueBoard.setCurrQueue()
                 }
             }
         },
@@ -106,6 +109,7 @@ fun YouTubePlaylistMenu(
     )
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = { targetPlaylist ->
             val allSongs = songs
@@ -136,8 +140,9 @@ fun YouTubePlaylistMenu(
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
+            val remaining = songs.filterNot { downloads[it.id]?.state == Download.STATE_COMPLETED }
             downloadState =
-                if (songs.all { downloads[it.id]?.state == Download.STATE_COMPLETED })
+                if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s.id == it.key } }.isEmpty())
                     Download.STATE_COMPLETED
                 else if (songs.all {
                         downloads[it.id]?.state == Download.STATE_QUEUED
@@ -298,7 +303,6 @@ fun YouTubePlaylistMenu(
                 icon = Icons.Rounded.PlayArrow,
                 title = R.string.play
             ) {
-                println("Play: ${it.playlistId}, ${it.params}")
                 playerConnection.playQueue(
                     ListQueue(
                         playlistId = playlist.playEndpoint!!.playlistId,
@@ -316,7 +320,6 @@ fun YouTubePlaylistMenu(
                 icon = Icons.Rounded.Shuffle,
                 title = R.string.shuffle
             ) {
-                println("Shuffle: id: ${shuffleEndpoint.playlistId}, params: ${shuffleEndpoint.params}")
                 playerConnection.playQueue(
                     ListQueue(
                         playlistId = playlist.playEndpoint!!.playlistId,
@@ -334,7 +337,6 @@ fun YouTubePlaylistMenu(
                 icon = Icons.Rounded.Radio,
                 title = R.string.start_radio
             ) {
-                println("Radio: ${radioEndpoint.playlistId}, ${radioEndpoint.params}")
                 playerConnection.playQueue(YouTubeQueue(radioEndpoint), isRadio = true)
                 onDismiss()
             }

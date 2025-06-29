@@ -12,6 +12,8 @@ import android.graphics.Bitmap
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -31,6 +33,7 @@ import com.google.material.color.score.Score
 
 val DefaultThemeColor = Color(0xFFED5564)
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OuterTuneTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -50,7 +53,7 @@ fun OuterTuneTheme(
         }
     }
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = MaterialTheme.typography,
         content = content

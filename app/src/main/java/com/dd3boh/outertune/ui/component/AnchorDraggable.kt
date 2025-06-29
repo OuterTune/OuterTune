@@ -34,6 +34,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.SwipeToQueueKey
+import com.dd3boh.outertune.utils.rememberPreference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -63,7 +66,7 @@ fun SwipeToQueueBox(
     modifier: Modifier = Modifier,
     item: MediaItem,
     content: @Composable BoxScope.() -> Unit,
-    snackbarHostState: SnackbarHostState,
+    snackbarHostState: SnackbarHostState? = null,
     enabled: Boolean = true
 ) {
     val context = LocalContext.current
@@ -82,8 +85,9 @@ fun SwipeToQueueBox(
         swipeOffset.floatValue = (swipeOffset.floatValue + delta).coerceIn(0f, screenWidth.value)
     }
 
+    val swipeToQueueEnabled by rememberPreference(SwipeToQueueKey, true)
 
-    if (!enabled) {
+    if (!enabled || !swipeToQueueEnabled) {
         Box { content() }
     } else {
         Box(
@@ -98,7 +102,7 @@ fun SwipeToQueueBox(
                                 playerConnection?.enqueueEnd(item)
 
                                 coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
+                                    snackbarHostState?.showSnackbar(
                                         message = context.getString(
                                             R.string.song_added_to_queue_end,
                                             item.mediaMetadata.title
@@ -114,7 +118,7 @@ fun SwipeToQueueBox(
                                 playerConnection?.enqueueNext(item)
 
                                 coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
+                                    snackbarHostState?.showSnackbar(
                                         message = context.getString(
                                             R.string.song_added_to_queue,
                                             item.mediaMetadata.title

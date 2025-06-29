@@ -12,6 +12,7 @@ package com.dd3boh.outertune
 import android.app.Application
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.datastore.preferences.core.edit
@@ -29,22 +30,24 @@ import com.zionhuang.innertube.models.YouTubeLocale
 import com.zionhuang.kugou.KuGou
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import timber.log.Timber
+import kotlinx.coroutines.withContext
 import java.net.Proxy
-import java.util.*
+import java.util.Locale
 
 @HiltAndroidApp
 class App : Application(), ImageLoaderFactory {
+    private val TAG = App::class.simpleName.toString()
+
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate() {
         super.onCreate()
         instance = this;
-        Timber.plant(Timber.DebugTree())
 
         val locale = Locale.getDefault()
         val languageTag = locale.toLanguageTag().replace("-Hant", "") // replace zh-Hant-* to zh-*
@@ -73,7 +76,7 @@ class App : Application(), ImageLoaderFactory {
             }
         }
 
-        if (dataStore[UseLoginForBrowse] == true) {
+        if (dataStore[UseLoginForBrowse] != false) {
             YouTube.useLoginForBrowse = true
         }
 
@@ -84,11 +87,16 @@ class App : Application(), ImageLoaderFactory {
                 .collect { visitorData ->
                     YouTube.visitorData = visitorData
                         ?.takeIf { it != "null" } // Previously visitorData was sometimes saved as "null" due to a bug
-                        ?: YouTube.visitorData().getOrNull()?.also { newVisitorData ->
+                        ?: YouTube.visitorData().onFailure {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@App, "Failed to get visitorData.", LENGTH_SHORT).show()
+                            }
+                            reportException(it)
+                        }.getOrNull()?.also { newVisitorData ->
                             dataStore.edit { settings ->
                                 settings[VisitorDataKey] = newVisitorData
                             }
-                        } ?: YouTube.DEFAULT_VISITOR_DATA
+                        }
                 }
         }
         GlobalScope.launch {
@@ -96,7 +104,20 @@ class App : Application(), ImageLoaderFactory {
                 .map { it[DataSyncIdKey] }
                 .distinctUntilChanged()
                 .collect { dataSyncId ->
-                    YouTube.dataSyncId = dataSyncId
+                    YouTube.dataSyncId = dataSyncId?.let {
+                        /*
+                         * Workaround to avoid breaking older installations that have a dataSyncId
+                         * that contains "||" in it.
+                         * If the dataSyncId ends with "||" and contains only one id, then keep the
+                         * id before the "||".
+                         * If the dataSyncId contains "||" and is not at the end, then keep the
+                         * second id.
+                         * This is needed to keep using the same account as before.
+                         */
+                        it.takeIf { !it.contains("||") }
+                            ?: it.takeIf { it.endsWith("||") }?.substringBefore("||")
+                            ?: it.substringAfter("||")
+                    }
                 }
         }
         GlobalScope.launch {
@@ -108,7 +129,7 @@ class App : Application(), ImageLoaderFactory {
                         YouTube.cookie = cookie
                     } catch (e: Exception) {
                         // we now allow user input now, here be the demons. This serves as a last ditch effort to avoid a crash loop
-                        Timber.e("Could not parse cookie. Clearing existing cookie. %s", e.message)
+                        Log.e(TAG, "Could not parse cookie. Clearing existing cookie. ${e.message}")
                         forgetAccount(this@App)
                     }
                 }
