@@ -1,5 +1,6 @@
 package com.zionhuang.innertube
 
+import com.sun.jndi.toolkit.dir.SearchFilter
 import com.zionhuang.innertube.models.AccountInfo
 import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.Artist
@@ -17,6 +18,8 @@ import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.zionhuang.innertube.models.YouTubeLocale
+import com.zionhuang.innertube.models.body.CreatePlaylistBody
+import com.zionhuang.innertube.models.body.EditPlaylistBody
 import com.zionhuang.innertube.models.getContinuation
 import com.zionhuang.innertube.models.getItems
 import com.zionhuang.innertube.models.oddElements
@@ -59,6 +62,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
 import java.net.Proxy
 import kotlin.random.Random
 
@@ -326,6 +330,7 @@ object YouTube {
 
         val base = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
         val header = base?.musicResponsiveHeaderRenderer ?: base?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
+        val editHeader = base?.musicEditablePlaylistDetailHeaderRenderer?.editHeader?.musicPlaylistEditHeaderRenderer
 
         val editable = base?.musicEditablePlaylistDetailHeaderRenderer != null
 
@@ -333,6 +338,8 @@ object YouTube {
             playlist = PlaylistItem(
                 id = playlistId,
                 title = header?.title?.runs?.firstOrNull()?.text!!,
+                description =  editHeader?.description?.runs?.getOrNull(0)?.text ?: "",
+                privacyStatus = editHeader?.privacy ?: "PUBLIC",
                 author = header.straplineTextOne?.runs?.firstOrNull()?.let {
                     Artist(
                         name = it.text,
@@ -648,12 +655,32 @@ object YouTube {
         innerTube.moveSongPlaylist(WEB_REMIX, playlistId, setVideoId, successorSetVideoId)
     }
 
-    fun createPlaylist(title: String) = runBlocking {
-        innerTube.createPlaylist(WEB_REMIX, title).body<CreatePlaylistResponse>().playlistId
+    fun createPlaylist(
+        title: String,
+        description: String = "",
+        privacyStatus: String = CreatePlaylistBody.PrivacyStatus.PUBLIC
+    ) = runBlocking {
+        innerTube.createPlaylist(
+            client = WEB_REMIX,
+            title = title,
+            description = description,
+            privacyStatus = privacyStatus
+        ).body<CreatePlaylistResponse>().playlistId
     }
 
-    suspend fun renamePlaylist(playlistId: String, name: String) = runCatching {
-        innerTube.renamePlaylist(WEB_REMIX, playlistId, name)
+    suspend fun updatePlaylist(
+        playlistId: String,
+        name: String? = null,
+        description: String? = null,
+        privacyStatus: String? = null
+    ) = runCatching {
+        innerTube.updatePlaylist(
+            client = WEB_REMIX,
+            playlistId = playlistId,
+            name = name,
+            description = description,
+            privacyStatus = privacyStatus
+        )
     }
 
     suspend fun deletePlaylist(playlistId: String) = runCatching {

@@ -427,31 +427,51 @@ class InnerTube {
     suspend fun createPlaylist(
         client: YouTubeClient,
         title: String,
+        description: String = "",
+        privacyStatus: String = CreatePlaylistBody.PrivacyStatus.PUBLIC
     ) = httpClient.post("playlist/create") {
         ytClient(client, true)
         setBody(
             CreatePlaylistBody(
                 context = client.toContext(locale, visitorData, dataSyncId),
-                title = title
+                title = title,
+                description = description,
+                privacyStatus = privacyStatus
             )
         )
     }
 
-    suspend fun renamePlaylist(
+    suspend fun updatePlaylist(
         client: YouTubeClient,
         playlistId: String,
-        name: String,
+        name: String? = null,
+        description: String? = null,
+        privacyStatus: String? = null
     ) = httpClient.post("browse/edit_playlist") {
         ytClient(client, setLogin = true)
         setBody(
             EditPlaylistBody(
                 context = client.toContext(locale, visitorData, dataSyncId),
                 playlistId = playlistId,
-                actions = listOf(
-                    Action.RenamePlaylistAction(
-                        playlistName = name
-                    )
-                )
+                actions = buildList {
+                    if(name != null) {
+                        add(Action.RenamePlaylistAction(
+                            playlistName = name
+                        ))
+                    }
+
+                    if(description != null) {
+                        add(Action.SetPlaylistDescriptionAction(
+                            playlistDescription = description
+                        ))
+                    }
+
+                    if(privacyStatus != null) {
+                        add(Action.SetPlaylistPrivacyAction(
+                            playlistPrivacy = privacyStatus
+                        ))
+                    }
+                }
             )
         )
     }

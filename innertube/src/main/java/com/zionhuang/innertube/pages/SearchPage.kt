@@ -87,6 +87,8 @@ object SearchPage {
                     title = renderer.flexColumns.firstOrNull()
                         ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
                         ?.firstOrNull()?.text ?: return null,
+                    description = "",
+                    privacyStatus = "PUBLIC",
                     author = secondaryLine.firstOrNull()?.firstOrNull()?.let {
                         Artist(
                             name = it.text,

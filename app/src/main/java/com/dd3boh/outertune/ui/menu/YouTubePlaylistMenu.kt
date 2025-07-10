@@ -245,6 +245,8 @@ fun YouTubePlaylistMenu(
                             database.transaction {
                                 val playlistEntity = PlaylistEntity(
                                     name = playlist.title,
+                                    description = playlist.description,
+                                    privacyStatus = playlist.privacyStatus,
                                     browseId = playlist.id,
                                     isEditable = false,
                                     thumbnailUrl = playlist.thumbnail,

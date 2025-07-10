@@ -199,6 +199,8 @@ fun LibraryPlaylistListItem(
                             playlist = PlaylistItem(
                                 id = browseId,
                                 title = playlist.playlist.name,
+                                description = playlist.playlist.description,
+                                privacyStatus = playlist.playlist.privacyStatus,
                                 author = null,
                                 songCountText = null,
                                 thumbnail = playlist.thumbnails.getOrNull(0),
@@ -278,6 +280,8 @@ fun LibraryPlaylistGridItem(
                                 playlist = PlaylistItem(
                                     id = browseId,
                                     title = playlist.playlist.name,
+                                    description = playlist.playlist.description,
+                                    privacyStatus = playlist.playlist.privacyStatus,
                                     author = null,
                                     songCountText = null,
                                     thumbnail = playlist.thumbnails.getOrNull(0),

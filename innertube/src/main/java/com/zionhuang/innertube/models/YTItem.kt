@@ -50,6 +50,8 @@ data class AlbumItem(
 data class PlaylistItem(
     override val id: String,
     override val title: String,
+    val description: String,
+    val privacyStatus: String,
     val author: Artist?,
     val songCountText: String?,
     override val thumbnail: String?,

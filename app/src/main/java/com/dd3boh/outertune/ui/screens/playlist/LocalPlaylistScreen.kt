@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -119,6 +120,7 @@ import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.AsyncImageLocal
 import com.dd3boh.outertune.ui.component.AutoResizeText
 import com.dd3boh.outertune.ui.component.DefaultDialog
+import com.dd3boh.outertune.ui.component.EditPlaylistDialog
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
 import com.dd3boh.outertune.ui.component.FloatingFooter
 import com.dd3boh.outertune.ui.component.FontSizeRange
@@ -147,7 +149,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 fun LocalPlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    viewModel: LocalPlaylistViewModel = hiltViewModel(),
+    viewModel: LocalPlaylistViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val menuState = LocalMenuState.current
@@ -223,20 +225,9 @@ fun LocalPlaylistScreen(
 
     if (showEditDialog) {
         playlist?.playlist?.let { playlistEntity ->
-            TextFieldDialog(
-                icon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
-                title = { Text(text = stringResource(R.string.edit_playlist)) },
-                onDismiss = { showEditDialog = false },
-                initialTextFieldValue = TextFieldValue(playlistEntity.name, TextRange(playlistEntity.name.length)),
-                onDone = { name ->
-                    database.query {
-                        update(playlistEntity.copy(name = name))
-                    }
-
-                    viewModel.viewModelScope.launch(Dispatchers.IO) {
-                        playlistEntity.browseId?.let { YouTube.renamePlaylist(it, name) }
-                    }
-                }
+            EditPlaylistDialog(
+                playlist = playlistEntity,
+                onDismiss = { showEditDialog = false }
             )
         }
     }
@@ -417,30 +408,20 @@ fun LocalPlaylistScreen(
             modifier = Modifier.padding(bottom = if (inSelectMode) 64.dp else 0.dp)
         ) {
             playlist?.let { playlist ->
-                if (playlist.songCount == 0) {
-                    item {
-                        EmptyPlaceholder(
-                            icon = Icons.Rounded.MusicNote,
-                            text = stringResource(R.string.playlist_is_empty),
-                            modifier = Modifier.animateItem()
+                 // playlist header
+                if (!isSearching) {
+                    item(
+                        key = "playlist header",
+                        contentType = CONTENT_TYPE_HEADER
+                    ) {
+                        LocalPlaylistHeader(
+                            playlist = playlist,
+                            songs = songs,
+                            onShowEditDialog = { showEditDialog = true },
+                            onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
+                            snackbarHostState = snackbarHostState,
+                            modifier = Modifier // .animateItem()
                         )
-                    }
-                } else {
-                    // playlist header
-                    if (!isSearching) {
-                        item(
-                            key = "playlist header",
-                            contentType = CONTENT_TYPE_HEADER
-                        ) {
-                            LocalPlaylistHeader(
-                                playlist = playlist,
-                                songs = songs,
-                                onShowEditDialog = { showEditDialog = true },
-                                onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
-                                snackbarHostState = snackbarHostState,
-                                modifier = Modifier // .animateItem()
-                            )
-                        }
                     }
 
                     item(
@@ -480,6 +461,16 @@ fun LocalPlaylistScreen(
                                 }
                             }
                         }
+                    }
+                }
+
+                if (playlist.songCount == 0) {
+                    item {
+                        EmptyPlaceholder(
+                            icon = Icons.Rounded.MusicNote,
+                            text = stringResource(R.string.playlist_is_empty),
+                            modifier = Modifier.animateItem()
+                        )
                     }
                 }
             }
@@ -790,8 +781,11 @@ fun LocalPlaylistHeader(
                         IconButton(
                             onClick = {
                                 scope.launch {
-                                    syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
-                                    snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
+                                    syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id).also { success ->
+                                        snackbarHostState.showSnackbar(if(success) {
+                                            context.getString(R.string.playlist_synced)
+                                        } else "Failed to sync an playlist!")
+                                    }
                                 }
                             },
                             enabled = isNetworkConnected
@@ -863,6 +857,10 @@ fun LocalPlaylistHeader(
                     }
                 }
             }
+        }
+
+        if(playlist.playlist.description.isNotBlank()) {
+            Text(playlist.playlist.description)
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

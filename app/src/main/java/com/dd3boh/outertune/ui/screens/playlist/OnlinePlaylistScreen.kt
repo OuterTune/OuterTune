@@ -353,6 +353,8 @@ fun OnlinePlaylistScreen(
                                                             database.transaction {
                                                                 val playlistEntity = PlaylistEntity(
                                                                     name = playlist.title,
+                                                                    description = playlist.description,
+                                                                    privacyStatus = playlist.privacyStatus,
                                                                     browseId = playlist.id,
                                                                     isEditable = playlist.isEditable,
                                                                     playEndpointParams = playlist.playEndpoint?.params,

@@ -51,11 +51,13 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.inject.Inject
@@ -511,6 +513,8 @@ class SyncUtils @Inject constructor(
                             if (localPlaylist == null) {
                                 localPlaylist = PlaylistEntity(
                                     name = remotePlaylist.title,
+                                    description = remotePlaylist.description,
+                                    privacyStatus = remotePlaylist.privacyStatus,
                                     browseId = remotePlaylist.id,
                                     isEditable = remotePlaylist.isEditable || remotePlaylist.author == null, // for some reason null == your account
                                     bookmarkedAt = LocalDateTime.now(),
@@ -549,37 +553,72 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun syncPlaylist(browseId: String, playlistId: String) {
+    suspend fun syncPlaylist(browseId: String, playlistId: String): Boolean {
         // this is also used for individual playlist sync
         if (!context.isInternetConnected()) {
-            return
+            return false
         }
-        YouTube.playlist(browseId).completed().onSuccess { playlistPage ->
+
+        YouTube.playlist(browseId).completed().onFailure {
+            reportException(it)
+            return false
+        }.onSuccess { playlistPage ->
+            val remotePlaylist = playlistPage.playlist
+
             if (!context.isInternetConnected()) {
-                return
+                return false
             }
 
-            coroutineScope {
-                launch(Dispatchers.IO) {
-                    database.transaction {
-                        clearPlaylist(playlistId)
-                        val songEntities = playlistPage.songs
-                            .map(SongItem::toMediaMetadata)
-                            .onEach { insert(it) }
+            database.transaction {
+                runBlocking { playlist(playlistId).firstOrNull() }?.also {
+                    update(it.playlist.copy(
+                        // These fields may change
+                        name = remotePlaylist.title,
+                        description = remotePlaylist.description,
+                        privacyStatus = remotePlaylist.privacyStatus,
+                        thumbnailUrl = remotePlaylist.thumbnail,
 
-                        val playlistSongMaps = songEntities.mapIndexed { position, song ->
-                            PlaylistSongMap(
-                                songId = song.id,
-                                playlistId = playlistId,
-                                position = position,
-                                setVideoId = song.setVideoId
-                            )
-                        }
-                        playlistSongMaps.forEach { insert(it) }
-                    }
+                        // You may be added and removed from playlist collaborators at any time
+                        isEditable = remotePlaylist.isEditable || remotePlaylist.author == null, // for some reason null == your account
+                    ))
+                } ?: run {
+                    insert(PlaylistEntity(
+                        name = remotePlaylist.title,
+                        description = remotePlaylist.description,
+                        privacyStatus = remotePlaylist.privacyStatus,
+                        browseId = remotePlaylist.id,
+                        isEditable = remotePlaylist.isEditable || remotePlaylist.author == null, // for some reason null == your account
+                        bookmarkedAt = LocalDateTime.now(),
+                        thumbnailUrl = remotePlaylist.thumbnail,
+                        remoteSongCount = remotePlaylist.songCountText?.let {
+                            Regex("""\d+""").find(it)?.value?.toIntOrNull()
+                        },
+                        playEndpointParams = remotePlaylist.playEndpoint?.params,
+                        shuffleEndpointParams = remotePlaylist.shuffleEndpoint?.params,
+                        radioEndpointParams = remotePlaylist.radioEndpoint?.params
+                    ))
                 }
+
+                clearPlaylist(playlistId)
+
+                val songEntities = playlistPage.songs
+                    .map(SongItem::toMediaMetadata)
+                    .onEach { insert(it) }
+
+                val playlistSongMaps = songEntities.mapIndexed { position, song ->
+                    PlaylistSongMap(
+                        songId = song.id,
+                        playlistId = playlistId,
+                        position = position,
+                        setVideoId = song.setVideoId
+                    )
+                }
+
+                playlistSongMaps.forEach { insert(it) }
             }
         }
+
+        return true
     }
 
     suspend fun syncRecentActivity(bypass: Boolean = false) {

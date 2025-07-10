@@ -81,6 +81,8 @@ data class ArtistItemsPage(
                 renderer.isPlaylist -> PlaylistItem(
                     id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL") ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                    description = "",
+                    privacyStatus = "PUBLIC",
                     author = renderer.subtitle?.runs?.getOrNull(2)?.let {
                         Artist(
                             name = it.text,
