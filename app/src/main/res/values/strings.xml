@@ -19,7 +19,7 @@ We recycle translations from upstream, they are pulled periodically. -->
     <!-- Home -->
     <string name="history">History</string>
     <string name="stats">Stats</string>
-    <string name="mood_and_genres">Mood and Genres</string>
+    <string name="mood_and_genres">Moods and genres</string>
     <string name="account">Account</string>
     <string name="quick_picks">Quick picks</string>
     <string name="quick_picks_empty">Listen to songs to generate your quick picks</string>
@@ -225,7 +225,7 @@ We recycle translations from upstream, they are pulled periodically. -->
     <string name="queue_searched_songs">Searched songs</string>
 
     <!-- Notification name -->
-    <string name="music_player">Music Player</string>
+    <string name="music_player">Music player</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
@@ -288,8 +288,8 @@ We recycle translations from upstream, they are pulled periodically. -->
 
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>
-    <string name="image_cache">Image Cache</string>
-    <string name="song_cache">Song Cache</string>
+    <string name="image_cache">Image cache</string>
+    <string name="song_cache">Song cache</string>
     <string name="max_cache_size">Max cache size</string>
     <string name="unlimited">Unlimited</string>
     <string name="clear_all_downloads">Clear all downloads</string>
@@ -324,17 +324,17 @@ We recycle translations from upstream, they are pulled periodically. -->
     <string name="backup_create_failed">Couldn\'t create backup</string>
     <string name="restore_failed">Failed to restore backup</string>
 
-    <string name="discord_integration">Discord Integration</string>
+    <string name="discord_integration">Discord integration</string>
     <string name="discord_information">OuterTune uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\nOuterTune will only extract your token, and everything else is stored locally.</string>
     <string name="dismiss">Dismiss</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>
-    <string name="enable_discord_rpc">Enable Rich Presence</string>
+    <string name="enable_discord_rpc">Enable Discord Rich Presence</string>
 
     <string name="about">About</string>
     <string name="app_version">App version</string>
 
     <string name="new_version_available">New version available</string>
-    <string name="translation_models">Translation Models</string>
+    <string name="translation_models">Translation models</string>
     <string name="clear_translation_models">Clear translation models</string>
 </resources>
