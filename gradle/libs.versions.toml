@@ -40,6 +40,7 @@ viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", ve
 viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+squigglyslider = { group = "me.saket.squigglyslider", name = "squigglyslider", version = "1.0.0" }
 
 coil = { group = "io.coil-kt", name = "coil-compose", version = "2.7.0" }
 
