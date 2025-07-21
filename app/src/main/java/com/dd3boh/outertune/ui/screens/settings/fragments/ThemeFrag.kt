@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.DEFAULT_PLAYER_BACKGROUND
 import com.dd3boh.outertune.constants.DarkMode
 import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.DynamicThemeKey
@@ -70,7 +71,7 @@ fun ColumnScope.ThemeAppFrag() {
 fun ColumnScope.ThemePlayerFrag() {
     val (playerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.FOLLOW_THEME
+        defaultValue = DEFAULT_PLAYER_BACKGROUND
     )
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
         it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
