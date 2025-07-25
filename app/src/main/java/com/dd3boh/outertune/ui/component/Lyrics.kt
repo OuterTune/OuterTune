@@ -554,7 +554,7 @@ fun splitTextToLines(
  */
 fun findCurrentLineIndex(lines: List<LyricLine>, position: Long): Int {
     for (index in lines.indices) {
-        if (lines[index].start >= (position).toUInt()) {
+        if (lines[index].start > (position).toUInt()) {
             return index - 1
         }
     }
