@@ -216,7 +216,6 @@ fun Lyrics(
         while (isActive) {
             // TODO: likely can improve power usage by disabling lyric refresh
             delay(lyricRefreshRate)
-            if (!playerConnection.isPlaying.value) continue
             val sliderPosition = sliderPositionProvider()
             isSeeking = sliderPosition != null
             currentLineIndex = findCurrentLineIndex(lines, sliderPosition ?: playerConnection.player.currentPosition)
