@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.EnableKugouKey
 import com.dd3boh.outertune.constants.EnableLrcLibKey
+import com.dd3boh.outertune.constants.LyricEmptyClickable
 import com.dd3boh.outertune.constants.LyricFontSizeKey
 import com.dd3boh.outertune.constants.LyricSourcePrefKey
 import com.dd3boh.outertune.constants.LyricTrimKey
@@ -101,6 +103,7 @@ fun ColumnScope.LyricFormatFrag() {
 fun ColumnScope.LyricParserFrag() {
     val (multilineLrc, onMultilineLrcChange) = rememberPreference(MultilineLrcKey, defaultValue = true)
     val (lyricTrim, onLyricTrimChange) = rememberPreference(LyricTrimKey, defaultValue = false)
+    val (emptyLyricClickable, onEmptyLyricClickable) = rememberPreference(LyricEmptyClickable, defaultValue = false)
 
     // multiline lyrics
     SwitchPreference(
@@ -117,6 +120,15 @@ fun ColumnScope.LyricParserFrag() {
         icon = { Icon(Icons.Rounded.ContentCut, null) },
         checked = lyricTrim,
         onCheckedChange = onLyricTrimChange
+    )
+
+    // Are empty lyrics clickable?
+    SwitchPreference(
+        title = { Text(stringResource(R.string.lyrics_empty_clickable)) },
+        description = stringResource(R.string.lyrics_empty_clickable_description),
+        icon = { Icon(Icons.Rounded.TouchApp, null) },
+        checked = emptyLyricClickable,
+        onCheckedChange = onEmptyLyricClickable
     )
 }
 
