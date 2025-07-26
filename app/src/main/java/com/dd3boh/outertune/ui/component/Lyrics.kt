@@ -218,6 +218,7 @@ fun Lyrics(
         while (isActive) {
             // TODO: likely can improve power usage by disabling lyric refresh
             delay(lyricRefreshRate)
+            if (!playerConnection.isPlaying.value) continue
             val sliderPosition = sliderPositionProvider()
             isSeeking = sliderPosition != null
             currentLineIndex = findCurrentLineIndex(lines, sliderPosition ?: playerConnection.player.currentPosition)
@@ -339,6 +340,8 @@ fun Lyrics(
                             .padding(horizontal = 24.dp, vertical = 8.dp)
                             .clickable(enabled = isSynced && (item.isClickable || emptyLyricsClickable)) {
                                 playerConnection.player.seekTo(item.start.toLong())
+                                currentLineIndex = index
+                                currentPos = item.start.toLong()
                                 lastPreviewTime = 0L
                                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
                             }
