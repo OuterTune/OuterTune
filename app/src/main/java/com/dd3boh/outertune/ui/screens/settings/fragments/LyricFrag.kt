@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.EnableKugouKey
 import com.dd3boh.outertune.constants.EnableLrcLibKey
-import com.dd3boh.outertune.constants.LyricEmptyClickable
+import com.dd3boh.outertune.constants.LyricSyncedClickable
 import com.dd3boh.outertune.constants.LyricFontSizeKey
 import com.dd3boh.outertune.constants.LyricSourcePrefKey
 import com.dd3boh.outertune.constants.LyricTrimKey
@@ -103,7 +103,7 @@ fun ColumnScope.LyricFormatFrag() {
 fun ColumnScope.LyricParserFrag() {
     val (multilineLrc, onMultilineLrcChange) = rememberPreference(MultilineLrcKey, defaultValue = true)
     val (lyricTrim, onLyricTrimChange) = rememberPreference(LyricTrimKey, defaultValue = false)
-    val (emptyLyricClickable, onEmptyLyricClickable) = rememberPreference(LyricEmptyClickable, defaultValue = false)
+    val (syncedLyricsClickable, onSyncedLyricsClickable) = rememberPreference(LyricSyncedClickable, defaultValue = true)
 
     // multiline lyrics
     SwitchPreference(
@@ -122,13 +122,13 @@ fun ColumnScope.LyricParserFrag() {
         onCheckedChange = onLyricTrimChange
     )
 
-    // Are empty lyrics clickable?
+    // Are synced lyrics clickable?
     SwitchPreference(
         title = { Text(stringResource(R.string.lyrics_empty_clickable)) },
         description = stringResource(R.string.lyrics_empty_clickable_description),
         icon = { Icon(Icons.Rounded.TouchApp, null) },
-        checked = emptyLyricClickable,
-        onCheckedChange = onEmptyLyricClickable
+        checked = syncedLyricsClickable,
+        onCheckedChange = onSyncedLyricsClickable
     )
 }
 
