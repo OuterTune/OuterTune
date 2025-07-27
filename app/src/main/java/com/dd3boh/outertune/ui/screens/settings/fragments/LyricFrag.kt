@@ -124,8 +124,8 @@ fun ColumnScope.LyricParserFrag() {
 
     // Are synced lyrics clickable?
     SwitchPreference(
-        title = { Text(stringResource(R.string.lyrics_empty_clickable)) },
-        description = stringResource(R.string.lyrics_empty_clickable_description),
+        title = { Text(stringResource(R.string.lyrics_synced_clickable)) },
+        description = stringResource(R.string.lyrics_synced_clickable_description),
         icon = { Icon(Icons.Rounded.TouchApp, null) },
         checked = syncedLyricsClickable,
         onCheckedChange = onSyncedLyricsClickable
