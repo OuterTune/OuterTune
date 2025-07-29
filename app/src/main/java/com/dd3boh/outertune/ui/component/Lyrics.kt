@@ -83,7 +83,7 @@ import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.DEFAULT_PLAYER_BACKGROUND
 import com.dd3boh.outertune.constants.DarkMode
 import com.dd3boh.outertune.constants.DarkModeKey
-import com.dd3boh.outertune.constants.LyricSyncedClickable
+import com.dd3boh.outertune.constants.LyricClickable
 import com.dd3boh.outertune.constants.LyricFontSizeKey
 import com.dd3boh.outertune.constants.LyricKaraokeEnable
 import com.dd3boh.outertune.constants.LyricUpdateSpeed
@@ -131,7 +131,7 @@ fun Lyrics(
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
     val lyricsFontSize by rememberPreference(LyricFontSizeKey, 20)
 
-    val syncedLyricsClickable by rememberPreference(LyricSyncedClickable, true)
+    val lyricsClickable by rememberPreference(LyricClickable, true)
     val lyricsFancy by rememberPreference(LyricKaraokeEnable, false)
     val lyricsUpdateSpeed by rememberEnumPreference(LyricUpdateSpeed, Speed.MEDIUM)
     var lyricRefreshRate = lyricsUpdateSpeed.toLrcRefreshMillis()
@@ -338,7 +338,8 @@ fun Lyrics(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp, vertical = 8.dp)
-                            .clickable(enabled = isSynced && syncedLyricsClickable) {
+                            // we allow clicking on blank lyrics, ignore item.isClickable
+                            .clickable(enabled = isSynced && lyricsClickable) {
                                 playerConnection.player.seekTo(item.start.toLong())
                                 currentLineIndex = index
                                 currentPos = item.start.toLong()

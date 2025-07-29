@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.EnableKugouKey
 import com.dd3boh.outertune.constants.EnableLrcLibKey
-import com.dd3boh.outertune.constants.LyricSyncedClickable
+import com.dd3boh.outertune.constants.LyricClickable
 import com.dd3boh.outertune.constants.LyricFontSizeKey
 import com.dd3boh.outertune.constants.LyricSourcePrefKey
 import com.dd3boh.outertune.constants.LyricTrimKey
@@ -45,6 +45,7 @@ fun ColumnScope.LyricFormatFrag() {
         LyricsTextPositionKey,
         defaultValue = LyricsPosition.CENTER
     )
+    val (syncedLyricsClickable, onSyncedLyricsClickable) = rememberPreference(LyricClickable, defaultValue = true)
 
     val (lyricFontSize, onLyricFontSizeChange) = rememberPreference(LyricFontSizeKey, defaultValue = 20)
 
@@ -70,6 +71,13 @@ fun ColumnScope.LyricFormatFrag() {
         description = "$lyricFontSize sp",
         icon = { Icon(Icons.Rounded.TextFields, null) },
         onClick = { showFontSizeDialog = true }
+    )
+    // clickable lyrics
+    SwitchPreference(
+        title = { Text(stringResource(R.string.lyrics_synced_clickable)) },
+        icon = { Icon(Icons.Rounded.TouchApp, null) },
+        checked = syncedLyricsClickable,
+        onCheckedChange = onSyncedLyricsClickable
     )
 
 
@@ -103,7 +111,6 @@ fun ColumnScope.LyricFormatFrag() {
 fun ColumnScope.LyricParserFrag() {
     val (multilineLrc, onMultilineLrcChange) = rememberPreference(MultilineLrcKey, defaultValue = true)
     val (lyricTrim, onLyricTrimChange) = rememberPreference(LyricTrimKey, defaultValue = false)
-    val (syncedLyricsClickable, onSyncedLyricsClickable) = rememberPreference(LyricSyncedClickable, defaultValue = true)
 
     // multiline lyrics
     SwitchPreference(
@@ -120,15 +127,6 @@ fun ColumnScope.LyricParserFrag() {
         icon = { Icon(Icons.Rounded.ContentCut, null) },
         checked = lyricTrim,
         onCheckedChange = onLyricTrimChange
-    )
-
-    // Are synced lyrics clickable?
-    SwitchPreference(
-        title = { Text(stringResource(R.string.lyrics_synced_clickable)) },
-        description = stringResource(R.string.lyrics_synced_clickable_description),
-        icon = { Icon(Icons.Rounded.TouchApp, null) },
-        checked = syncedLyricsClickable,
-        onCheckedChange = onSyncedLyricsClickable
     )
 }
 
