@@ -49,10 +49,13 @@ object YTPlayerUtils {
 
     /**
      * Clients used for fallback streams in case the streams of the main client do not work.
+     * Added more clients to handle various blocking scenarios and improve reliability.
      */
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,
         IOS,
+        WEB,
+        WEB_CREATOR,
     )
 
     data class PlaybackData(
@@ -180,23 +183,91 @@ object YTPlayerUtils {
         }
 
         if (streamPlayerResponse == null) {
-            throw Exception("Bad stream player response")
-        }
-        if (streamPlayerResponse.playabilityStatus.status != "OK") {
             throw PlaybackException(
-                streamPlayerResponse.playabilityStatus.reason,
+                "All YouTube clients failed to provide a valid response",
                 null,
                 PlaybackException.ERROR_CODE_REMOTE_ERROR
             )
         }
+        
+        // Handle specific YouTube error responses with better error messages and codes
+        if (streamPlayerResponse.playabilityStatus.status != "OK") {
+            val status = streamPlayerResponse.playabilityStatus.status
+            val reason = streamPlayerResponse.playabilityStatus.reason ?: "Unknown error"
+            
+            Log.w(TAG, "[$videoId] Playability error: $status - $reason")
+            
+            // Map specific YouTube errors to appropriate error codes
+            when {
+                reason.contains("Sign in to confirm you're not a bot", ignoreCase = true) ||
+                reason.contains("bot", ignoreCase = true) -> {
+                    throw PlaybackException(
+                        "Bot detection triggered. Try again later or use VPN.",
+                        null,
+                        PlaybackException.ERROR_CODE_AUTHENTICATION_EXPIRED
+                    )
+                }
+                reason.contains("private", ignoreCase = true) ||
+                status == "LOGIN_REQUIRED" -> {
+                    throw PlaybackException(
+                        "This video is private or requires login",
+                        null,
+                        PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED
+                    )
+                }
+                reason.contains("inappropriate", ignoreCase = true) ||
+                reason.contains("age", ignoreCase = true) -> {
+                    throw PlaybackException(
+                        "Content is age-restricted or inappropriate",
+                        null,
+                        PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED
+                    )
+                }
+                reason.contains("unavailable", ignoreCase = true) ||
+                status == "VIDEO_UNAVAILABLE" -> {
+                    throw PlaybackException(
+                        "Video is unavailable",
+                        null,
+                        PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND
+                    )
+                }
+                status == "UNPLAYABLE" -> {
+                    throw PlaybackException(
+                        "Video cannot be played (geo-blocked or removed)",
+                        null,
+                        PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED  
+                    )
+                }
+                else -> {
+                    throw PlaybackException(
+                        reason,
+                        null,
+                        PlaybackException.ERROR_CODE_REMOTE_ERROR
+                    )
+                }
+            }
+        }
+        
         if (streamExpiresInSeconds == null) {
-            throw Exception("Missing stream expire time")
+            throw PlaybackException(
+                "Stream URL expiration time is missing",
+                null,
+                PlaybackException.ERROR_CODE_REMOTE_ERROR
+            )
         }
         if (format == null) {
-            throw Exception("Could not find format")
+            throw PlaybackException(
+                "No suitable audio format found",
+                null,
+                PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
+            )
         }
         if (streamUrl == null) {
-            throw Exception("Could not find stream url")
+            throw PlaybackException(
+                "Could not extract stream URL",
+                null,
+                PlaybackException.ERROR_CODE_REMOTE_ERROR
+            )
         }
 
         Log.d(TAG, "[$videoId] stream url: $streamUrl")
@@ -237,20 +308,54 @@ object YTPlayerUtils {
             }
 
     /**
-     * Checks if the stream url returns a successful status.
+     * Checks if the stream url returns a successful status with retry logic.
      * If this returns true the url is likely to work.
      * If this returns false the url might cause an error during playback.
      */
     private fun validateStatus(url: String): Boolean {
-        try {
-            val requestBuilder = okhttp3.Request.Builder()
-                .head()
-                .url(url)
-            val response = httpClient.newCall(requestBuilder.build()).execute()
-            return response.isSuccessful
-        } catch (e: Exception) {
-            reportException(e)
+        val maxRetries = 2
+        var delay = 1000L // Start with 1 second delay
+        
+        repeat(maxRetries) { attempt ->
+            try {
+                val requestBuilder = okhttp3.Request.Builder()
+                    .head()
+                    .url(url)
+                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    
+                val response = httpClient.newCall(requestBuilder.build()).execute()
+                
+                when (response.code) {
+                    200 -> return true
+                    403 -> {
+                        Log.w(TAG, "Got 403 for stream URL (attempt ${attempt + 1})")
+                        if (attempt < maxRetries - 1) {
+                            Thread.sleep(delay)
+                            delay *= 2 // Exponential backoff
+                        }
+                    }
+                    429 -> {
+                        Log.w(TAG, "Rate limited (429) for stream URL (attempt ${attempt + 1})")
+                        if (attempt < maxRetries - 1) {
+                            Thread.sleep(delay * 2) // Longer delay for rate limiting
+                            delay *= 2
+                        }
+                    }
+                    else -> {
+                        Log.w(TAG, "Got HTTP ${response.code} for stream URL")
+                        return false
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Exception validating stream URL (attempt ${attempt + 1}): ${e.message}")
+                reportException(e)
+                if (attempt < maxRetries - 1) {
+                    Thread.sleep(delay)
+                    delay *= 2
+                }
+            }
         }
+        
         return false
     }
 

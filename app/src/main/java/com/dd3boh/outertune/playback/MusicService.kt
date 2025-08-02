@@ -215,6 +215,7 @@ class MusicService : MediaLibraryService(),
     private var isAudioEffectSessionOpened = false
 
     var consecutivePlaybackErr = 0
+    var currentSongRetryCount = 0
 
     override fun onCreate() {
         super.onCreate()
@@ -262,7 +263,7 @@ class MusicService : MediaLibraryService(),
                     override fun onPlayerError(error: PlaybackException) {
                         super.onPlayerError(error)
 
-                        // wait for reconnection
+                        // Handle network connection errors
                         val isConnectionError = (error.cause?.cause is PlaybackException)
                                 && (error.cause?.cause as PlaybackException).errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
                         if (!isNetworkConnected.value || isConnectionError) {
@@ -270,7 +271,45 @@ class MusicService : MediaLibraryService(),
                             return
                         }
 
-                        if (dataStore.get(SkipOnErrorKey, false)) {
+                        // Handle specific error types with appropriate actions
+                        val shouldRetry = when (error.errorCode) {
+                            PlaybackException.ERROR_CODE_AUTHENTICATION_EXPIRED -> {
+                                // Bot detection - retry with delay may help
+                                true
+                            }
+                            PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> {
+                                // Private/age-restricted content - skip immediately
+                                false
+                            }
+                            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> {
+                                // Video unavailable - skip immediately  
+                                false
+                            }
+                            PlaybackException.ERROR_CODE_DECODER_INIT_FAILED -> {
+                                // No suitable format - skip immediately
+                                false
+                            }
+                            else -> {
+                                // For other errors, use user setting
+                                dataStore.get(SkipOnErrorKey, false)
+                            }
+                        }
+
+                        // Show more informative error message
+                        val errorMessage = when (error.errorCode) {
+                            PlaybackException.ERROR_CODE_AUTHENTICATION_EXPIRED -> 
+                                "Bot detection: ${error.message}"
+                            PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> 
+                                "Access restricted: ${error.message}"
+                            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> 
+                                "Video unavailable: ${error.message}"
+                            PlaybackException.ERROR_CODE_DECODER_INIT_FAILED -> 
+                                "Format error: ${error.message}"
+                            else -> 
+                                "Playback error (${error.errorCode}): ${error.message}"
+                        }
+
+                        if (shouldRetry) {
                             skipOnError()
                         } else {
                             stopOnError()
@@ -278,7 +317,7 @@ class MusicService : MediaLibraryService(),
 
                         Toast.makeText(
                             this@MusicService,
-                            "plr: ${error.message} (${error.errorCode}): ${error.cause?.message ?: ""} ",
+                            errorMessage,
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -298,6 +337,10 @@ class MusicService : MediaLibraryService(),
                     // start playback again on seek
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                         super.onMediaItemTransition(mediaItem, reason)
+                        
+                        // Reset retry count on successful song transition
+                        currentSongRetryCount = 0
+                        
                         // +2 when and error happens, and -1 when transition. Thus when error, number increments by 1, else doesn't change
                         if (consecutivePlaybackErr > 0) {
                             consecutivePlaybackErr--
@@ -441,10 +484,29 @@ class MusicService : MediaLibraryService(),
     fun skipOnError() {
         /**
          * Auto skip to the next media item on error.
+         * First try to retry the current song up to 2 times before skipping.
          *
          * To prevent a "runaway diesel engine" scenario, force the user to take action after
          * too many errors come up too quickly. Pause to show player "stopped" state
          */
+        
+        // Try to retry current song first (helpful for transient errors like bot detection)
+        if (currentSongRetryCount < 2) {
+            currentSongRetryCount++
+            
+            // Add a small delay before retry to help with rate limiting
+            scope.launch {
+                kotlinx.coroutines.delay(1000L * currentSongRetryCount) // 1s, 2s delay
+                player.prepare()
+                player.play()
+            }
+            
+            Toast.makeText(this@MusicService, "Retrying current song (${currentSongRetryCount}/2)...", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Reset retry count for current song
+        currentSongRetryCount = 0
         consecutivePlaybackErr += 2
         val nextWindowIndex = player.nextMediaItemIndex
 
