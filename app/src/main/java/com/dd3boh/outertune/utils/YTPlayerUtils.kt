@@ -77,6 +77,7 @@ object YTPlayerUtils {
         playlistId: String? = null,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
+        validateStreamUrl: Boolean = true,
     ): Result<PlaybackData> = runCatching {
         Log.d(TAG, "Playback info requested: $videoId")
 
@@ -98,7 +99,7 @@ object YTPlayerUtils {
                 YouTube.visitorData
             }
 
-        Log.d(TAG, "[$videoId] signatureTimestamp: $signatureTimestamp, isLoggedIn: $isLoggedIn")
+        Log.d(TAG, "[$videoId] signatureTimestamp: $signatureTimestamp, isLoggedIn: $isLoggedIn, validateStreams: $validateStreamUrl")
 
         val (webPlayerPot, webStreamingPot) = getWebClientPoTokenOrNull(videoId, sessionId)?.let {
             Pair(it.playerRequestPoToken, it.streamingDataPoToken)
@@ -117,6 +118,7 @@ object YTPlayerUtils {
         var format: PlayerResponse.StreamingData.Format? = null
         var streamUrl: String? = null
         var streamExpiresInSeconds: Int? = null
+        val failedClients = mutableListOf<String>()
 
         var streamPlayerResponse: PlayerResponse? = null
         for (clientIndex in (-1 until STREAM_FALLBACK_CLIENTS.size)) {
@@ -172,19 +174,22 @@ object YTPlayerUtils {
                     /** skip [validateStatus] for last client */
                     break
                 }
-                if (validateStatus(streamUrl)) {
-                    // working stream found
-                    Log.i(TAG, "[$videoId] [${client.clientName}] found working stream")
+                if (!validateStreamUrl || validateStatus(streamUrl)) {
+                    // working stream found or validation disabled
+                    Log.i(TAG, "[$videoId] [${client.clientName}] found working stream${if (!validateStreamUrl) " (validation disabled)" else ""}")
                     break
                 } else {
                     Log.w(TAG, "[$videoId] [${client.clientName}] got bad http status code")
+                    failedClients.add("${client.clientName} (bad status)")
                 }
+            } else {
+                failedClients.add("${client.clientName} (${streamPlayerResponse?.playabilityStatus?.status ?: "null response"})")
             }
         }
 
         if (streamPlayerResponse == null) {
             throw PlaybackException(
-                "All YouTube clients failed to provide a valid response",
+                "All YouTube clients failed: ${failedClients.joinToString(", ")}",
                 null,
                 PlaybackException.ERROR_CODE_REMOTE_ERROR
             )

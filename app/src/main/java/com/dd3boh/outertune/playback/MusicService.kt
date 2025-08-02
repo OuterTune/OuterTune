@@ -81,6 +81,7 @@ import com.dd3boh.outertune.constants.PlayerVolumeKey
 import com.dd3boh.outertune.constants.RepeatModeKey
 import com.dd3boh.outertune.constants.SkipOnErrorKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
+import com.dd3boh.outertune.constants.ValidateStreamUrlKey
 import com.dd3boh.outertune.constants.minPlaybackDurKey
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.Event
@@ -898,6 +899,7 @@ class MusicService : MediaLibraryService(),
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
+                    validateStreamUrl = dataStore.get(ValidateStreamUrlKey, true),
                 )
             }.getOrElse { throwable ->
                 when (throwable) {

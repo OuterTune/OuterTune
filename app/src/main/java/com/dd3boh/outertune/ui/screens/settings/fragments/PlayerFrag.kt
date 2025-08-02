@@ -24,6 +24,7 @@ import com.dd3boh.outertune.constants.AutoLoadMoreKey
 import com.dd3boh.outertune.constants.SkipOnErrorKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
 import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
+import com.dd3boh.outertune.constants.ValidateStreamUrlKey
 import com.dd3boh.outertune.constants.minPlaybackDurKey
 import com.dd3boh.outertune.ui.component.CounterDialog
 import com.dd3boh.outertune.ui.component.EnumListPreference
@@ -101,6 +102,7 @@ fun AudioEffectsFrag() {
 fun PlaybackBehaviourFrag() {
     val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
     val (skipOnErrorKey, onSkipOnErrorChange) = rememberPreference(key = SkipOnErrorKey, defaultValue = false)
+    val (validateStreamUrl, onValidateStreamUrlChange) = rememberPreference(key = ValidateStreamUrlKey, defaultValue = true)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
         key = StopMusicOnTaskClearKey,
         defaultValue = false
@@ -121,6 +123,13 @@ fun PlaybackBehaviourFrag() {
         icon = { Icon(Icons.Rounded.FastForward, null) },
         checked = skipOnErrorKey,
         onCheckedChange = onSkipOnErrorChange
+    )
+    SwitchPreference(
+        title = { Text("Validate stream URLs") },
+        description = "Check stream URLs before playback. Disable if experiencing issues.",
+        icon = { Icon(Icons.Rounded.Sync, null) },
+        checked = validateStreamUrl,
+        onCheckedChange = onValidateStreamUrlChange
     )
     SwitchPreference(
         title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
