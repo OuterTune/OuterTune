@@ -82,7 +82,8 @@ junit = { group = "junit", name = "junit", version = "4.13.2" }
 taglib = { group = "com.github.Kyant0", name = "taglib", version.ref = "taglib" }
 
 #newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "v0.24.5" }
-newpipe-extractor = { group = "com.github.libre-tube", name = "NewPipeExtractor", version = "bcb7705" }
+#newpipe-extractor = { group = "com.github.libre-tube", name = "NewPipeExtractor", version = "bcb7705" }
+newpipe-extractor = { group = "com.github.InfinityLoop1308", name = "PipePipeExtractor", version = "4240401" }
 
 
 [plugins]
