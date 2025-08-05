@@ -8,6 +8,10 @@
 
 package com.dd3boh.outertune.ui.screens.settings
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -27,6 +31,7 @@ import androidx.compose.material.icons.rounded.ConfirmationNumber
 import androidx.compose.material.icons.rounded.DeveloperMode
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextRotationAngledown
 import androidx.compose.material.icons.rounded.WarningAmber
@@ -50,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.R
@@ -97,6 +103,13 @@ fun ExperimentalSettings(
     val (lyricUpdateSpeed, onLyricsUpdateSpeedChange) = rememberEnumPreference(LyricUpdateSpeed, Speed.MEDIUM)
     val (lyricsFancy, onLyricsFancyChange) = rememberPreference(LyricKaraokeEnable, false)
 
+    val isNowPlayingAvailable = Build.BRAND.equals("google", ignoreCase = true)
+    val nowPlayingCompatInstalled = context.packageManager.resolveActivity(
+        Intent("com.dd3boh.outertune.ACTION_NOWPLAYING_TEST"), PackageManager.MATCH_ALL
+    )
+    val nowPlayingContent = nowPlayingCompatInstalled
+        ?.let { "Now Playing compatibility module installed" }
+        ?: "Tap to install Now Playing compatibility module. This allows you to open OuterTune directly from Pixel's Now Playing feature"
 
     var nukeEnabled by remember {
         mutableStateOf(false)
@@ -116,6 +129,17 @@ fun ExperimentalSettings(
             icon = { Icon(Icons.Rounded.Devices, null) },
             checked = tabletUi,
             onCheckedChange = onTabletUiChange
+        )
+
+        if (isNowPlayingAvailable) PreferenceEntry(
+            title = { Text("Now Playing Compatibility") },
+            description = nowPlayingContent,
+            icon = { Icon(Icons.Rounded.MusicNote, null) },
+            onClick = { nowPlayingCompatInstalled?.let{
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = "package:com.google.android.music".toUri()
+                context.startActivity(intent)
+            } ?: run { /* TODO: Redirect to install */ } },
         )
 
         ElevatedCard(

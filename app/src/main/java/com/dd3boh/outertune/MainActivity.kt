@@ -26,6 +26,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -180,10 +181,12 @@ import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.SearchHistory
 import com.dd3boh.outertune.di.ImageCache
 import com.dd3boh.outertune.extensions.tabMode
+import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.DownloadUtil
 import com.dd3boh.outertune.playback.MusicService
 import com.dd3boh.outertune.playback.MusicService.MusicBinder
 import com.dd3boh.outertune.playback.PlayerConnection
+import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.BottomSheetMenu
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.MenuState
@@ -263,6 +266,7 @@ import com.dd3boh.outertune.utils.scanners.ScannerAbortException
 import com.dd3boh.outertune.utils.urlEncode
 import com.valentinilk.shimmer.LocalShimmerTheme
 import com.zionhuang.innertube.YouTube
+import com.zionhuang.innertube.YouTube.SearchFilter.Companion.FILTER_SONG
 import com.zionhuang.innertube.models.SongItem
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -766,6 +770,28 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+
+                    fun playFromSearch(query: String, startPlaying: Boolean) {
+                        coroutineScope.launch {
+                            YouTube.search(query, FILTER_SONG).onSuccess { result ->
+                                result.items.firstOrNull()?.let {
+                                    YouTube.queue(listOf(it.id)).onSuccess { result ->
+                                        val song = result.first()
+                                        if (startPlaying) {
+                                            playerConnection?.playQueue(
+                                                queue = ListQueue(
+                                                    title = song.title,
+                                                    items = listOf(song.toMediaMetadata())
+                                                )
+                                            )
+                                            playerBottomSheetState.expand(SpringSpec())
+                                        } else sharedSong = result.first()
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     LaunchedEffect(navBackStackEntry) {
                         if (navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
                             val searchQuery = withContext(Dispatchers.IO) {
@@ -833,11 +859,18 @@ class MainActivity : ComponentActivity() {
 
                     DisposableEffect(Unit) {
                         val listener = Consumer<Intent> { intent ->
-                            val uri =
-                                intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)?.toUri()
-                                ?: return@Consumer
-                            youtubeNavigator(uri)
+                            intent.data
+                                ?: (intent.extras?.getString(Intent.EXTRA_TEXT))
+                                    ?.toUri()?.let { youtubeNavigator(it) }
+
+                            if (intent.action == MEDIA_PLAY_FROM_SEARCH) {
+                                val startPlaying = intent.extras?.getBoolean("android.intent.extra.START_PLAYBACK") ?: false
+                                intent.extras?.getString("query")
+                                    ?.let { playFromSearch(it, startPlaying) }
+                            }
                         }
+
+                        listener.accept(intent)
 
                         addOnNewIntentListener(listener)
                         onDispose { removeOnNewIntentListener(listener) }
@@ -1623,6 +1656,9 @@ class MainActivity : ComponentActivity() {
         const val ACTION_SONGS = "com.dd3boh.outertune.action.SONGS"
         const val ACTION_ALBUMS = "com.dd3boh.outertune.action.ALBUMS"
         const val ACTION_PLAYLISTS = "com.dd3boh.outertune.action.PLAYLISTS"
+
+        const val MEDIA_PLAY_FROM_SEARCH = "android.media.action.MEDIA_PLAY_FROM_SEARCH"
+
     }
 }
 
