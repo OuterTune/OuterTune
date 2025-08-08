@@ -91,9 +91,9 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="check_for_update">Check for updates</string>
     <string name="checking_for_update">Checking for updates</string>
     <string name="device_info_title">Device information</string>
-    <string name="help_bug_report_action">Submit a bug report (Via Github)</string>
+    <string name="help_bug_report_action">Submit a bug report</string>
     <string name="help_contact_email_inquiries">Other inquires (Tap to copy Email)</string>
-    <string name="help_support_forum">Help and support (Via Github)</string>
+    <string name="help_support_forum">Help and support</string>
     <string name="no_updates_available">No updates available</string>
     <string name="oss_licenses_title">Open source licenses</string>
     <string name="wiki">Wiki</string>
@@ -127,15 +127,15 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Content settings -->
     <string name="like_autodownload">Automatically download your liked songs</string>
-    <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
+    <string name="token_adv_login_description">This is an advanced login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
     <string name="token_hidden">Tap to show token</string>
     <string name="token_shown">Tap again to copy or edit</string>
     <string name="sync_conflict_add_only">Keep all local content, add new remote content</string>
     <string name="sync_conflict_overwrite">Overwrite local content with remote content</string>
     <string name="sync_conflict_title">Conflict resolution</string>
     <string name="sync_mode">Sync mode</string>
-    <string name="sync_mode_ro">Read only (View remote content)</string>
-    <string name="sync_mode_rw">Read write (Also allow changes to remote content)</string>
+    <string name="sync_mode_ro">Read-only (view remote content)</string>
+    <string name="sync_mode_rw">Read and write (edit and view remote content)</string>
     <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
     <string name="wifi_only">Wi-Fi only</string>
 
@@ -143,17 +143,17 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="audio_offload">Enable offload</string>
     <string name="audio_offload_description">Use the offload audio path for audio playback. Disabling this may increase power usage but can be useful if you experience issues with audio playback or post processing</string>
     <string name="keep_alive_title">Prevent system killing app</string>
-    <string name="keep_alive_description">Use a persistent foreground service to prevent OuterTune from being closed in the background.</string>
+    <string name="keep_alive_description">Use a persistent foreground service to prevent OuterTune from being closed in the background</string>
     <string name="persistent_queue_desc_ot">Restore previous open queue(s) when the app starts</string>
     <string name="min_playback_duration">Minimum playback duration</string>
-    <string name="min_playback_duration_description">The minimum amount of a song that must be played before it is considered \"played\"</string>
+    <string name="min_playback_duration_description">The minimum amount of a song that must be played before it is considered played</string>
     <string name="swipe2Queue">Swipe to queue</string>
-    <string name="swipe2Queue_description">Swipe on a song to add it to "enqueue next" directly after currently playing song</string>
+    <string name="swipe2Queue_description">Swipe on a song to play it next</string>
 
 <!--Lyrics settings -->
     <string name="lyrics_font_Size">Font size</string>
-    <string name="lyrics_karaoke_title">Karaoke style lyrics.</string>
-    <string name="lyrics_karaoke_description">Enables word by word lyric syncing. Requires lyrics format support.</string>
+    <string name="lyrics_karaoke_title">Karaoke-style lyrics</string>
+    <string name="lyrics_karaoke_description">Enables word by word lyric syncing. Requires support from the lyrics format</string>
     <string name="lyrics_karaoke_hz_title">Adjust karaoke lyrics update speed</string>
     <string name="lyrics_multiline_title">Read multiline lyrics</string>
     <string name="lyrics_multiline_description">Treat all the lines between sync points as one lyric text</string>
@@ -188,7 +188,7 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Scanner progress strings-->
 	<string name="scanner_missing_ffmpeg">FFmpeg extractor not detected</string>
-    <string name="scanner_missing_storage_perm">The local media scanner requires storage permissions to function</string>
+    <string name="scanner_missing_storage_perm">The local media scanner require the storage permission to function</string>
 
     <string name="scanner_btn_idle">Scan</string>
     <string name="scanner_progress_complete">Scan complete</string>
@@ -217,8 +217,8 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="scanner_sensitivity_title">Configure scanner sensitivity</string>
     <string name="scanner_sensitivity_L0">Take first result provided by YouTube when searching on YouTube is enabled, otherwise match title</string>
     <string name="scanner_sensitivity_L1">Match title</string>
-    <string name="scanner_sensitivity_L2">Match title and artists</string>
-    <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
+    <string name="scanner_sensitivity_L2">Match artists and title</string>
+    <string name="scanner_sensitivity_L3">Match albums, artists, and title</string>
 
     <string name="scanner_type_title">Metadata extractor</string>
     <string name="scanner_type_taglib">Use integrated TagLib metadata extractor</string>
@@ -239,16 +239,16 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="dl_migrate_confirm">This will migrate ALL internal downloads to \"%s\", and this action cannot be undone. Continue?</string>
     <string name="dl_main_path_title">Set external download folder…</string>
     <string name="dl_main_path_description">Select downloads storage location</string>
-    <string name="dl_oobe_tooltip">Songs are download to the app\'s private internal storage. To download songs to the external storage, you need to choose a folder first. You can add, change or remove folders, or migrate Internal Downloads to External Downloads later in Settings.</string>
+    <string name="dl_oobe_tooltip">Songs are download to the app\'s private internal storage. To download songs to the external storage, you need to choose a folder first. You can edit folders or migrate internal downloads to external downloads later in the settings.</string>
     <string name="dl_rescan_title">Rescan download folders…</string>
     <string name="dl_rescan_description">Update the database and refresh the download registry if any files or folders have changed</string>
 	<string name="dl_rescan_confirm">Rescan all download folders now? This can take a few minutes depending on the size of your library.</string>
     <string name="dl_size_used_cache">Internal: %s used</string>
     <string name="dl_size_used_main">External: %s used</string>
     <string name="dl_size_used_extra">Extra imports: %s used</string>
-    <string name="dl_storage_tooltip">Internal Downloads are saved in the app’s private storage and aren’t accessible without root.
-        \n\nExternal Downloads are saved to your device’s external storage (e.g., /sdcard or micro SD cards) and can be accessed or edited directly with a file explorer. For the External Downloads folder, we recommend choosing an empty folder specifically for song downloads, as OuterTune may modify or delete files in that folder.
-        \n\nExtra Import folders are read-only and used for loading additional songs. OuterTune will never change or delete files in these folders. You can select these folders in the advanced section.
+    <string name="dl_storage_tooltip">Internal downloads are saved in the app’s private storage and aren’t accessible without root.
+        \n\nExternal downloads are saved to your device’s external storage and can be accessed or edited directly with a file explorer. For the external downloads folder, we recommend choosing an empty folder specifically for song downloads, as OuterTune may modify or delete files in that folder.
+        \n\nExtra import folders are read-only and used for loading additional songs. OuterTune will never change or delete files in these folders. You can select these folders in the advanced section.
         \n\nWhen you clear downloads, only internal songs are deleted. External Downloads and Extra Import songs must be removed manually, either through the song’s menu or manually via a file explorer.
         \n\nRescan download folders: Song downloads in the External Downloads and Extra Imports folders are NOT updated automatically. If you manually add, remove, or change files using a file explorer, you may need to rescan the download folders to update the app’s database. This option is available in the advanced section.
     </string>
@@ -273,14 +273,14 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="oobe_welcome_message">Welcome to OuterTune</string>
 
     <!-- Landing -->
-    <string name="oobe_ytm_integration">YouTube Music Integration</string>
+    <string name="oobe_ytm_integration">Listen to music on YouTube Music</string>
     <string name="oobe_ytm_integration_description">Access your favorite tracks seamlessly</string>
-    <string name="oobe_ad_free_exp">AD-Free Experience</string>
+    <string name="oobe_ad_free_exp">Ad-free experience</string>
     <string name="oobe_ad_free_exp_description">Enjoy uninterrupted music playback</string>
-    <string name="oobe_local_music_support">Extensive Local Music Support</string>
-    <string name="oobe_local_music_support_description">Play your music files (ex. MP3, OGG, FLAC, etc.)</string>
-    <string name="oobe_cross_platform_sync">Cross-Platform Sync</string>
-    <string name="oobe_cross_platform_sync_description">Keep your music in harmony across devices</string>
+    <string name="oobe_local_music_support">Local music support</string>
+    <string name="oobe_local_music_support_description">Play your local music files</string>
+    <string name="oobe_cross_platform_sync">Cross-platform sync</string>
+    <string name="oobe_cross_platform_sync_description">Keep your music in sync across devices</string>
     <string name="oobe_use_backup">I have a backup</string>
 
     <!-- Interface setup page -->
@@ -299,14 +299,14 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="oobe_downloads_subtitle">Choose a folder where downloaded songs will be saved.</string>
 
     <!-- Setup complete -->
-    <string name="oobe_complete_title">You\'re All Set!</string>
-    <string name="oobe_complete">OuterTune is set up and ready to use. Explore your music, discover new tracks, and enjoy the experience!</string>
+    <string name="oobe_complete_title">You\'re all set</string>
+    <string name="oobe_complete">OuterTune is set up and ready to use. Explore your music, discover new tracks, and enjoy the experience</string>
 
 <!-- M3U -->
-    <string name="import_failed_songs">Could not import</string>
+    <string name="import_failed_songs">Import failed</string>
     <string name="import_success_songs">Successfully imported</string>
     <string name="m3u_export">Export as M3U file</string>
-    <string name="m3u_import_failed"> "No songs found. Invalid M3U file, or no song matches were found"</string>
+    <string name="m3u_import_failed"> "No songs found. Invalid M3U file or no song matches were found"</string>
     <string name="m3u_import_playlist">Import a playlist (m3u)</string>
     <string name="m3u_import_playlist_failed">Failed to import</string>
     <string name="m3u_ytm_lookup">Search on YouTube Music for songs not found in the app database</string>
