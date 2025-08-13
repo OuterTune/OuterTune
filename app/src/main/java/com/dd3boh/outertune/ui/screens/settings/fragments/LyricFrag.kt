@@ -8,12 +8,18 @@
 package com.dd3boh.outertune.ui.screens.settings.fragments
 
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.Lyrics
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.TextRotationAngledown
 import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,19 +27,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.EnableKugouKey
 import com.dd3boh.outertune.constants.EnableLrcLibKey
 import com.dd3boh.outertune.constants.LyricClickable
 import com.dd3boh.outertune.constants.LyricFontSizeKey
+import com.dd3boh.outertune.constants.LyricKaraokeEnable
 import com.dd3boh.outertune.constants.LyricSourcePrefKey
 import com.dd3boh.outertune.constants.LyricTrimKey
+import com.dd3boh.outertune.constants.LyricUpdateSpeed
 import com.dd3boh.outertune.constants.LyricsPosition
 import com.dd3boh.outertune.constants.LyricsTextPositionKey
 import com.dd3boh.outertune.constants.MultilineLrcKey
-import com.dd3boh.outertune.ui.component.CounterDialog
+import com.dd3boh.outertune.constants.Speed
+import com.dd3boh.outertune.ui.dialog.CounterDialog
 import com.dd3boh.outertune.ui.component.EnumListPreference
+import com.dd3boh.outertune.ui.component.ListPreference
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.utils.rememberEnumPreference
@@ -45,8 +57,6 @@ fun ColumnScope.LyricFormatFrag() {
         LyricsTextPositionKey,
         defaultValue = LyricsPosition.CENTER
     )
-    val (syncedLyricsClickable, onSyncedLyricsClickable) = rememberPreference(LyricClickable, defaultValue = true)
-
     val (lyricFontSize, onLyricFontSizeChange) = rememberPreference(LyricFontSizeKey, defaultValue = 20)
 
     var showFontSizeDialog by remember {
@@ -71,13 +81,6 @@ fun ColumnScope.LyricFormatFrag() {
         description = "$lyricFontSize sp",
         icon = { Icon(Icons.Rounded.TextFields, null) },
         onClick = { showFontSizeDialog = true }
-    )
-    // clickable lyrics
-    SwitchPreference(
-        title = { Text(stringResource(R.string.lyrics_synced_clickable)) },
-        icon = { Icon(Icons.Rounded.TouchApp, null) },
-        checked = syncedLyricsClickable,
-        onCheckedChange = onSyncedLyricsClickable
     )
 
 
@@ -156,4 +159,52 @@ fun ColumnScope.LyricSourceFrag() {
         checked = preferLocalLyric,
         onCheckedChange = onPreferLocalLyric
     )
+}
+
+@Composable
+fun ColumnScope.LyricAdvancedFrag() {
+    val (lyricUpdateSpeed, onLyricsUpdateSpeedChange) = rememberEnumPreference(LyricUpdateSpeed, Speed.MEDIUM)
+    val (lyricsFancy, onLyricsFancyChange) = rememberPreference(LyricKaraokeEnable, false)
+    val (syncedLyricsClickable, onSyncedLyricsClickable) = rememberPreference(LyricClickable, defaultValue = true)
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        // clickable lyrics
+        SwitchPreference(
+            title = { Text(stringResource(R.string.lyrics_synced_clickable)) },
+            icon = { Icon(Icons.Rounded.TouchApp, null) },
+            checked = syncedLyricsClickable,
+            onCheckedChange = onSyncedLyricsClickable
+        )
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        SwitchPreference(
+            title = { Text(stringResource(R.string.lyrics_karaoke_title)) },
+            description = stringResource(R.string.lyrics_karaoke_description),
+            icon = { Icon(Icons.Rounded.TextRotationAngledown, null) },
+            checked = lyricsFancy,
+            onCheckedChange = onLyricsFancyChange
+        )
+
+        ListPreference(
+            title = { Text(stringResource(R.string.lyrics_karaoke_hz_title)) },
+            icon = { Icon(Icons.Rounded.Speed, null) },
+            selectedValue = lyricUpdateSpeed,
+            onValueSelected = onLyricsUpdateSpeedChange,
+            values = Speed.entries,
+            valueText = {
+                when (it) {
+                    Speed.SLOW -> stringResource(R.string.speed_slow)
+                    Speed.MEDIUM -> stringResource(R.string.speed_medium)
+                    Speed.FAST -> stringResource(R.string.speed_fast)
+                }
+            },
+            isEnabled = lyricsFancy
+        )
+    }
 }

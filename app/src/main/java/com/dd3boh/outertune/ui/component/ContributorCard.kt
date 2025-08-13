@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.ui.component.button.ResizableIconButton
 import com.dd3boh.outertune.utils.reportException
 
 @Composable
@@ -108,7 +109,6 @@ data class ContributorInfo(
     val url: String? = null
 )
 
-// TODO: localized contributor types
 enum class ContributorType {
     // General code contributor
     CONTRIBUTOR,

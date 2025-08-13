@@ -55,11 +55,8 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Repeat
-import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Checkbox
@@ -87,7 +84,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -124,6 +120,7 @@ import com.dd3boh.outertune.constants.MiniPlayerHeight
 import com.dd3boh.outertune.constants.PlayerHorizontalPadding
 import com.dd3boh.outertune.extensions.metadata
 import com.dd3boh.outertune.extensions.move
+import com.dd3boh.outertune.extensions.supportsWideScreen
 import com.dd3boh.outertune.extensions.tabMode
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.extensions.toggleRepeatMode
@@ -132,16 +129,19 @@ import com.dd3boh.outertune.models.MultiQueueObject
 import com.dd3boh.outertune.ui.component.BottomSheet
 import com.dd3boh.outertune.ui.component.BottomSheetState
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
-import com.dd3boh.outertune.ui.component.MediaMetadataListItem
-import com.dd3boh.outertune.ui.component.ResizableIconButton
+import com.dd3boh.outertune.ui.component.items.MediaMetadataListItem
+import com.dd3boh.outertune.ui.component.button.ResizableIconButton
 import com.dd3boh.outertune.ui.component.SelectHeader
 import com.dd3boh.outertune.ui.menu.PlayerMenu
 import com.dd3boh.outertune.ui.menu.QueueMenu
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -188,7 +188,6 @@ fun QueueSheet(
             queueState = state,
             onTerminate = onTerminate,
             playerState = playerBottomSheetState,
-            onBackgroundColor = onBackgroundColor,
             navController = navController
         )
     }
@@ -198,7 +197,6 @@ fun QueueSheet(
 fun QueueScreen(
     onTerminate: () -> Unit,
     playerBottomSheetState: BottomSheetState,
-    onBackgroundColor: Color,
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
@@ -213,18 +211,17 @@ fun QueueScreen(
         QueueContent(
             onTerminate = onTerminate,
             playerState = playerBottomSheetState,
-            onBackgroundColor = onBackgroundColor,
             navController = navController
         )
     }
 }
 
+@OptIn(FlowPreview::class)
 @Composable
 fun BoxScope.QueueContent(
     queueState: BottomSheetState? = null,
     playerState: BottomSheetState,
     onTerminate: () -> Unit,
-    onBackgroundColor: Color,
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -250,7 +247,8 @@ fun BoxScope.QueueContent(
 
     // ui
     val tabMode = context.tabMode()
-    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && !tabMode
+    val wideScreen = context.supportsWideScreen()
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && !tabMode && wideScreen
 
     // multi queue vars
     var mqExpand by remember { mutableStateOf(false) }
@@ -260,7 +258,6 @@ fun BoxScope.QueueContent(
     var playingQueue by remember { mutableIntStateOf(-1) }
 
     // current queue vars
-    val queueTitle by playerConnection.queueTitle.collectAsState()
     val queueWindows by playerConnection.queueWindows.collectAsState()
 
     /**
@@ -284,11 +281,14 @@ fun BoxScope.QueueContent(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
-    val filteredSongs = remember(mutableSongs, query) {
-        if (query.text.isEmpty()) mutableSongs
+    var searchQuery by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue())
+    }
+    val filteredSongs = remember(mutableSongs, searchQuery) {
+        if (searchQuery.text.isEmpty()) mutableSongs
         else mutableSongs.filter { song ->
-            song.title.contains(query.text, ignoreCase = true) == true
-                    || song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) == true } == true
+            song.title.contains(searchQuery.text, ignoreCase = true)
+                    || song.artists.fastAny { it.name.contains(searchQuery.text, ignoreCase = true) }
         }
     }
     val focusRequester = remember { FocusRequester() }
@@ -298,6 +298,11 @@ fun BoxScope.QueueContent(
         }
     }
 
+    LaunchedEffect(query) {
+        snapshotFlow { searchQuery }.debounce { 300L }.collectLatest {
+            searchQuery = query
+        }
+    }
 
     if (inSelectMode) {
         BackHandler(onBack = onExitSelectionMode)
@@ -547,7 +552,7 @@ fun BoxScope.QueueContent(
                                 Text(
                                     text = "${index + 1}. ${mq.title}",
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    overflow = TextOverflow.MiddleEllipsis,
                                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 0.dp)
                                 )
                             }
@@ -819,6 +824,8 @@ fun BoxScope.QueueContent(
 
 // queue info + player controls
     val bottomNav: @Composable ColumnScope.() -> Unit = {
+
+
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.secondaryContainer)
@@ -867,7 +874,7 @@ fun BoxScope.QueueContent(
                             }
                     ) {
                         Text(
-                            text = detachedQueue?.title ?: queueTitle.orEmpty(),
+                            text = detachedQueue?.title ?: mutableQueues.getOrNull(playingQueue)?.title ?: "",
                             style = MaterialTheme.typography.titleMedium,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
@@ -920,6 +927,7 @@ fun BoxScope.QueueContent(
 
             // player controls
             if (queueState != null) {
+                val iconButtonColor = MaterialTheme.colorScheme.onSecondaryContainer
                 Row(
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically,
@@ -929,13 +937,12 @@ fun BoxScope.QueueContent(
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton(
-                            icon = Icons.Rounded.Shuffle,
+                            if (shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle_off,
                             modifier = Modifier
                                 .size(32.dp)
                                 .padding(4.dp)
-                                .align(Alignment.Center)
-                                .alpha(if (shuffleModeEnabled) 1f else 0.3f),
-                            color = onBackgroundColor,
+                                .align(Alignment.Center),
+                            color = iconButtonColor,
                             onClick = {
                                 playerConnection.triggerShuffle()
                                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
@@ -950,7 +957,7 @@ fun BoxScope.QueueContent(
                             modifier = Modifier
                                 .size(32.dp)
                                 .align(Alignment.Center),
-                            color = onBackgroundColor,
+                            color = iconButtonColor,
                             onClick = {
                                 playerConnection.player.seekToPrevious()
                                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
@@ -966,7 +973,7 @@ fun BoxScope.QueueContent(
                             modifier = Modifier
                                 .size(36.dp)
                                 .align(Alignment.Center),
-                            color = onBackgroundColor,
+                            color = iconButtonColor,
                             onClick = {
                                 if (playbackState == STATE_ENDED) {
                                     playerConnection.player.seekTo(0, 0)
@@ -989,7 +996,7 @@ fun BoxScope.QueueContent(
                             modifier = Modifier
                                 .size(32.dp)
                                 .align(Alignment.Center),
-                            color = onBackgroundColor,
+                            color = iconButtonColor,
                             onClick = {
                                 playerConnection.player.seekToNext()
                                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
@@ -1000,16 +1007,16 @@ fun BoxScope.QueueContent(
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton(
                             icon = when (repeatMode) {
-                                REPEAT_MODE_OFF, REPEAT_MODE_ALL -> Icons.Rounded.Repeat
-                                REPEAT_MODE_ONE -> Icons.Rounded.RepeatOne
+                                REPEAT_MODE_OFF -> R.drawable.repeat_off
+                                REPEAT_MODE_ALL -> R.drawable.repeat_on
+                                REPEAT_MODE_ONE -> R.drawable.repeat_one
                                 else -> throw IllegalStateException()
                             },
                             modifier = Modifier
                                 .size(32.dp)
                                 .padding(4.dp)
-                                .align(Alignment.Center)
-                                .alpha(if (repeatMode == REPEAT_MODE_OFF) 0.3f else 1f),
-                            color = onBackgroundColor,
+                                .align(Alignment.Center),
+                            color = iconButtonColor,
                             onClick = {
                                 playerConnection.player.toggleRepeatMode()
                                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)

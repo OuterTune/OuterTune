@@ -45,7 +45,7 @@ val imageSession = newFixedThreadPoolContext(MAX_IMAGE_JOBS, "ImageExtractor")
 fun AsyncImageLocal(
     image: () -> Bitmap?,
     modifier: Modifier = Modifier,
-    placeholderIcon: ImageVector = Icons.Rounded.MusicNote,
+    placeholderIcon: ImageVector? = Icons.Rounded.MusicNote,
     contentScale: ContentScale = ContentScale.Fit,
     contentDescription: String? = null,
 ) {
@@ -64,13 +64,15 @@ fun AsyncImageLocal(
 
     imageBitmapState.let { imageBitmap ->
         if (imageBitmap == null) {
-            Icon(
-                placeholderIcon,
-                contentDescription = contentDescription,
-                tint = MaterialTheme.colorScheme.secondary,
-                modifier = modifier
-                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(16.dp))
-            )
+            placeholderIcon?.let {
+                Icon(
+                    it,
+                    contentDescription = contentDescription,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = modifier
+                        .background(MaterialTheme.colorScheme.surfaceColorAtElevation(16.dp))
+                )
+            }
         } else {
             Image(
                 bitmap = imageBitmap,

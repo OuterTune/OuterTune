@@ -16,6 +16,8 @@ data class MediaMetadata(
     val artists: List<Artist>,
     val duration: Int,
     val thumbnailUrl: String? = null,
+    val trackNumber: Int? = null,
+    val discNumber: Int? = null,
     val album: Album? = null,
     val genre: List<Genre>?,
     val year: Int? = null,
@@ -53,6 +55,8 @@ data class MediaMetadata(
         title = title,
         duration = duration,
         thumbnailUrl = if (isLocal) null else thumbnailUrl,
+        trackNumber = trackNumber,
+        discNumber = discNumber,
         albumId = album?.id,
         albumName = album?.title,
         year = year,
@@ -107,6 +111,8 @@ fun Song.toMediaMetadata() = MediaMetadata(
     },
     duration = song.duration,
     thumbnailUrl = if (song.isLocal) null else song.thumbnailUrl,
+    trackNumber = song.trackNumber,
+    discNumber = song.discNumber,
     album = album?.let {
         MediaMetadata.Album(
             id = it.id,

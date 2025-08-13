@@ -1,0 +1,30 @@
+Version 0.9.3
+
+## New features
+• Added support for track and disk number for local songs. Support for sorting by track number in folders screen
+• Added sorting by date modified and date released for local playlists. (Date modified and date released are only supported for local songs)
+• Sort preference for folder screen is now separate from song screens
+• Added M3U export for folders
+• Light theme in player screen for blur/gradient backgrounds
+
+
+## Changes and improvements
+• Queues can now be renamed
+• Adding a song to an existing queue now turns it into an extension queue (a queue with a "+" symbol at the end). Previously this would create a new copy of the queue
+• Removed popup fab on most screens, moved functionality into menu
+• Add fallback images for songs without artwork
+• Improve shuffle and repeat button readability by using different icons instead of darker/lighter colours
+• Improve player sheet artwork padding on smaller screens
+• Adjust bottom sheet transition to be slower but smoother
+• Better landscape split•screen ui usability for phone screens
+• Improve Karaoke lyrics display
+• Karaoke lyrics are no longer an experimental feature. The setting has been moved to the advanced pane of lyrics settings
+• Updated translations
+• General optimizations, improvements, and fixes
+
+
+## Bug fixes
+• Artwork does not show for local albums (You likely need to run the local media scanner with "rescan" enabled to see effects)
+• Fix artwork not displaying for playlists with local songs
+• Fixed crash: "IllegalArgumentException: cannot use a recycled source in createBitmap"
+• File size for local songs are shown to be slightly smaller than they should be

@@ -46,8 +46,8 @@ import com.dd3boh.outertune.constants.EnabledTabsKey
 import com.dd3boh.outertune.constants.LocalLibraryEnableKey
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
-import com.dd3boh.outertune.ui.component.DefaultDialog
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.dialog.DefaultDialog
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.screens.settings.fragments.LocalScannerExtraFrag

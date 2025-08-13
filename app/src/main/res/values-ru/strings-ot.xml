@@ -98,7 +98,7 @@
         <item quantity="other">%d песен найдено</item>
     </plurals>
     <string name="scanner_strict_file_name_description">Если включено, имена файлов НЕ будут игнорироваться. Например: «Песня.ogg» и «Песня.flac» будут считаться разными треками. Настройки чувствительности сканера всё равно применяются</string>
-    <string name="scanner_missing_storage_perm">Сканеру требуются разрешения на доступ к хранилищу</string>
+    <string name="scanner_missing_storage_perm">Локальному сканеру медиа требуются разрешения на доступ к хранилищу для работы</string>
     <string name="dev_settings_title">Включить настройки для разработчиков</string>
     <string name="dev_settings_description">Открывает дополнительные настройки, используемые во время разработки</string>
     <string name="oobe_welcome_message">Добро пожаловать в OuterTune</string>
@@ -189,7 +189,7 @@
     <string name="dl_main_path_description">Выберите место хранения загрузок</string>
     <string name="dl_rescan_title">Повторное сканирование папок загрузки…</string>
     <string name="oobe_ytm_integration">Интеграция музыки с YouTube</string>
-    <string name="oobe_ad_free_exp">Опыт работы без рекламы</string>
+    <string name="oobe_ad_free_exp">Без рекламы на YouTube</string>
     <string name="oobe_ad_free_exp_description">Наслаждайтесь непрерывным воспроизведением музыки</string>
     <string name="oobe_cross_platform_sync">Кросс-платформенная синхронизация</string>
     <string name="oobe_local_media_title">Локальное медиа</string>
@@ -208,14 +208,14 @@
     <string name="oobe_local_music_support">Обширная музыкальная поддержка</string>
     <string name="clear_downloads_confirm">Вы уверены, что хотите удалить все загрузки? Будут удалены только загрузки из основной папки загрузки.</string>
     <string name="clear_song_cache_confirm">Вы уверены, что хотите очистить кэш песен?</string>
-    <string name="oobe_ytm_logon_subtitle">­Войдите в свою музыкальную учетную запись YouTube, чтобы синхронизировать содержимое личной учетной записи и получить к нему доступ. Это необязательно.</string>
+    <string name="oobe_ytm_logon_subtitle">Войдите в учётную запись YouTube Music, чтобы синхронизировать данные и получить доступ к личному контенту. Это необязательно.</string>
     <string name="dl_migrate_confirm">Это приведет к переносу ВСЕХ внутренних загрузок в \"%s\", и отменить это действие будет невозможно. Продолжить?</string>
     <string name="dl_migrate_description">Переместить загружаемые файлы из внутреннего хранилища приложения во внешнее хранилище устройства</string>
     <string name="dl_rescan_confirm">Выполнить повторное сканирование всех папок для загрузки прямо сейчас? Это может занять несколько минут в зависимости от размера вашей библиотеки.</string>
     <string name="dl_rescan_description">Обновить базу данных и реестр загружаемых файлов, если какие-либо файлы или папки изменились</string>
     <string name="dl_extra_path_description">Песни из этих папок появятся в приложении только в том случае, если вы уже проигрывали их ранее или добавляли в список воспроизведения</string>
     <string name="dl_main_path_title">Установить внешнюю папку загрузок…</string>
-    <string name="dl_calculate_size">Нажмите, чтобы вычислить размер загрузки</string>
+    <string name="dl_calculate_size">Нажмите, чтобы рассчитать размер загрузки</string>
     <string name="dl_size_used_extra">Дополнительные импорты: %s использовано</string>
     <string name="dl_size_used_cache">Внутреннее: %s использовано</string>
     <string name="dl_size_used_main">Внешнее: %s использовано</string>
@@ -230,4 +230,18 @@
     <string name="err_invalid_ytm_song">Не удалось воспроизвести песню. Можно воспроизводить только контент, доступный в YouTube Music</string>
     <string name="err_restore_incompatible_database">Не удалось восстановить несовместимую базу данных</string>
     <string name="m3u_import_failed">Песни не найдены. Файл M3U недействителен или соответствующие треки отсутствуют</string>
+    <string name="tap_show_more">Нажмите, чтобы узнать больше</string>
+    <string name="all_contributors">Показать всех участников</string>
+    <string name="att_contributor">Участник</string>
+    <string name="att_lead_developer">Ведущий разработчик</string>
+    <string name="att_maintainer">Сопровождающий</string>
+    <string name="att_project_support">Поддержка проекта</string>
+    <string name="att_translator">Переводчик (%s)</string>
+    <string name="lyrics_synced_clickable">Кликабельные тексты песен</string>
+    <string name="sort_by_track_number">По номеру трека</string>
+    <string name="bits_per_sample">Битовая глубина</string>
+    <string name="disc_number">Номер диска</string>
+    <string name="extra_details">Доп. сведения</string>
+    <string name="file_path">Путь к файлу</string>
+    <string name="track_number">Номер трека</string>
 </resources>

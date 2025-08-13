@@ -220,4 +220,22 @@
     <string name="clear_image_cache_confirm">Czy chcesz na peron usunąć pamięć zdjęć? Wszystkie istniejące miniaturki albumów zostaną usunięte.</string>
     <string name="dl_storage_tooltip">Pobrania wewnętrzne są zapisywane w pamięci wewnętrznej aplikacji i nie są dostępne bez zrootowania urządzenia..\n\nPobrania zewnętrzne są zapisywane do pamięci zewnętrznej urządzenia (np. /SD card lub mikro kart SD) I mogą zostać edytowane bezpośrednio poprzez eksplorator plików. Dla folderu pobrań zewnętrznych, rekomendujemy wybranie pustego folderu specyficznie dla piosenek, jako że OuterTune będzie mieć możliwość modyfikowania i usuwania plików w tym folderze.\n\nFoldery extra import so to foldery tylko to odczytu i służą do ładowania dodatkowych piosenek. OuterTune night nie zmieni lub usunie plików w tym folderze . Możesz wybrać te foldery w sekcji ustawienia zaawansowane.\n\nKiedy usuwasz pobrania,tylko wewnętrzne piosenki są usuwane. Piosenki znajdujące się w pobraniach zewnętrznych oraz Extra Import muszą być usuwane własnoręcznie, poprzez menu piosenek albo eksplorator plików.\n\nPonownie zeskanuj foldery: Pobrane piosenki znajdujące się w pobraniach zewnętrznych oraz w folderach Extra Import nie są aktualizowane automatycznie. Jeżeli własnoręcznie dodasz, usuniesz lub edytujesz plik używając eksploratora plików, być może będziesz musieć ponownie zeskanować folder pobrań by zaktualizować bazę danych aplikacji. Ta opcja jest dostępna w ustawieniach zaawansowanych.</string>
     <string name="oobe_ytm_logon_subtitle">Zaloguj się do swojego konta YouTube Music by dokonać synchronizacji oraz otrzymać dostęp do prywatnych treści z tego konta. Ta opcja jest opcjonalna.</string>
+    <string name="att_translator">Tłumacz (%s)</string>
+    <string name="lyrics_synced_clickable">Klikalny tekst</string>
+    <string name="err_restore_incompatible_database">Nie można odtworzyć niekompatybilnej bazy danych</string>
+    <string name="m3u_import_failed">Nie znaleziono piosenek. Nie prawidłowy plik M3U lub nie znaleziono pasujących piosenek</string>
+    <string name="tap_show_more">Kliknij, by uzyskać więcej informacji</string>
+    <string name="err_invalid_ytm_song">Nieudano włączyć piosenke. Można włączyć tylko treści z Youtube Music.</string>
+    <string name="app_info_title">Informacje o aplikacji</string>
+    <string name="device_info_title">Informacje o urządzeniu</string>
+    <string name="help_bug_report_action">Wyślij zgłoszenie błędu (przez Github)</string>
+    <string name="help_contact_email_inquiries">Inne zapytania (Nacisńij, by skopiować Email)</string>
+    <string name="help_support_forum">Wspieraj i pomóż (przez Github)</string>
+    <string name="wiki">Wiki</string>
+    <string name="all_contributors">Pokaż wszystkich współtwórców</string>
+    <string name="att_contributor">Współtwórca</string>
+    <string name="att_lead_developer">Główny developer</string>
+    <string name="att_maintainer">Konserwator</string>
+    <string name="att_project_support">Wsparcie projektu</string>
+    <string name="scanner_sensitivity_L0">Wybierz pierwszy wynik podany przez YouTube, gdy wyszukiwanie na YouTube jest włączone, w przeciwnym razie dopasuj tytuł</string>
 </resources>

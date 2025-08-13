@@ -61,10 +61,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Repeat
-import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.Replay
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -86,7 +83,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -129,6 +125,7 @@ import com.dd3boh.outertune.constants.ShowLyricsKey
 import com.dd3boh.outertune.constants.SwipeToSkipKey
 import com.dd3boh.outertune.extensions.isPowerSaver
 import com.dd3boh.outertune.extensions.metadata
+import com.dd3boh.outertune.extensions.supportsWideScreen
 import com.dd3boh.outertune.extensions.tabMode
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.extensions.toggleRepeatMode
@@ -137,7 +134,7 @@ import com.dd3boh.outertune.ui.component.AsyncImageLocal
 import com.dd3boh.outertune.ui.component.BottomSheet
 import com.dd3boh.outertune.ui.component.BottomSheetState
 import com.dd3boh.outertune.ui.component.PlayerSliderTrack
-import com.dd3boh.outertune.ui.component.ResizableIconButton
+import com.dd3boh.outertune.ui.component.button.ResizableIconButton
 import com.dd3boh.outertune.ui.component.rememberBottomSheetState
 import com.dd3boh.outertune.ui.menu.PlayerMenu
 import com.dd3boh.outertune.ui.theme.extractGradientColors
@@ -239,8 +236,10 @@ fun BottomSheetPlayer(
         else ->
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface
-            else
-                MaterialTheme.colorScheme.onPrimary
+            else {
+                val c = MaterialTheme.colorScheme.secondary
+                c.copy(alpha = 1f, red = c.red - 0.2f, green = c.green - 0.2f, blue = c.blue - 0.2f)
+            }
     }
 
     val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
@@ -311,9 +310,7 @@ fun BottomSheetPlayer(
     BottomSheet(
         state = state,
         modifier = modifier,
-        backgroundColor = if (useDarkTheme || playerBackground == PlayerBackgroundStyle.FOLLOW_THEME) {
-            MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-        } else MaterialTheme.colorScheme.onSurfaceVariant,
+        backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
         collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
         onDismiss = {
             playerConnection.player.stop()
@@ -328,6 +325,7 @@ fun BottomSheetPlayer(
         }
     ) {
         val tabMode = context.tabMode()
+        val wideScreen = context.supportsWideScreen()
 
         val actionButtons: @Composable RowScope.() -> Unit = {
             Spacer(modifier = Modifier.width(10.dp))
@@ -522,12 +520,11 @@ fun BottomSheetPlayer(
 
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
-                        icon = Icons.Rounded.Shuffle,
+                        icon = if (shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle_off,
                         modifier = Modifier
                             .size(32.dp)
                             .padding(4.dp)
-                            .align(Alignment.Center)
-                            .alpha(if (shuffleModeEnabled) 1f else 0.5f),
+                            .align(Alignment.Center),
                         color = onBackgroundColor,
                         onClick = {
                             playerConnection.triggerShuffle()
@@ -600,15 +597,15 @@ fun BottomSheetPlayer(
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = when (repeatMode) {
-                            REPEAT_MODE_OFF, REPEAT_MODE_ALL -> Icons.Rounded.Repeat
-                            REPEAT_MODE_ONE -> Icons.Rounded.RepeatOne
+                            REPEAT_MODE_OFF -> R.drawable.repeat_off
+                            REPEAT_MODE_ALL -> R.drawable.repeat_on
+                            REPEAT_MODE_ONE -> R.drawable.repeat_one
                             else -> throw IllegalStateException()
                         },
                         modifier = Modifier
                             .size(32.dp)
                             .padding(4.dp)
-                            .align(Alignment.Center)
-                            .alpha(if (repeatMode == REPEAT_MODE_OFF) 0.5f else 1f),
+                            .align(Alignment.Center),
                         color = onBackgroundColor,
                         onClick = {
                             playerConnection.player.toggleRepeatMode()
@@ -619,72 +616,72 @@ fun BottomSheetPlayer(
             }
         }
 
-        AnimatedVisibility(
-            visible = !context.isPowerSaver() && state.isExpanded,
-            enter = fadeIn(tween(500)),
-            exit = fadeOut(tween(500))
-        ) {
-            AnimatedContent(
-                targetState = mediaMetadata,
-                transitionSpec = {
-                    fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000)))
-                }
-            ) { metadata ->
-                if (playerBackground == PlayerBackgroundStyle.BLUR) {
-                    if (metadata?.isLocal == true) {
-                        metadata.let {
-                            AsyncImageLocal(
-                                image = { imageCache.getLocalThumbnail(it.localPath) },
-                                contentScale = ContentScale.FillBounds,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .blur(200.dp)
-                            )
-                        }
-                    } else {
-                        AsyncImage(
-                            model = metadata?.thumbnailUrl,
-                            contentDescription = null,
+        val overlayColor = if (useDarkTheme) Color.Black.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.55f)
+        AnimatedContent(
+            targetState = mediaMetadata,
+            transitionSpec = {
+                fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000)))
+            }
+        ) { metadata ->
+            if (playerBackground == PlayerBackgroundStyle.BLUR) {
+                if (metadata?.isLocal == true) {
+                    metadata.let {
+                        AsyncImageLocal(
+                            image = { imageCache.getLocalThumbnail(it.localPath) },
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .blur(200.dp)
+                                .blur(if (useDarkTheme) 150.dp else 100.dp)
                         )
                     }
-
-                    Box(
+                } else {
+                    AsyncImage(
+                        model = metadata?.thumbnailUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f))
+                            .blur(if (useDarkTheme) 150.dp else 100.dp)
                     )
                 }
-            }
 
-            AnimatedContent(
-                targetState = gradientColors,
-                transitionSpec = {
-                    fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000)))
-                }
-            ) { colors ->
-                if (playerBackground == PlayerBackgroundStyle.GRADIENT && colors.size >= 2) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Brush.verticalGradient(colors), alpha = 0.8f)
-                    )
-                }
-            }
-
-            if (playerBackground != PlayerBackgroundStyle.FOLLOW_THEME && showLyrics) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f))
+                        .background(overlayColor)
                 )
             }
         }
 
-        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && !tabMode) {
+        AnimatedContent(
+            targetState = gradientColors,
+            transitionSpec = {
+                fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000)))
+            }
+        ) { colors ->
+            if (playerBackground == PlayerBackgroundStyle.GRADIENT && colors.size >= 2) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.verticalGradient(colors), alpha = 0.8f)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(overlayColor)
+                )
+            }
+        }
+
+        if (playerBackground != PlayerBackgroundStyle.FOLLOW_THEME && showLyrics) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(if (useDarkTheme) Color.Black.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.5f))
+            )
+        }
+
+        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && !tabMode && wideScreen) {
             val vPadding = max(
                 WindowInsets.safeDrawing.getTop(LocalDensity.current),
                 WindowInsets.safeDrawing.getBottom(LocalDensity.current)
@@ -693,7 +690,9 @@ fun BottomSheetPlayer(
             val verticalInsets = WindowInsets(left = 0.dp, top = vPaddingDp, right = 0.dp, bottom = vPaddingDp)
             Row(
                 modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).add(verticalInsets))
+                    .windowInsetsPadding(
+                        WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).add(verticalInsets)
+                    )
                     .fillMaxSize()
             ) {
                 BoxWithConstraints(
@@ -764,7 +763,8 @@ fun BottomSheetPlayer(
                         state = thumbnailLazyGridState,
                         rows = GridCells.Fixed(1),
                         flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = swipeToSkip && state.isExpanded
+                        userScrollEnabled = swipeToSkip && state.isExpanded,
+                        modifier = Modifier.padding(vertical = QueuePeekHeight / 2)
                     ) {
                         items(
                             items = mediaItems,
@@ -782,8 +782,6 @@ fun BottomSheetPlayer(
                         }
                     }
                 }
-
-                Spacer(Modifier.height(8.dp))
 
                 mediaMetadata?.let {
                     controlsContent(it)

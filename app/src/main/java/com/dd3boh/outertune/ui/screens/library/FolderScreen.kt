@@ -1,7 +1,10 @@
 package com.dd3boh.outertune.ui.screens.library
 
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -21,8 +25,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Input
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.AccountTree
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Output
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shuffle
@@ -56,7 +64,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -78,6 +88,11 @@ import com.dd3boh.outertune.constants.CONTENT_TYPE_FOLDER
 import com.dd3boh.outertune.constants.CONTENT_TYPE_HEADER
 import com.dd3boh.outertune.constants.CONTENT_TYPE_SONG
 import com.dd3boh.outertune.constants.FlatSubfoldersKey
+import com.dd3boh.outertune.constants.FolderSongSortDescendingKey
+import com.dd3boh.outertune.constants.FolderSongSortType
+import com.dd3boh.outertune.constants.FolderSongSortTypeKey
+import com.dd3boh.outertune.constants.FolderSortType
+import com.dd3boh.outertune.constants.FolderSortTypeKey
 import com.dd3boh.outertune.constants.LastLocalScanKey
 import com.dd3boh.outertune.constants.LocalLibraryEnableKey
 import com.dd3boh.outertune.constants.SongSortDescendingKey
@@ -90,17 +105,20 @@ import com.dd3boh.outertune.models.DirectoryTree
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.FloatingFooter
-import com.dd3boh.outertune.ui.component.HideOnScrollFAB
-import com.dd3boh.outertune.ui.component.IconButton
-import com.dd3boh.outertune.ui.component.IconTextButton
+
+import com.dd3boh.outertune.ui.component.button.IconButton
+import com.dd3boh.outertune.ui.component.button.IconTextButton
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
-import com.dd3boh.outertune.ui.component.ResizableIconButton
+import com.dd3boh.outertune.ui.component.button.ResizableIconButton
 import com.dd3boh.outertune.ui.component.SelectHeader
-import com.dd3boh.outertune.ui.component.SongFolderItem
-import com.dd3boh.outertune.ui.component.SongListItem
+import com.dd3boh.outertune.ui.component.items.SongFolderItem
+import com.dd3boh.outertune.ui.component.items.SongListItem
 import com.dd3boh.outertune.ui.component.SortHeader
 import com.dd3boh.outertune.ui.component.shimmer.ListItemPlaceHolder
 import com.dd3boh.outertune.ui.component.shimmer.ShimmerHost
+import com.dd3boh.outertune.ui.menu.ActionDropdown
+import com.dd3boh.outertune.ui.menu.DropdownItem
+import com.dd3boh.outertune.ui.menu.FolderMenu
 import com.dd3boh.outertune.ui.screens.Screens
 import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.ui.utils.STORAGE_ROOT
@@ -109,16 +127,17 @@ import com.dd3boh.outertune.utils.fixFilePath
 import com.dd3boh.outertune.utils.numberToAlpha
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
+import com.dd3boh.outertune.utils.reportException
 import com.dd3boh.outertune.viewmodels.LibraryFoldersViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.IOException
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -133,6 +152,7 @@ fun FolderScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val database = LocalDatabase.current
+    val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val snackbarHostState = LocalSnackbarHostState.current
@@ -144,8 +164,9 @@ fun FolderScreen(
     )
     val localLibEnable by rememberPreference(LocalLibraryEnableKey, defaultValue = true)
 
-    val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
-    val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
+    val (sortType, onSortTypeChange) = rememberEnumPreference(FolderSongSortTypeKey, FolderSongSortType.NAME)
+    val (sortDescending, onSortDescendingChange) = rememberPreference(FolderSongSortDescendingKey, true)
+    val (folderSortType, onFolderSortTypeChange) = rememberEnumPreference(FolderSortTypeKey, FolderSortType.NAME)
 
     val lazyListState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -237,13 +258,13 @@ fun FolderScreen(
         // sort songs
         tempList.sortBy {
             when (sortType) {
-                SongSortType.CREATE_DATE -> numberToAlpha(it.song.inLibrary?.toEpochSecond(ZoneOffset.UTC) ?: -1L)
-                SongSortType.MODIFIED_DATE -> numberToAlpha(it.song.getDateModifiedLong() ?: -1L)
-                SongSortType.RELEASE_DATE -> numberToAlpha(it.song.getDateLong() ?: -1L)
-                SongSortType.NAME -> it.song.title.lowercase()
-                SongSortType.ARTIST -> it.artists.joinToString { artist -> artist.name }.lowercase()
-                SongSortType.PLAY_TIME -> numberToAlpha(it.song.totalPlayTime)
-                SongSortType.PLAY_COUNT -> numberToAlpha((it.playCount?.fastSumBy { it.count })?.toLong() ?: 0L)
+                FolderSongSortType.CREATE_DATE -> numberToAlpha(it.song.inLibrary?.toEpochSecond(ZoneOffset.UTC) ?: -1L)
+                FolderSongSortType.MODIFIED_DATE -> numberToAlpha(it.song.getDateModifiedLong() ?: -1L)
+                FolderSongSortType.RELEASE_DATE -> numberToAlpha(it.song.getDateLong() ?: -1L)
+                FolderSongSortType.NAME -> it.song.title.lowercase()
+                FolderSongSortType.ARTIST -> it.artists.joinToString { artist -> artist.name }.lowercase()
+                FolderSongSortType.PLAY_COUNT -> numberToAlpha((it.playCount?.fastSumBy { it.count })?.toLong() ?: 0L)
+                FolderSongSortType.TRACK_NUMBER -> numberToAlpha(it.song.trackNumber?.toLong() ?: Long.MAX_VALUE)
             }
         }
         // sort folders
@@ -360,7 +381,8 @@ fun FolderScreen(
                                     icon = if (flatSubfolders) Icons.AutoMirrored.Rounded.List else Icons.Rounded.AccountTree,
                                     onClick = {
                                         onFlatSubfoldersChange(!flatSubfolders)
-                                    }
+                                    },
+                                    modifier = Modifier.padding(end = 4.dp)
                                 )
                             }
                         }
@@ -368,7 +390,7 @@ fun FolderScreen(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(start = 16.dp, end = 8.dp)
                     ) {
                         SortHeader(
                             sortType = sortType,
@@ -377,25 +399,47 @@ fun FolderScreen(
                             onSortDescendingChange = onSortDescendingChange,
                             sortTypeText = { sortType ->
                                 when (sortType) {
-                                    SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                    SongSortType.MODIFIED_DATE -> R.string.sort_by_date_modified
-                                    SongSortType.RELEASE_DATE -> R.string.sort_by_date_released
-                                    SongSortType.NAME -> R.string.sort_by_name
-                                    SongSortType.ARTIST -> R.string.sort_by_artist
-                                    SongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                    SongSortType.PLAY_COUNT -> R.string.sort_by_play_count
+                                    FolderSongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                    FolderSongSortType.MODIFIED_DATE -> R.string.sort_by_date_modified
+                                    FolderSongSortType.RELEASE_DATE -> R.string.sort_by_date_released
+                                    FolderSongSortType.NAME -> R.string.sort_by_name
+                                    FolderSongSortType.ARTIST -> R.string.sort_by_artist
+                                    FolderSongSortType.PLAY_COUNT -> R.string.sort_by_play_count
+                                    FolderSongSortType.TRACK_NUMBER -> R.string.sort_by_track_number
                                 }
                             }
                         )
 
                         Spacer(Modifier.weight(1f))
 
-                        Text(
-                            text = pluralStringResource(R.plurals.n_song, subDirSongCount, subDirSongCount),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = pluralStringResource(R.plurals.n_song, subDirSongCount, subDirSongCount),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            IconButton(
+                                onClick = {
+                                    menuState.show {
+                                        FolderMenu(
+                                            folder = currDir,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                    haptic.performHapticFeedback(HapticFeedbackType.Companion.ContextClick)
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.MoreVert,
+                                    contentDescription = null
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -502,28 +546,6 @@ fun FolderScreen(
         }
         LazyColumnScrollbar(
             state = lazyListState,
-        )
-
-        HideOnScrollFAB(
-            visible = currDir.toList().isNotEmpty(),
-            lazyListState = lazyListState,
-            icon = Icons.Rounded.Shuffle,
-            onClick = {
-                coroutineScope.launch {
-                    val songs = runBlocking(Dispatchers.IO) { database.localSongsInDirDeep(currDir.getFullPath()) }
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = currDir.currentDir.substringAfterLast('/'),
-                            items = DirectoryTree(
-                                path = "",
-                                culmSongs = CulmSongs(0),
-                                files = ArrayList(songs.first())
-                            ).toSortedList(sortType, sortDescending).map { it.toMediaMetadata() },
-                            startShuffled = true
-                        )
-                    )
-                }
-            }
         )
 
         TopAppBar(title = {

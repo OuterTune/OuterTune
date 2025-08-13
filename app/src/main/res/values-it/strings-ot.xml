@@ -56,7 +56,7 @@
     <string name="scanner_progress_syncing">Sincronizzazione…</string>
     <string name="scanner_ytm_link_fail">Collegamento dell\'artista su YouTube fallito</string>
     <string name="scanner_scan_fail">Scanner fallito</string>
-    <string name="scanner_missing_storage_perm">Lo scanner richiede l\'autorizzazioni di archiviazione</string>
+    <string name="scanner_missing_storage_perm">Lo scanner multimediale locale richiede autorizzazioni di archiviazione per funzionare</string>
     <string name="scanner_local_title">Scanner locale</string>
     <string name="scanner_ytm_link_start">Avvio del collegamento dell\'artista su YouTube…</string>
     <string name="scanner_ytm_link_success">Collegamento dell\'artista su YouTube completato</string>
@@ -187,7 +187,7 @@
     <string name="dl_size_used_cache">Interno: %s utilizzato</string>
     <string name="dl_size_used_extra">Impostazioni extra: %s utilizzato</string>
     <string name="dl_size_used_main">Esterno: %s utilizzato</string>
-    <string name="oobe_ad_free_exp">Esperienza senza pubblicità</string>
+    <string name="oobe_ad_free_exp">Senza pubblicità di YouTube</string>
     <string name="oobe_ad_free_exp_description">Goditi la riproduzione musicale ininterrotta</string>
     <string name="oobe_cross_platform_sync_description">Mantieni la tua musica in armonia su tutti i dispositivi</string>
     <string name="oobe_local_media_title">Media locali</string>
@@ -218,4 +218,28 @@
     <string name="m3u_ytm_lookup">Cerca su YouTube Music per brani non trovati nel database delle app</string>
     <string name="oobe_complete_title">Tutto a posto!</string>
     <string name="speed_fast">Veloce</string>
+    <string name="err_invalid_ytm_song">Impossibile riprodurre il brano. È possibile riprodurre solo i contenuti accessibili su YouTube Music</string>
+    <string name="app_info_title">Informazioni sull\'applicazione</string>
+    <string name="device_info_title">Informazioni sul dispositivo</string>
+    <string name="help_bug_report_action">Invia una segnalazione di bug (tramite Github)</string>
+    <string name="help_contact_email_inquiries">Altre richieste (tocca per copiare l\'email)</string>
+    <string name="help_support_forum">Aiuto e supporto (tramite Github)</string>
+    <string name="wiki">Wiki</string>
+    <string name="scanner_sensitivity_L0">Prendi il primo risultato fornito da YouTube quando la ricerca su YouTube è abilitata, altrimenti abbina il titolo</string>
+    <string name="err_restore_incompatible_database">Impossibile ripristinare il database incompatibile</string>
+    <string name="m3u_import_failed">Nessuna canzone trovata. File M3U non valido o nessuna canzone corrispondente trovata</string>
+    <string name="tap_show_more">Tocca per visualizzare maggiori informazioni</string>
+    <string name="all_contributors">Mostra tutti i collaboratori</string>
+    <string name="att_contributor">Collaboratore</string>
+    <string name="att_lead_developer">Sviluppatore principale</string>
+    <string name="att_maintainer">Manutentore</string>
+    <string name="att_project_support">Supporto al progetto</string>
+    <string name="att_translator">Traduttore (%s)</string>
+    <string name="lyrics_synced_clickable">Testi cliccabili</string>
+    <string name="sort_by_track_number">Numero del brano</string>
+    <string name="bits_per_sample">Bit per campione</string>
+    <string name="disc_number">Numero del disco</string>
+    <string name="extra_details">Dettagli extra</string>
+    <string name="file_path">Percorso del file</string>
+    <string name="track_number">Numero brano</string>
 </resources>

@@ -32,8 +32,10 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
+import com.dd3boh.outertune.ui.component.SettingsClickToReveal
+import com.dd3boh.outertune.ui.screens.settings.fragments.LyricAdvancedFrag
 import com.dd3boh.outertune.ui.screens.settings.fragments.LyricFormatFrag
 import com.dd3boh.outertune.ui.screens.settings.fragments.LyricParserFrag
 import com.dd3boh.outertune.ui.screens.settings.fragments.LyricSourceFrag
@@ -82,6 +84,11 @@ fun LyricsSettings(
             modifier = Modifier.fillMaxWidth()
         ) {
             LyricFormatFrag()
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SettingsClickToReveal(stringResource(R.string.prefs_advanced)) {
+            LyricAdvancedFrag()
         }
     }
 

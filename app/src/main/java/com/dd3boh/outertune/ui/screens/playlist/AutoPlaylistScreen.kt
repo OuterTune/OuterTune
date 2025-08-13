@@ -93,14 +93,14 @@ import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.AutoResizeText
-import com.dd3boh.outertune.ui.component.DefaultDialog
+import com.dd3boh.outertune.ui.dialog.DefaultDialog
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
 import com.dd3boh.outertune.ui.component.FloatingFooter
 import com.dd3boh.outertune.ui.component.FontSizeRange
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import com.dd3boh.outertune.ui.component.SelectHeader
-import com.dd3boh.outertune.ui.component.SongListItem
+import com.dd3boh.outertune.ui.component.items.SongListItem
 import com.dd3boh.outertune.ui.utils.getNSongsString
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.rememberEnumPreference

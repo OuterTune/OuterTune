@@ -1,5 +1,6 @@
 package com.dd3boh.outertune.db.entities
 
+import androidx.media3.common.C
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -12,6 +13,8 @@ data class QueueEntity(
     var title: String,
     var shuffled: Boolean = false,
     var queuePos: Int = -1, // position of current song
+    @ColumnInfo(name = "lastSongPos", defaultValue = C.TIME_UNSET.toString())
+    var lastSongPos: Long = C.TIME_UNSET,
     @ColumnInfo(name = "index", defaultValue = 0.toString())
     val index: Int, // order of queue
     val playlistId: String? = null,

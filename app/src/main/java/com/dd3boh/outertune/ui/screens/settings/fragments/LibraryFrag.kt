@@ -24,7 +24,7 @@ import com.dd3boh.outertune.constants.InnerTubeCookieKey
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
 import com.dd3boh.outertune.constants.PauseRemoteListenHistoryKey
 import com.dd3boh.outertune.constants.PauseSearchHistoryKey
-import com.dd3boh.outertune.ui.component.DefaultDialog
+import com.dd3boh.outertune.ui.dialog.DefaultDialog
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.utils.rememberPreference

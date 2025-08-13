@@ -18,9 +18,10 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.models.MultiQueueObject
-import com.dd3boh.outertune.ui.component.GridMenu
-import com.dd3boh.outertune.ui.component.GridMenuItem
-import com.dd3boh.outertune.ui.component.QueueListItem
+import com.dd3boh.outertune.ui.component.items.QueueListItem
+import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
+import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
+import com.dd3boh.outertune.ui.dialog.EditQueueDialog
 
 @Composable
 fun QueueMenu(
@@ -42,33 +43,9 @@ fun QueueMenu(
     var showChooseQueueDialog by rememberSaveable {
         mutableStateOf(false)
     }
-
-    // dialogs
-    AddToPlaylistDialog(
-        navController = navController,
-        isVisible = showChoosePlaylistDialog,
-        onGetSong = { songs.map { it.id } },
-        onDismiss = {
-            showChoosePlaylistDialog = false
-        }
-    )
-
-    AddToQueueDialog(
-        isVisible = showChooseQueueDialog,
-        onAdd = { queueName ->
-            playerConnection.service.queueBoard.addQueue(
-                queueName,
-                songs,
-                forceInsert = true,
-                delta = false
-            )
-            playerConnection.service.queueBoard.setCurrQueue()
-        },
-        onDismiss = {
-            showChooseQueueDialog = false
-            onDismiss() // here we dismiss since we switch to the queue anyways
-        }
-    )
+    var showEditDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     // queue item
     QueueListItem(queue = mq)
@@ -96,5 +73,54 @@ fun QueueMenu(
         ) {
             showChoosePlaylistDialog = true
         }
+        GridMenuItem(
+            icon = Icons.AutoMirrored.Rounded.PlaylistAdd,
+            title = R.string.edit
+        ) {
+            showEditDialog = true
+        }
+    }
+
+    /**
+     * ---------------------------
+     * Dialogs
+     * ---------------------------
+     */
+    if (showChoosePlaylistDialog) {
+        AddToPlaylistDialog(
+            navController = navController,
+            onGetSong = { songs.map { it.id } },
+            onDismiss = {
+                showChoosePlaylistDialog = false
+            }
+        )
+    }
+
+    if (showChooseQueueDialog) {
+        AddToQueueDialog(
+            onAdd = { queueName ->
+                playerConnection.service.queueBoard.addQueue(
+                    queueName,
+                    songs,
+                    forceInsert = true,
+                    delta = false
+                )
+                playerConnection.service.queueBoard.setCurrQueue()
+            },
+            onDismiss = {
+                showChooseQueueDialog = false
+                onDismiss() // here we dismiss since we switch to the queue anyways
+            }
+        )
+    }
+
+    if (showEditDialog) {
+        EditQueueDialog(
+            queue = mq,
+            onDismiss = {
+                showEditDialog = false
+                onDismiss()
+            }
+        )
     }
 }

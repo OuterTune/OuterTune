@@ -78,10 +78,10 @@ import com.dd3boh.outertune.constants.ScannerMatchCriteria
 import com.dd3boh.outertune.constants.ScannerSensitivityKey
 import com.dd3boh.outertune.constants.ScannerStrictExtKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
-import com.dd3boh.outertune.ui.component.ActionPromptDialog
+import com.dd3boh.outertune.ui.dialog.ActionPromptDialog
 import com.dd3boh.outertune.ui.component.EnumListPreference
-import com.dd3boh.outertune.ui.component.IconButton
-import com.dd3boh.outertune.ui.component.InfoLabel
+import com.dd3boh.outertune.ui.component.button.IconButton
+import com.dd3boh.outertune.ui.dialog.InfoLabel
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL

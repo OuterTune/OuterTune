@@ -26,6 +26,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.dd3boh.outertune.ui.dialog.ListDialog
+import com.dd3boh.outertune.ui.dialog.TextFieldDialog
 
 @Composable
 fun PreferenceEntry(

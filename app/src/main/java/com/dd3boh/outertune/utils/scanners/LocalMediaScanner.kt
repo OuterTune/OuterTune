@@ -347,6 +347,14 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                                 insert(SongAlbumMap(songToUpdate.id, it.id, 0))
                             } else {
                                 // album does  exist in db, link to it
+                                if ((dbAlbum.thumbnailUrl == null && it.thumbnailUrl != null) || (dbAlbum.thumbnailUrl != null && it.thumbnailUrl != null && dbAlbum.thumbnailUrl != it.thumbnailUrl) && !File(
+                                        dbAlbum.thumbnailUrl
+                                    ).exists()
+                                ) {
+                                    // update the thumbnailUrl if the old one is linked to a song that doesn't exist,
+                                    // or if both a new one has been provided and the existing one is null
+                                    upsert(dbAlbum.copy(thumbnailUrl = it.thumbnailUrl))
+                                }
                                 insert(SongAlbumMap(songToUpdate.id, dbAlbum.id, dbAlbum.songCount))
                             }
                         }
@@ -439,10 +447,6 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                     if (SCANNER_DEBUG) {
                         Log.v(TAG, "PATH: $s")
                     }
-
-                    /**
-                     * TODO: do not link album (and whatever song id) with youtube yet, figure that out later
-                     */
 
                     if (!SYNC_SCANNER) {
                         // use async scanner
@@ -566,10 +570,6 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
                     if (SCANNER_DEBUG)
                         Log.d(TAG, "PATH: $uri")
-
-                    /**
-                     * TODO: do not link album (and whatever song id) with youtube yet, figure that out later
-                     */
 
                     if (!SYNC_SCANNER) {
                         // use async scanner

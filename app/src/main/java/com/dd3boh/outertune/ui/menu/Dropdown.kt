@@ -5,7 +5,7 @@
  *
  * For any other attributions, refer to the git commit history
  */
-package com.dd3boh.outertune.ui.component
+package com.dd3boh.outertune.ui.menu
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding

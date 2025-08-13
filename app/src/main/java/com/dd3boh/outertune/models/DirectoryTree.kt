@@ -10,11 +10,14 @@ package com.dd3boh.outertune.models
 
 import android.util.Log
 import androidx.compose.ui.util.fastFirstOrNull
+import androidx.compose.ui.util.fastSumBy
+import com.dd3boh.outertune.constants.FolderSongSortType
 import com.dd3boh.outertune.constants.SCANNER_DEBUG
 import com.dd3boh.outertune.constants.SongSortType
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.ui.utils.uninitializedDirectoryTree
 import com.dd3boh.outertune.utils.fixFilePath
+import com.dd3boh.outertune.utils.numberToAlpha
 import java.time.ZoneOffset
 
 /**
@@ -172,19 +175,19 @@ class DirectoryTree(path: String, var culmSongs: CulmSongs) {
     /**
      * Retrieve a list of all the songs in the current directory, adhering to sort preferences.
      */
-    fun toSortedList(sortType: SongSortType, sortDescending: Boolean): List<Song> {
+    fun toSortedList(sortType: FolderSongSortType, sortDescending: Boolean): List<Song> {
         val songs = files.toMutableList()
 
         // sort songs. Ignore any subfolder structure
         songs.sortBy {
             when (sortType) {
-                SongSortType.CREATE_DATE -> it.song.inLibrary?.toEpochSecond(ZoneOffset.UTC).toString()
-                SongSortType.MODIFIED_DATE -> it.song.getDateModifiedLong().toString()
-                SongSortType.RELEASE_DATE -> it.song.getDateLong().toString()
-                SongSortType.NAME -> it.song.title
-                SongSortType.ARTIST -> it.artists.firstOrNull()?.name
-                SongSortType.PLAY_TIME -> it.song.totalPlayTime.toString()
-                SongSortType.PLAY_COUNT -> it.playCount.toString()
+                FolderSongSortType.CREATE_DATE -> numberToAlpha(it.song.inLibrary?.toEpochSecond(ZoneOffset.UTC) ?: -1L)
+                FolderSongSortType.MODIFIED_DATE -> numberToAlpha(it.song.getDateModifiedLong() ?: -1L)
+                FolderSongSortType.RELEASE_DATE -> numberToAlpha(it.song.getDateLong() ?: -1L)
+                FolderSongSortType.NAME -> it.song.title.lowercase()
+                FolderSongSortType.ARTIST -> it.artists.joinToString { artist -> artist.name }.lowercase()
+                FolderSongSortType.PLAY_COUNT -> numberToAlpha((it.playCount?.fastSumBy { it.count })?.toLong() ?: 0L)
+                FolderSongSortType.TRACK_NUMBER -> numberToAlpha(it.song.trackNumber?.toLong() ?: Long.MAX_VALUE)
             }
         }
 
@@ -216,7 +219,6 @@ class DirectoryTree(path: String, var culmSongs: CulmSongs) {
                 SongSortType.RELEASE_DATE -> it.song.getDateLong().toString()
                 SongSortType.NAME -> it.song.title
                 SongSortType.ARTIST -> it.artists.firstOrNull()?.name
-                SongSortType.PLAY_TIME -> it.song.totalPlayTime.toString()
                 SongSortType.PLAY_COUNT -> it.playCount.toString()
             }
         }

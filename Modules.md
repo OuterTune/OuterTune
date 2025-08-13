@@ -9,7 +9,7 @@ Path: /material-color-utilities
 
 ## Gramophone Lyrics parser
 
-Commit: 99abfb29191f051bd3e5d20846f24d88c5fe49d1
+Commit: 15fb21cb1dd456cc060e099f5e4eb3e5cd358832
 
 Source: https://github.com/FoedusProgramme/Gramophone
 

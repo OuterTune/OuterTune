@@ -142,7 +142,7 @@
     <string name="dl_main_path_description">Изберете място за съхранение на изтеглени файлове</string>
     <string name="oobe_ytm_integration">Интеграция с YouTube Music</string>
     <string name="oobe_ytm_integration_description">Достъп до любимите си песни безпроблемно</string>
-    <string name="oobe_ad_free_exp">Изживяване без реклами</string>
+    <string name="oobe_ad_free_exp">Без реклами в YouTube</string>
     <string name="oobe_local_music_support">Обширна поддръжка на местна музика</string>
     <string name="oobe_cross_platform_sync">Синхронизиране между платформи</string>
     <string name="oobe_cross_platform_sync_description">Поддържайте музиката си в хармония на всички устройства</string>
@@ -226,4 +226,18 @@
     <string name="err_invalid_ytm_song">Неуспешно изпълнение на песен. Може да се възпроизвежда само съдържание, достъпно в YouTube Music</string>
     <string name="m3u_import_failed">Няма намерени песни. Невалиден M3U файл или не са намерени съвпадения на песни</string>
     <string name="err_restore_incompatible_database">Несъвместимата база данни не можа да бъде възстановена</string>
+    <string name="tap_show_more">Докоснете, за да покажете повече информация</string>
+    <string name="all_contributors">Показване на всички сътрудници</string>
+    <string name="att_contributor">Сътрудник</string>
+    <string name="att_lead_developer">Водещ разработчик</string>
+    <string name="att_maintainer">Поддържащ</string>
+    <string name="att_project_support">Подкрепа на проекта</string>
+    <string name="att_translator">Преводач (%s)</string>
+    <string name="lyrics_synced_clickable">Текстове на песни, на които може да се кликва</string>
+    <string name="sort_by_track_number">Номер на песен</string>
+    <string name="disc_number">Номер на диска</string>
+    <string name="extra_details">Допълнителни подробности</string>
+    <string name="file_path">Път на файла</string>
+    <string name="track_number">Номер на песен</string>
+    <string name="bits_per_sample">Битове на проба</string>
 </resources>

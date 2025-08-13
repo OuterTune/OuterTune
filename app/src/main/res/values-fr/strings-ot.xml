@@ -188,7 +188,7 @@
     <string name="dl_rescan_confirm">Souhaitez-vous réanalyser tous les dossiers de téléchargement maintenant ? Cela peut prendre quelques minutes selon la taille de votre bibliothèque.</string>
     <string name="oobe_ytm_integration">Intégration de YouTube Music</string>
     <string name="oobe_ytm_integration_description">Accédez à vos morceaux préférés en toute transparence</string>
-    <string name="oobe_ad_free_exp">Expérience sans publicité</string>
+    <string name="oobe_ad_free_exp">Pas de publicités sur YouTube</string>
     <string name="oobe_local_music_support">Prise en charge de la musique locale</string>
     <string name="oobe_local_music_support_description">Lisez vos fichiers musicaux (ex. MP3, OGG, FLAC, etc.)</string>
     <string name="oobe_cross_platform_sync">Synchronisation multiplateforme</string>
@@ -228,4 +228,18 @@
     <string name="err_invalid_ytm_song">Impossible de lire le titre. Seul le contenu accessible sur YouTube Music peut être lu.</string>
     <string name="err_restore_incompatible_database">Impossible de restaurer une base de données incompatible</string>
     <string name="m3u_import_failed">Aucun titre trouvé. Fichier M3U invalide ou aucun titre correspondant trouvé.</string>
+    <string name="tap_show_more">Appuyez pour afficher plus d\'informations</string>
+    <string name="all_contributors">Afficher tous les contributeurs</string>
+    <string name="att_contributor">Contributeur</string>
+    <string name="att_lead_developer">Développeur principal</string>
+    <string name="att_maintainer">Mainteneur</string>
+    <string name="att_project_support">Accompagnement de projet</string>
+    <string name="att_translator">Traducteur (%s)</string>
+    <string name="lyrics_synced_clickable">Paroles cliquables</string>
+    <string name="sort_by_track_number">Numéro de piste</string>
+    <string name="bits_per_sample">Bits par échantillon</string>
+    <string name="disc_number">Numéro de disque</string>
+    <string name="extra_details">Détails supplémentaires</string>
+    <string name="file_path">Chemin du fichier</string>
+    <string name="track_number">Numéro de piste</string>
 </resources>

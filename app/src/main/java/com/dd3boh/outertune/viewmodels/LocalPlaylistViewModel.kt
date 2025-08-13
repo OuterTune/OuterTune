@@ -41,12 +41,13 @@ class LocalPlaylistViewModel @Inject constructor(
     ) { songs, (sortType, sortDescending) ->
         when (sortType) {
             PlaylistSongSortType.CUSTOM -> songs
-            PlaylistSongSortType.CREATE_DATE -> songs.sortedBy { it.map.id }
             PlaylistSongSortType.NAME -> songs.sortedBy { it.song.song.title.lowercase() }
             PlaylistSongSortType.ARTIST -> songs.sortedBy { song ->
                 song.song.artists.joinToString { it.name }.lowercase()
             }
-            PlaylistSongSortType.PLAY_TIME -> songs.sortedBy { it.song.song.totalPlayTime }
+            PlaylistSongSortType.ADDED_DATE -> songs.sortedBy { it.song.song.inLibrary }
+            PlaylistSongSortType.MODIFIED_DATE -> songs.sortedBy { it.song.song.dateModified }
+            PlaylistSongSortType.RELEASE_DATE -> songs.sortedBy { it.song.song.getDateLong() }
         }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 

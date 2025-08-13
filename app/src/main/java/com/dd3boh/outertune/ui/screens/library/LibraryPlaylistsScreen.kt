@@ -73,20 +73,19 @@ import com.dd3boh.outertune.constants.PlaylistSortTypeKey
 import com.dd3boh.outertune.constants.PlaylistViewTypeKey
 import com.dd3boh.outertune.constants.ShowLikedAndDownloadedPlaylist
 import com.dd3boh.outertune.db.entities.PlaylistEntity
-import com.dd3boh.outertune.ui.component.ActionDropdown
-import com.dd3boh.outertune.ui.component.AutoPlaylistGridItem
-import com.dd3boh.outertune.ui.component.AutoPlaylistListItem
+import com.dd3boh.outertune.ui.menu.ActionDropdown
+import com.dd3boh.outertune.ui.component.items.AutoPlaylistGridItem
+import com.dd3boh.outertune.ui.component.items.AutoPlaylistListItem
 import com.dd3boh.outertune.ui.component.ChipsRow
-import com.dd3boh.outertune.ui.component.CreatePlaylistDialog
-import com.dd3boh.outertune.ui.component.DropdownItem
+import com.dd3boh.outertune.ui.dialog.CreatePlaylistDialog
+import com.dd3boh.outertune.ui.menu.DropdownItem
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
-import com.dd3boh.outertune.ui.component.HideOnScrollFAB
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import com.dd3boh.outertune.ui.component.LazyVerticalGridScrollbar
 import com.dd3boh.outertune.ui.component.LibraryPlaylistGridItem
 import com.dd3boh.outertune.ui.component.LibraryPlaylistListItem
 import com.dd3boh.outertune.ui.component.SortHeader
-import com.dd3boh.outertune.ui.menu.ImportM3uDialog
+import com.dd3boh.outertune.ui.dialog.ImportM3uDialog
 import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
@@ -198,7 +197,7 @@ fun LibraryPlaylistsScreen(
             itemVerticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(start = 16.dp, top = 16.dp, end = 8.dp, bottom = 16.dp)
         ) {
             SortHeader(
                 sortType = sortType,
@@ -228,10 +227,15 @@ fun LibraryPlaylistsScreen(
                 ActionDropdown(
                     actions = listOf(
                         DropdownItem(
+                            title = stringResource(R.string.create_playlist),
+                            leadingIcon = { Icon(Icons.Rounded.Add, null) },
+                            action = { showCreatePlaylistDialog = true }
+                        ),
+                        DropdownItem(
                             title = stringResource(R.string.import_playlist),
                             leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Input, null) },
                             action = { showImportM3uDialog = true }
-                        )
+                        ),
                     ),
                 )
             }
@@ -331,14 +335,6 @@ fun LibraryPlaylistsScreen(
                 LazyColumnScrollbar(
                     state = lazyListState,
                 )
-
-                HideOnScrollFAB(
-                    lazyListState = lazyListState,
-                    icon = Icons.Rounded.Add,
-                    onClick = {
-                        showCreatePlaylistDialog = true
-                    }
-                )
             }
 
             LibraryViewType.GRID -> {
@@ -426,14 +422,6 @@ fun LibraryPlaylistsScreen(
                 }
                 LazyVerticalGridScrollbar(
                     state = lazyGridState,
-                )
-
-                HideOnScrollFAB(
-                    lazyListState = lazyGridState,
-                    icon = Icons.Rounded.Add,
-                    onClick = {
-                        showCreatePlaylistDialog = true
-                    }
                 )
             }
         }

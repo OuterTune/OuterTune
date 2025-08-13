@@ -33,7 +33,7 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.screens.settings.fragments.AppearanceMiscFrag
 import com.dd3boh.outertune.ui.screens.settings.fragments.ThemeAppFrag

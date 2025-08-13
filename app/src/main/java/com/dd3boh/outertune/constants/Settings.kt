@@ -157,23 +157,31 @@ to settings category
 ---------------------------
  */
 enum class SongSortType {
-    CREATE_DATE, MODIFIED_DATE, RELEASE_DATE, NAME, ARTIST, PLAY_TIME, PLAY_COUNT
+    CREATE_DATE, MODIFIED_DATE, RELEASE_DATE, NAME, ARTIST, PLAY_COUNT
+}
+
+enum class FolderSortType {
+    NAME, // TODO: support CREATE_DATE, MODIFIED_DATE
+}
+
+enum class FolderSongSortType {
+    CREATE_DATE, MODIFIED_DATE, RELEASE_DATE, NAME, ARTIST, PLAY_COUNT, TRACK_NUMBER
 }
 
 enum class PlaylistSongSortType {
-    CUSTOM, CREATE_DATE, NAME, ARTIST, PLAY_TIME
+    CUSTOM, NAME, ARTIST, ADDED_DATE, MODIFIED_DATE, RELEASE_DATE
 }
 
 enum class ArtistSortType {
-    CREATE_DATE, NAME, SONG_COUNT, PLAY_TIME
+    CREATE_DATE, NAME, SONG_COUNT
 }
 
 enum class ArtistSongSortType {
-    CREATE_DATE, NAME, PLAY_TIME
+    CREATE_DATE, NAME
 }
 
 enum class AlbumSortType {
-    CREATE_DATE, NAME, ARTIST, YEAR, SONG_COUNT, LENGTH, PLAY_TIME
+    CREATE_DATE, NAME, ARTIST, YEAR, SONG_COUNT, LENGTH
 }
 
 enum class PlaylistSortType {

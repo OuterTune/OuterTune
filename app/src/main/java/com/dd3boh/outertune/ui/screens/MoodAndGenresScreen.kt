@@ -37,7 +37,7 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.TopBarInsets
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import com.dd3boh.outertune.ui.component.NavigationTitle
 import com.dd3boh.outertune.ui.component.shimmer.ListItemPlaceHolder

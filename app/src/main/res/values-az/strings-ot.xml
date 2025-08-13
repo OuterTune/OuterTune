@@ -52,4 +52,18 @@
     <string name="grp_lyrics_source">Lirik mənbələr</string>
     <string name="grp_manual_scanner">Əl ilə yoxlama</string>
     <string name="new_interface">Yeni görünüş tərtibatı</string>
+    <string name="android_auto">Android Auto</string>
+    <string name="more_settings">Daha çox ayarlar</string>
+    <string name="tap_show_more">Daha çox məlumat üçün klikləyin</string>
+    <string name="err_invalid_ytm_song">Musiqini oxutmaq mümkün olmadı. Yalnız YouTube Music-də əlçatan olan məzmun oxuna bilər</string>
+    <string name="grp_account_sync">Hesab və sinxronizasiya</string>
+    <string name="grp_behavior">Davranış</string>
+    <string name="grp_library_and_content">Kitabxana və kontentlər</string>
+    <string name="grp_sync">Sinxronizasiya</string>
+    <string name="app_info_title">Mobil əlavə məlumatları</string>
+    <string name="check_for_update">Yeniləmələri yoxlayın</string>
+    <string name="checking_for_update">Yeniləmələr yoxlanılır</string>
+    <string name="device_info_title">Cihaz məlumatları</string>
+    <string name="help_bug_report_action">Xəta bildir</string>
+    <string name="help_support_forum">Dəstək</string>
 </resources>

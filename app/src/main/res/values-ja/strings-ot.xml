@@ -207,7 +207,7 @@
     <string name="dl_size_used_main">外部: %s 使用済み</string>
     <string name="dl_size_used_extra">追加のインポート: %s 使用済み</string>
     <string name="oobe_ytm_integration">YouTube Music統合</string>
-    <string name="oobe_ad_free_exp">広告なしの体験</string>
+    <string name="oobe_ad_free_exp">YouTube の広告なし</string>
     <string name="oobe_local_media_subtitle">音楽ファイルがあるフォルダを選択し、インポートする曲をスキャンします。</string>
     <string name="import_success_songs">インポートに成功しました</string>
     <string name="scanner_rejected_dir">無効な選択です。スキャンフォルダはダウンロードフォルダのサブディレクトリ、またはダウンロードフォルダ自体には指定できません</string>
@@ -224,4 +224,18 @@
     <string name="err_invalid_ytm_song">曲の再生に失敗。YouTube Musicで利用可能なコンテンツのみ再生できます</string>
     <string name="err_restore_incompatible_database">互換性のないデータベースを復元できませんでした</string>
     <string name="m3u_import_failed">曲が見つかりません。無効なM3Uファイルか、一致する曲が見つかりませんでした</string>
+    <string name="tap_show_more">タップで詳細を表示</string>
+    <string name="all_contributors">すべての貢献者を表示</string>
+    <string name="att_contributor">貢献者</string>
+    <string name="att_lead_developer">主要開発者</string>
+    <string name="att_maintainer">保守担当者</string>
+    <string name="att_project_support">プロジェクト支援</string>
+    <string name="att_translator">翻訳者 (%s)</string>
+    <string name="lyrics_synced_clickable">歌詞をクリック可能に</string>
+    <string name="sort_by_track_number">曲番号</string>
+    <string name="disc_number">ディスク番号</string>
+    <string name="file_path">ファイルのパス</string>
+    <string name="track_number">曲番号</string>
+    <string name="bits_per_sample">ビット深度</string>
+    <string name="extra_details">詳細情報</string>
 </resources>

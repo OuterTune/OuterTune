@@ -7,7 +7,7 @@
  * For any other attributions, refer to the git commit history
  */
 
-package com.dd3boh.outertune.ui.component
+package com.dd3boh.outertune.ui.dialog
 
 import android.content.ClipData
 import android.text.format.Formatter
@@ -64,9 +64,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -82,10 +79,11 @@ import androidx.compose.ui.window.DialogProperties
 import com.dd3boh.outertune.LocalSnackbarHostState
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.DialogCornerRadius
-import com.dd3boh.outertune.constants.MenuCornerRadius
 import com.dd3boh.outertune.constants.SNACKBAR_VERY_SHORT
 import com.dd3boh.outertune.db.entities.FormatEntity
 import com.dd3boh.outertune.models.MediaMetadata
+import com.dd3boh.outertune.ui.component.button.IconButton
+import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -494,7 +492,6 @@ fun DetailsDialog(
     mediaMetadata: MediaMetadata,
     currentFormat: FormatEntity?,
     currentPlayCount: Int?,
-    volume: Float,
     clipboardManager: Clipboard,
     setVisibility: (newState: Boolean) -> Unit,
 ) {
@@ -525,15 +522,21 @@ fun DetailsDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 val details = mutableListOf(
-                    stringResource(R.string.song_title) to mediaMetadata?.title,
-                    stringResource(R.string.song_artists) to mediaMetadata?.artists?.joinToString { it.name },
-                    stringResource(R.string.media_id) to mediaMetadata?.id,
+                    stringResource(R.string.song_title) to mediaMetadata.title,
+                    stringResource(R.string.song_artists) to mediaMetadata.artists?.joinToString { it.name },
+                    stringResource(R.string.media_id) to mediaMetadata.id,
                     stringResource(R.string.play_count) to currentPlayCount.toString()
                 )
 
                 if (!mediaMetadata.isLocal) {
                     details.add("Itag" to currentFormat?.itag?.toString())
                 } else {
+                    mediaMetadata.trackNumber?.let {
+                        details.add(stringResource(R.string.track_number) to it.toString())
+                    }
+                    mediaMetadata.discNumber?.let {
+                        details.add(stringResource(R.string.disc_number) to it.toString())
+                    }
                     details.add(stringResource(R.string.sort_by_date_released) to mediaMetadata.getDateString())
                     details.add(stringResource(R.string.sort_by_date_modified) to mediaMetadata.getDateModifiedString())
                 }
@@ -544,6 +547,8 @@ fun DetailsDialog(
                         stringResource(R.string.codecs) to currentFormat?.codecs,
                         stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
                         stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
+                        stringResource(R.string.bits_per_sample) to (currentFormat?.bitsPerSample?.toString()
+                            ?: stringResource(R.string.unknown)),
                     )
                 )
 
@@ -553,11 +558,12 @@ fun DetailsDialog(
 
                 details.addAll(
                     mutableListOf(
-                        stringResource(R.string.volume) to "${(volume * 100).toInt()}%",
                         stringResource(R.string.file_size) to currentFormat?.contentLength?.let {
-                            // TODO: This should 1024 sized not 1000
                             if (mediaMetadata.isLocal && mediaMetadata.localPath != null && File(mediaMetadata.localPath).exists()) {
-                                Formatter.formatShortFileSize(context, File(mediaMetadata.localPath).length())
+                                Formatter.formatShortFileSize(
+                                    context,
+                                    File(mediaMetadata.localPath).length() * (1024 / 1000)
+                                )
                             } else {
                                 Formatter.formatShortFileSize(context, it)
                             }
@@ -565,7 +571,11 @@ fun DetailsDialog(
                     ))
 
                 if (mediaMetadata.isLocal) {
-                    details.add("Path" to mediaMetadata.localPath)
+                    details.add(stringResource(R.string.file_path) to mediaMetadata.localPath)
+                }
+
+                currentFormat?.extraComment?.let {
+                    details.add(stringResource(R.string.extra_details) to it)
                 }
 
                 details.forEach { (label, text) ->
@@ -620,62 +630,6 @@ fun InfoLabel(
         if (isError) Icons.Outlined.Error else Icons.Outlined.Info,
         contentDescription = null,
         tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
-        modifier = Modifier.padding(4.dp)
-    )
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(horizontal = 4.dp)
-    )
-}
-
-@Composable
-fun IconLabelButton(
-    text: String,
-    icon: ImageVector,
-    background: Color = MaterialTheme.colorScheme.secondaryContainer,
-    tint: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) = Row(
-    verticalAlignment = Alignment.CenterVertically,
-    modifier = modifier
-        .background(background, RoundedCornerShape(MenuCornerRadius))
-        .padding(horizontal = 8.dp)
-        .clickable { onClick() }
-) {
-    Icon(
-        imageVector = icon,
-        contentDescription = null,
-        tint = tint,
-        modifier = Modifier.padding(4.dp)
-    )
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(horizontal = 4.dp)
-    )
-}
-
-@Composable
-fun IconLabelButton(
-    text: String,
-    painter: Painter,
-    background: Color = MaterialTheme.colorScheme.secondaryContainer,
-    tint: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) = Row(
-    verticalAlignment = Alignment.CenterVertically,
-    modifier = modifier
-        .background(background, RoundedCornerShape(MenuCornerRadius))
-        .padding(horizontal = 8.dp)
-        .clickable { onClick() }
-) {
-    Icon(
-        painter = painter,
-        contentDescription = null,
-        tint = tint,
         modifier = Modifier.padding(4.dp)
     )
     Text(

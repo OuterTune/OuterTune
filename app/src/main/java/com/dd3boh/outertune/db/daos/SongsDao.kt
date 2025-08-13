@@ -122,10 +122,6 @@ interface SongsDao {
     @Query("SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL LIMIT :previewSize")
     fun artistSongsPreview(artistId: String, previewSize: Int = 3): Flow<List<Song>>
 
-    @Transaction
-    @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL ORDER BY totalPlayTime")
-    fun songsByPlayTimeAsc(): Flow<List<Song>>
-
     @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("""
@@ -145,7 +141,6 @@ interface SongsDao {
             SongSortType.RELEASE_DATE -> songsByReleaseDateAsc()
             SongSortType.NAME -> songsByNameAsc()
             SongSortType.ARTIST -> songsByArtistAsc()
-            SongSortType.PLAY_TIME -> songsByPlayTimeAsc()
             SongSortType.PLAY_COUNT -> songsByPlayCountAsc()
         }.map { it.reversed(descending) }
 
@@ -158,7 +153,7 @@ interface SongsDao {
         SELECT * FROM song
         WHERE isLocal = 1 AND localpath LIKE :filter || '%'
     """)
-    fun localSongsInDir(filter: String): Flow<List<Song>>
+    fun localDbSongsInDir(filter: String): Flow<List<Song>>
 
     /**
      * Does not include unavailable songs
@@ -241,10 +236,6 @@ interface SongsDao {
     """)
     fun likedSongsByArtistAsc(): Flow<List<Song>>
 
-    @Transaction
-    @Query("SELECT * FROM song WHERE liked ORDER BY totalPlayTime")
-    fun likedSongsByPlayTimeAsc(): Flow<List<Song>>
-
     @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("""
@@ -264,7 +255,6 @@ interface SongsDao {
             SongSortType.RELEASE_DATE -> likedSongsByReleaseDateAsc()
             SongSortType.NAME -> likedSongsByNameAsc()
             SongSortType.ARTIST -> likedSongsByArtistAsc()
-            SongSortType.PLAY_TIME -> likedSongsByPlayTimeAsc()
             SongSortType.PLAY_COUNT -> likedSongsByPlayCountAsc()
         }.map { it.reversed(descending) }
     // endregion
@@ -336,10 +326,6 @@ interface SongsDao {
     """)
     fun downloadSongsByArtistAsc(): Flow<List<Song>>
 
-    @Transaction
-    @Query("SELECT * FROM song WHERE isLocal = 0 AND dateDownload IS NOT NULL ORDER BY totalPlayTime")
-    fun downloadSongsByPlayTimeAsc(): Flow<List<Song>>
-
     @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("""
@@ -359,7 +345,6 @@ interface SongsDao {
             SongSortType.RELEASE_DATE -> downloadSongsByReleaseDateAsc()
             SongSortType.NAME -> downloadSongsByNameAsc()
             SongSortType.ARTIST -> downloadSongsByArtistAsc()
-            SongSortType.PLAY_TIME -> downloadSongsByPlayTimeAsc()
             SongSortType.PLAY_COUNT -> downloadSongsByPlayCountAsc()
         }.map { it.reversed(descending) }
     // endregion
@@ -376,9 +361,6 @@ interface SongsDao {
     // region Updates
     @Update
     fun update(song: SongEntity)
-
-    @Query("UPDATE song SET totalPlayTime = totalPlayTime + :playTime WHERE id = :songId")
-    fun incrementTotalPlayTime(songId: String, playTime: Long)
 
     @Query("UPDATE playCount SET count = count + 1 WHERE song = :songId AND year = :year AND month = :month")
     fun incrementPlayCount(songId: String, year: Int, month: Int)

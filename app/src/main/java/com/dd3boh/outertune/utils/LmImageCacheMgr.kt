@@ -26,14 +26,7 @@ class LmImageCacheMgr(context: Context, val placeholderImage: Bitmap = drawPlace
      *
      * @param path Full path of audio file
      */
-    fun getLocalThumbnail(path: String?): Bitmap? = getLocalThumbnail(path, false, false)
-
-    /**
-     * Extract the album art from the audio file. No fallback image is created.
-     *
-     * @param path Full path of audio file
-     */
-    fun getLocalThumbnail(path: String?, resize: Boolean): Bitmap? = getLocalThumbnail(path, resize, false)
+    fun getLocalThumbnail(path: String?): Bitmap? = getLocalThumbnail(path, false)
 
     /**
      * Extract the album art from the audio file
@@ -42,10 +35,9 @@ class LmImageCacheMgr(context: Context, val placeholderImage: Bitmap = drawPlace
      * @param resize Whether to resize the Bitmap to a thumbnail size (300x300)
      * @param fallback Use a default fallback image if no image could be resolved
      */
-    fun getLocalThumbnail(path: String?, resize: Boolean, fallback: Boolean): Bitmap? {
-        val fallbackReturn = if (fallback) placeholderImage else null
+    fun getLocalThumbnail(path: String?, resize: Boolean): Bitmap {
         if (path == null) {
-            return fallbackReturn
+            return placeholderImage
         }
         // try cache lookup
         val cachedImage = if (resize) {
@@ -67,9 +59,9 @@ class LmImageCacheMgr(context: Context, val placeholderImage: Bitmap = drawPlace
             val art = mData.embeddedPicture
             BitmapFactory.decodeByteArray(art, 0, art!!.size)
         } catch (e: Exception) {
-            localImageCache.cache(path, fallbackReturn, resize)
+            localImageCache.cache(path, placeholderImage, resize)
             null
-        } ?: return fallbackReturn
+        } ?: return placeholderImage
 
         if (resize) {
             image = image.scale(100, 100, false)

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="android_auto">Android Auto</string>
+    <string name="folders">Folder</string>
+    <string name="library">Koleksi</string>
+    <string name="recent_activity">Aktivitas terbaru</string>
+    <string name="local_history">Lokal</string>
+    <string name="queue_local_history">Riwayat (lokal)</string>
+    <string name="queue_remote_history">Riwayat Pemutaran (Online)</string>
+    <string name="remote_history">Jarak jauh</string>
+    <string name="library_empty">Isi pustaka Anda akan ditampilkan di sini.</string>
+    <string name="missing_media_permission_warning">Izin penyimpanan diperlukan untuk media lokal. Klik untuk memberikan izin.</string>
+    <string name="queues_title">Antrian</string>
+    <string name="create_queue">Antrian Baru</string>
+    <string name="queue_searched_songs_ot">Cari:</string>
+    <string name="song_added_to_queue">\"%s\" ditambahkan ke antrian</string>
+    <string name="song_added_to_queue_end">\"%s\" ditambahkan ke akhir antrian</string>
+    <string name="queues_empty">Tidak ada antrian</string>
+    <string name="auto_playlist">Daftar putar otomatis</string>
+    <string name="select">Mode pemilihan</string>
+    <string name="like_all">Sukai semua</string>
+    <string name="more_settings">Pengaturan lanjutan</string>
+    <string name="delete_lyric_confirm">Apakah Anda yakin ingin menghapus lirik yang tersimpan untuk \"%s\"</string>
+    <string name="tap_show_more">Ketuk untuk menampilkan informasi lebih lanjut.</string>
+    <string name="err_invalid_ytm_song">Gagal memutar lagu. Hanya konten yang dapat diakses di YouTube Music yang bisa diputar.</string>
+    <string name="err_play_next_on_error">Terjadi kesalahan. Memutar lagu berikutnya.</string>
+    <string name="err_stop_on_error">Terjadi kesalahan. Pemutaran dihentikan.</string>
+    <string name="err_stop_on_too_many_errors">Terlalu banyak kesalahan. Pemutaran dihentikan.</string>
+    <string name="wait_to_reconnect">Tunggu untuk menyambung kembali</string>
+    <string name="sort_by_date_modified">Tanggal diubah</string>
+    <string name="sort_by_date_released">Tanggal rilis</string>
+    <string name="sort_by_like_date">Tanggal disukai</string>
+</resources>

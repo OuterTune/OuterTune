@@ -33,6 +33,11 @@ fun Context.getLikeAutoDownload(): LikedAutodownloadMode {
     return dataStore[LikedAutoDownloadKey].toEnum(LikedAutodownloadMode.OFF)
 }
 
+fun Context.supportsWideScreen() : Boolean {
+    val config = resources.configuration
+    return config.screenWidthDp >= 600
+}
+
 fun Context.tabMode(): Boolean {
     val config = resources.configuration
     val isTablet = config.smallestScreenWidthDp >= 600

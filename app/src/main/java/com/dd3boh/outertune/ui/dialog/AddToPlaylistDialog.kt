@@ -1,4 +1,4 @@
-package com.dd3boh.outertune.ui.menu
+package com.dd3boh.outertune.ui.dialog
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -35,12 +35,8 @@ import com.dd3boh.outertune.constants.YtmSyncModeKey
 import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.models.toMediaMetadata
-import com.dd3boh.outertune.ui.component.CreatePlaylistDialog
-import com.dd3boh.outertune.ui.component.DefaultDialog
-import com.dd3boh.outertune.ui.component.InfoLabel
-import com.dd3boh.outertune.ui.component.ListDialog
-import com.dd3boh.outertune.ui.component.ListItem
-import com.dd3boh.outertune.ui.component.PlaylistListItem
+import com.dd3boh.outertune.ui.component.items.ListItem
+import com.dd3boh.outertune.ui.component.items.PlaylistListItem
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +45,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddToPlaylistDialog(
     navController: NavController,
-    isVisible: Boolean,
     allowSyncing: Boolean = true,
     initialTextFieldValue: String? = null,
     onGetSong: suspend (Playlist) -> List<String>, // list of song ids. Songs should be inserted to database in this function.
@@ -93,84 +88,82 @@ fun AddToPlaylistDialog(
         }
     }
 
-    if (isVisible) {
-        ListDialog(
-            onDismiss = onDismiss
-        ) {
-            item {
-                ListItem(
-                    title = stringResource(R.string.create_playlist),
-                    thumbnailContent = {
-                        Image(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier.size(ListThumbnailSize)
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        showCreatePlaylistDialog = true
-                    }
-                )
-            }
+    ListDialog(
+        onDismiss = onDismiss
+    ) {
+        item {
+            ListItem(
+                title = stringResource(R.string.create_playlist),
+                thumbnailContent = {
+                    Image(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+                        modifier = Modifier.size(ListThumbnailSize)
+                    )
+                },
+                modifier = Modifier.clickable {
+                    showCreatePlaylistDialog = true
+                }
+            )
+        }
 
-            items(playlists) { playlist ->
-                PlaylistListItem(
-                    playlist = playlist,
-                    modifier = Modifier.clickable {
-                        selectedPlaylist = playlist
-                        coroutineScope.launch(Dispatchers.IO) {
-                            if (songIds == null) {
-                                songIds = onGetSong(playlist)
+        items(playlists) { playlist ->
+            PlaylistListItem(
+                playlist = playlist,
+                modifier = Modifier.clickable {
+                    selectedPlaylist = playlist
+                    coroutineScope.launch(Dispatchers.IO) {
+                        if (songIds == null) {
+                            songIds = onGetSong(playlist)
+                        }
+                        duplicates = database.playlistDuplicates(playlist.id, songIds!!)
+                        if (duplicates.isNotEmpty()) {
+                            showDuplicateDialog = true
+                        } else {
+                            onDismiss()
+                            songs?.forEach {
+                                // import m3u needs this for importing remote songs
+                                database.insert(it.toMediaMetadata())
                             }
-                            duplicates = database.playlistDuplicates(playlist.id, songIds!!)
-                            if (duplicates.isNotEmpty()) {
-                                showDuplicateDialog = true
-                            } else {
-                                onDismiss()
-                                songs?.forEach {
-                                    // import m3u needs this for importing remote songs
-                                    database.insert(it.toMediaMetadata())
-                                }
-                                database.addSongToPlaylist(playlist, songIds!!)
+                            database.addSongToPlaylist(playlist, songIds!!)
 
-                                if (!playlist.playlist.isLocal) {
-                                    playlist.playlist.browseId?.let { plist ->
-                                        songIds?.forEach {
-                                            YouTube.addToPlaylist(plist, it)
-                                        }
+                            if (!playlist.playlist.isLocal) {
+                                playlist.playlist.browseId?.let { plist ->
+                                    songIds?.forEach {
+                                        YouTube.addToPlaylist(plist, it)
                                     }
                                 }
                             }
                         }
                     }
-                )
-            }
+                }
+            )
+        }
 
-            if (syncMode == SyncMode.RO) {
-                item {
-                    TextButton(
-                        onClick = {
-                            navController.navigate("settings/account_sync")
-                            onDismiss()
-                        }
-                    ) {
-                        Text(
-                            text = stringResource(R.string.playlist_missing_note),
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = TextUnit(12F, TextUnitType.Sp),
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
+        if (syncMode == SyncMode.RO) {
+            item {
+                TextButton(
+                    onClick = {
+                        navController.navigate("settings/account_sync")
+                        onDismiss()
                     }
+                ) {
+                    Text(
+                        text = stringResource(R.string.playlist_missing_note),
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = TextUnit(12F, TextUnitType.Sp),
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
                 }
             }
+        }
 
-            item {
-                InfoLabel(
-                    text = stringResource(R.string.playlist_add_local_to_synced_note),
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-            }
+        item {
+            InfoLabel(
+                text = stringResource(R.string.playlist_add_local_to_synced_note),
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
         }
     }
 

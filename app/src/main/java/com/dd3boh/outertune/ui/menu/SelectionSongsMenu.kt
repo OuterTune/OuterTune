@@ -41,10 +41,9 @@ import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
-import com.dd3boh.outertune.ui.component.DefaultDialog
-import com.dd3boh.outertune.ui.component.DownloadGridMenu
-import com.dd3boh.outertune.ui.component.GridMenu
-import com.dd3boh.outertune.ui.component.GridMenuItem
+import com.dd3boh.outertune.ui.dialog.DefaultDialog
+import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
+import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -82,6 +81,16 @@ fun SelectionMediaMetadataMenu(
         mutableIntStateOf(Download.STATE_STOPPED)
     }
 
+    var showChooseQueueDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showChoosePlaylistDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showRemoveDownloadDialog by remember {
+        mutableStateOf(false)
+    }
+
     LaunchedEffect(selection) {
         if (selection.isEmpty()) {
             onDismiss()
@@ -107,87 +116,6 @@ fun SelectionMediaMetadataMenu(
         }
     }
 
-    var showChooseQueueDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    AddToQueueDialog(
-        isVisible = showChooseQueueDialog,
-        onAdd = { queueName ->
-            playerConnection.service.queueBoard.addQueue(
-                queueName,
-                selection,
-                forceInsert = true,
-                delta = false
-            )
-            playerConnection.service.queueBoard.setCurrQueue()
-        },
-        onDismiss = {
-            showChooseQueueDialog = false
-        }
-    )
-
-    var showChoosePlaylistDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    AddToPlaylistDialog(
-        navController = navController,
-        isVisible = showChoosePlaylistDialog,
-        onGetSong = {
-            selection.map {
-                runBlocking {
-                    withContext(Dispatchers.IO) {
-                        database.insert(it)
-                    }
-                }
-                it.id
-            }
-        },
-        onDismiss = { showChoosePlaylistDialog = false }
-    )
-
-    var showRemoveDownloadDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showRemoveDownloadDialog) {
-        DefaultDialog(
-            onDismiss = { showRemoveDownloadDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp)
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                        selection.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.id,
-                                false
-                            )
-                        }
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            }
-        )
-    }
 
     GridMenu(
         contentPadding = PaddingValues(
@@ -221,7 +149,7 @@ fun SelectionMediaMetadataMenu(
         }
 
         GridMenuItem(
-            icon = R.drawable.shuffle,
+            icon = R.drawable.shuffle_on,
             title = R.string.shuffle
         ) {
             onDismiss()
@@ -324,5 +252,84 @@ fun SelectionMediaMetadataMenu(
                 clearAction()
             }
         }
+    }
+
+    /**
+     * ---------------------------
+     * Dialogs
+     * ---------------------------
+     */
+
+    if (showChooseQueueDialog) {
+        AddToQueueDialog(
+            onAdd = { queueName ->
+                playerConnection.service.queueBoard.addQueue(
+                    queueName,
+                    selection,
+                    forceInsert = true,
+                    delta = false
+                )
+                playerConnection.service.queueBoard.setCurrQueue()
+            },
+            onDismiss = {
+                showChooseQueueDialog = false
+            }
+        )
+    }
+
+
+    if (showChoosePlaylistDialog) {
+        AddToPlaylistDialog(
+            navController = navController,
+            onGetSong = {
+                selection.map {
+                    runBlocking {
+                        withContext(Dispatchers.IO) {
+                            database.insert(it)
+                        }
+                    }
+                    it.id
+                }
+            },
+            onDismiss = { showChoosePlaylistDialog = false }
+        )
+    }
+
+    if (showRemoveDownloadDialog) {
+        DefaultDialog(
+            onDismiss = { showRemoveDownloadDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showRemoveDownloadDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showRemoveDownloadDialog = false
+                        selection.forEach { song ->
+                            DownloadService.sendRemoveDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                song.id,
+                                false
+                            )
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
     }
 }

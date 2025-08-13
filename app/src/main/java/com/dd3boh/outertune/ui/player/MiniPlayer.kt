@@ -64,7 +64,7 @@ import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.ui.component.AsyncImageLocal
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 
 @Composable
 fun MiniPlayer(
@@ -99,6 +99,7 @@ fun MiniPlayer(
 
                 .fillMaxSize(),
         ) {
+            val iconButtonColor = MaterialTheme.colorScheme.onSecondaryContainer
             Box(Modifier.weight(1f)) {
                 mediaMetadata?.let {
                     MiniMediaInfo(
@@ -121,6 +122,7 @@ fun MiniPlayer(
             ) {
                 Icon(
                     imageVector = if (playbackState == Player.STATE_ENDED) Icons.Rounded.Replay else if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                    tint = iconButtonColor,
                     contentDescription = null
                 )
             }
@@ -131,6 +133,7 @@ fun MiniPlayer(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.skip_next),
+                    tint = iconButtonColor,
                     contentDescription = null
                 )
             }
@@ -163,7 +166,7 @@ fun MiniMediaInfo(
             if (mediaMetadata.isLocal) {
                 // local thumbnail arts
                 AsyncImageLocal(
-                    image = { imageCache.getLocalThumbnail(mediaMetadata.localPath, true, true) },
+                    image = { imageCache.getLocalThumbnail(mediaMetadata.localPath, true) },
                     modifier = Modifier
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .aspectRatio(ratio = 1f)

@@ -109,18 +109,18 @@ interface ArtistsDao {
             LEFT JOIN song ON sam.songId = song.id
             LEFT JOIN (
                 SELECT 
-                    songId, 
-                    SUM(playTime) AS songTotalPlayTime
-                FROM event
-                WHERE timestamp > :fromTimeStamp
-                GROUP BY songId
-            ) AS e ON sam.songId = e.songId
+                    song AS songId, 
+                    SUM(count) AS songTotalPlays
+                FROM playCount
+                WHERE year > :fromYear OR (year = :fromYear AND month >= :fromMonth)
+                GROUP BY song
+            ) AS pc ON sam.songId = pc.songId
         WHERE song.inLibrary IS NOT NULL
         GROUP BY artist.id
-        ORDER BY SUM(e.songTotalPlayTime) DESC
+        ORDER BY SUM(pc.songTotalPlays) DESC
         LIMIT :limit
     """)
-    fun mostPlayedArtists(fromTimeStamp: Long, limit: Int = 6): Flow<List<Artist>>
+    fun mostPlayedArtists(fromYear: Int, fromMonth: Int, limit: Int = 6): Flow<List<Artist>>
 
     @RawQuery(observedEntities = [ArtistEntity::class])
     fun _getArtists(query: SupportSQLiteQuery): Flow<List<Artist>>
@@ -130,7 +130,6 @@ interface ArtistsDao {
             ArtistSortType.CREATE_DATE -> "artist.rowId ASC"
             ArtistSortType.NAME -> "artist.name COLLATE NOCASE ASC"
             ArtistSortType.SONG_COUNT -> "songCount ASC"
-            ArtistSortType.PLAY_TIME -> "SUM(totalPlayTime) ASC"
         }
 
         val where = when (filter) {
@@ -200,15 +199,10 @@ interface ArtistsDao {
     @Query("SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL ORDER BY title COLLATE NOCASE ASC")
     fun artistSongsByNameAsc(artistId: String): Flow<List<Song>>
 
-    @Transaction
-    @Query("SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL ORDER BY totalPlayTime")
-    fun artistSongsByPlayTimeAsc(artistId: String): Flow<List<Song>>
-
     fun artistSongs(artistId: String, sortType: ArtistSongSortType, descending: Boolean) =
         when (sortType) {
             ArtistSongSortType.CREATE_DATE -> artistSongsByCreateDateAsc(artistId)
             ArtistSongSortType.NAME -> artistSongsByNameAsc(artistId)
-            ArtistSongSortType.PLAY_TIME -> artistSongsByPlayTimeAsc(artistId)
         }.map { it.reversed(descending) }
     // endregion
     // endregion

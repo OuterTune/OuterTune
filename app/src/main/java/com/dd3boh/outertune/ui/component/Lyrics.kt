@@ -15,7 +15,6 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -80,22 +79,18 @@ import androidx.compose.ui.util.fastAny
 import com.dd3boh.outertune.LocalMenuState
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
-import com.dd3boh.outertune.constants.DEFAULT_PLAYER_BACKGROUND
-import com.dd3boh.outertune.constants.DarkMode
-import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.LyricClickable
 import com.dd3boh.outertune.constants.LyricFontSizeKey
 import com.dd3boh.outertune.constants.LyricKaraokeEnable
 import com.dd3boh.outertune.constants.LyricUpdateSpeed
 import com.dd3boh.outertune.constants.LyricsPosition
 import com.dd3boh.outertune.constants.LyricsTextPositionKey
-import com.dd3boh.outertune.constants.PlayerBackgroundStyle
-import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
 import com.dd3boh.outertune.constants.ShowLyricsKey
 import com.dd3boh.outertune.constants.Speed
 import com.dd3boh.outertune.db.entities.LyricsEntity
 import com.dd3boh.outertune.db.entities.LyricsEntity.Companion.uninitializedLyric
 import com.dd3boh.outertune.extensions.isPowerSaver
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.shimmer.ShimmerHost
 import com.dd3boh.outertune.ui.component.shimmer.TextPlaceholder
 import com.dd3boh.outertune.ui.menu.LyricsMenu
@@ -142,17 +137,6 @@ fun Lyrics(
     val playerLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
     var lyricsModel by remember { mutableStateOf(playerLyrics) }
 
-    val playerBackground by rememberEnumPreference(
-        key = PlayerBackgroundStyleKey,
-        defaultValue = DEFAULT_PLAYER_BACKGROUND
-    )
-
-    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
-    val isSystemInDarkTheme = isSystemInDarkTheme()
-    val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
-        if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
-    }
-
     val lines: SnapshotStateList<LyricLine> = remember { mutableStateListOf<LyricLine>() }
 
     val isSynced = remember(lyricsModel) {
@@ -184,14 +168,7 @@ fun Lyrics(
         }
     }
 
-    val textColor = when (playerBackground) {
-        PlayerBackgroundStyle.FOLLOW_THEME -> MaterialTheme.colorScheme.secondary
-        else ->
-            if (useDarkTheme)
-                MaterialTheme.colorScheme.secondary
-            else
-                MaterialTheme.colorScheme.secondaryContainer
-    }
+    val textColor = MaterialTheme.colorScheme.secondary
 
     var currentLineIndex by remember {
         mutableIntStateOf(-1)
@@ -329,6 +306,14 @@ fun Lyrics(
                 itemsIndexed(
                     items = lines
                 ) { index, item ->
+                    var lyricFontSizeAdjusted = lyricsFontSize
+                    if (item.speaker?.isBackground == true) {
+                        lyricFontSizeAdjusted = (lyricFontSizeAdjusted * 0.75).toInt()
+                    }
+                    if (item.isTranslated) {
+                        lyricFontSizeAdjusted = (lyricFontSizeAdjusted * 0.75).toInt()
+                    }
+
                     Column(
                         horizontalAlignment = when (lyricsTextPosition) {
                             LyricsPosition.LEFT -> Alignment.Start
@@ -347,9 +332,8 @@ fun Lyrics(
                                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
                             }
                     ) {
-                        if (currentPos.toULong() in item.start..item.end && lyricsFancy && item.words != null
-                            && !context.isPowerSaver()
-                        ) { // word by word
+                        if (currentPos.toULong() in item.start..item.end + 100.toULong() && lyricsFancy
+                            && item.words != null && !context.isPowerSaver()) { // word by word
                             // now do eye bleach to make lyric line babies
                             val style = LocalTextStyle.current.copy(
                                 fontSize = lyricsFontSize.sp,
@@ -385,7 +369,7 @@ fun Lyrics(
                                 ) {
                                     Text(
                                         text = it.text,
-                                        fontSize = lyricsFontSize.sp,
+                                        fontSize = lyricFontSizeAdjusted.sp,
                                         color = textColor,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -396,7 +380,7 @@ fun Lyrics(
                         } else { // regular
                             Text(
                                 text = item.text,
-                                fontSize = lyricsFontSize.sp,
+                                fontSize = lyricFontSizeAdjusted.sp,
                                 color = textColor,
                                 textAlign = when (lyricsTextPosition) {
                                     LyricsPosition.LEFT -> TextAlign.Left
@@ -404,7 +388,13 @@ fun Lyrics(
                                     LyricsPosition.RIGHT -> TextAlign.Right
                                 },
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.alpha(if (!isSynced || index == displayedCurrentLineIndex) 1f else 0.5f)
+                                modifier = Modifier.alpha(
+                                    if (!isSynced || (index == displayedCurrentLineIndex && item.words == null)) {
+                                        1f
+                                    } else {
+                                        0.5f
+                                    }
+                                )
                             )
                         }
                     }
@@ -493,7 +483,7 @@ fun HorizontalReveal(
         animationSpec = tween(durationMillis = 100, easing = LinearEasing)
     )
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.padding(start = 1.dp)) {
         Box(modifier = Modifier.alpha(backgroundAlpha)) {
             content()
         }
@@ -571,14 +561,14 @@ fun findCurrentLineIndex(lines: List<LyricLine>, position: Long): Int {
  */
 fun calculateLineProgress(line: LyricLine, currentPositionMs: Long): Float {
     val words = line.words
+    val startMs = line.start.toLong()
+    val endMs = line.end.toLong()
 
     // by line if no words are available
     if (words.isNullOrEmpty()) {
-        val startMs = line.start.toLong()
-        val endMs = line.end.toLong()
         return when {
             currentPositionMs < startMs -> 0f
-            currentPositionMs > endMs -> 1f
+            currentPositionMs > endMs - 200L -> 1f // add buffer so lyric line animation completes
             else -> (currentPositionMs - startMs).toFloat() / (endMs - startMs).toFloat()
         }
     }
@@ -588,26 +578,35 @@ fun calculateLineProgress(line: LyricLine, currentPositionMs: Long): Float {
     var completedWords = 0
     var partialProgress = 0f
 
-    for (i in words.indices) {
-        val word = words[i]
-        val start = word.timeRange.first
-        val end = word.timeRange.last
+    return when {
+        currentPositionMs < startMs -> 0f
+        currentPositionMs > endMs - 200L -> 1f // add buffer so lyric line animation completes
+        else -> {
+            for (i in words.indices) {
+                val word = words[i]
+                val start = word.timeRange.first
+                val end = word.timeRange.last
 
-        if (currentMs < start) {
-            break // we're before this word
-        } else if (currentMs in word.timeRange) {
-            val wordDuration = (end - start).coerceAtLeast(1u).toFloat()
-            partialProgress = (currentMs - start).toFloat() / wordDuration
-            completedWords = i
-            break
-        } else {
-            completedWords++
+                if (currentMs < start) {
+                    break // we're before this word
+                } else if (currentMs in word.timeRange) {
+                    val wordDuration = (end - start).coerceAtLeast(1u).toFloat()
+                    partialProgress = (currentMs - start).toFloat() / wordDuration
+                    completedWords = i
+                    break
+                } else {
+                    completedWords++
+                }
+            }
+
+            val totalWords = words.size.toFloat()
+            var progress = (completedWords + partialProgress) / totalWords
+            if (progress > 0.95f) {
+                progress = 1f
+            }
+            progress.coerceIn(0f, 1f)
         }
     }
-
-    val totalWords = words.size.toFloat()
-    val progress = (completedWords + partialProgress) / totalWords
-    return progress.coerceIn(0f, 1f)
 }
 
 const val animateScrollDuration = 300L

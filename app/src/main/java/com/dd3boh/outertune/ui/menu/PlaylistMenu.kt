@@ -58,13 +58,12 @@ import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
-import com.dd3boh.outertune.ui.component.DefaultDialog
-import com.dd3boh.outertune.ui.component.DownloadGridMenu
-import com.dd3boh.outertune.ui.component.GridMenu
-import com.dd3boh.outertune.ui.component.GridMenuItem
-import com.dd3boh.outertune.ui.component.IconButton
-import com.dd3boh.outertune.ui.component.PlaylistListItem
-import com.dd3boh.outertune.ui.component.TextFieldDialog
+import com.dd3boh.outertune.ui.dialog.DefaultDialog
+import com.dd3boh.outertune.ui.component.button.IconButton
+import com.dd3boh.outertune.ui.component.items.PlaylistListItem
+import com.dd3boh.outertune.ui.dialog.TextFieldDialog
+import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
+import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
 import com.dd3boh.outertune.utils.reportException
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.WatchEndpoint
@@ -125,6 +124,22 @@ fun PlaylistMenu(
 
     val editable: Boolean = playlist.playlist.isEditable
 
+    var showEditDialog by remember {
+        mutableStateOf(false)
+    }
+    var showRemoveDownloadDialog by remember {
+        mutableStateOf(false)
+    }
+    var showDeletePlaylistDialog by remember {
+        mutableStateOf(false)
+    }
+    var showChooseQueueDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showChoosePlaylistDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     LaunchedEffect(songs) {
         val songs = songs.filterNot { it.song.isLocal }
         if (songs.isEmpty()) return@LaunchedEffect
@@ -144,156 +159,6 @@ fun PlaylistMenu(
         }
     }
 
-    var showEditDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showEditDialog) {
-        TextFieldDialog(
-            icon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
-            title = { Text(text = stringResource(R.string.edit_playlist)) },
-            onDismiss = { showEditDialog = false },
-            initialTextFieldValue = TextFieldValue(
-                playlist.playlist.name,
-                TextRange(playlist.playlist.name.length)
-            ),
-            onDone = { name ->
-                onDismiss()
-                database.query {
-                    update(playlist.playlist.copy(name = name))
-                }
-
-                coroutineScope.launch(Dispatchers.IO) {
-                    playlist.playlist.browseId?.let { YouTube.renamePlaylist(it, name) }
-                }
-            }
-        )
-    }
-
-    var showRemoveDownloadDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showRemoveDownloadDialog) {
-        DefaultDialog(
-            onDismiss = { showRemoveDownloadDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist.playlist.name),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp)
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                        songs.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.song.id,
-                                false
-                            )
-                        }
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            }
-        )
-    }
-
-    var showDeletePlaylistDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showDeletePlaylistDialog) {
-        DefaultDialog(
-            onDismiss = { showDeletePlaylistDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.delete_playlist_confirm, playlist.playlist.name),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp)
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = {
-                        showDeletePlaylistDialog = false
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showDeletePlaylistDialog = false
-                        onDismiss()
-                        database.query {
-                            delete(playlist.playlist)
-                        }
-
-                        if (!playlist.playlist.isLocal) {
-                            coroutineScope.launch(Dispatchers.IO) {
-                                playlist.playlist.browseId?.let { YouTube.deletePlaylist(it) }
-                            }
-                        }
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            }
-        )
-    }
-
-    var showChooseQueueDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    AddToQueueDialog(
-        isVisible = showChooseQueueDialog,
-        onAdd = { queueName ->
-            playerConnection.service.queueBoard.addQueue(
-                queueName, songs.map { it.toMediaMetadata() },
-                forceInsert = true, delta = false
-            )
-            playerConnection.service.queueBoard.setCurrQueue()
-        },
-        onDismiss = {
-            showChooseQueueDialog = false
-        }
-    )
-
-    var showChoosePlaylistDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    AddToPlaylistDialog(
-        navController = navController,
-        isVisible = showChoosePlaylistDialog,
-        onGetSong = {
-            coroutineScope.launch(Dispatchers.IO) {
-                // add songs to playlist and push to ytm
-                songs.let { playlist.playlist.browseId?.let { YouTube.addPlaylistToPlaylist(it, playlist.id) } }
-
-                playlist.playlist.browseId?.let { playlistId ->
-                    YouTube.addPlaylistToPlaylist(playlistId, playlist.id)
-                }
-            }
-            songs.map { it.id }
-        },
-        onDismiss = { showChoosePlaylistDialog = false }
-    )
 
     PlaylistListItem(
         playlist = playlist,
@@ -446,5 +311,146 @@ fun PlaylistMenu(
         ) {
             m3uLauncher.launch("playlist.m3u")
         }
+    }
+
+    if (showEditDialog) {
+        TextFieldDialog(
+            icon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
+            title = { Text(text = stringResource(R.string.edit_playlist)) },
+            onDismiss = { showEditDialog = false },
+            initialTextFieldValue = TextFieldValue(
+                playlist.playlist.name,
+                TextRange(playlist.playlist.name.length)
+            ),
+            onDone = { name ->
+                onDismiss()
+                database.query {
+                    update(playlist.playlist.copy(name = name))
+                }
+
+                coroutineScope.launch(Dispatchers.IO) {
+                    playlist.playlist.browseId?.let { YouTube.renamePlaylist(it, name) }
+                }
+            }
+        )
+    }
+
+    /**
+     * ---------------------------
+     * Dialogs
+     * ---------------------------
+     */
+
+    if (showRemoveDownloadDialog) {
+        DefaultDialog(
+            onDismiss = { showRemoveDownloadDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.remove_download_playlist_confirm, playlist.playlist.name),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showRemoveDownloadDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showRemoveDownloadDialog = false
+                        songs.forEach { song ->
+                            DownloadService.sendRemoveDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                song.song.id,
+                                false
+                            )
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
+    if (showDeletePlaylistDialog) {
+        DefaultDialog(
+            onDismiss = { showDeletePlaylistDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.delete_playlist_confirm, playlist.playlist.name),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showDeletePlaylistDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showDeletePlaylistDialog = false
+                        onDismiss()
+                        database.query {
+                            delete(playlist.playlist)
+                        }
+
+                        if (!playlist.playlist.isLocal) {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                playlist.playlist.browseId?.let { YouTube.deletePlaylist(it) }
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
+    if (showChooseQueueDialog) {
+        AddToQueueDialog(
+
+            onAdd = { queueName ->
+                playerConnection.service.queueBoard.addQueue(
+                    queueName, songs.map { it.toMediaMetadata() },
+                    forceInsert = true, delta = false
+                )
+                playerConnection.service.queueBoard.setCurrQueue()
+            },
+            onDismiss = {
+                showChooseQueueDialog = false
+            }
+        )
+    }
+
+    if (showChoosePlaylistDialog) {
+        AddToPlaylistDialog(
+            navController = navController,
+
+            onGetSong = {
+                coroutineScope.launch(Dispatchers.IO) {
+                    // add songs to playlist and push to ytm
+                    songs.let { playlist.playlist.browseId?.let { YouTube.addPlaylistToPlaylist(it, playlist.id) } }
+
+                    playlist.playlist.browseId?.let { playlistId ->
+                        YouTube.addPlaylistToPlaylist(playlistId, playlist.id)
+                    }
+                }
+                songs.map { it.id }
+            },
+            onDismiss = { showChoosePlaylistDialog = false }
+        )
     }
 }

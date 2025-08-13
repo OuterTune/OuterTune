@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -34,6 +35,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
@@ -51,12 +53,13 @@ import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.FloatingFooter
-import com.dd3boh.outertune.ui.component.HideOnScrollFAB
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import com.dd3boh.outertune.ui.component.SelectHeader
-import com.dd3boh.outertune.ui.component.SongListItem
+import com.dd3boh.outertune.ui.component.items.SongListItem
 import com.dd3boh.outertune.ui.component.SortHeader
+import com.dd3boh.outertune.ui.menu.ActionDropdown
+import com.dd3boh.outertune.ui.menu.DropdownItem
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
@@ -117,7 +120,7 @@ fun ArtistSongsScreen(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(start = 16.dp, end = 8.dp)
                 ) {
                     SortHeader(
                         sortType = sortType,
@@ -128,18 +131,40 @@ fun ArtistSongsScreen(
                             when (sortType) {
                                 ArtistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
                                 ArtistSongSortType.NAME -> R.string.sort_by_name
-                                ArtistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
                             }
                         }
                     )
 
                     Spacer(Modifier.weight(1f))
 
-                    Text(
-                        text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        ActionDropdown(
+                            actions = listOf(
+                                DropdownItem(
+                                    title = stringResource(R.string.shuffle),
+                                    leadingIcon = { Icon(Icons.Rounded.Shuffle, null) },
+                                    action = {
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = artist?.artist?.name,
+                                                items = songs.map { it.toMediaMetadata() },
+                                                startShuffled = true,
+                                                playlistId = null,
+                                            )
+                                        )
+                                    }
+                                ),
+                            )
+                        )
+                    }
                 }
             }
 
@@ -206,20 +231,6 @@ fun ArtistSongsScreen(
             scrollBehavior = scrollBehavior
         )
 
-        HideOnScrollFAB(
-            lazyListState = lazyListState,
-            icon = Icons.Rounded.Shuffle,
-            onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = artist?.artist?.name,
-                        items = songs.map { it.toMediaMetadata() },
-                        startShuffled = true,
-                        playlistId = null,
-                    )
-                )
-            }
-        )
 
         FloatingFooter(inSelectMode) {
             SelectHeader(

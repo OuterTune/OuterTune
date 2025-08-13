@@ -5,7 +5,7 @@
  *
  * For any other attributions, refer to the git commit history
  */
-package com.dd3boh.outertune.ui.menu
+package com.dd3boh.outertune.ui.dialog
 
 
 import android.content.Context
@@ -61,7 +61,6 @@ import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.ArtistEntity
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.db.entities.SongEntity
-import com.dd3boh.outertune.ui.component.DefaultDialog
 import com.dd3boh.outertune.ui.component.EnumListPreference
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import com.dd3boh.outertune.utils.reportException
@@ -282,13 +281,14 @@ fun ImportM3uDialog(
 
 
     /**
-     * Dialog
+     * ---------------------------
+     * Dialogs
+     * ---------------------------
      */
 
     if (showChoosePlaylistDialog) {
         AddToPlaylistDialog(
             navController = navController,
-            isVisible = true,
             allowSyncing = false,
             initialTextFieldValue = importedTitle,
             songs = importedSongs,

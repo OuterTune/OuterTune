@@ -184,7 +184,7 @@
     <string name="oobe_welcome_message">به OuterTune خوش آمدید</string>
     <string name="oobe_ytm_integration">ادغام موسیقی یوتیوب</string>
     <string name="oobe_ytm_integration_description">به آهنگ‌های مورد علاقه‌تان به طور یکپارچه دسترسی داشته باشید</string>
-    <string name="oobe_ad_free_exp">تجربه رایگان و بدون تبلیغات</string>
+    <string name="oobe_ad_free_exp">بدون تبلیغات YouTube</string>
     <string name="oobe_ad_free_exp_description">از پخش موسیقی بدون وقفه لذت ببرید</string>
     <string name="oobe_local_music_support">پشتیبانی گسترده از موسیقی محلی</string>
     <string name="oobe_local_music_support_description">فایل‌های موسیقی خود را پخش کنید (مثلاً MP3، OGG، FLAC و غیره)</string>
@@ -226,4 +226,18 @@
     <string name="err_invalid_ytm_song">پخش آهنگ ناموفق بود. فقط محتوای قابل دسترسی در یوتیوب قابل پخش است</string>
     <string name="err_restore_incompatible_database">پایگاه داده ناسازگار بازیابی نشد</string>
     <string name="m3u_import_failed">هیچ آهنگی یافت نشد. فایل M3U نامعتبر است، یا هیچ آهنگ منطبقی پیدا نشد</string>
+    <string name="tap_show_more">برای نمایش اطلاعات بیشتر، ضربه بزنید</string>
+    <string name="all_contributors">نمایش همه مشارکت کنندگان</string>
+    <string name="att_contributor">مشارکت کننده</string>
+    <string name="att_lead_developer">توسعه دهنده اصلی</string>
+    <string name="att_maintainer">نگهدارنده</string>
+    <string name="att_project_support">پشتیبانی پروژه</string>
+    <string name="att_translator">مترجم (%s)</string>
+    <string name="lyrics_synced_clickable">اشعار قابل کلیک</string>
+    <string name="sort_by_track_number">شماره آهنگ</string>
+    <string name="bits_per_sample">بیت در هر نمونه</string>
+    <string name="disc_number">شماره دیسک</string>
+    <string name="extra_details">جزئیات اضافی</string>
+    <string name="file_path">مسیر فایل</string>
+    <string name="track_number">شماره آهنگ</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.dd3boh.outertune.ui.menu
+package com.dd3boh.outertune.ui.dialog
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,20 +20,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ListThumbnailSize
 import com.dd3boh.outertune.models.MultiQueueObject
-import com.dd3boh.outertune.ui.component.ListDialog
-import com.dd3boh.outertune.ui.component.ListItem
-import com.dd3boh.outertune.ui.component.QueueListItem
-import com.dd3boh.outertune.ui.component.TextFieldDialog
+import com.dd3boh.outertune.ui.component.items.ListItem
+import com.dd3boh.outertune.ui.component.items.QueueListItem
+import com.zionhuang.innertube.YouTube
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun AddToQueueDialog(
-    isVisible: Boolean,
     initialTextFieldValue: String? = null,
     onAdd: (String) -> Unit,
     onDismiss: () -> Unit,
@@ -50,39 +52,37 @@ fun AddToQueueDialog(
         queues = playerConnection?.service?.queueBoard?.getAllQueues()?.reversed() ?: emptyList()
     }
 
-    if (isVisible) {
-        ListDialog(
-            onDismiss = onDismiss
-        ) {
-            item {
-                ListItem(
-                    title = stringResource(R.string.create_queue),
-                    thumbnailContent = {
-                        Image(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier.size(ListThumbnailSize)
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        showCreateQueueDialog = true
-                    }
-                )
-            }
+    ListDialog(
+        onDismiss = onDismiss
+    ) {
+        item {
+            ListItem(
+                title = stringResource(R.string.create_queue),
+                thumbnailContent = {
+                    Image(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+                        modifier = Modifier.size(ListThumbnailSize)
+                    )
+                },
+                modifier = Modifier.clickable {
+                    showCreateQueueDialog = true
+                }
+            )
+        }
 
-            var index = queues.size
-            // add queue
-            items(queues) { queue ->
-                QueueListItem(
-                    queue = queue,
-                    number = index--,
-                    modifier = Modifier.clickable {
-                        onAdd(queue.title)
-                        onDismiss()
-                    }
-                )
-            }
+        var index = queues.size
+        // add queue
+        items(queues) { queue ->
+            QueueListItem(
+                queue = queue,
+                number = index--,
+                modifier = Modifier.clickable {
+                    onAdd(queue.title)
+                    onDismiss()
+                }
+            )
         }
     }
 
@@ -98,4 +98,26 @@ fun AddToQueueDialog(
             },
         )
     }
+}
+
+@Composable
+fun EditQueueDialog(
+    queue: MultiQueueObject,
+    onDismiss: () -> Unit,
+) {
+    val playerConnection = LocalPlayerConnection.current
+
+    TextFieldDialog(
+        icon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
+        title = { Text(text = stringResource(R.string.edit_playlist)) },
+        onDismiss = onDismiss,
+        initialTextFieldValue = TextFieldValue(
+            queue.title,
+            TextRange(queue.title.length)
+        ),
+        onDone = { name ->
+            onDismiss()
+            playerConnection?.service?.queueBoard?.renameQueue(queue, name)
+        }
+    )
 }
