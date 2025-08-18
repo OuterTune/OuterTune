@@ -1,7 +1,6 @@
 <p><i>OuterTune</i> is a supercharged fork of <a href="https://github.com/z-huang/InnerTune" target="_blank" rel="nofollow noopener">InnerTune</a>. This app is both a local media player, and a YouTube Music client.</p>
 
 <p></p>Features:<p></p>
-
 <ul>
 <li>YouTube Music client with song downloading (offline playback), background playback, no ADs, and account synchronization</li>
 <li>Local audio file playback (MP3, OGG, FLAC, etc.)</li><li>Uses a custom tag extractor instead of MediaStore's broken metadata extractor! (e.g tags delimited with \\ now show up properly)</li>
