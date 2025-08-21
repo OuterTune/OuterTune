@@ -221,9 +221,9 @@
     <string name="err_invalid_ytm_song">Impossibile riprodurre il brano. È possibile riprodurre solo i contenuti accessibili su YouTube Music</string>
     <string name="app_info_title">Informazioni sull\'applicazione</string>
     <string name="device_info_title">Informazioni sul dispositivo</string>
-    <string name="help_bug_report_action">Invia una segnalazione di bug (tramite Github)</string>
+    <string name="help_bug_report_action">Invia una segnalazione di bug (tramite GitHub)</string>
     <string name="help_contact_email_inquiries">Altre richieste (tocca per copiare l\'email)</string>
-    <string name="help_support_forum">Aiuto e supporto (tramite Github)</string>
+    <string name="help_support_forum">Aiuto e supporto (tramite GitHub)</string>
     <string name="wiki">Wiki</string>
     <string name="scanner_sensitivity_L0">Prendi il primo risultato fornito da YouTube quando la ricerca su YouTube è abilitata, altrimenti abbina il titolo</string>
     <string name="err_restore_incompatible_database">Impossibile ripristinare il database incompatibile</string>

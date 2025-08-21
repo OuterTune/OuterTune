@@ -180,7 +180,7 @@
     <string name="speed_medium">Средне</string>
     <string name="tablet_ui_title_description">Задействовать горизонтально ориентированный интерфейс, оптимизированный для больших экранов, независимо от текущего размера экрана</string>
     <string name="import_success_songs">Успешно импортировано</string>
-    <string name="disable_lm_confirm">Вы уверены, что хотите отключить функции локальных медиа?</string>
+    <string name="disable_lm_confirm">Вы уверены, что хотите отключить функции локальных медиа? Содержимое вашей библиотеки не будет затронуто.</string>
     <string name="scan_paths_description">Выберите папки на локальном устройстве для поиска песен</string>
     <string name="scanner_rejected_dir">Неверный выбор. Папка сканирования не может быть подкаталогом папки загрузки или самой папки загрузки</string>
     <string name="scanner_progress_discovering">Поиск…</string>
@@ -238,7 +238,7 @@
     <string name="att_project_support">Поддержка проекта</string>
     <string name="att_translator">Переводчик (%s)</string>
     <string name="lyrics_synced_clickable">Кликабельные тексты песен</string>
-    <string name="sort_by_track_number">По номеру трека</string>
+    <string name="sort_by_track_number">Номер трека</string>
     <string name="bits_per_sample">Битовая глубина</string>
     <string name="disc_number">Номер диска</string>
     <string name="extra_details">Доп. сведения</string>

@@ -616,69 +616,75 @@ fun BottomSheetPlayer(
             }
         }
 
-        val overlayColor = if (useDarkTheme) Color.Black.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.55f)
-        AnimatedContent(
-            targetState = mediaMetadata,
-            transitionSpec = {
-                fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000)))
-            }
-        ) { metadata ->
-            if (playerBackground == PlayerBackgroundStyle.BLUR) {
-                if (metadata?.isLocal == true) {
-                    metadata.let {
-                        AsyncImageLocal(
-                            image = { imageCache.getLocalThumbnail(it.localPath) },
+        AnimatedVisibility(
+            visible = !context.isPowerSaver() && state.isExpanded,
+            enter = fadeIn(tween(500)),
+            exit = fadeOut(tween(500))
+        ) {
+            val overlayColor = if (useDarkTheme) Color.Black.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.55f)
+            AnimatedContent(
+                targetState = mediaMetadata,
+                transitionSpec = {
+                    fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000)))
+                }
+            ) { metadata ->
+                if (playerBackground == PlayerBackgroundStyle.BLUR) {
+                    if (metadata?.isLocal == true) {
+                        metadata.let {
+                            AsyncImageLocal(
+                                image = { imageCache.getLocalThumbnail(it.localPath) },
+                                contentScale = ContentScale.FillBounds,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .blur(if (useDarkTheme) 150.dp else 100.dp)
+                            )
+                        }
+                    } else {
+                        AsyncImage(
+                            model = metadata?.thumbnailUrl,
+                            contentDescription = null,
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .blur(if (useDarkTheme) 150.dp else 100.dp)
                         )
                     }
-                } else {
-                    AsyncImage(
-                        model = metadata?.thumbnailUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.FillBounds,
+
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(if (useDarkTheme) 150.dp else 100.dp)
+                            .background(overlayColor)
                     )
                 }
+            }
 
+            AnimatedContent(
+                targetState = gradientColors,
+                transitionSpec = {
+                    fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000)))
+                }
+            ) { colors ->
+                if (playerBackground == PlayerBackgroundStyle.GRADIENT && colors.size >= 2) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Brush.verticalGradient(colors), alpha = 0.8f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(overlayColor)
+                    )
+                }
+            }
+
+            if (playerBackground != PlayerBackgroundStyle.FOLLOW_THEME && showLyrics) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(overlayColor)
+                        .background(if (useDarkTheme) Color.Black.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.5f))
                 )
             }
-        }
-
-        AnimatedContent(
-            targetState = gradientColors,
-            transitionSpec = {
-                fadeIn(tween(1000)).togetherWith(fadeOut(tween(1000)))
-            }
-        ) { colors ->
-            if (playerBackground == PlayerBackgroundStyle.GRADIENT && colors.size >= 2) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Brush.verticalGradient(colors), alpha = 0.8f)
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(overlayColor)
-                )
-            }
-        }
-
-        if (playerBackground != PlayerBackgroundStyle.FOLLOW_THEME && showLyrics) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(if (useDarkTheme) Color.Black.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.5f))
-            )
         }
 
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && !tabMode && wideScreen) {

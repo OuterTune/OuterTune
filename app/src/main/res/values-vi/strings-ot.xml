@@ -95,4 +95,8 @@
     <string name="wiki">Trang Wiki</string>
     <string name="audio_offload_description">Sử dụng đường dẫn truyền tải âm thanh. Tắt cài đặt này có thể làm tăng mức tiêu thụ pin, nhưng sẽ hữu dụng nếu bạn gặp các vấn đề về phát lại hoặc xử lí</string>
     <string name="keep_alive_title">Cho phép ứng dụng chạy ngầm</string>
+    <string name="tap_show_more">Chạm để hiện thêm thông tin</string>
+    <string name="err_invalid_ytm_song">Phát bài hát không thành công. Chỉ có nội dung khả dụng trên Youtube Music mới có thể được phát</string>
+    <string name="file_path">Đường dẫn của tệp</string>
+    <string name="extra_details">Thông tin thêm</string>
 </resources>

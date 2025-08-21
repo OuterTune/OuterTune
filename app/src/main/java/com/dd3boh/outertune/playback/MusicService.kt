@@ -180,7 +180,6 @@ class MusicService : MediaLibraryService(),
     private val audioQuality by enumPreference(this, AudioQualityKey, AudioQuality.AUTO)
 
     var queueBoard = QueueBoard(this)
-    var queueTitle: String? = null
     var queuePlaylistId: String? = null
     private var lastMediaItemIndex = -1
 
@@ -413,13 +412,7 @@ class MusicService : MediaLibraryService(),
 
         initQueue()
         CoroutineScope(Dispatchers.Main).launch {
-            val q = queueBoard.setCurrQueue(false)
-            if (q != null) {
-                player.seekTo(q.queuePos, q.lastSongPos)
-                queueBoard.getCurrentQueue()?.let {
-                    it.lastSongPos = C.TIME_UNSET
-                }
-            }
+            queueBoard.setCurrQueue()
         }
 
         setMediaNotificationProvider(
@@ -722,7 +715,6 @@ class MusicService : MediaLibraryService(),
     override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
         if (playbackState == STATE_IDLE) {
             queuePlaylistId = null
-            queueTitle = null
         }
     }
 

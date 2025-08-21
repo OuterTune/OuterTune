@@ -183,7 +183,7 @@
     <string name="scanner_progress_processing">Обробка…</string>
     <string name="scanner_rejected_dir">Недійсний вибір. Папка сканування не може бути підкаталогом папки завантажень або самою папкою завантажень</string>
     <string name="scanner_progress_discovering">Відкриття…</string>
-    <string name="disable_lm_confirm">Ви впевнені, що хочете вимкнути функції локальних медіа?</string>
+    <string name="disable_lm_confirm">Ви впевнені, що хочете вимкнути функції локальних медіа? Це не вплине на вміст вашої бібліотеки.</string>
     <string name="scan_paths_description">Виберіть папки на вашому локальному сховищі для сканування пісень</string>
     <string name="clear_image_cache_confirm">Ви впевнені, що хочете очистити кеш зображень? Усі існуючі мініатюри альбомів будуть видалені.</string>
     <string name="oobe_ytm_logon_title">Обліковий запис</string>
@@ -223,9 +223,9 @@
     <string name="scanner_sensitivity_L0">Використовувати перший результат, наданий YouTube, якщо пошук на YouTube увімкнено, інакше – за назвою</string>
     <string name="app_info_title">Інформація про заявку</string>
     <string name="device_info_title">Інформація про пристрій</string>
-    <string name="help_bug_report_action">Надіслати звіт про помилку (через Github)</string>
+    <string name="help_bug_report_action">Надіслати звіт про помилку (через GitHub)</string>
     <string name="help_contact_email_inquiries">Інші запити (Натисніть, щоб скопіювати електронну пошту)</string>
-    <string name="help_support_forum">Довідка та підтримка (через Github)</string>
+    <string name="help_support_forum">Довідка та підтримка (через GitHub)</string>
     <string name="wiki">Вікі</string>
     <string name="err_invalid_ytm_song">Не вдалося відтворити пісню. Можна відтворити лише контент, доступний у YouTube Music</string>
     <string name="err_restore_incompatible_database">Не вдалося відновити несумісну базу даних</string>

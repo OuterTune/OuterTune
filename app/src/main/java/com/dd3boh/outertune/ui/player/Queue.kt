@@ -248,7 +248,8 @@ fun BoxScope.QueueContent(
     // ui
     val tabMode = context.tabMode()
     val wideScreen = context.supportsWideScreen()
-    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && !tabMode && wideScreen
+    val landscape =
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && !tabMode && wideScreen
 
     // multi queue vars
     var mqExpand by remember { mutableStateOf(false) }
@@ -739,9 +740,11 @@ fun BoxScope.QueueContent(
                                                 } else {
                                                     val index = index // race condition...?
                                                     if (detachedHead) {
-                                                        qb.setCurrQueue(detachedQueue, false)
+                                                        detachedQueue?.setCurrentQueuePos(index)
+                                                        qb.setCurrQueue(detachedQueue)
+                                                    } else {
+                                                        playerConnection.player.seekToDefaultPosition(index)
                                                     }
-                                                    playerConnection.player.seekToDefaultPosition(index)
                                                     playerConnection.player.prepare() // else cannot click to play after auto-skip onError stop
                                                     playerConnection.player.playWhenReady = true
                                                 }

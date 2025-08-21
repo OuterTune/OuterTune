@@ -138,9 +138,9 @@
     <string name="check_for_update">בדוק אם יש עדכונים</string>
     <string name="checking_for_update">בודק עדכונים</string>
     <string name="device_info_title">מידע על המכשיר</string>
-    <string name="help_bug_report_action">שלח דוח באג (דרך Github)</string>
+    <string name="help_bug_report_action">שלח דוח באג (דרך GitHub)</string>
     <string name="help_contact_email_inquiries">שאלות נוספות (הקש כדי להעתיק את האימייל)</string>
-    <string name="help_support_forum">עזרה ותמיכה (דרך Github)</string>
+    <string name="help_support_forum">עזרה ותמיכה (דרך GitHub)</string>
     <string name="no_updates_available">אין עדכונים זמינים</string>
     <string name="oss_licenses_title">רישיונות קוד פתוח</string>
     <string name="wiki">ויקי</string>

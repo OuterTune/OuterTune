@@ -1,3 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="folders">Carpetes</string>
+    <string name="library">Biblioteca</string>
+    <string name="recent_activity">Activitat recent</string>
+    <string name="local_history">Local</string>
+    <string name="queue_local_history">Història (local)</string>
+    <string name="queue_remote_history">Història (remota)</string>
+    <string name="android_auto">Android Auto</string>
+    <string name="library_empty">El contingut de la teva biblioteca sortirà aquí</string>
+    <string name="delete_lyric_confirm">De debò vol eliminar la lletra guardada per \"%s\"?</string>
+    <string name="song_added_to_queue">\"%s\" agregat a la cua</string>
+    <string name="song_added_to_queue_end">\"%s\" agregat al final de la cua</string>
+    <string name="queues_empty">Sense cues</string>
+    <string name="more_settings">Més configuracions</string>
 </resources>

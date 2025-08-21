@@ -650,7 +650,7 @@ fun OnlinePlaylistScreen(
                         )
                     }
 
-                    if (viewModel.continuation != null && songs.isNotEmpty()) {
+                    if (viewModel.continuation != null && songs.isNotEmpty() && !isSearching) {
                         item {
                             ShimmerHost {
                                 repeat(2) {

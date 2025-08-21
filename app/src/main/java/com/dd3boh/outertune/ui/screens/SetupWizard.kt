@@ -101,8 +101,10 @@ import com.dd3boh.outertune.BuildConfig
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AutomaticScannerKey
+import com.dd3boh.outertune.constants.DEFAULT_ENABLED_FILTERS
 import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
 import com.dd3boh.outertune.constants.DownloadPathKey
+import com.dd3boh.outertune.constants.EnabledFiltersKey
 import com.dd3boh.outertune.constants.EnabledTabsKey
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
 import com.dd3boh.outertune.constants.LibraryFilterKey
@@ -112,12 +114,12 @@ import com.dd3boh.outertune.constants.OOBE_VERSION
 import com.dd3boh.outertune.constants.OobeStatusKey
 import com.dd3boh.outertune.constants.ScanPathsKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
-import com.dd3boh.outertune.ui.dialog.ActionPromptDialog
-import com.dd3boh.outertune.ui.component.button.IconLabelButton
-import com.dd3boh.outertune.ui.dialog.InfoLabel
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SwitchPreference
+import com.dd3boh.outertune.ui.component.button.IconLabelButton
+import com.dd3boh.outertune.ui.dialog.ActionPromptDialog
+import com.dd3boh.outertune.ui.dialog.InfoLabel
 import com.dd3boh.outertune.ui.screens.Screens.LibraryFilter
 import com.dd3boh.outertune.ui.screens.settings.fragments.AccountFrag
 import com.dd3boh.outertune.ui.screens.settings.fragments.LocalScannerFrag
@@ -159,13 +161,19 @@ fun SetupWizard(
     val (localLibEnable, onLocalLibEnableChange) = rememberPreference(LocalLibraryEnableKey, defaultValue = true)
     val (autoScan, onAutoScanChange) = rememberPreference(AutomaticScannerKey, defaultValue = false)
     val (enabledTabs, onEnabledTabsChange) = rememberPreference(EnabledTabsKey, defaultValue = DEFAULT_ENABLED_TABS)
+    val (enabledFilters, onEnabledFiltersChange) = rememberPreference(EnabledFiltersKey, defaultValue = DEFAULT_ENABLED_FILTERS)
 
     LaunchedEffect(localLibEnable) {
-        val containsFolders = enabledTabs.contains('F')
+        var containsFolders = enabledTabs.contains('F')
         if (localLibEnable && !containsFolders) {
             onEnabledTabsChange(enabledTabs + "F")
         } else if (!localLibEnable && containsFolders) {
             onEnabledTabsChange(enabledTabs.filterNot { it == 'F' })
+        }
+
+        containsFolders = enabledFilters.contains('F')
+        if (!localLibEnable && containsFolders) {
+            onEnabledFiltersChange(enabledFilters.filterNot { it == 'F' })
         }
     }
 

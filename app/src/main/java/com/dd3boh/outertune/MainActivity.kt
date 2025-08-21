@@ -608,9 +608,10 @@ class MainActivity : ComponentActivity() {
                                 uri.host == "youtu.be" -> path
                                 else -> return false
                             }?.let { videoId ->
+                                val playlistId = uri.getQueryParameter("list")
                                 coroutineScope.launch {
                                     withContext(Dispatchers.IO) {
-                                        YouTube.queue(listOf(videoId))
+                                        YouTube.queue(listOf(videoId), playlistId)
                                     }.onSuccess {
                                         sharedSong = it.firstOrNull()
                                         if (sharedSong == null) {

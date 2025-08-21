@@ -110,7 +110,7 @@
     <string name="local_player_settings_title">رسانه محلی</string>
     <string name="flat_subfolders_title">مسطح کردن زیرپوشه ها</string>
     <string name="flat_subfolders_description">غیرفعال کردن ساختار فایل روی دیسک</string>
-    <string name="disable_lm_confirm">آیا مطمئن هستید که می‌خواهید ویژگی‌های رسانه محلی را غیرفعال کنید؟</string>
+    <string name="disable_lm_confirm">آیا مطمئن هستید که می‌خواهید ویژگی‌های رسانه محلی را غیرفعال کنید؟ محتوای کتابخانه شما تحت تأثیر قرار نخواهد گرفت.</string>
     <string name="auto_scanner_title">اسکن خودکار</string>
     <string name="auto_scanner_description">هنگام باز کردن برنامه، به طور خودکار آهنگ‌ها را اسکن می‌کند. این کار فراداده آهنگ‌های موجود را دوباره بارگذاری نمی‌کند.</string>
     <string name="scan_paths_title">پیکربندی مکان‌های اسکن…</string>

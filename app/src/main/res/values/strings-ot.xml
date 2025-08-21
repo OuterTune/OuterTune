@@ -97,9 +97,9 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="check_for_update">Check for updates</string>
     <string name="checking_for_update">Checking for updates</string>
     <string name="device_info_title">Device information</string>
-    <string name="help_bug_report_action">Submit a bug report (Via Github)</string>
+    <string name="help_bug_report_action">Submit a bug report (Via GitHub)</string>
     <string name="help_contact_email_inquiries">Other inquires (Tap to copy Email)</string>
-    <string name="help_support_forum">Help and support (Via Github)</string>
+    <string name="help_support_forum">Help and support (Via GitHub)</string>
     <string name="no_updates_available">No updates available</string>
     <string name="oss_licenses_title">Open source licenses</string>
     <string name="wiki">Wiki</string>
@@ -175,7 +175,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="local_player_settings_title">Local media</string>
     <string name="flat_subfolders_title">Flatten subfolders</string>
     <string name="flat_subfolders_description">Disable to preserve the file structure as on disk</string>
-    <string name="disable_lm_confirm">Are you sure you want to disable local media features?</string>
+    <string name="disable_lm_confirm">Are you sure you want to disable local media features? Your library contents will not be affected.</string>
 
 <!-- Scanner settings -->
     <string name="auto_scanner_title">Scan automatically</string>

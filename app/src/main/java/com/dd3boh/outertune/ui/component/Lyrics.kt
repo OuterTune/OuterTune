@@ -332,8 +332,11 @@ fun Lyrics(
                                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
                             }
                     ) {
+                        val canUseFancyLyrics = currentPos.toULong() in item.start..item.end + 100.toULong()
+                                && lyricsFancy && item.words != null && !context.isPowerSaver()
                         if (currentPos.toULong() in item.start..item.end + 100.toULong() && lyricsFancy
-                            && item.words != null && !context.isPowerSaver()) { // word by word
+                            && item.words != null && !context.isPowerSaver()
+                        ) { // word by word
                             // now do eye bleach to make lyric line babies
                             val style = LocalTextStyle.current.copy(
                                 fontSize = lyricsFontSize.sp,
@@ -389,7 +392,7 @@ fun Lyrics(
                                 },
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.alpha(
-                                    if (!isSynced || (index == displayedCurrentLineIndex && item.words == null)) {
+                                    if (!isSynced || (index == displayedCurrentLineIndex && !canUseFancyLyrics)) {
                                         1f
                                     } else {
                                         0.5f

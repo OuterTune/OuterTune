@@ -2,6 +2,8 @@
 
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.FileInputStream
+import java.util.Properties
 
 
 plugins {
@@ -12,6 +14,12 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.dd3boh.outertune"
     compileSdk = 36
@@ -20,16 +28,37 @@ android {
         applicationId = "com.dd3boh.outertune"
         minSdk = 24
         targetSdk = 36
-        versionCode = 66
-        versionName = "0.9.3"
+        versionCode = 67
+        versionName = "0.9.3.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        if (!keystoreProperties.isEmpty) {
+            create("ot_release") {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                (keystoreProperties["keyAlias"] as? String)?.let {
+                    keyAlias = it
+                }
+                (keystoreProperties["keyPassword"] as? String)?.let {
+                    keyPassword = it
+                }
+                (keystoreProperties["storePassword"] as? String)?.let {
+                    storePassword = it
+                }
+            }
+        } else {
+            create("ot_release") { }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             isCrunchPngs = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("ot_release")
         }
         debug {
             applicationIdSuffix = ".debug"

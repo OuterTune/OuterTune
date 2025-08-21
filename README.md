@@ -86,7 +86,7 @@ including bug fixes and new features.
 
 ## Help & Support
 
-For bug reports and/or feature requests, please create a Github issue: https://github.com/OuterTune/OuterTune/issues
+For bug reports and/or feature requests, please create a GitHub issue: https://github.com/OuterTune/OuterTune/issues
 
 For all other inquiries, you can contact us at outertune@protonmail.com (this is not a support email!)
 

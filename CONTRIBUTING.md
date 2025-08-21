@@ -75,7 +75,7 @@ To make everyone's life easier, there are a set of guidelines that are to be fol
 
 | Tag (General) | Description                                                                                         |
 |---------------|-----------------------------------------------------------------------------------------------------|
-| github        | Github facing configs, ex. build scripts, templates, etc.                                           |
+| github        | GitHub facing configs, ex. build scripts, templates, etc.                                           |
 | gradle        | Dependency/library updates                                                                          |
 | readme        | Readme changes                                                                                      |
 | fixup         | Amendments to certain commits. this is generally done in the format `fixup: <old commit name here>` |

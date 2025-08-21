@@ -198,7 +198,7 @@
     <string name="oobe_ytm_logon_subtitle">Conecte-se à sua conta do YouTube Music para sincronizar e acessar conteúdo privado da conta. Isso é opcional.</string>
     <string name="oobe_downloads_subtitle">Selecione uma pasta na qual as músicas baixadas serão salvas.</string>
     <string name="oobe_complete_title">Está tudo pronto!</string>
-    <string name="disable_lm_confirm">Ten certeza que quer desativar todos os recursos de mídia local?</string>
+    <string name="disable_lm_confirm">Ten certeza que quer desativar todos os recursos de mídia local? Os conteúdos da sua biblioteca não serão afetados.</string>
     <string name="oobe_local_media_title">Mídia local</string>
     <string name="oobe_cross_platform_sync_description">Mantenha sua música em harmonia entre dispositivos</string>
     <string name="oobe_ad_free_exp">Sem anúncios do YouTube</string>

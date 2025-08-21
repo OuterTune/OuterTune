@@ -171,7 +171,7 @@
     <string name="grp_behavior">動作</string>
     <string name="attribution_title">帰属</string>
     <string name="m3u_ytm_lookup">アプリのデータベースに見つからない曲をYouTube Musicで検索する</string>
-    <string name="disable_lm_confirm">端末内メディアを無効にしますか？</string>
+    <string name="disable_lm_confirm">端末内メディアを無効にしますか？ライブラリ内のコンテンツに影響はありません。</string>
     <string name="clear_song_cache_confirm">曲のキャッシュを削除しますか？</string>
     <string name="scanner_progress_processing">処理中…</string>
     <string name="lyrics_karaoke_hz_title">カラオケ風の歌詞の更新速度を調整する</string>
@@ -216,8 +216,8 @@
     <string name="dl_storage_tooltip">端末内のダウンロードファイルは、アプリ用の保存領域に保存され、ルート権限がないとアクセスできません。\n\n外部のダウンロードファイルは、端末の外部の保存領域に保存され（例：/sdcard または microSD カード）、ファイルエクスプローラーで直接アクセスまたは編集できます。外部ダウンロードフォルダについては、Outertune がそのフォルダ内のファイルを変更または削除する可能性があるため、曲のダウンロード専用に空のフォルダを選択することを推奨します。\n\n追加インポートフォルダは読み取り専用で、追加の曲を読み込むために使用されます。Outertune は、このフォルダ内のファイルを変更または削除しません。これらのフォルダは詳細設定セクションで選択できます。\n\nダウンロードファイルを消去すると、内部の曲のみが削除されます。外部のダウンロードと追加でインポートした曲は、曲のメニューから、またはファイルエクスプローラーから手動で削除する必要があります。\n\nダウンロードフォルダの再スキャン：外部ダウンロードフォルダと追加インポートフォルダ内の曲のダウンロードは自動更新されません。 ファイルエクスプローラーを使用してファイルを手動で追加、削除、または変更した場合は、アプリのデータベースを更新するためにダウンロードフォルダを再スキャンする必要がある場合があります。このオプションは「詳細設定」セクションで利用できます。</string>
     <string name="app_info_title">アプリの情報</string>
     <string name="device_info_title">端末の情報</string>
-    <string name="help_bug_report_action">バグ報告を送信 (Github)</string>
-    <string name="help_support_forum">ヘルプとサポート (Github)</string>
+    <string name="help_bug_report_action">バグ報告を送信 (GitHub)</string>
+    <string name="help_support_forum">ヘルプとサポート (GitHub)</string>
     <string name="wiki">ウィキ</string>
     <string name="help_contact_email_inquiries">その他お問い合わせ (タップでメアドをコピー)</string>
     <string name="scanner_sensitivity_L0">YouTubeで検索が有効になっている場合はYouTubeから提供される最初の結果を取得し、そうでない場合はタイトルが一致するものを取得します</string>

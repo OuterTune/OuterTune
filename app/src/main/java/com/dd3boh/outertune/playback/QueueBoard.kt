@@ -696,10 +696,10 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
      * @param autoSeek true will automatically jump to a position in the queue after loading it
      * @return New current position tracker
      */
-    fun setCurrQueue(index: Int, autoSeek: Boolean = true): MultiQueueObject? {
+    fun setCurrQueue(index: Int): MultiQueueObject? {
         return try {
             val q = masterQueues[index]
-            setCurrQueue(q, autoSeek)
+            setCurrQueue(q)
             return q
         } catch (e: IndexOutOfBoundsException) {
             null
@@ -713,9 +713,9 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
      * @param autoSeek true will automatically jump to a position in the queue after loading it
      * @return New current position tracker
      */
-    fun setCurrQueue(autoSeek: Boolean = true): MultiQueueObject? {
+    fun setCurrQueue(): MultiQueueObject? {
         val q = getCurrentQueue()
-        setCurrQueue(q, autoSeek)
+        setCurrQueue(q)
         return q
     }
 
@@ -724,13 +724,12 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
      *
      * @param item Queue object
      * @param player MusicService link
-     * @param autoSeek true will automatically jump to a position in the queue after loading it
      * @return New current position tracker
      */
-    fun setCurrQueue(item: MultiQueueObject?, autoSeek: Boolean = true): Int? {
+    fun setCurrQueue(item: MultiQueueObject?): Int? {
         Log.d(
             TAG,
-            "Loading queue ${item?.title ?: "null"} into player. " + "autoSeek = $autoSeek shuffle state = ${item?.shuffled}"
+            "Loading queue ${item?.title ?: "null"} into player. Shuffle state = ${item?.shuffled}"
         )
 
         if (item == null || item.queue.isEmpty()) {
@@ -740,6 +739,7 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
 
         // I have no idea why this value gets reset to 0 by the end... but ig this works
         val queuePos = item.getQueuePosShuffled()
+        val lastSongPos = item.lastSongPos
         val realQueuePos = item.queuePos
         masterIndex = masterQueues.indexOf(item)
 
@@ -747,8 +747,8 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
 
         Log.d(
             TAG, "Setting current queue. in bounds: ${queuePos >= 0 && queuePos < mediaItems.size}, " +
-                    "queuePos: $queuePos, real queuePos: ${realQueuePos}, ids: ${player.player.currentMetadata?.id}, " +
-                    "${mediaItems[queuePos].id}"
+                    "queuePos: $queuePos, real queuePos: ${realQueuePos}, lastSongPos: $lastSongPos" +
+                    "ids: ${player.player.currentMetadata?.id}, ${mediaItems[queuePos].id}"
         )
         /**
          * current playing == jump target, do seamlessly
@@ -782,15 +782,10 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
             }
         } else {
             Log.d(TAG, "Seamless is not supported. Loading songs in directly")
-            player.player.setMediaItems(mediaItems.map { it.toMediaItem() })
-        }
-
-        if (autoSeek && !seamlessSupported) {
-            player.player.seekTo(queuePos, C.TIME_UNSET)
+            player.player.setMediaItems(mediaItems.map { it.toMediaItem() }, queuePos, lastSongPos)
         }
 
         bubbleUp(item)
-        player.queueTitle = item.title
         player.player.shuffleModeEnabled = item.shuffled
         return queuePos
     }
