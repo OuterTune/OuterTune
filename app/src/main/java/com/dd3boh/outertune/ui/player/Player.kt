@@ -620,6 +620,7 @@ fun BottomSheetPlayer(
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = Icons.Rounded.SkipNext,
+                        enabled = canSkipNext,
                         modifier = Modifier
                             .size(32.dp)
                             .align(Alignment.Center),
