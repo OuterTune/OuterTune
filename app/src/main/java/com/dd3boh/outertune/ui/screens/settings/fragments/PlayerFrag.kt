@@ -53,7 +53,7 @@ fun PlayerGeneralFrag() {
     )
     EnumListPreference(
         title = { Text(stringResource(R.string.seek_increment))},
-        icon = { Icon(Icons.Rounded.GraphicEq, null) },
+        icon = { Icon(Icons.Rounded.FastForward, null) },
         selectedValue = seekIncrement,
         onValueSelected = onSeekIncrementChange,
         valueText = {
@@ -76,7 +76,7 @@ fun AudioQualityFrag() {
 
     EnumListPreference(
         title = { Text(stringResource(R.string.audio_quality)) },
-        icon = { Icon(Icons.Rounded.FastForward, null) },
+        icon = { Icon(Icons.Rounded.GraphicEq, null) },
         selectedValue = audioQuality,
         onValueSelected = onAudioQualityChange,
         valueText = {
