@@ -134,6 +134,9 @@ enum class ScannerM3uMatchCriteria {
 Player & audio
 ---------------------------
  */
+enum class SeekIncrement(val value: Int) {
+    FIVE(5), TEN(10), FIFTEEN(15), TWENTY(20)
+}
 enum class AudioQuality {
     AUTO, HIGH, LOW
 }
