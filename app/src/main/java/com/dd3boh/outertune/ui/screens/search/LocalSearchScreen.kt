@@ -45,17 +45,21 @@ import com.dd3boh.outertune.db.entities.Playlist
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
-import com.dd3boh.outertune.ui.component.AlbumListItem
-import com.dd3boh.outertune.ui.component.ArtistListItem
+import com.dd3boh.outertune.ui.component.items.AlbumListItem
+import com.dd3boh.outertune.ui.component.items.ArtistListItem
 import com.dd3boh.outertune.ui.component.ChipsRow
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
-import com.dd3boh.outertune.ui.component.PlaylistListItem
-import com.dd3boh.outertune.ui.component.SongListItem
+import com.dd3boh.outertune.ui.component.items.PlaylistListItem
+import com.dd3boh.outertune.ui.component.items.SongListItem
 import com.dd3boh.outertune.viewmodels.LocalFilter
 import com.dd3boh.outertune.viewmodels.LocalSearchViewModel
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 
+@OptIn(FlowPreview::class)
 @Composable
 fun LocalSearchScreen(
     query: String,
@@ -84,7 +88,9 @@ fun LocalSearchScreen(
     }
 
     LaunchedEffect(query) {
-        viewModel.query.value = query
+        snapshotFlow { query }.debounce { 300L }.collectLatest {
+            viewModel.query.value = query
+        }
     }
 
     Column {

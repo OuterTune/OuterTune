@@ -198,10 +198,10 @@
     <string name="oobe_ytm_logon_subtitle">Conecte-se à sua conta do YouTube Music para sincronizar e acessar conteúdo privado da conta. Isso é opcional.</string>
     <string name="oobe_downloads_subtitle">Selecione uma pasta na qual as músicas baixadas serão salvas.</string>
     <string name="oobe_complete_title">Está tudo pronto!</string>
-    <string name="disable_lm_confirm">Ten certeza que quer desativar todos os recursos de mídia local?</string>
+    <string name="disable_lm_confirm">Ten certeza que quer desativar todos os recursos de mídia local? Os conteúdos da sua biblioteca não serão afetados.</string>
     <string name="oobe_local_media_title">Mídia local</string>
     <string name="oobe_cross_platform_sync_description">Mantenha sua música em harmonia entre dispositivos</string>
-    <string name="oobe_ad_free_exp">Experiência sem anúncios</string>
+    <string name="oobe_ad_free_exp">Sem anúncios do YouTube</string>
     <string name="oobe_local_media_subtitle">Selecione as pastas que contém suas músicas. Iremos buscar músicas nelas para importar.</string>
     <string name="clear_downloads_confirm">Tem certeza que quer remover todos os downloads? Somente downloads na pasta principal de downloads principal serão removidos.</string>
     <string name="clear_image_cache_confirm">Tem certeza que quer limpar a cache de imagens? Todas as miniaturas de álbuns serão removidas.</string>
@@ -228,4 +228,18 @@
     <string name="err_invalid_ytm_song">Falha ao reproduzir a música. Somente conteúdo acessível pelo YouTube Music pode ser reproduzido</string>
     <string name="err_restore_incompatible_database">Não foi possível restaurar banco de dados incompatível</string>
     <string name="m3u_import_failed">Nenhuma música encontrada. Arquivo M3U inválido, ou nenhuma correspondência das músicas foi encontrada</string>
+    <string name="tap_show_more">Toque para mostrar mais informações</string>
+    <string name="all_contributors">Mostrar todos os colaboradores</string>
+    <string name="att_contributor">Colaborador</string>
+    <string name="att_lead_developer">Desenvolvedor principal</string>
+    <string name="att_maintainer">Mantenedor</string>
+    <string name="att_project_support">Suporte ao projeto</string>
+    <string name="att_translator">Tradutor (%s)</string>
+    <string name="lyrics_synced_clickable">Letras clicáveis</string>
+    <string name="sort_by_track_number">Número da faixa</string>
+    <string name="bits_per_sample">Bits por amostra</string>
+    <string name="disc_number">Número do disco</string>
+    <string name="extra_details">Detalhes extras</string>
+    <string name="file_path">Caminho do arquivo</string>
+    <string name="track_number">Número da faixa</string>
 </resources>

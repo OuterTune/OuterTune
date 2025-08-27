@@ -143,7 +143,6 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import com.dd3boh.outertune.constants.AppBarHeight
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
-import com.dd3boh.outertune.constants.DEFAULT_PLAYER_BACKGROUND
 import com.dd3boh.outertune.constants.DarkMode
 import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.DefaultOpenTabKey
@@ -162,8 +161,6 @@ import com.dd3boh.outertune.constants.NavigationBarHeight
 import com.dd3boh.outertune.constants.OOBE_VERSION
 import com.dd3boh.outertune.constants.OobeStatusKey
 import com.dd3boh.outertune.constants.PauseSearchHistoryKey
-import com.dd3boh.outertune.constants.PlayerBackgroundStyle
-import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
 import com.dd3boh.outertune.constants.PureBlackKey
 import com.dd3boh.outertune.constants.SCANNER_OWNER_LM
 import com.dd3boh.outertune.constants.ScanPathsKey
@@ -190,6 +187,9 @@ import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.BottomSheetMenu
 import com.dd3boh.outertune.ui.component.IconButton
 import com.dd3boh.outertune.ui.component.MenuState
+import com.dd3boh.outertune.ui.menu.BottomSheetMenu
+import com.dd3boh.outertune.ui.component.button.IconButton
+import com.dd3boh.outertune.ui.menu.MenuState
 import com.dd3boh.outertune.ui.component.SearchBar
 import com.dd3boh.outertune.ui.component.rememberBottomSheetState
 import com.dd3boh.outertune.ui.component.shimmer.ShimmerTheme
@@ -385,11 +385,6 @@ class MainActivity : ComponentActivity() {
             var themeColor by rememberSaveable(stateSaver = ColorSaver) {
                 mutableStateOf(DefaultThemeColor)
             }
-
-            val playerBackground by rememberEnumPreference(
-                key = PlayerBackgroundStyleKey,
-                defaultValue = DEFAULT_PLAYER_BACKGROUND
-            )
 
             try {
                 connectivityObserver.unregister()
@@ -620,9 +615,10 @@ class MainActivity : ComponentActivity() {
                                 uri.host == "youtu.be" -> path
                                 else -> return false
                             }?.let { videoId ->
+                                val playlistId = uri.getQueryParameter("list")
                                 coroutineScope.launch {
                                     withContext(Dispatchers.IO) {
-                                        YouTube.queue(listOf(videoId))
+                                        YouTube.queue(listOf(videoId), playlistId)
                                     }.onSuccess {
                                         sharedSong = it.firstOrNull()
                                         if (sharedSong == null) {
@@ -894,13 +890,6 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .nestedScroll(searchBarScrollBehavior.nestedScrollConnection)
                         ) {
-
-                            LaunchedEffect(playerBottomSheetState.isExpanded) {
-                                setSystemBarAppearance(
-                                    (playerBottomSheetState.isExpanded
-                                            && playerBackground != PlayerBackgroundStyle.FOLLOW_THEME) || useDarkTheme
-                                )
-                            }
 
                             val navHost: @Composable() (() -> Unit) = @Composable {
                                 NavHost(

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -24,8 +25,15 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.db.entities.Album
 import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.db.entities.Playlist
+import com.dd3boh.outertune.ui.component.items.AlbumGridItem
+import com.dd3boh.outertune.ui.component.items.AlbumListItem
+import com.dd3boh.outertune.ui.component.items.ArtistGridItem
+import com.dd3boh.outertune.ui.component.items.ArtistListItem
+import com.dd3boh.outertune.ui.component.items.PlaylistGridItem
+import com.dd3boh.outertune.ui.component.items.PlaylistListItem
 import com.dd3boh.outertune.ui.menu.AlbumMenu
 import com.dd3boh.outertune.ui.menu.ArtistMenu
+import com.dd3boh.outertune.ui.menu.MenuState
 import com.dd3boh.outertune.ui.menu.PlaylistMenu
 import com.dd3boh.outertune.ui.menu.YouTubePlaylistMenu
 import com.zionhuang.innertube.models.PlaylistItem
@@ -43,7 +51,7 @@ fun LibraryArtistListItem(
     artist = artist,
     trailingContent = {
         val haptic = LocalHapticFeedback.current
-        androidx.compose.material3.IconButton(
+        IconButton(
             onClick = {
                 menuState.show {
                     ArtistMenu(
@@ -111,7 +119,7 @@ fun LibraryAlbumListItem(
     isPlaying = isPlaying,
     trailingContent = {
         val haptic = LocalHapticFeedback.current
-        androidx.compose.material3.IconButton(
+        IconButton(
             onClick = {
                 menuState.show {
                     AlbumMenu(
@@ -181,7 +189,7 @@ fun LibraryPlaylistListItem(
     playlist = playlist,
     trailingContent = {
         val haptic = LocalHapticFeedback.current
-        androidx.compose.material3.IconButton(
+        IconButton(
             onClick = {
                 menuState.show {
                     // TODO: investigate why song count is needed. Remove if not needed

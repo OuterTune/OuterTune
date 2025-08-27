@@ -140,4 +140,6 @@
     <string name="scanner_sensitivity_title">स्कैनर की संवेदनशीलता सेट करें</string>
     <string name="scanner_sensitivity_L1">शीर्षक मिलाएं</string>
     <string name="err_invalid_ytm_song">गाना बजाने में विफल। केवल वही गाने चलाए जा सकते है जो यूट्यूब म्यूजिक पर उपलब्ध हो।</string>
+    <string name="tap_show_more">अधिक जानकारी के लिए टैप करें</string>
+    <string name="sort_by_track_number">ट्रैक संख्या</string>
 </resources>

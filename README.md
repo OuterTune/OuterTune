@@ -16,34 +16,35 @@ A Material 3 YouTube Music client & local music player for Android
 
 
 > [!NOTE]
-> We are looking for maintainers! If you wish to become a maintainer (or even are just curious about it), please send an email to outertune@protonmail.com
+> We are looking for maintainers! If you wish to become a maintainer (or even are just curious about it), please send an email to outertune@protonmail.com with relevant experience.
 
 > [!WARNING]
 > OuterTune is in a "stable beta" phase. While this app can certainly be used as your main music player, be aware there is a possibility of bugs, incomplete features, or any other unexpected behaviour.
 
 ## Features
 
-OuterTune is a supercharged fork of [InnerTune](https://github.com/z-huang/InnerTune), with advanced account
-synchronization, local media playback, multiple queues, and a new take on UI design.
+OuterTune is a supercharged fork of [InnerTune](https://github.com/z-huang/InnerTune). This app is both a local media player, and a YouTube Music client.
 
-- Play, search, and save all your songs, videos, albums, and playlists from YouTube Music
-    - Song downloading for offline playback
-    - Background playback & AD free
-- New integrated library screen design & Multiple queues
-- Advanced account synchronization
-    - YouTube Music account login support
-    - Fully fledged syncing of songs, subscriptions, ~~playlists~~ and albums — both to and from your account
-    - Playlist sync from the app to the remote account is temporally unavailable
-- Local audio file playback
+- YouTube Music client features
+    - Song downloading (offline playback)
+    - Seamless playback: no ADs & background playback
+    - Account synchronization
+        - Full playlist sync from the app to the remote account is temporally unavailable 
+- Local audio file playback (ex. MP3, OGG, FLAC, etc.)
     - Play local and Youtube Music songs at the same time
-    - We don't use MediaStore's broken metadata extractor! (e.g tags delimited with `\\` now show up properly)
-- Synchronized lyrics
+    - Uses a custom tag extractor instead of MediaStore's broken metadata extractor! (e.g tags delimited with \\ now show up properly)
+- Sleek Material3 design
+- Multiple queues
+- Synchronized lyrics, and support for word by word/Karaoke lyrics formats (e.g LRC, TTML)
 - Audio normalization, tempo/pitch adjustment, and various other audio effects
 - Android Auto support
 - Support for Android 8 (Oreo) and higher
 
 > [!NOTE]
-> Read our FAQ on our [wiki](https://github.com/OuterTune/OuterTune/wiki/Frequently-Asked-Questions-(FAQ))
+> Android 8 (Oreo) and higher is supported. While the app may work on Android 7.x (Nougat), we do not officially support this version
+
+> [!NOTE]
+> Read our FAQ and guides on our [wiki](https://github.com/OuterTune/OuterTune/wiki/Frequently-Asked-Questions-(FAQ))
 
 
 ## Screenshots
@@ -53,6 +54,8 @@ synchronization, local media playback, multiple queues, and a new take on UI des
 <img src="./assets/player.jpg" alt="Player interface"/>
 <br/><br/>
 <img src="./assets/ytm-sync.jpg" alt="Sync with YouTube Music"/>
+
+[Full image gallery](./assets/gallery)
 
 > [!WARNING]
 >
@@ -66,7 +69,7 @@ app yourself, please see the [building and contribution notes](./CONTRIBUTING.md
 
 ### Submitting Translations
 
-We use Weblate to translate OuterTune. For more details or to get started, visit our [Weblate page](https://hosted.weblate.org/projects/outertune/).
+We use Weblate to translate OuterTune. For more details or to submit translations, visit our [Weblate page](https://hosted.weblate.org/projects/outertune/).
 
 <a href="https://hosted.weblate.org/projects/outertune/">
 <img src="https://hosted.weblate.org/widget/outertune/multi-auto.svg" alt="Translation status" />
@@ -74,7 +77,7 @@ We use Weblate to translate OuterTune. For more details or to get started, visit
 
 Thank you very much for helping to make OuterTune accessible to many people worldwide.
 
-## Donate
+## Support us
 
 If you like OuterTune, you're welcome to send a donation. Donations will support the development,
 including bug fixes and new features.
@@ -83,9 +86,9 @@ including bug fixes and new features.
 
 ## Help & Support
 
-For bug reports and/or feature requests, please create a Github issue: https://github.com/OuterTune/OuterTune/issues
+For bug reports and/or feature requests, please create a GitHub issue: https://github.com/OuterTune/OuterTune/issues
 
-For all other inquiries, you can contact us at outertune@protonmail.com
+For all other inquiries, you can contact us at outertune@protonmail.com (this is not a support email!)
 
 ## Attribution
 
@@ -98,6 +101,8 @@ would have been possible without it.
 experience done right.
 
 [Gramophone](https://github.com/FoedusProgramme/Gramophone) for emotional support, and a legendary lyrics parser
+
+[![Star History Chart](https://api.star-history.com/svg?repos=outertune/outertune&type=Date)](https://www.star-history.com/#outertune/outertune&Date)
 
 ## Disclaimer
 

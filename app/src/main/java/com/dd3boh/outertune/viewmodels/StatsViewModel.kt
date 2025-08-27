@@ -18,6 +18,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import javax.inject.Inject
 
+// redoing this whole feature later, plz ignore the slop code
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StatsViewModel @Inject constructor(
@@ -30,7 +31,8 @@ class StatsViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val mostPlayedArtists = statPeriod.flatMapLatest { period ->
-        database.mostPlayedArtists(period.toTimeMillis()).map { artists ->
+        val time = period.toLocalDateTime()
+        database.mostPlayedArtists(time.year, time.month.value).map { artists ->
             artists.filter { it.artist.isYouTubeArtist }
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())

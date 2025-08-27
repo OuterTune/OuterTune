@@ -1,0 +1,13 @@
+Version 0.9.3
+
+## New features
+• Support for track and disk number for local songs; date modified and date released for local playlists
+• Added M3U export for folders
+• Improvements to light theme experience in the player and queue screens
+
+## Changes and improvements
+• Queues can now be renamed
+• Various UI improvements
+• General optimizations, improvements, and fixes
+
+Full changelog: https://github.com/OuterTune/OuterTune/releases/tag/v0.9.3

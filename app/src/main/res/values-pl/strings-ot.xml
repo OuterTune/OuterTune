@@ -106,7 +106,7 @@
     <string name="audio_offload">Włącz offload</string>
     <string name="scan_paths_add_folder">Dodaj nowy folder</string>
     <string name="scanner_progress_scanning">Skanowanie…</string>
-    <string name="scanner_missing_storage_perm">Skaner wymaga pozwolenia do przeglądania plików</string>
+    <string name="scanner_missing_storage_perm">Do działania lokalnego skanera multimediów wymagane są uprawnienia do przechowywania danych</string>
     <string name="action_cancel">Anuluj</string>
     <string name="scanner_local_title">Skaner lokalny</string>
     <string name="scanner_ytm_link_start">Rozpoczynanie linkowania artysty YouTube…</string>
@@ -175,7 +175,7 @@
     <string name="dl_rescan_title">Ponownie zeskanuj folder pobrań …</string>
     <string name="dl_size_used_main">Pamięć zewnętrzna: Użyto %s</string>
     <string name="dl_size_used_extra">Dodatkowe importy: Użyto %s</string>
-    <string name="oobe_ad_free_exp">Doświadczenie bez reklam</string>
+    <string name="oobe_ad_free_exp">Brak reklam na YouTube</string>
     <string name="oobe_ad_free_exp_description">Ciesz się nieprzerwaną muzyką</string>
     <string name="oobe_local_music_support">Ekstensywne ­wsparcie lokalnej muzyki</string>
     <string name="oobe_local_media_title">Lokalne media</string>
@@ -220,4 +220,28 @@
     <string name="clear_image_cache_confirm">Czy chcesz na peron usunąć pamięć zdjęć? Wszystkie istniejące miniaturki albumów zostaną usunięte.</string>
     <string name="dl_storage_tooltip">Pobrania wewnętrzne są zapisywane w pamięci wewnętrznej aplikacji i nie są dostępne bez zrootowania urządzenia..\n\nPobrania zewnętrzne są zapisywane do pamięci zewnętrznej urządzenia (np. /SD card lub mikro kart SD) I mogą zostać edytowane bezpośrednio poprzez eksplorator plików. Dla folderu pobrań zewnętrznych, rekomendujemy wybranie pustego folderu specyficznie dla piosenek, jako że OuterTune będzie mieć możliwość modyfikowania i usuwania plików w tym folderze.\n\nFoldery extra import so to foldery tylko to odczytu i służą do ładowania dodatkowych piosenek. OuterTune night nie zmieni lub usunie plików w tym folderze . Możesz wybrać te foldery w sekcji ustawienia zaawansowane.\n\nKiedy usuwasz pobrania,tylko wewnętrzne piosenki są usuwane. Piosenki znajdujące się w pobraniach zewnętrznych oraz Extra Import muszą być usuwane własnoręcznie, poprzez menu piosenek albo eksplorator plików.\n\nPonownie zeskanuj foldery: Pobrane piosenki znajdujące się w pobraniach zewnętrznych oraz w folderach Extra Import nie są aktualizowane automatycznie. Jeżeli własnoręcznie dodasz, usuniesz lub edytujesz plik używając eksploratora plików, być może będziesz musieć ponownie zeskanować folder pobrań by zaktualizować bazę danych aplikacji. Ta opcja jest dostępna w ustawieniach zaawansowanych.</string>
     <string name="oobe_ytm_logon_subtitle">Zaloguj się do swojego konta YouTube Music by dokonać synchronizacji oraz otrzymać dostęp do prywatnych treści z tego konta. Ta opcja jest opcjonalna.</string>
+    <string name="att_translator">Tłumacz (%s)</string>
+    <string name="lyrics_synced_clickable">Klikalny tekst</string>
+    <string name="err_restore_incompatible_database">Nie można odtworzyć niekompatybilnej bazy danych</string>
+    <string name="m3u_import_failed">Nie znaleziono piosenek. Nie prawidłowy plik M3U lub nie znaleziono pasujących piosenek</string>
+    <string name="tap_show_more">Kliknij, by uzyskać więcej informacji</string>
+    <string name="err_invalid_ytm_song">Nie udało się odtworzyć utworu. Można odtworzyć tylko treści dostępne w YouTube Music.</string>
+    <string name="app_info_title">Informacje o aplikacji</string>
+    <string name="device_info_title">Informacje o urządzeniu</string>
+    <string name="help_bug_report_action">Wyślij zgłoszenie błędu (przez GitHub)</string>
+    <string name="help_contact_email_inquiries">Inne zapytania (Nacisńij, by skopiować Email)</string>
+    <string name="help_support_forum">Wspieraj i pomóż (przez GitHub)</string>
+    <string name="wiki">Wiki</string>
+    <string name="all_contributors">Pokaż wszystkich współtwórców</string>
+    <string name="att_contributor">Współtwórca</string>
+    <string name="att_lead_developer">Główny developer</string>
+    <string name="att_maintainer">Konserwator</string>
+    <string name="att_project_support">Wsparcie projektu</string>
+    <string name="scanner_sensitivity_L0">Wybierz pierwszy wynik podany przez YouTube, gdy wyszukiwanie na YouTube jest włączone, w przeciwnym razie dopasuj tytuł</string>
+    <string name="sort_by_track_number">Numer utworu</string>
+    <string name="bits_per_sample">Bity na próbkę</string>
+    <string name="disc_number">Numer dysku</string>
+    <string name="extra_details">Dodatkowe szczegóły</string>
+    <string name="file_path">Ścieżka pliku</string>
+    <string name="track_number">Numer utworu</string>
 </resources>

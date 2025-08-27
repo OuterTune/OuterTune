@@ -238,36 +238,20 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
                 return match
             } else { // make new extension queue
                 if (QUEUE_DEBUG)
-                    Log.d(TAG, "Adding to queue: extension queue creation (and additive)")
-                // add items to NEW queue unconditionally (add entirely new queue)
-                if (masterQueues.size > MAX_QUEUES) {
-                    deleteQueue(masterQueues.first())
-                }
-
-                // create new queues
-                val shufQueue = match.getCurrentQueueShuffled()
-                shufQueue.addAll((mediaList.filterNotNull()))
-
-                // queue is always created as un-shuffled
-                shufQueue.fastForEachIndexed { index, s ->
-                    s.shuffleIndex = index
-                }
-
-                val newQueue = MultiQueueObject(
-                    QueueEntity.generateQueueId(),
-                    "$title +\u200B",
-                    shufQueue,
-                    false,
-                    match.getQueuePosShuffled(),
-                    masterQueues.size
-                )
-                masterQueues.add(newQueue)
+                    Log.d(TAG, "Adding to queue: extension queue rename + extension queue additive")
+                // add items to existing queue unconditionally
+                addSongsToQueue(match, Int.MAX_VALUE, mediaList.filterNotNull(), saveToDb = false)
                 if (shuffled) {
-                    shuffle(newQueue, false, true)
+                    shuffle(match, false, true)
+                    match.queuePos = match.queue.indexOf(match.queue.find { it.shuffleIndex == 0 })
                 }
 
-                saveQueueSongs(newQueue)
-                return newQueue
+                match.title = "${match.title} +\u200B"
+
+                // rewrite queue
+                saveQueueSongs(match)
+
+                return match
             }
         } else {
             // add entirely new queue
@@ -286,6 +270,7 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
                 q,
                 false,
                 startIndex,
+                -1,
                 masterQueues.size,
                 if (isRadio) q.lastOrNull()?.id else null
             )
@@ -692,11 +677,11 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
     }
 
     fun renameQueue(queue: MultiQueueObject, newName: String) {
-        if (masterQueues.remove(queue)) {
-            val updatedQueue = queue.copy(id = queue.id, title = newName)
-            if (!masterQueues.any { it.title == newName }) {
-                masterQueues.add(updatedQueue)
-            }
+        val found = masterQueues.any { it == queue }
+        if (found) {
+            val oldIndex = masterQueues.indexOf(queue)
+            val q = masterQueues.removeAt(oldIndex)
+            masterQueues.add(oldIndex, q.copy(title = newName))
 
             if (QUEUE_DEBUG)
                 Log.d(TAG, "Renamed queue from \"${queue.title}\" to \"$newName\"")
@@ -711,11 +696,13 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
      * @param autoSeek true will automatically jump to a position in the queue after loading it
      * @return New current position tracker
      */
-    fun setCurrQueue(index: Int, autoSeek: Boolean = true): Int? {
+    fun setCurrQueue(index: Int): MultiQueueObject? {
         return try {
-            setCurrQueue(masterQueues[index], autoSeek)
+            val q = masterQueues[index]
+            setCurrQueue(q)
+            return q
         } catch (e: IndexOutOfBoundsException) {
-            -1
+            null
         }
     }
 
@@ -726,21 +713,23 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
      * @param autoSeek true will automatically jump to a position in the queue after loading it
      * @return New current position tracker
      */
-    fun setCurrQueue(autoSeek: Boolean = true) =
-        setCurrQueue(getCurrentQueue(), autoSeek)
+    fun setCurrQueue(): MultiQueueObject? {
+        val q = getCurrentQueue()
+        setCurrQueue(q)
+        return q
+    }
 
     /**
      * Load a queue into the media player
      *
      * @param item Queue object
      * @param player MusicService link
-     * @param autoSeek true will automatically jump to a position in the queue after loading it
      * @return New current position tracker
      */
-    fun setCurrQueue(item: MultiQueueObject?, autoSeek: Boolean = true): Int? {
+    fun setCurrQueue(item: MultiQueueObject?): Int? {
         Log.d(
             TAG,
-            "Loading queue ${item?.title ?: "null"} into player. " + "autoSeek = $autoSeek shuffle state = ${item?.shuffled}"
+            "Loading queue ${item?.title ?: "null"} into player. Shuffle state = ${item?.shuffled}"
         )
 
         if (item == null || item.queue.isEmpty()) {
@@ -750,6 +739,7 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
 
         // I have no idea why this value gets reset to 0 by the end... but ig this works
         val queuePos = item.getQueuePosShuffled()
+        val lastSongPos = item.lastSongPos
         val realQueuePos = item.queuePos
         masterIndex = masterQueues.indexOf(item)
 
@@ -757,8 +747,8 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
 
         Log.d(
             TAG, "Setting current queue. in bounds: ${queuePos >= 0 && queuePos < mediaItems.size}, " +
-                    "queuePos: $queuePos, real queuePos: ${realQueuePos}, ids: ${player.player.currentMetadata?.id}, " +
-                    "${mediaItems[queuePos].id}"
+                    "queuePos: $queuePos, real queuePos: ${realQueuePos}, lastSongPos: $lastSongPos" +
+                    "ids: ${player.player.currentMetadata?.id}, ${mediaItems[queuePos].id}"
         )
         /**
          * current playing == jump target, do seamlessly
@@ -783,22 +773,19 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
                 player.player.addMediaItems(mediaItems.drop(1).map { it.toMediaItem() })
             } else {
                 // replace items up to current playing, then replace items after current
-                player.player.replaceMediaItems(0, playerIndex,
+                player.player.replaceMediaItems(
+                    0, playerIndex,
                     mediaItems.subList(0, queuePos).map { it.toMediaItem() })
-                player.player.replaceMediaItems(queuePos + 1, Int.MAX_VALUE,
+                player.player.replaceMediaItems(
+                    queuePos + 1, Int.MAX_VALUE,
                     mediaItems.subList(queuePos + 1, mediaItems.size).map { it.toMediaItem() })
             }
         } else {
             Log.d(TAG, "Seamless is not supported. Loading songs in directly")
-            player.player.setMediaItems(mediaItems.map { it.toMediaItem() })
-        }
-
-        if (autoSeek && !seamlessSupported) {
-            player.player.seekTo(queuePos, C.TIME_UNSET)
+            player.player.setMediaItems(mediaItems.map { it.toMediaItem() }, queuePos, lastSongPos)
         }
 
         bubbleUp(item)
-        player.queueTitle = item.title
         player.player.shuffleModeEnabled = item.shuffled
         return queuePos
     }
@@ -873,7 +860,8 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
     private fun saveQueueSongs(mq: MultiQueueObject) {
         if (player.dataStore.get(PersistentQueueKey, true)) {
             queueSongMap.add(
-                PriorityJob(0,
+                PriorityJob(
+                    0,
                     coroutineScope.launch(start = CoroutineStart.LAZY) {
                         player.database.rewriteQueue(mq)
                     }
@@ -888,7 +876,8 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
     private fun saveQueue(mq: MultiQueueObject) {
         if (player.dataStore.get(PersistentQueueKey, true)) {
             queueEntity.add(
-                PriorityJob(0,
+                PriorityJob(
+                    0,
                     coroutineScope.launch(start = CoroutineStart.LAZY) {
                         player.database.updateQueue(mq)
                     }
@@ -904,7 +893,8 @@ class QueueBoard(private val player: MusicService, queues: MutableList<MultiQueu
         if (player.dataStore.get(PersistentQueueKey, true)) {
             queueEntity.add(
                 // we select most recent task, therefore "lowest" numeric priority at the end of the list == "highest" priority
-                PriorityJob(1,
+                PriorityJob(
+                    1,
                     coroutineScope.launch(start = CoroutineStart.LAZY) {
                         player.database.updateAllQueues(mq)
                     }

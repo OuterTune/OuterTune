@@ -58,7 +58,6 @@ fun fileFromUri(context: Context, uri: Uri): File? {
 
         return rootDir?.let { if (relativePath.isEmpty()) it else File(it, relativePath) }
     } else {
-        // TODO: test this even works on lower sdk
         if (!DocumentsContract.isDocumentUri(context, uri)) return null
 
         if (uri.authority != "com.android.externalstorage.documents") return null

@@ -12,6 +12,7 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.dd3boh.outertune.constants.DEBUG_SAVE_OUTPUT
 import com.dd3boh.outertune.constants.EXTRACTOR_DEBUG
+import com.dd3boh.outertune.constants.SCANNER_DEBUG
 import com.dd3boh.outertune.db.entities.AlbumEntity
 import com.dd3boh.outertune.db.entities.ArtistEntity
 import com.dd3boh.outertune.db.entities.FormatEntity
@@ -74,19 +75,23 @@ class FFMpegScanner() : MetadataScanner {
 
             val songId = SongEntity.generateSongId()
             var rawTitle: String? = data.title
-            var rawArtists: String? = data.artist
+            val rawArtists: String? = data.artist
             var albumName: String? = data.album
-            var genres: String? = data.genre
+            val genres: String? = data.genre
+            var trackNumber: Int? = null
+            var discNumber: Int? = null
             var rawDate: String? = null
-            var codec: String? = data.codec
-            var type: String? = data.codecType?.lowercase()
-            var bitrate: Long = data.bitrate
-            var sampleRate: Int = data.sampleRate
-            var channels: Int = data.channels
-            var duration: Long = (data.duration / toSeconds).roundToLong()
+            val codec: String? = data.codec
+            val type: String? = data.codecType?.lowercase()
+            val bitrate: Long = data.bitrate
+            val sampleRate: Int = data.sampleRate
+            val channels: Int = data.channels
+            val duration: Long = (data.duration / toSeconds).roundToLong()
 
             var artistList: MutableList<ArtistEntity> = ArrayList<ArtistEntity>()
             var genresList: MutableList<GenreEntity> = ArrayList<GenreEntity>()
+
+            var extraData: String = "" // extra data field
 
             // read extra data from FFmpeg
             // album, artist, genre, title all have their own fields, but it is not detected for all songs. We use the
@@ -134,7 +139,28 @@ class FFMpegScanner() : MetadataScanner {
                         }
                     }
 
-                    else -> ""
+                    "TRACKNUMBER" -> {
+                        try {
+                            trackNumber = parseInt(it)
+                        } catch (e: Exception) {
+                            if (SCANNER_DEBUG) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                    "DISCNUMBER" -> {
+                        try {
+                            discNumber = parseInt(it)
+                        } catch (e: Exception) {
+                            if (SCANNER_DEBUG) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+
+                    else -> {
+                        extraData += "$tag: $it\n"
+                    }
                 }
             }
 
@@ -144,7 +170,7 @@ class FFMpegScanner() : MetadataScanner {
              */
 
             val title: String =
-                if (rawTitle != null && rawTitle.isBlank() == false) { // songs with no title tag
+                if (rawTitle != null && !rawTitle.isBlank()) { // songs with no title tag
                     rawTitle.trim()
                 } else {
                     file.absolutePath.substringAfterLast('/').substringBeforeLast('.')
@@ -173,6 +199,7 @@ class FFMpegScanner() : MetadataScanner {
             val albumEntity = if (albumName != null && albumId != null) AlbumEntity(
                 id = albumId,
                 title = albumName,
+                thumbnailUrl = file.absolutePath,
                 songCount = 1,
                 duration = duration.toInt(),
                 isLocal = true
@@ -213,7 +240,9 @@ class FFMpegScanner() : MetadataScanner {
                         id = songId,
                         title = title,
                         duration = duration.toInt(), // we use seconds for duration
-                        thumbnailUrl = null,
+                        thumbnailUrl = file.absolutePath,
+                        trackNumber = trackNumber,
+                        discNumber = discNumber,
                         albumId = albumId,
                         albumName = albumName,
                         year = year,
@@ -236,8 +265,7 @@ class FFMpegScanner() : MetadataScanner {
                     bitrate = bitrate.toInt(),
                     sampleRate = sampleRate,
                     contentLength = duration,
-                    loudnessDb = null,
-                    playbackTrackingUrl = null
+                    extraComment = if (!extraData.isBlank()) extraData else null
                 )
             )
         }

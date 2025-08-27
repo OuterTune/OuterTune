@@ -183,7 +183,7 @@
     <string name="scanner_progress_processing">Обробка…</string>
     <string name="scanner_rejected_dir">Недійсний вибір. Папка сканування не може бути підкаталогом папки завантажень або самою папкою завантажень</string>
     <string name="scanner_progress_discovering">Відкриття…</string>
-    <string name="disable_lm_confirm">Ви впевнені, що хочете вимкнути функції локальних медіа?</string>
+    <string name="disable_lm_confirm">Ви впевнені, що хочете вимкнути функції локальних медіа? Це не вплине на вміст вашої бібліотеки.</string>
     <string name="scan_paths_description">Виберіть папки на вашому локальному сховищі для сканування пісень</string>
     <string name="clear_image_cache_confirm">Ви впевнені, що хочете очистити кеш зображень? Усі існуючі мініатюри альбомів будуть видалені.</string>
     <string name="oobe_ytm_logon_title">Обліковий запис</string>
@@ -194,7 +194,7 @@
     <string name="oobe_local_media_subtitle">Виберіть папки, що містять вашу музику. Ми проскануємо їх на наявність пісень для імпорту.</string>
     <string name="dl_rescan_description">Оновіть базу даних та реєстр завантажень, якщо якісь файли або папки змінилися</string>
     <string name="oobe_interface_subtitle">Налаштуйте зовнішній вигляд OuterTune та контент, який він вам показує.</string>
-    <string name="oobe_ad_free_exp">Досвід без реклами</string>
+    <string name="oobe_ad_free_exp">Без реклами на YouTube</string>
     <string name="oobe_local_music_support_description">Відтворюйте музичні файли (наприклад, MP3, OGG, FLAC тощо)</string>
     <string name="oobe_local_music_support">Широка підтримка місцевої музики</string>
     <string name="dl_main_path_description">Виберіть місце зберігання завантажень</string>
@@ -223,11 +223,25 @@
     <string name="scanner_sensitivity_L0">Використовувати перший результат, наданий YouTube, якщо пошук на YouTube увімкнено, інакше – за назвою</string>
     <string name="app_info_title">Інформація про заявку</string>
     <string name="device_info_title">Інформація про пристрій</string>
-    <string name="help_bug_report_action">Надіслати звіт про помилку (через Github)</string>
+    <string name="help_bug_report_action">Надіслати звіт про помилку (через GitHub)</string>
     <string name="help_contact_email_inquiries">Інші запити (Натисніть, щоб скопіювати електронну пошту)</string>
-    <string name="help_support_forum">Довідка та підтримка (через Github)</string>
+    <string name="help_support_forum">Довідка та підтримка (через GitHub)</string>
     <string name="wiki">Вікі</string>
     <string name="err_invalid_ytm_song">Не вдалося відтворити пісню. Можна відтворити лише контент, доступний у YouTube Music</string>
     <string name="err_restore_incompatible_database">Не вдалося відновити несумісну базу даних</string>
     <string name="m3u_import_failed">Пісні не знайдено. Недійсний файл M3U або відповідні пісні не знайдено</string>
+    <string name="tap_show_more">Натисніть, щоб показати більше інформації</string>
+    <string name="all_contributors">Показати всіх учасників</string>
+    <string name="att_contributor">Автор</string>
+    <string name="att_lead_developer">Провідний розробник</string>
+    <string name="att_maintainer">Супровідник</string>
+    <string name="att_project_support">Підтримка проекту</string>
+    <string name="att_translator">Перекладач (%s)</string>
+    <string name="lyrics_synced_clickable">Клікувальні тексти пісень</string>
+    <string name="sort_by_track_number">Номер треку</string>
+    <string name="bits_per_sample">Бітів на зразок</string>
+    <string name="disc_number">Номер диска</string>
+    <string name="extra_details">Додаткові деталі</string>
+    <string name="file_path">Шлях до файлу</string>
+    <string name="track_number">Номер треку</string>
 </resources>

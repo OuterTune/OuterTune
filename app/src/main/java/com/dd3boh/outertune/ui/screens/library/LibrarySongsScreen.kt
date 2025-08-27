@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
@@ -69,11 +71,12 @@ import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.ChipsRow
 import com.dd3boh.outertune.ui.component.EmptyPlaceholder
 import com.dd3boh.outertune.ui.component.FloatingFooter
-import com.dd3boh.outertune.ui.component.HideOnScrollFAB
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import com.dd3boh.outertune.ui.component.SelectHeader
-import com.dd3boh.outertune.ui.component.SongListItem
+import com.dd3boh.outertune.ui.component.items.SongListItem
 import com.dd3boh.outertune.ui.component.SortHeader
+import com.dd3boh.outertune.ui.menu.ActionDropdown
+import com.dd3boh.outertune.ui.menu.DropdownItem
 import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
@@ -173,7 +176,7 @@ fun LibrarySongsScreen(
     val headerContent = @Composable {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp)
         ) {
             SortHeader(
                 sortType = sortType,
@@ -187,7 +190,6 @@ fun LibrarySongsScreen(
                         SongSortType.RELEASE_DATE -> R.string.sort_by_date_released
                         SongSortType.NAME -> R.string.sort_by_name
                         SongSortType.ARTIST -> R.string.sort_by_artist
-                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
                         SongSortType.PLAY_COUNT -> R.string.sort_by_play_count
                     }
                 }
@@ -195,12 +197,34 @@ fun LibrarySongsScreen(
 
             Spacer(Modifier.weight(1f))
 
-            songs?.let { songs ->
-                Text(
-                    text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                songs?.let { songs ->
+                    Text(
+                        text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    ActionDropdown(
+                        actions = listOf(
+                            DropdownItem(
+                                title = stringResource(R.string.queue_all_songs),
+                                leadingIcon = { Icon(Icons.Rounded.Shuffle, null) },
+                                action = {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = context.getString(R.string.queue_all_songs),
+                                            items = songs.map { it.toMediaMetadata() },
+                                            startShuffled = true,
+                                        )
+                                    )
+                                }
+                            )
+                        ),
+                    )
+                }
             }
         }
     }
@@ -312,21 +336,6 @@ fun LibrarySongsScreen(
         }
         LazyColumnScrollbar(
             state = lazyListState,
-        )
-
-        HideOnScrollFAB(
-            visible = !songs.isNullOrEmpty(),
-            lazyListState = lazyListState,
-            icon = Icons.Rounded.Shuffle,
-            onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = context.getString(R.string.queue_all_songs),
-                        items = songs?.map { it.toMediaMetadata() } ?: emptyList(),
-                        startShuffled = true,
-                    )
-                )
-            }
         )
 
         Indicator(

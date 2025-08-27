@@ -23,7 +23,7 @@
     <string name="song_added_to_queue_end">\"%s\" se añadió al final de la cola</string>
     <string name="auto_playlist">Lista automática</string>
     <string name="select">Modo de selección</string>
-    <string name="like_all">Me gusta todo</string>
+    <string name="like_all">Me gusta a todo</string>
     <string name="err_stop_on_too_many_errors">Han ocurrido muchos errores. Reproducción detenida</string>
     <string name="wait_to_reconnect">Espere para reconectar</string>
     <string name="sort_by_date_modified">Fecha de modificación</string>
@@ -77,7 +77,7 @@
     <string name="scan_paths_excl">Rutas de escaneo excluidas</string>
     <string name="scanner_local_title">Escáner local</string>
     <string name="scanner_missing_ffmpeg">Extractor FFmpeg no detectado</string>
-    <string name="scanner_missing_storage_perm">El escáner requiere permisos de almacenamiento</string>
+    <string name="scanner_missing_storage_perm">El escáner de medios local requiere permisos de almacenamiento para funcionar</string>
     <string name="scanner_btn_idle">Escanear</string>
     <string name="scanner_progress_complete">Escaneo completo</string>
     <string name="scanner_progress_scanning">Escaneando…</string>
@@ -107,7 +107,7 @@
     <string name="folders">Carpetas</string>
     <string name="library">Biblioteca</string>
     <string name="queue_local_history">Historial (local)</string>
-    <string name="delete_lyric_confirm">¿Seguro quieres eliminar las letras almacenadas para «%s»?</string>
+    <string name="delete_lyric_confirm">¿Seguro quieres eliminar los lyrics almacenados para «%s»?</string>
     <string name="queues_empty">Sin colas</string>
     <string name="err_stop_on_error">Ha ocurrido un error. Reproducción detenida</string>
     <string name="scanner_strict_file_name_title">Nombres de archivo estrictos</string>
@@ -174,7 +174,7 @@
     <string name="import_success_songs">Importado correctamente</string>
     <string name="m3u_export">Exportar como archivo M3U</string>
     <string name="oobe_interface_subtitle">Personaliza la apariencia de OuterTune y el contenido que te muestra.</string>
-    <string name="oobe_ad_free_exp">Experiencia libre de anuncios</string>
+    <string name="oobe_ad_free_exp">YouTube libre de anuncios</string>
     <string name="oobe_complete_title">¡Ya está todo listo!</string>
     <string name="dl_migrate_title">Migrar descargas a almacenamiento externo…</string>
     <string name="dl_migrate_description">Mueve las descargas del almacenamiento interno de la aplicación al un almacenamiento externo en el dispositivo</string>
@@ -218,4 +218,28 @@
     <string name="dl_rescan_title">Volver a escanear carpetas de descarga.…</string>
     <string name="dl_calculate_size">Pulsa para calcular el tamaño de descarga</string>
     <string name="dl_storage_tooltip">Las descargas internas se guardan en el almacenamiento privado de la aplicación y no son accesibles sin root.\n\nLas descargas externas se guardan en el almacenamiento externo de tu dispositivo (por ejemplo, /sdcard o tarjetas micro SD) y puedes acceder a ellas o editarlas directamente con un explorador de archivos. Para la carpeta \"Descargas externas\", recomendamos elegir una carpeta vacía específicamente para descargas de canciones, ya que OuterTune podría modificar o eliminar archivos de esa carpeta.\n\nLas carpetas de importación adicionales son de solo lectura y se usan para cargar canciones adicionales. OuterTune nunca modificará ni eliminará los archivos de estas carpetas. Puede seleccionarlas en la sección avanzada.\n\nAl borrar las descargas, solo se eliminan las canciones internas. Las descargas externas y las canciones de importación adicional deben eliminarse manualmente, ya sea desde el menú de la canción o con un explorador de archivos.\n\nVolver a escanear las carpetas de descarga: Las descargas de canciones en las carpetas Descargas externas e Importaciones adicionales no se actualizan automáticamente. Si añades, eliminas o modificas archivos manualmente con un explorador de archivos, es posible que tengas que volver a escanear las carpetas de descarga para actualizar la base de datos de la aplicación. Esta opción está disponible en la sección avanzada.</string>
+    <string name="err_invalid_ytm_song">No se pudo reproducir la canción. Solo se puede reproducir el contenido accesible en YouTube Music</string>
+    <string name="app_info_title">Información de la aplicación</string>
+    <string name="device_info_title">Información del dispositivo</string>
+    <string name="help_bug_report_action">Enviar un informe de error (a través de GitHub)</string>
+    <string name="help_contact_email_inquiries">Otras consultas (Toque para copiar el correo electrónico)</string>
+    <string name="help_support_forum">Ayuda y soporte (vía GitHub)</string>
+    <string name="wiki">Wiki</string>
+    <string name="scanner_sensitivity_L0">Tomar el primer resultado proporcionado por YouTube cuando la búsqueda en YouTube esté habilitada, de lo contrario coincidirá con el título</string>
+    <string name="err_restore_incompatible_database">No se pudo restaurar la base de datos incompatible</string>
+    <string name="m3u_import_failed">No se encontraron canciones. El archivo M3U no es válido o no se encontraron canciones coincidentes.</string>
+    <string name="tap_show_more">Toque para mostrar más información</string>
+    <string name="all_contributors">Mostrar todos los contribuyentes</string>
+    <string name="att_contributor">Contribuyente</string>
+    <string name="att_lead_developer">Desarrollador principal</string>
+    <string name="att_maintainer">Mantenedor</string>
+    <string name="att_project_support">Apoyo al proyecto</string>
+    <string name="att_translator">Traductor (%s)</string>
+    <string name="lyrics_synced_clickable">Letras en las que se puede hacer clic</string>
+    <string name="sort_by_track_number">Número de canción</string>
+    <string name="bits_per_sample">Bits por muestra</string>
+    <string name="disc_number">Número de disco</string>
+    <string name="extra_details">Detalles extra</string>
+    <string name="file_path">Dirección del archivo</string>
+    <string name="track_number">Número de canción</string>
 </resources>

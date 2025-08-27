@@ -11,7 +11,9 @@ data class FormatEntity(
     val codecs: String,
     val bitrate: Int,
     val sampleRate: Int?,
-    val contentLength: Long,
-    val loudnessDb: Double?,
-    val playbackTrackingUrl: String?
+    val bitsPerSample: Int? = null,
+    val contentLength: Long, // file size
+    val loudnessDb: Double? = null,
+    val playbackTrackingUrl: String? = null,
+    val extraComment: String? = null,
 )

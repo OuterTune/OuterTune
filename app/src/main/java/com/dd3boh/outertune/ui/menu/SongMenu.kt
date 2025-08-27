@@ -1,18 +1,11 @@
 package com.dd3boh.outertune.ui.menu
 
 import android.content.Intent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
@@ -40,7 +33,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboard
@@ -48,11 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastSumBy
 import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.DownloadService
@@ -64,7 +53,6 @@ import com.dd3boh.outertune.LocalImageCache
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
-import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.ListThumbnailSize
 import com.dd3boh.outertune.constants.SyncMode
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
@@ -78,14 +66,13 @@ import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.ui.component.AsyncImageLocal
-import com.dd3boh.outertune.ui.component.DetailsDialog
-import com.dd3boh.outertune.ui.component.DownloadGridMenu
-import com.dd3boh.outertune.ui.component.GridMenu
-import com.dd3boh.outertune.ui.component.GridMenuItem
-import com.dd3boh.outertune.ui.component.IconButton
-import com.dd3boh.outertune.ui.component.ListDialog
-import com.dd3boh.outertune.ui.component.ListItem
-import com.dd3boh.outertune.ui.component.TextFieldDialog
+import com.dd3boh.outertune.ui.dialog.DetailsDialog
+import com.dd3boh.outertune.ui.component.button.IconButton
+import com.dd3boh.outertune.ui.component.items.ListItem
+import com.dd3boh.outertune.ui.dialog.TextFieldDialog
+import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
+import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
+import com.dd3boh.outertune.ui.dialog.ArtistDialog
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.rememberEnumPreference
@@ -123,125 +110,21 @@ fun SongMenu(
     var showEditDialog by rememberSaveable {
         mutableStateOf(false)
     }
-
-    LaunchedEffect(song.song.liked) {
-        downloadUtil.autoDownloadIfLiked(song.song)
-    }
-
-    if (showEditDialog) {
-        TextFieldDialog(
-            icon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
-            title = { Text(text = stringResource(R.string.edit_song)) },
-            onDismiss = { showEditDialog = false },
-            initialTextFieldValue = TextFieldValue(song.song.title, TextRange(song.song.title.length)),
-            onDone = { title ->
-                onDismiss()
-                database.query {
-                    update(song.song.copy(title = title))
-                }
-            }
-        )
-    }
-
     var showChooseQueueDialog by rememberSaveable {
         mutableStateOf(false)
     }
-
-    AddToQueueDialog(
-        isVisible = showChooseQueueDialog,
-        onAdd = { queueName ->
-            playerConnection.service.queueBoard.addQueue(
-                queueName, listOf(song.toMediaMetadata()),
-                forceInsert = true, delta = false
-            )
-            playerConnection.service.queueBoard.setCurrQueue()
-        },
-        onDismiss = {
-            showChooseQueueDialog = false
-        }
-    )
-
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
-
-    AddToPlaylistDialog(
-        navController = navController,
-        isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
-            coroutineScope.launch(Dispatchers.IO) {
-                playlist.playlist.browseId?.let { browseId ->
-                    YouTube.addToPlaylist(browseId, song.id)
-                }
-            }
-            listOf(song.id)
-        },
-        onDismiss = { showChoosePlaylistDialog = false }
-    )
-
     var showSelectArtistDialog by rememberSaveable {
         mutableStateOf(false)
     }
-
-    if (showSelectArtistDialog) {
-        ListDialog(
-            onDismiss = { showSelectArtistDialog = false }
-        ) {
-            items(
-                items = song.artists,
-                key = { it.id }
-            ) { artist ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .height(ListItemHeight)
-                        .clickable {
-                            navController.navigate("artist/${artist.id}")
-                            showSelectArtistDialog = false
-                            onDismiss()
-                        }
-                        .padding(horizontal = 12.dp),
-                ) {
-                    Box(
-                        modifier = Modifier.padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        AsyncImage(
-                            model = artist.thumbnailUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(ListThumbnailSize)
-                                .clip(CircleShape)
-                        )
-                    }
-                    Text(
-                        text = artist.name,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp)
-                    )
-                }
-            }
-        }
-    }
-
     var showDetailsDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
-    if (showDetailsDialog) {
-        DetailsDialog(
-            mediaMetadata = song.toMediaMetadata(),
-            currentFormat = currentFormat,
-            currentPlayCount = song.playCount?.fastSumBy { it.count } ?: 0,
-            volume = playerConnection.player.volume,
-            clipboardManager = clipboardManager,
-            setVisibility = { showDetailsDialog = it }
-        )
+    LaunchedEffect(song.song.liked) {
+        downloadUtil.autoDownloadIfLiked(song.song)
     }
 
     ListItem(
@@ -335,7 +218,8 @@ fun SongMenu(
         }
 
         if (playlistSong != null && (playlist?.playlist?.isLocal == true
-                    || (playlistSong.song.song.isLocal || syncMode == SyncMode.RW))) {
+                    || (playlistSong.song.song.isLocal || syncMode == SyncMode.RW))
+        ) {
             GridMenuItem(
                 icon = Icons.Rounded.PlaylistRemove,
                 title = R.string.remove_from_playlist
@@ -450,5 +334,74 @@ fun SongMenu(
                 }
             }
         }
+    }
+
+    /**
+     * ---------------------------
+     * Dialogs
+     * ---------------------------
+     */
+
+    if (showEditDialog) {
+        TextFieldDialog(
+            icon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
+            title = { Text(text = stringResource(R.string.edit_song)) },
+            onDismiss = { showEditDialog = false },
+            initialTextFieldValue = TextFieldValue(song.song.title, TextRange(song.song.title.length)),
+            onDone = { title ->
+                onDismiss()
+                database.query {
+                    update(song.song.copy(title = title))
+                }
+            }
+        )
+    }
+
+    if (showChooseQueueDialog) {
+        AddToQueueDialog(
+            onAdd = { queueName ->
+                playerConnection.service.queueBoard.addQueue(
+                    queueName, listOf(song.toMediaMetadata()),
+                    forceInsert = true, delta = false
+                )
+                playerConnection.service.queueBoard.setCurrQueue()
+            },
+            onDismiss = {
+                showChooseQueueDialog = false
+            }
+        )
+    }
+
+    if (showChoosePlaylistDialog) {
+        AddToPlaylistDialog(
+            navController = navController,
+            onGetSong = { playlist ->
+                coroutineScope.launch(Dispatchers.IO) {
+                    playlist.playlist.browseId?.let { browseId ->
+                        YouTube.addToPlaylist(browseId, song.id)
+                    }
+                }
+                listOf(song.id)
+            },
+            onDismiss = { showChoosePlaylistDialog = false }
+        )
+    }
+
+    if (showSelectArtistDialog) {
+        ArtistDialog(
+            navController = navController,
+            artists = song.artists,
+            onDismiss = { showSelectArtistDialog = false }
+        )
+    }
+
+    if (showDetailsDialog) {
+        DetailsDialog(
+            mediaMetadata = song.toMediaMetadata(),
+            currentFormat = currentFormat,
+            currentPlayCount = song.playCount?.fastSumBy { it.count } ?: 0,
+            clipboardManager = clipboardManager,
+            setVisibility = { showDetailsDialog = it }
+        )
     }
 }

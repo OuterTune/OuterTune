@@ -2,6 +2,8 @@
 
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.FileInputStream
+import java.util.Properties
 
 
 plugins {
@@ -12,6 +14,12 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.dd3boh.outertune"
     compileSdk = 36
@@ -20,16 +28,37 @@ android {
         applicationId = "com.dd3boh.outertune"
         minSdk = 24
         targetSdk = 36
-        versionCode = 64
-        versionName = "0.9.2"
+        versionCode = 67
+        versionName = "0.9.3.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        if (!keystoreProperties.isEmpty) {
+            create("ot_release") {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                (keystoreProperties["keyAlias"] as? String)?.let {
+                    keyAlias = it
+                }
+                (keystoreProperties["keyPassword"] as? String)?.let {
+                    keyPassword = it
+                }
+                (keystoreProperties["storePassword"] as? String)?.let {
+                    storePassword = it
+                }
+            }
+        } else {
+            create("ot_release") { }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             isCrunchPngs = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("ot_release")
         }
         debug {
             applicationIdSuffix = ".debug"
@@ -165,15 +194,14 @@ dependencies {
     implementation(libs.adaptive)
     implementation(libs.material3)
     implementation(libs.palette)
-    implementation(projects.materialColorUtilities)
 
     // viewmodel
     implementation(libs.viewmodel)
     implementation(libs.viewmodel.compose)
 
     implementation(libs.media3)
-    implementation(libs.media3.session)
     implementation(libs.media3.okhttp)
+    implementation(libs.media3.session)
     implementation(libs.media3.workmanager)
 
     implementation(libs.room.runtime)
@@ -185,15 +213,18 @@ dependencies {
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
 
-    implementation(projects.innertube)
-    implementation(projects.kugou)
-    implementation(projects.lrclib)
-
     coreLibraryDesugaring(libs.desugaring)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.serialization.json)
 
+    // modules
+    implementation(project(":innertube"))
+    implementation(project(":kugou"))
+    implementation(project(":lrclib"))
+    implementation(project(":material-color-utilities"))
+
+    // misc
     /*
     "JitPack builds are broken with the latest CMake version.
     Please download the [aar](https://github.com/Kyant0/taglib/releases) manually but not use maven."

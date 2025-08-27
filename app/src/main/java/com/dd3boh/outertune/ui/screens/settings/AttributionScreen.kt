@@ -36,7 +36,7 @@ import com.dd3boh.outertune.ui.component.ContributorInfo
 import com.dd3boh.outertune.ui.component.ContributorType.CUSTOM
 import com.dd3boh.outertune.ui.component.ContributorType.LEAD_DEVELOPER
 import com.dd3boh.outertune.ui.component.ContributorType.MAINTAINER
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.utils.backToMain
 
 @OptIn(ExperimentalMaterial3Api::class)

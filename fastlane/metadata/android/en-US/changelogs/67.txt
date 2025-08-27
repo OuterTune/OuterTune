@@ -1,0 +1,13 @@
+Version 0.9.3.1
+
+## Changes and improvements
+• Reverted back to blur fade in due to poor performance on lower end devices
+
+## Bug fixes
+• Current queue position does not save correctly
+• Playlist loading indicator would always (wrongly) show in online playlists
+• Lyrics crash, not highlighting in Karaoke mode
+• Infinitely loading YTM search
+• Albums not loading more than 100 songs
+
+Full changelog: https://github.com/OuterTune/OuterTune/releases/tag/v0.9.3.1

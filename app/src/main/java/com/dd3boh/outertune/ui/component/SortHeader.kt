@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dd3boh.outertune.constants.PlaylistSongSortType
+import com.dd3boh.outertune.ui.component.button.ResizableIconButton
 
 @Composable
 inline fun <reified T : Enum<T>> SortHeader(

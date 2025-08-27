@@ -68,7 +68,7 @@ class MusicDatabase(
     fun close() = delegate.close()
 
     companion object {
-        const val MUSIC_DATABASE_VERSION = 19
+        const val MUSIC_DATABASE_VERSION = 20
     }
 }
 
@@ -115,7 +115,8 @@ class MusicDatabase(
         AutoMigration(from = 12, to = 13, spec = Migration12To13::class), // Migration from InnerTune
         AutoMigration(from = 13, to = 14), // Initial queue as database
         AutoMigration(from = 17, to = 18, spec = Migration17To18::class), // Fix Room nonsense
-        AutoMigration(from = 18, to = 19) // Recent activity
+        AutoMigration(from = 18, to = 19), // Recent activity
+        AutoMigration(from = 19, to = 20, spec = Migration19To20::class), // Db optimization, remove totalplaytime, local media fields
     ]
 )
 @TypeConverters(Converters::class)
@@ -678,3 +679,8 @@ class Migration12To13 : AutoMigrationSpec {
     DeleteColumn(tableName = "playCount", columnName = "id"),
 )
 class Migration17To18 : AutoMigrationSpec
+
+@DeleteColumn.Entries(
+    DeleteColumn(tableName = "song", columnName = "totalPlayTime"),
+)
+class Migration19To20 : AutoMigrationSpec

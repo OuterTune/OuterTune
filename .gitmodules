@@ -2,3 +2,7 @@
 	path = ffMetadataEx
 	url = https://github.com/OuterTune/ffMetadataEx
 	branch = module
+[submodule "media"]
+	path = media
+	url = https://github.com/nift4/media
+	branch = gramophone

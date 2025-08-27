@@ -3,6 +3,7 @@ package com.dd3boh.outertune.models
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastSumBy
+import androidx.media3.common.C
 
 /**
  * @param title Queue title (and UID)
@@ -10,17 +11,17 @@ import androidx.compose.ui.util.fastSumBy
  */
 data class MultiQueueObject(
     val id: Long,
-    val title: String,
+    var title: String,
     /**
-     * The order of songs are dynamic. This should not be accessed form outside QueueBoard.
+     * The order of songs are dynamic. This should not be accessed from outside QueueBoard.
      */
     val queue: MutableList<MediaMetadata>,
     var shuffled: Boolean = false,
     var queuePos: Int = -1, // position of current song
+    var lastSongPos: Long = C.TIME_UNSET,
     var index: Int, // order of queue
     /**
      * Song id to start watch endpoint
-     * TODO: change this in database too
      */
     var playlistId: String? = null,
 ) {

@@ -85,17 +85,18 @@ import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.playback.queues.YouTubeAlbumRadio
 import com.dd3boh.outertune.playback.queues.YouTubeQueue
-import com.dd3boh.outertune.ui.component.AlbumGridItem
-import com.dd3boh.outertune.ui.component.ArtistGridItem
+import com.dd3boh.outertune.ui.component.items.AlbumGridItem
+import com.dd3boh.outertune.ui.component.items.ArtistGridItem
 import com.dd3boh.outertune.ui.component.ChipsRow
 import com.dd3boh.outertune.ui.component.HideOnScrollFAB
+
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import com.dd3boh.outertune.ui.component.NavigationTile
 import com.dd3boh.outertune.ui.component.NavigationTitle
-import com.dd3boh.outertune.ui.component.SongGridItem
-import com.dd3boh.outertune.ui.component.SongListItem
-import com.dd3boh.outertune.ui.component.YouTubeCardItem
-import com.dd3boh.outertune.ui.component.YouTubeGridItem
+import com.dd3boh.outertune.ui.component.items.SongGridItem
+import com.dd3boh.outertune.ui.component.items.SongListItem
+import com.dd3boh.outertune.ui.component.items.YouTubeCardItem
+import com.dd3boh.outertune.ui.component.items.YouTubeGridItem
 import com.dd3boh.outertune.ui.component.shimmer.GridItemPlaceHolder
 import com.dd3boh.outertune.ui.component.shimmer.ShimmerHost
 import com.dd3boh.outertune.ui.component.shimmer.TextPlaceholder

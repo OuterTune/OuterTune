@@ -56,6 +56,7 @@ import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ShuffleOrder
 import androidx.media3.session.CommandButton
+import androidx.media3.session.CommandButton.ICON_UNDEFINED
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaLibraryService
@@ -69,7 +70,6 @@ import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.constants.AudioQualityKey
 import com.dd3boh.outertune.constants.AutoLoadMoreKey
 import com.dd3boh.outertune.constants.KeepAliveKey
-import com.dd3boh.outertune.constants.LastPosKey
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleLike
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.dd3boh.outertune.constants.MediaSessionConstants.CommandToggleShuffle
@@ -180,7 +180,6 @@ class MusicService : MediaLibraryService(),
     private val audioQuality by enumPreference(this, AudioQualityKey, AudioQuality.AUTO)
 
     var queueBoard = QueueBoard(this)
-    var queueTitle: String? = null
     var queuePlaylistId: String? = null
     private var lastMediaItemIndex = -1
 
@@ -219,7 +218,7 @@ class MusicService : MediaLibraryService(),
     override fun onCreate() {
         super.onCreate()
 
-        imageCache = LmImageCacheMgr(this, drawPlaceholder(this, 1920, 1080, 0.7f))
+        imageCache = LmImageCacheMgr(this, drawPlaceholder(this, size = 0.4f))
 
         // network connectivity
         try {
@@ -286,11 +285,8 @@ class MusicService : MediaLibraryService(),
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
                         if (!isPlaying) {
                             val pos = player.currentPosition
-                            scope.launch {
-                                dataStore.edit { settings ->
-                                    settings[LastPosKey] = pos
-                                }
-                            }
+                            val q = queueBoard.getCurrentQueue()
+                            q?.lastSongPos = pos
                         }
                         super.onIsPlayingChanged(isPlaying)
                     }
@@ -416,13 +412,7 @@ class MusicService : MediaLibraryService(),
 
         initQueue()
         CoroutineScope(Dispatchers.Main).launch {
-            val queuePos = queueBoard.setCurrQueue(false)
-            if (queuePos != null) {
-                player.seekTo(queuePos, dataStore.get(LastPosKey, C.TIME_UNSET))
-                dataStore.edit { settings ->
-                    settings[LastPosKey] = C.TIME_UNSET
-                }
-            }
+            queueBoard.setCurrQueue()
         }
 
         setMediaNotificationProvider(
@@ -490,18 +480,12 @@ class MusicService : MediaLibraryService(),
     fun updateNotification() {
         mediaSession.setCustomLayout(
             listOf(
-                CommandButton.Builder(if (queueBoard.getCurrentQueue()?.shuffled == true) CommandButton.ICON_SHUFFLE_ON else CommandButton.ICON_SHUFFLE_OFF)
+                CommandButton.Builder(ICON_UNDEFINED)
                     .setDisplayName(getString(if (queueBoard.getCurrentQueue()?.shuffled == true) R.string.action_shuffle_off else R.string.action_shuffle_on))
                     .setSessionCommand(CommandToggleShuffle)
+                    .setCustomIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle_off)
                     .build(),
-                CommandButton.Builder(
-                    when (player.repeatMode) {
-                        REPEAT_MODE_OFF -> CommandButton.ICON_REPEAT_OFF
-                        REPEAT_MODE_ONE -> CommandButton.ICON_REPEAT_ONE
-                        REPEAT_MODE_ALL -> CommandButton.ICON_REPEAT_ALL
-                        else -> throw IllegalStateException()
-                    }
-                )
+                CommandButton.Builder(ICON_UNDEFINED)
                     .setDisplayName(
                         getString(
                             when (player.repeatMode) {
@@ -511,6 +495,14 @@ class MusicService : MediaLibraryService(),
                                 else -> throw IllegalStateException()
                             }
                         )
+                    )
+                    .setCustomIconResId(
+                        when (player.repeatMode) {
+                            REPEAT_MODE_OFF -> R.drawable.repeat_off
+                            REPEAT_MODE_ONE -> R.drawable.repeat_one
+                            REPEAT_MODE_ALL -> R.drawable.repeat_on
+                            else -> throw IllegalStateException()
+                        }
                     )
                     .setSessionCommand(CommandToggleRepeatMode)
                     .build(),
@@ -723,7 +715,6 @@ class MusicService : MediaLibraryService(),
     override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
         if (playbackState == STATE_IDLE) {
             queuePlaylistId = null
-            queueTitle = null
         }
     }
 
@@ -893,11 +884,13 @@ class MusicService : MediaLibraryService(),
 
     private fun createRenderersFactory() = object : DefaultRenderersFactory(this) {
         override fun buildAudioSink(
-            context: Context, enableFloatOutput: Boolean, enableAudioTrackPlaybackParams: Boolean
-        ): AudioSink {
+            context: Context,
+            pcmEncodingRestrictionLifted: Boolean,
+            enableFloatOutput: Boolean,
+            enableAudioTrackPlaybackParams: Boolean
+        ): AudioSink? {
             return DefaultAudioSink.Builder(this@MusicService)
-                .setEnableFloatOutput(enableFloatOutput)
-
+                .setPcmEncodingRestrictionLifted(pcmEncodingRestrictionLifted)
                 .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
                 .setAudioProcessorChain(
                     DefaultAudioSink.DefaultAudioProcessorChain(
@@ -913,13 +906,8 @@ class MusicService : MediaLibraryService(),
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         val q = queueBoard.getCurrentQueue()
-        if (q == null) {
-            player.setShuffleOrder(ShuffleOrder.UnshuffledShuffleOrder(player.mediaItemCount))
-            return
-        } else {
-            player.setShuffleOrder(ShuffleOrder.UnshuffledShuffleOrder(q.getSize()))
-        }
-        if (q.shuffled == shuffleModeEnabled) return
+        player.setShuffleOrder(ShuffleOrder.UnshuffledShuffleOrder(player.mediaItemCount))
+        if (q == null || q.shuffled == shuffleModeEnabled) return
         triggerShuffle()
     }
 
@@ -957,7 +945,6 @@ class MusicService : MediaLibraryService(),
         if (playRatio >= minPlaybackDur && !dataStore.get(PauseListenHistoryKey, false)) {
             database.query {
                 incrementPlayCount(mediaItem.mediaId)
-                incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
                 try {
                     insert(
                         Event(
@@ -993,14 +980,16 @@ class MusicService : MediaLibraryService(),
         val data = queueBoard.getAllQueues()
         CoroutineScope(Dispatchers.IO).launch {
             // db on main thread crash, use Dispatchers.IO
+            data.last().lastSongPos = pos
             database.rewriteAllQueues(data)
-            dataStore.edit { settings ->
-                settings[LastPosKey] = pos
-            }
         }
     }
 
-    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+
+    override fun onUpdateNotification(
+        session: MediaSession,
+        startInForegroundRequired: Boolean,
+    ) {
         // FG keep alive
         if (!(!player.isPlaying && dataStore.get(KeepAliveKey, false))) {
             super.onUpdateNotification(session, startInForegroundRequired)

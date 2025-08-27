@@ -281,7 +281,6 @@ class MediaLibrarySessionCallback @Inject constructor(
             delta = false,
             startIndex = queue.second
         )
-        service.queueTitle = queueTitle
         MediaItemsWithStartPosition(queue.first, queue.second, queue.third)
     }
 

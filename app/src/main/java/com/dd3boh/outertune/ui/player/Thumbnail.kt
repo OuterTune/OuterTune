@@ -9,6 +9,7 @@
 
 package com.dd3boh.outertune.ui.player
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -56,6 +57,7 @@ import com.dd3boh.outertune.ui.component.AsyncImageLocal
 import com.dd3boh.outertune.ui.component.Lyrics
 import com.dd3boh.outertune.utils.rememberPreference
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun Thumbnail(
     sliderPositionProvider: () -> Long?,
@@ -106,10 +108,11 @@ fun Thumbnail(
                 ) {
                     if (mediaMetadata?.isLocal == true) {
                         // local thumbnail arts
-                        mediaMetadata.let { // required to re render when song changes
+//                        mediaMetadata.let { // required to re render when song changes
                             AsyncImageLocal(
-                                image = { imageCache.getLocalThumbnail(it.localPath, false, true) },
+                                image = { imageCache.getLocalThumbnail(mediaMetadata.localPath, false) },
                                 contentScale = contentScale,
+                                placeholderIcon = null,
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
                                     .aspectRatio(ratio = 1f)
@@ -118,7 +121,7 @@ fun Thumbnail(
                                         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                     }
                             )
-                        }
+//                        }
                     } else {
                         // YTM thumbnail arts
                         AsyncImage(

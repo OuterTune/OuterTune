@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
-import my.nanihadesuka.compose.ScrollbarSettings
 
 const val CONTENT_TYPE_HEADER = 0
 const val CONTENT_TYPE_LIST = 1
@@ -26,7 +24,7 @@ const val CONTENT_TYPE_FOLDER = 6
 
 val NavigationBarHeight = 80.dp
 val MiniPlayerHeight = 64.dp
-val QueuePeekHeight = 64.dp
+val QueuePeekHeight = 48.dp
 val AppBarHeight = 64.dp
 
 val ListItemHeight = 64.dp
@@ -80,3 +78,5 @@ val InsetsSafeTEB: WindowInsets
         WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom)
 
 val NavigationBarAnimationSpec = spring<Dp>(stiffness = Spring.StiffnessMediumLow)
+val BottomSheetAnimationSpec = spring<Dp>(stiffness = Spring.StiffnessMediumLow)
+val BottomSheetSoftAnimationSpec = spring<Dp>(stiffness = Spring.StiffnessLow)

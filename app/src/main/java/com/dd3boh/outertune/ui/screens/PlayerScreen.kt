@@ -58,7 +58,6 @@ fun PlayerScreen(
             onTerminate = {
                 playerConnection?.service?.queueBoard?.detachedHead = false
             },
-            onBackgroundColor = onBackgroundColor,
             navController = navController
         )
         BottomSheetPlayer(

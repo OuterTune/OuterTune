@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="android_auto">Android Auto</string>
+    <string name="folders">資料夾</string>
+    <string name="library">媒體庫</string>
+    <string name="recent_activity">最近的活動</string>
+    <string name="local_history">本地</string>
+    <string name="queue_local_history">歷史(本地)</string>
+    <string name="queue_remote_history">歷史(遠端)</string>
+    <string name="remote_history">遠端</string>
+    <string name="library_empty">您的媒體庫將在此顯示</string>
+    <string name="missing_media_permission_warning">需要儲存空間權限以讀取本地媒體。點擊授予權限。</string>
+    <string name="queues_title">佇列</string>
+    <string name="create_queue">新佇列</string>
+    <string name="queue_searched_songs_ot">搜尋:</string>
+    <string name="song_added_to_queue">“%s” 已插入佇列</string>
+    <string name="song_added_to_queue_end">“%s” 已新增至佇列末端</string>
+    <string name="queues_empty">沒有播放佇列</string>
+    <string name="auto_playlist">自動播放清單</string>
+    <string name="select">選擇模式</string>
+    <string name="like_all">全部喜歡</string>
+    <string name="more_settings">更多設定</string>
+    <string name="delete_lyric_confirm">您確定要刪除已儲存的\"%s\"歌詞嗎?</string>
+    <string name="err_invalid_ytm_song">無法播放歌曲。僅能播放 Youtube Music 上可存取的內容</string>
+    <string name="err_play_next_on_error">發生錯誤。播放下一首</string>
+    <string name="err_stop_on_error">發生錯誤。播放暫停</string>
+    <string name="err_stop_on_too_many_errors">太多錯誤。播放暫停</string>
+    <string name="wait_to_reconnect">等待重新連接</string>
+    <string name="sort_by_date_modified">修改日期</string>
+    <string name="sort_by_date_released">發布日期</string>
+    <string name="sort_by_like_date">喜歡的日期</string>
+    <string name="sort_by_play_count">播放次數</string>
+    <string name="create_sync_playlist">同步播放清單</string>
+    <string name="create_sync_playlist_description">注意：這僅允許與Youtube Music同步。不可於未來更改。您不可新增本地歌曲到同步的播放清單。</string>
+    <string name="play_count">播放次數</string>
+    <string name="sync_progress_active">正在與Youtube Music同步…</string>
+    <string name="grp_account_sync">帳號與同步</string>
+    <string name="ytm_sync">自動與您的Youtube Music帳號同步</string>
+    <string name="oobe_ytm_logon_title">帳號</string>
+</resources>

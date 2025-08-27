@@ -1,0 +1,4 @@
+Version 0.9.2.1
+
+Fixes
+• Fixed some YouTube Music playback issues by switching to PipePipe Extractor

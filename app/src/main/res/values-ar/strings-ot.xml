@@ -38,8 +38,8 @@
     <string name="queues_title">قوائم الانتظار</string>
     <string name="create_queue">قائمة انتظار جديدة</string>
     <string name="queue_searched_songs_ot">بحث:</string>
-    <string name="song_added_to_queue">\"%s\" إدراج لقائمة الإنتظار</string>
-    <string name="song_added_to_queue_end">\"%s\" مضافة لإسفل قائمة الإنتظار</string>
+    <string name="song_added_to_queue">\"%s\" أدرجت لقائمة الإنتظار</string>
+    <string name="song_added_to_queue_end">\"%s\" أضيفت لأسفل قائمة الإنتظار</string>
     <string name="queues_empty">لا توجد قوائم انتظار</string>
     <string name="auto_playlist">قائمة تشغيل تلقائية</string>
     <string name="like_all">إعجاب بالكل</string>
@@ -166,4 +166,17 @@
     <string name="action_skip">تخطي</string>
     <string name="action_cancel">إلغاء</string>
     <string name="info">معلومات</string>
+    <string name="tap_show_more">إضغط لعرض المزيد من المعلومات</string>
+    <string name="err_invalid_ytm_song">فشل تشغيل الأغنية ، فقط المحتوى المتاح في YouTube Music يمكن تشغيله</string>
+    <string name="app_info_title">معلومات التطبيق</string>
+    <string name="device_info_title">معلومات الجهاز</string>
+    <string name="help_bug_report_action">إرسال تقرير خطأ (عن طريق GitHub)</string>
+    <string name="help_support_forum">الدعم و المساعدة (GitHub)</string>
+    <string name="oss_licenses_title">فتح تراخبص المصدر</string>
+    <string name="all_contributors">عرض كل المساهمين</string>
+    <string name="att_contributor">مساهم</string>
+    <string name="att_lead_developer">المطور الرئيسي</string>
+    <string name="att_maintainer">مسؤول في الصيانة</string>
+    <string name="att_project_support">دعم المشروع</string>
+    <string name="att_translator">المترجم (%s)</string>
 </resources>

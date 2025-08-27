@@ -46,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,23 +78,25 @@ import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.ChipsRow
 import com.dd3boh.outertune.ui.component.FloatingFooter
-import com.dd3boh.outertune.ui.component.HideOnScrollFAB
-import com.dd3boh.outertune.ui.component.IconButton
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import com.dd3boh.outertune.ui.component.NavigationTitle
 import com.dd3boh.outertune.ui.component.SelectHeader
-import com.dd3boh.outertune.ui.component.SongListItem
+import com.dd3boh.outertune.ui.component.items.SongListItem
 import com.dd3boh.outertune.ui.component.SwipeToQueueBox
-import com.dd3boh.outertune.ui.component.YouTubeListItem
+import com.dd3boh.outertune.ui.component.items.YouTubeListItem
 import com.dd3boh.outertune.ui.menu.YouTubeSongMenu
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.DateAgo
 import com.dd3boh.outertune.viewmodels.HistoryViewModel
 import com.zionhuang.innertube.utils.parseCookieString
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, FlowPreview::class)
 @Composable
 fun HistoryScreen(
     navController: NavController,
@@ -113,6 +116,9 @@ fun HistoryScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
+    var searchQuery by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue())
+    }
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(isSearching) {
         if (isSearching) {
@@ -126,6 +132,11 @@ fun HistoryScreen(
         }
     }
 
+    LaunchedEffect(query) {
+        snapshotFlow { searchQuery }.debounce { 300L }.collectLatest {
+            searchQuery = query
+        }
+    }
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
@@ -161,13 +172,13 @@ fun HistoryScreen(
     }
 
     val eventsMap by viewModel.events.collectAsState()
-    val filteredEventsMap = remember(eventsMap, query) {
-        if (query.text.isEmpty()) eventsMap
+    val filteredEventsMap = remember(eventsMap, searchQuery) {
+        if (searchQuery.text.isEmpty()) eventsMap
         else eventsMap
             .mapValues { (_, songs) ->
                 songs.filter { song ->
-                    song.song.title.contains(query.text, ignoreCase = true) ||
-                            song.song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }
+                    song.song.title.contains(searchQuery.text, ignoreCase = true) ||
+                            song.song.artists.fastAny { it.name.contains(searchQuery.text, ignoreCase = true) }
                 }
             }
             .filterValues { it.isNotEmpty() }
@@ -397,21 +408,6 @@ fun HistoryScreen(
         }
         LazyColumnScrollbar(
             state = lazyListState,
-        )
-
-        HideOnScrollFAB(
-            visible = filteredEventsMap.isNotEmpty(),
-            lazyListState = lazyListState,
-            icon = R.drawable.shuffle,
-            onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = context.getString(R.string.history),
-                        items = filteredEventIndex.values.map { it.song.toMediaMetadata() },
-                        startShuffled = true,
-                    )
-                )
-            }
         )
 
         FloatingFooter(
