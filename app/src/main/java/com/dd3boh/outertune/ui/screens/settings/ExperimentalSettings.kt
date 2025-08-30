@@ -8,6 +8,10 @@
 
 package com.dd3boh.outertune.ui.screens.settings
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -15,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -27,8 +32,12 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeveloperMode
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.TextRotationAngledown
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,22 +56,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalImageCache
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.DevSettingsKey
+import com.dd3boh.outertune.constants.LyricKaraokeEnable
+import com.dd3boh.outertune.constants.LyricUpdateSpeed
 import com.dd3boh.outertune.constants.OobeStatusKey
 import com.dd3boh.outertune.constants.SCANNER_OWNER_LM
 import com.dd3boh.outertune.constants.ScannerImpl
+import com.dd3boh.outertune.constants.Speed
 import com.dd3boh.outertune.constants.TabletUiKey
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
+import com.dd3boh.outertune.ui.component.ListPreference
 import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.utils.backToMain
+import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.scanners.LocalMediaScanner
 import kotlinx.coroutines.Dispatchers
@@ -88,6 +103,17 @@ fun ExperimentalSettings(
     val (devSettings, onDevSettingsChange) = rememberPreference(DevSettingsKey, defaultValue = false)
     val (oobeStatus, onOobeStatusChange) = rememberPreference(OobeStatusKey, defaultValue = 0)
 
+    val (lyricUpdateSpeed, onLyricsUpdateSpeedChange) = rememberEnumPreference(LyricUpdateSpeed, Speed.MEDIUM)
+    val (lyricsFancy, onLyricsFancyChange) = rememberPreference(LyricKaraokeEnable, false)
+
+    val isNowPlayingAvailable = Build.BRAND.equals("google", ignoreCase = true)
+    val nowPlayingCompatInstalled = context.packageManager.resolveActivity(
+        Intent("com.dd3boh.outertune.ACTION_NOWPLAYING_TEST"), PackageManager.MATCH_ALL
+    )
+    val nowPlayingContent = nowPlayingCompatInstalled
+        ?.let { "Now Playing compatibility module installed" }
+        ?: "Tap to install Now Playing compatibility module. This allows you to open OuterTune directly from Pixel's Now Playing feature"
+
     var nukeEnabled by remember {
         mutableStateOf(false)
     }
@@ -107,6 +133,46 @@ fun ExperimentalSettings(
             checked = tabletUi,
             onCheckedChange = onTabletUiChange
         )
+
+        if (isNowPlayingAvailable) PreferenceEntry(
+            title = { Text("Now Playing Compatibility") },
+            description = nowPlayingContent,
+            icon = { Icon(Icons.Rounded.MusicNote, null) },
+            onClick = { nowPlayingCompatInstalled?.let{
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = "package:com.google.android.music".toUri()
+                context.startActivity(intent)
+            } ?: run { /* TODO: Redirect to install */ } },
+        )
+
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.lyrics_karaoke_title)) },
+                description = stringResource(R.string.lyrics_karaoke_description),
+                icon = { Icon(Icons.Rounded.TextRotationAngledown, null) },
+                checked = lyricsFancy,
+                onCheckedChange = onLyricsFancyChange
+            )
+
+            ListPreference(
+                title = { Text(stringResource(R.string.lyrics_karaoke_hz_title)) },
+                icon = { Icon(Icons.Rounded.Speed, null) },
+                selectedValue = lyricUpdateSpeed,
+                onValueSelected = onLyricsUpdateSpeedChange,
+                values = Speed.entries,
+                valueText = {
+                    when (it) {
+                        Speed.SLOW -> stringResource(R.string.speed_slow)
+                        Speed.MEDIUM -> stringResource(R.string.speed_medium)
+                        Speed.FAST -> stringResource(R.string.speed_fast)
+                    }
+                },
+                isEnabled = lyricsFancy
+            )
+        }
+        
         Spacer(modifier = Modifier.height(16.dp))
 
 
