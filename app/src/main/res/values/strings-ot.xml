@@ -155,6 +155,8 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="min_playback_duration_description">The minimum amount of a song that must be played before it is considered \"played\"</string>
     <string name="swipe2Queue">Swipe to queue</string>
     <string name="swipe2Queue_description">Swipe on a song to add it to "enqueue next" directly after currently playing song</string>
+    <string name="seek_increment">Seek increment</string>
+    <string name="seek_increment_disabled">Disabled</string>
 
 <!--Lyrics settings -->
     <string name="lyrics_font_Size">Font size</string>

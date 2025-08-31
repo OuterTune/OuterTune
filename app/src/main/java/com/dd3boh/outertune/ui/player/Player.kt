@@ -231,7 +231,7 @@ fun BottomSheetPlayer(
 
     val seekIncrement by rememberEnumPreference(
         key = SeekIncrementKey,
-        defaultValue = SeekIncrement.FIVE
+        defaultValue = SeekIncrement.DISABLED
     )
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -557,17 +557,19 @@ fun BottomSheetPlayer(
                     )
                 }
 
-                Box(modifier = Modifier.weight(1f)) {
-                    ResizableIconButton (
-                        icon = Icons.Rounded.FastRewind,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .align(Alignment.Center),
-                        color = onBackgroundColor,
-                        onClick = {
-                            playerConnection.player.seekTo(playerConnection.player.currentPosition - seekIncrement.value * 1000)
-                        }
-                    )
+                if(seekIncrement != SeekIncrement.DISABLED) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        ResizableIconButton (
+                            icon = Icons.Rounded.FastRewind,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center),
+                            color = onBackgroundColor,
+                            onClick = {
+                                playerConnection.player.seekTo(playerConnection.player.currentPosition - seekIncrement.millisec)
+                            }
+                        )
+                    }
                 }
 
                 Spacer(Modifier.width(8.dp))
@@ -601,20 +603,23 @@ fun BottomSheetPlayer(
 
                 Spacer(Modifier.width(8.dp))
 
-                Box(modifier = Modifier.weight(1f)) {
-                    ResizableIconButton(
-                        icon = Icons.Rounded.FastForward,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .align(Alignment.Center),
-                        color = onBackgroundColor,
-                        onClick = {
-                            //ExoPlayer seek increment can only be set in builder
-                            //playerConnection.player.seekForward()
-                            playerConnection.player.seekTo(playerConnection.player.currentPosition + seekIncrement.value * 1000)
-                        }
-                    )
+                if(seekIncrement != SeekIncrement.DISABLED) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        ResizableIconButton(
+                            icon = Icons.Rounded.FastForward,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center),
+                            color = onBackgroundColor,
+                            onClick = {
+                                //ExoPlayer seek increment can only be set in builder
+                                //playerConnection.player.seekForward()
+                                playerConnection.player.seekTo(playerConnection.player.currentPosition + seekIncrement.millisec)
+                            }
+                        )
+                    }
                 }
+
 
 
                 Box(modifier = Modifier.weight(1f)) {

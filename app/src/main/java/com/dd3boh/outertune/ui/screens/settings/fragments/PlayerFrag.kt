@@ -41,7 +41,7 @@ fun PlayerGeneralFrag() {
 
     val (seekIncrement, onSeekIncrementChange) = rememberEnumPreference(
         key = SeekIncrementKey,
-        defaultValue = SeekIncrement.FIVE
+        defaultValue = SeekIncrement.DISABLED
     )
 
     SwitchPreference(
@@ -57,7 +57,10 @@ fun PlayerGeneralFrag() {
         selectedValue = seekIncrement,
         onValueSelected = onSeekIncrementChange,
         valueText = {
-            seekIncrement -> seekIncrement.value.toString()
+            when (it) {
+                SeekIncrement.DISABLED -> stringResource(R.string.seek_increment_disabled)
+                else -> it.second.toString()
+            }
         }
     )
 }
