@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.constants
 
 import android.content.Context
+import com.dd3boh.outertune.R
 
 /*
 ---------------------------
@@ -143,7 +144,7 @@ enum class SeekIncrement(val millisec: Int, val second: Int) {
         fun getString(context: Context, seekIncrement: SeekIncrement) =
             when(seekIncrement) {
                 OFF -> context.getString(androidx.compose.ui.R.string.state_off)
-                else -> seekIncrement.second.toString()
+                else -> context.resources.getQuantityString(R.plurals.second, seekIncrement.second, seekIncrement.second)
             }
 
     }
