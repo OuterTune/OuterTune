@@ -231,7 +231,7 @@ fun BottomSheetPlayer(
 
     val seekIncrement by rememberEnumPreference(
         key = SeekIncrementKey,
-        defaultValue = SeekIncrement.DISABLED
+        defaultValue = SeekIncrement.OFF
     )
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -557,7 +557,7 @@ fun BottomSheetPlayer(
                     )
                 }
 
-                if(seekIncrement != SeekIncrement.DISABLED) {
+                if(seekIncrement != SeekIncrement.OFF) {
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton (
                             icon = Icons.Rounded.FastRewind,
@@ -603,7 +603,7 @@ fun BottomSheetPlayer(
 
                 Spacer(Modifier.width(8.dp))
 
-                if(seekIncrement != SeekIncrement.DISABLED) {
+                if(seekIncrement != SeekIncrement.OFF) {
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton(
                             icon = Icons.Rounded.FastForward,

@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.dd3boh.outertune.R
@@ -39,9 +40,10 @@ import com.dd3boh.outertune.utils.rememberPreference
 fun PlayerGeneralFrag() {
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
 
+    val context = LocalContext.current
     val (seekIncrement, onSeekIncrementChange) = rememberEnumPreference(
         key = SeekIncrementKey,
-        defaultValue = SeekIncrement.DISABLED
+        defaultValue = SeekIncrement.OFF
     )
 
     SwitchPreference(
@@ -57,10 +59,7 @@ fun PlayerGeneralFrag() {
         selectedValue = seekIncrement,
         onValueSelected = onSeekIncrementChange,
         valueText = {
-            when (it) {
-                SeekIncrement.DISABLED -> stringResource(R.string.seek_increment_disabled)
-                else -> it.second.toString()
-            }
+            seekIncrement -> SeekIncrement.getString(context, seekIncrement)
         }
     )
 }

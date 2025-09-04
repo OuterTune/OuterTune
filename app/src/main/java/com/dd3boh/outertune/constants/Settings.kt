@@ -1,5 +1,7 @@
 package com.dd3boh.outertune.constants
 
+import android.content.Context
+
 /*
 ---------------------------
 Appearance & interface
@@ -135,7 +137,16 @@ Player & audio
 ---------------------------
  */
 enum class SeekIncrement(val millisec: Int, val second: Int) {
-    DISABLED(0, 0), FIVE(5000, 5), TEN(10000, 10), FIFTEEN(15000, 15), TWENTY(20000, 20)
+    OFF(0, 0), FIVE(5000, 5), TEN(10000, 10), FIFTEEN(15000, 15), TWENTY(20000, 20);
+
+    companion object {
+        fun getString(context: Context, seekIncrement: SeekIncrement) =
+            when(seekIncrement) {
+                OFF -> context.getString(androidx.compose.ui.R.string.state_off)
+                else -> seekIncrement.second.toString()
+            }
+
+    }
 }
 enum class AudioQuality {
     AUTO, HIGH, LOW

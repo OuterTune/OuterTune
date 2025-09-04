@@ -977,7 +977,7 @@ fun BoxScope.QueueContent(
                         )
                     }
 
-                    if(seekIncrement != SeekIncrement.DISABLED) {
+                    if(seekIncrement != SeekIncrement.OFF) {
                         Box(modifier = Modifier.weight(1f)) {
                             ResizableIconButton (
                                 icon = Icons.Rounded.FastRewind,
@@ -1015,7 +1015,7 @@ fun BoxScope.QueueContent(
 
                     Spacer(Modifier.width(8.dp))
 
-                    if(seekIncrement != SeekIncrement.DISABLED) {
+                    if(seekIncrement != SeekIncrement.OFF) {
                         Box(modifier = Modifier.weight(1f)) {
                             ResizableIconButton(
                                 icon = Icons.Rounded.FastForward,
