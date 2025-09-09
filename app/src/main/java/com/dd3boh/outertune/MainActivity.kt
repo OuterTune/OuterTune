@@ -355,6 +355,8 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val initIntentUri = intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)?.toUri()
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         activityLauncher = ActivityLauncherHelper(this)
@@ -378,6 +380,14 @@ class MainActivity : ComponentActivity() {
             }
             var themeColor by rememberSaveable(stateSaver = ColorSaver) {
                 mutableStateOf(DefaultThemeColor)
+            }
+            //Getting song from deep link when app is not running does not work otherwise
+            var getSongOnLaunch by rememberSaveable{
+                if (initIntentUri != null) {
+                    mutableStateOf(true)
+                } else {
+                    mutableStateOf(false)
+                }
             }
 
             try {
@@ -759,6 +769,13 @@ class MainActivity : ComponentActivity() {
                                     && (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
                         }
                     )
+
+                    LaunchedEffect(Unit) {
+                        if(getSongOnLaunch && initIntentUri != null) {
+                            youtubeNavigator(initIntentUri)
+                            getSongOnLaunch = false
+                        }
+                    }
 
                     LaunchedEffect(navBackStackEntry) {
                         if (navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
