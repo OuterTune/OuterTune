@@ -76,6 +76,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
@@ -326,6 +327,7 @@ fun GridItem(
 fun MediaMetadataListItem(
     mediaMetadata: MediaMetadata,
     modifier: Modifier,
+    showDownloadIcon: Boolean = true,
     isActive: Boolean = false,
     isSelected: Boolean? = false,
     isPlaying: Boolean = false,
@@ -336,6 +338,18 @@ fun MediaMetadataListItem(
         mediaMetadata.artists.joinToString { it.name },
         makeTimeString(mediaMetadata.duration * 1000L)
     ),
+    badges = {
+        if (showDownloadIcon) {
+            val downloadUtil = LocalDownloadUtil.current
+            if (downloadUtil.getCustomDownload(mediaMetadata.id)) {
+                Icon.Download(Download.STATE_COMPLETED)
+            } else {
+                val download by downloadUtil.getDownload(mediaMetadata.id)
+                    .collectAsState(initial = null)
+                Icon.Download(download?.state)
+            }
+        }
+    },
     thumbnailContent = {
         ItemThumbnail(
             thumbnailUrl = if (mediaMetadata.isLocal) mediaMetadata.localPath else mediaMetadata.thumbnailUrl,
