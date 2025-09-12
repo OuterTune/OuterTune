@@ -79,7 +79,7 @@
     <string name="scanner_sensitivity_L1">Combinar título</string>
     <string name="scanner_sensitivity_L2">Combinar título e artistas</string>
     <string name="scanner_type_title">Extrator de metadados</string>
-    <string name="scanner_type_ffmpeg_ext">Usar o extrator de metadados do FFMpeg. Requer que um pacote externo seja instalado</string>
+    <string name="scanner_type_ffmpeg_ext">Usar o extrator de metadados do FFmpeg. Requer que um pacote externo seja instalado</string>
     <string name="scanner_online_artist_linking">Tentar sincronizar os artistas dos arquivos locais com os no YouTube Music</string>
     <string name="experimental_settings_title">Experimentais</string>
     <string name="dev_settings_title">Ativar configurações de desenvolvedor</string>
@@ -242,4 +242,11 @@
     <string name="extra_details">Detalhes extras</string>
     <string name="file_path">Caminho do arquivo</string>
     <string name="track_number">Número da faixa</string>
+    <string name="ffmpeg_lgpl">Este software usa bibliotecas do projeto do projeto FFmpeg sob a licença LGPLv2.1</string>
+    <plurals name="second">
+        <item quantity="one">%d segundo</item>
+        <item quantity="many">%d de segundos</item>
+        <item quantity="other">%d segundos</item>
+    </plurals>
+    <string name="seek_increment">Incremento de tempo no avançar/retroceder</string>
 </resources>

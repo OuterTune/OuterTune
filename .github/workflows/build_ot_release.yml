@@ -38,8 +38,11 @@ jobs:
       - name: Build core release APK
         run: ./gradlew assembleCoreRelease
 
-#      - name: Build full release APK
-#        run: ./gradlew assembleFullRelease
+      - name: Resolve ffmpeg libs
+        run: git clone https://github.com/mikooomich/ffmpeg-android-maker-prebuilt/ -b audio ffMetadataEx/ffmpeg-android-maker
+
+      - name: Build full release APK
+        run: ./gradlew assembleFullRelease
 
       - name: Create github release draft
         uses: softprops/action-gh-release@v2

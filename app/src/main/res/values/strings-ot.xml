@@ -97,6 +97,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="check_for_update">Check for updates</string>
     <string name="checking_for_update">Checking for updates</string>
     <string name="device_info_title">Device information</string>
+    <string name="ffmpeg_lgpl">This software uses libraries from the FFmpeg project under the LGPLv2.1</string>
     <string name="help_bug_report_action">Submit a bug report (Via GitHub)</string>
     <string name="help_contact_email_inquiries">Other inquires (Tap to copy Email)</string>
     <string name="help_support_forum">Help and support (Via GitHub)</string>
@@ -155,6 +156,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="min_playback_duration_description">The minimum amount of a song that must be played before it is considered \"played\"</string>
     <string name="swipe2Queue">Swipe to queue</string>
     <string name="swipe2Queue_description">Swipe on a song to add it to "enqueue next" directly after currently playing song</string>
+    <string name="seek_increment">Seek increment</string>
 
 <!--Lyrics settings -->
     <string name="lyrics_font_Size">Font size</string>
@@ -228,7 +230,7 @@ while also allowing users to translate our app as well. New, specific strings to
 
     <string name="scanner_type_title">Metadata extractor</string>
     <string name="scanner_type_taglib">Use integrated TagLib metadata extractor</string>
-    <string name="scanner_type_ffmpeg_ext">Use FFMpeg metadata extractor. Requires external package to be installed</string>
+    <string name="scanner_type_ffmpeg_ext">Use FFmpeg metadata extractor. Requires external package to be installed</string>
 
     <string name="scanner_variant_rescan">Rescan the entire library and reload all songs\' metadata</string>
     <string name="scanner_online_artist_linking">Try to link local files\' artists with ones on YouTube Music</string>
@@ -323,6 +325,10 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="action_skip">Skip</string>
     <string name="action_cancel">Cancel</string>
     <string name="info">Information</string>
+    <plurals name="second">
+        <item quantity="one">1 second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
     <string name="speed_very_slow">Very slow</string>
     <string name="speed_slow">Slow</string>
     <string name="speed_medium">Medium</string>

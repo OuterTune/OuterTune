@@ -124,7 +124,7 @@
     <string name="player_background_style">プレーヤーの背景スタイル</string>
     <string name="oobe_use_backup">バックアップがある</string>
     <string name="token_adv_login_description">これは高度なログイン方法です。ウェブポータルの代わりに、ここでログイントークンを直接入力または更新することもできます。たとえば、これにより複数の端末でのログインが高速化されます</string>
-    <string name="scanner_type_ffmpeg_ext">FFMpeg メタデータ抽出ツールを使用します。外部パッケージのインストールが必要</string>
+    <string name="scanner_type_ffmpeg_ext">FFmpeg メタデータ抽出ツールを使用します。外部パッケージのインストールが必要</string>
     <string name="scanner_variant_rescan">ライブラリ全体を再スキャンし、すべての曲のメタデータを再読み込み</string>
     <string name="new_interface">新しいレイアウト</string>
     <string name="experimental_settings_title">実験的な設定</string>
@@ -238,4 +238,9 @@
     <string name="track_number">曲番号</string>
     <string name="bits_per_sample">ビット深度</string>
     <string name="extra_details">詳細情報</string>
+    <plurals name="second">
+        <item quantity="other">%d 秒</item>
+    </plurals>
+    <string name="seek_increment">シーク増加</string>
+    <string name="ffmpeg_lgpl">本アプリはLGPLバージョン2.1でFFmpegのライブラリを使用</string>
 </resources>

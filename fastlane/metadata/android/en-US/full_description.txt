@@ -3,9 +3,12 @@
 <p><br><b>Features:</b></p>
 <ul>
 <li>YouTube Music client with song downloading (offline playback), background playback, no ADs, and account synchronization</li>
-<li>Local audio file playback (MP3, OGG, FLAC, etc.)</li><li>Uses a custom tag extractor instead of MediaStore's broken metadata extractor! (e.g tags delimited with backslash now show up properly)</li>
-<li>Play local and Youtube Music songs at the same time</li><li>New integrated library screen design</li><li>Multiple queues</li>
-<li>Synchronized lyrics, and support for word by word/Karaoke lyrics (e.g LRC, TTML) </li>
+<li>Local audio file playback (MP3, OGG, FLAC, etc.)</li>
+<li>Uses a custom tag extractor instead of MediaStore's broken metadata extractor! (e.g tags delimited with backslash now show up properly)</li>
+<li>Play local and Youtube Music songs at the same time</li>
+<li>New integrated library screen design</li>
+<li>Multiple queues</li>
+<li>Synchronized lyrics, and support for word by word/Karaoke lyrics (e.g LRC, TTML)</li>
 <li>Audio normalization, tempo/pitch adjustment, and various other audio effects</li>
 <li>Android Auto support</li>
 </ul>

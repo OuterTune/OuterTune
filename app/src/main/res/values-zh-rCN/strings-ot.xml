@@ -78,7 +78,7 @@
     <string name="flat_subfolders_description">禁用以保留磁盘上的文件结构</string>
     <string name="import_innertune_tooltip">支持恢复 InnerTune 备份，但由于技术限制可能会出现异常</string>
     <string name="m3u_import_playlist">导入播放列表 （m3u）</string>
-    <string name="m3u_import_playlist_failed">导入播放列表失败</string>
+    <string name="m3u_import_playlist_failed">导入失败</string>
     <string name="auto_scanner_title">自动扫描</string>
     <string name="scan_paths_title">配置扫描位置…</string>
     <string name="scan_paths_tooltip">所有子目录也将受到影响</string>
@@ -106,7 +106,7 @@
     <string name="scanner_sensitivity_L3">匹配标题、音乐人、专辑</string>
     <string name="scanner_type_title">元数据提取器</string>
     <string name="scanner_type_taglib">使用集成的 TagLib 元数据提取器</string>
-    <string name="scanner_type_ffmpeg_ext">使用 FFMpeg 元数据提取器。需要安装外部软件包</string>
+    <string name="scanner_type_ffmpeg_ext">使用 FFmpeg 元数据提取器。需要安装外部软件包</string>
     <string name="scanner_variant_rescan">重新扫描整个音乐库并重新加载所有歌曲的元数据</string>
     <string name="scanner_online_artist_linking">尝试将本地文件的音乐人与 YouTube Music 上的音乐人相关联</string>
     <string name="import_failed_songs">无法导入：</string>
@@ -154,8 +154,8 @@
     <string name="more_settings">更多设置</string>
     <string name="no_updates_available">没有可用的更新</string>
     <string name="missing_media_permission_warning">需要获取存储权限以获得本地媒体。点此授予权限。</string>
-    <string name="oobe_ad_free_exp">无广告体验</string>
-    <string name="oobe_ad_free_exp_description">体验连续的回放音乐</string>
+    <string name="oobe_ad_free_exp">去除 YouTube 广告</string>
+    <string name="oobe_ad_free_exp_description">享受不间断的音乐播放</string>
     <string name="oobe_cross_platform_sync">跨平台同步</string>
     <string name="swipe_to_skip_title">水平划动以更换曲目</string>
     <string name="swipe_to_skip_description">开启在播放器中水平划动切换曲目</string>
@@ -169,7 +169,7 @@
     <string name="grp_sync">同步</string>
     <string name="check_for_update">检查更新</string>
     <string name="clear_song_cache_confirm">您确认想清理音乐换成吗?</string>
-    <string name="disable_lm_confirm">您确定要禁用本地媒体功能吗？</string>
+    <string name="disable_lm_confirm">您确定要禁用本地媒体功能吗？您库中的内容不会被影响。</string>
     <string name="scan_paths_description">选择本地存储上的文件夹来扫描歌曲</string>
     <string name="oobe_local_media_title">本地歌曲</string>
     <string name="oobe_ytm_logon_subtitle">登录你的YouTube音乐账号以同步和进入私人账户内容。此为可选项。</string>
@@ -208,4 +208,31 @@
     <string name="clear_downloads_confirm">确定要移除所有下载内容吗？只会移除主下载文件夹中的下载内容。</string>
     <string name="clear_image_cache_confirm">确定要清除图像缓存吗？所有现有相册缩略图都将被删除。</string>
     <string name="dl_calculate_size">点击以计算下载大小</string>
+    <string name="extra_details">附加信息</string>
+    <string name="file_path">文件路径</string>
+    <string name="attribution_title">开发者信息</string>
+    <string name="ffmpeg_lgpl">此软件使用 LGPLv2.1 下的 FFmpeg 项目的库</string>
+    <string name="att_project_support">项目支持</string>
+    <string name="lyrics_synced_clickable">可点击歌词以跳转</string>
+    <string name="scanner_progress_discovering">正在查找…</string>
+    <string name="dl_extra_path_title">配置附加输入位置…</string>
+    <string name="dl_extra_path_description">这些文件夹中的歌曲仅会在您曾播放过或将它们加入播放列表中后才会显示</string>
+    <string name="dl_migrate_title">将已下载的项目迁移至外部存储…</string>
+    <string name="dl_migrate_description">将已下载的项目从应用内部存储空间移至设备外部存储</string>
+    <string name="dl_migrate_confirm">这将迁移所有下载项至 %s 。该操作不可逆，您确定要继续吗？</string>
+    <string name="dl_main_path_title">设置外部下载文件夹…</string>
+    <string name="dl_main_path_description">选择下载项存储的位置</string>
+    <string name="dl_oobe_tooltip">歌曲将会下载至应用内部存储。如要将歌曲下载至外部存储，您需要先选择一个文件夹。您也可以稍后在设置中增加，修改或移除文件夹，或将下载项由内部存储迁移至外部存储。</string>
+    <string name="dl_rescan_title">重新扫描下载项文件夹…</string>
+    <string name="dl_size_used_cache">内部存储：已使用 %s</string>
+    <string name="dl_size_used_main">外部存储：已使用 %s</string>
+    <string name="dl_size_used_extra">附加输入：已使用 %s</string>
+    <string name="restart_to_apply_changes">应用需要重启以使更改生效</string>
+    <string name="oobe_ytm_logon_title">账户</string>
+    <string name="oobe_downloads_title">歌曲下载</string>
+    <plurals name="second">
+        <item quantity="other">%d 秒</item>
+    </plurals>
+    <string name="speed_slow">慢速</string>
+    <string name="speed_medium">中速</string>
 </resources>

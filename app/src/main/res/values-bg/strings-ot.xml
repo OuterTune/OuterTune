@@ -23,7 +23,7 @@
     <string name="scanner_btn_idle">Сканирай</string>
     <string name="scanner_sensitivity_L3">Съпоставете заглавие, изпълнители, албуми</string>
     <string name="oobe_welcome_message">Добре дошли в OuterTune</string>
-    <string name="scanner_type_ffmpeg_ext">Използвайте инструмент за извличане на метаданни FFMpeg. Изисква инсталиране на външен пакет</string>
+    <string name="scanner_type_ffmpeg_ext">Използвайте инструмент за извличане на метаданни FFmpeg. Изисква инсталиране на външен пакет</string>
     <string name="grp_interface">Интерфейс</string>
     <string name="grp_layout">Оформление</string>
     <string name="grp_lyrics_parser">Анализатор</string>
@@ -240,4 +240,10 @@
     <string name="file_path">Път на файла</string>
     <string name="track_number">Номер на песен</string>
     <string name="bits_per_sample">Битове на проба</string>
+    <string name="ffmpeg_lgpl">Този софтуер използва библиотеки от проекта FFmpeg под LGPLv2.1</string>
+    <string name="seek_increment">Търсене на увеличение</string>
+    <plurals name="second">
+        <item quantity="one">1 секунда</item>
+        <item quantity="other">%d секунди</item>
+    </plurals>
 </resources>

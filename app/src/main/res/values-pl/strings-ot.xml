@@ -141,7 +141,7 @@
     <string name="scanner_strict_file_name_description">Po włączeniu nazwy plików NIE BĘDĄ ignorowane. np. Utwór.ogg będzie inną piosenką niż Utwór.flac. Wrażliwość skanera pozostanie taka sama</string>
     <string name="scanner_sensitivity_title">Dostosuj wrażliwość skanera</string>
     <string name="scanner_type_taglib">Używaj zintegrowanego wykrywacza metadanych TagLib</string>
-    <string name="scanner_type_ffmpeg_ext">Używaj wykrywacza danych FFMpeg. Wymaga zainstalowania zewnętrznego pakietu</string>
+    <string name="scanner_type_ffmpeg_ext">Używaj wykrywacza danych FFmpeg. Wymaga zainstalowania zewnętrznego pakietu</string>
     <string name="pause_remote_listen_history">Zatrzymaj udostępnianie historii odtwarzania z YouTube Music</string>
     <string name="experimental_settings_title">Eksperymentalne</string>
     <string name="dev_settings_description">Odkrywa dodatkowe ustawienia przeznaczone do użycia podczas programowania</string>

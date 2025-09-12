@@ -111,7 +111,7 @@
     <string name="queues_empty">Sin colas</string>
     <string name="err_stop_on_error">Ha ocurrido un error. Reproducción detenida</string>
     <string name="scanner_strict_file_name_title">Nombres de archivo estrictos</string>
-    <string name="scanner_type_ffmpeg_ext">Usar extractor de metadatos FFMpeg. Requiere instalar un paquete externo</string>
+    <string name="scanner_type_ffmpeg_ext">Usar extractor de metadatos FFmpeg. Requiere instalar un paquete externo</string>
     <string name="auto_scanner_title">Escanear automáticamente</string>
     <string name="scanner_warning">Por defecto, el escáner NO recargará los metadatos de las canciones existentes a menos que especifiques lo contrario más arriba. Dependiendo del tamaño de tu biblioteca, puede llevar un tiempo.</string>
     <string name="scanner_ytm_link_start">Iniciando vinculación de artistas de YouTube…</string>
@@ -191,7 +191,7 @@
     <string name="speed_very_slow">Muy lento</string>
     <string name="speed_fast">Rápido</string>
     <string name="speed_very_fast">Muy rápido</string>
-    <string name="disable_lm_confirm">¿Estás seguro que quieres deshabilitar las funciones multimedia locales?</string>
+    <string name="disable_lm_confirm">¿Seguro que desea desactivar las funciones multimedia locales? El contenido de su biblioteca no se verá afectado.</string>
     <string name="scanner_rejected_dir">Selección no válida. Una carpeta para escaneo no puede ser un subdirectorio de la carpeta de descargas ni la propia carpeta de descargas</string>
     <string name="clear_downloads_confirm">¿Estás seguro que quieres eliminar todas las descargas? Solo se eliminarán las descargas de la carpeta de descargas principal.</string>
     <string name="clear_image_cache_confirm">¿Estás seguro que quieres eliminar la caché de imágenes? Se eliminarán todas las miniaturas de los álbumes.</string>
@@ -242,4 +242,11 @@
     <string name="extra_details">Detalles extra</string>
     <string name="file_path">Dirección del archivo</string>
     <string name="track_number">Número de canción</string>
+    <string name="ffmpeg_lgpl">Este software utiliza bibliotecas del proyecto FFmpeg bajo la licencia LGPLv2.1</string>
+    <plurals name="second">
+        <item quantity="one">%d segundo</item>
+        <item quantity="many">%d segundos</item>
+        <item quantity="other">%d segundos</item>
+    </plurals>
+    <string name="seek_increment">Buscar incremento</string>
 </resources>

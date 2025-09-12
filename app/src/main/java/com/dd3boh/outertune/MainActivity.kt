@@ -226,6 +226,7 @@ import com.dd3boh.outertune.ui.screens.settings.AttributionScreen
 import com.dd3boh.outertune.ui.screens.settings.BackupAndRestore
 import com.dd3boh.outertune.ui.screens.settings.ExperimentalSettings
 import com.dd3boh.outertune.ui.screens.settings.InterfaceSettings
+import com.dd3boh.outertune.ui.screens.settings.LibrariesScreen
 import com.dd3boh.outertune.ui.screens.settings.LibrarySettings
 import com.dd3boh.outertune.ui.screens.settings.LocalPlayerSettings
 import com.dd3boh.outertune.ui.screens.settings.LyricsSettings
@@ -1125,9 +1126,9 @@ class MainActivity : ComponentActivity() {
                                     composable("settings/about/attribution") {
                                         AttributionScreen(navController, scrollBehavior)
                                     }
-//                                    composable("settings/about/oss_licenses") {
-//                                        LibrariesScreen(navController, scrollBehavior)
-//                                    }
+                                    composable("settings/about/oss_licenses") {
+                                        LibrariesScreen(navController, scrollBehavior)
+                                    }
                                     composable("login") {
                                         LoginScreen(navController)
                                     }

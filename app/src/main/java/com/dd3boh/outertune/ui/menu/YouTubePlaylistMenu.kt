@@ -299,11 +299,13 @@ fun YouTubePlaylistMenu(
                             YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
                         }
                     }.let { songs ->
-                        playerConnection.service.queueBoard.addQueue(
+                        val q = playerConnection.service.queueBoard.addQueue(
                             queueName, songs.map { it.toMediaMetadata() },
                             forceInsert = true, delta = false
                         )
-                        playerConnection.service.queueBoard.setCurrQueue()
+                        q?.let {
+                            playerConnection.service.queueBoard.setCurrQueue(it)
+                        }
                     }
                 }
             },

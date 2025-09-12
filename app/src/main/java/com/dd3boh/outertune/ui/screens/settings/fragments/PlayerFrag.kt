@@ -6,6 +6,7 @@ import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.ClearAll
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.dd3boh.outertune.R
@@ -21,6 +23,8 @@ import com.dd3boh.outertune.constants.AudioNormalizationKey
 import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.constants.AudioQualityKey
 import com.dd3boh.outertune.constants.AutoLoadMoreKey
+import com.dd3boh.outertune.constants.SeekIncrement
+import com.dd3boh.outertune.constants.SeekIncrementKey
 import com.dd3boh.outertune.constants.SkipOnErrorKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
 import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
@@ -36,12 +40,27 @@ import com.dd3boh.outertune.utils.rememberPreference
 fun PlayerGeneralFrag() {
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
 
+    val context = LocalContext.current
+    val (seekIncrement, onSeekIncrementChange) = rememberEnumPreference(
+        key = SeekIncrementKey,
+        defaultValue = SeekIncrement.OFF
+    )
+
     SwitchPreference(
         title = { Text(stringResource(R.string.auto_load_more)) },
         description = stringResource(R.string.auto_load_more_desc),
         icon = { Icon(Icons.Rounded.Autorenew, null) },
         checked = autoLoadMore,
         onCheckedChange = onAutoLoadMoreChange
+    )
+    EnumListPreference(
+        title = { Text(stringResource(R.string.seek_increment))},
+        icon = { Icon(Icons.Rounded.FastForward, null) },
+        selectedValue = seekIncrement,
+        onValueSelected = onSeekIncrementChange,
+        valueText = {
+            seekIncrement -> SeekIncrement.getString(context, seekIncrement)
+        }
     )
 }
 
@@ -118,7 +137,7 @@ fun PlaybackBehaviourFrag() {
     SwitchPreference(
         title = { Text(stringResource(R.string.auto_skip_next_on_error)) },
         description = stringResource(R.string.auto_skip_next_on_error_desc),
-        icon = { Icon(Icons.Rounded.FastForward, null) },
+        icon = { Icon(Icons.Rounded.SkipNext, null) },
         checked = skipOnErrorKey,
         onCheckedChange = onSkipOnErrorChange
     )

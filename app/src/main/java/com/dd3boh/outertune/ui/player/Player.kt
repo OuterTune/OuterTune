@@ -58,6 +58,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -121,6 +123,8 @@ import com.dd3boh.outertune.constants.PlayerBackgroundStyle
 import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
 import com.dd3boh.outertune.constants.PlayerHorizontalPadding
 import com.dd3boh.outertune.constants.QueuePeekHeight
+import com.dd3boh.outertune.constants.SeekIncrement
+import com.dd3boh.outertune.constants.SeekIncrementKey
 import com.dd3boh.outertune.constants.ShowLyricsKey
 import com.dd3boh.outertune.constants.SwipeToSkipKey
 import com.dd3boh.outertune.extensions.isPowerSaver
@@ -223,6 +227,11 @@ fun BottomSheetPlayer(
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
         defaultValue = DEFAULT_PLAYER_BACKGROUND
+    )
+
+    val seekIncrement by rememberEnumPreference(
+        key = SeekIncrementKey,
+        defaultValue = SeekIncrement.OFF
     )
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -548,6 +557,21 @@ fun BottomSheetPlayer(
                     )
                 }
 
+                if(seekIncrement != SeekIncrement.OFF) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        ResizableIconButton (
+                            icon = Icons.Rounded.FastRewind,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center),
+                            color = onBackgroundColor,
+                            onClick = {
+                                playerConnection.player.seekTo(playerConnection.player.currentPosition - seekIncrement.millisec)
+                            }
+                        )
+                    }
+                }
+
                 Spacer(Modifier.width(8.dp))
 
                 Box(
@@ -578,6 +602,25 @@ fun BottomSheetPlayer(
                 }
 
                 Spacer(Modifier.width(8.dp))
+
+                if(seekIncrement != SeekIncrement.OFF) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        ResizableIconButton(
+                            icon = Icons.Rounded.FastForward,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center),
+                            color = onBackgroundColor,
+                            onClick = {
+                                //ExoPlayer seek increment can only be set in builder
+                                //playerConnection.player.seekForward()
+                                playerConnection.player.seekTo(playerConnection.player.currentPosition + seekIncrement.millisec)
+                            }
+                        )
+                    }
+                }
+
+
 
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(

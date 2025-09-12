@@ -61,7 +61,7 @@ class PlayerConnection(
     }
     val currentLyrics: Flow<SemanticLyrics> = mediaMetadata.flatMapLatest { mediaMetadata ->
         if (mediaMetadata != null) {
-            return@flatMapLatest flowOf(service.lyricsHelper.getLyrics(mediaMetadata)?: uninitializedLyric)
+            return@flatMapLatest flowOf(service.lyricsHelper.getLyrics(mediaMetadata) ?: uninitializedLyric)
         } else {
             return@flatMapLatest flowOf()
         }
@@ -99,8 +99,20 @@ class PlayerConnection(
         repeatMode.value = player.repeatMode
     }
 
-    fun playQueue(queue: Queue, replace: Boolean = true, isRadio: Boolean = false, title: String? = null) {
-        service.playQueue(queue, replace = replace, title = title, isRadio = isRadio)
+    fun playQueue(
+        queue: Queue,
+        shouldResume: Boolean = false,
+        replace: Boolean = true,
+        isRadio: Boolean = false,
+        title: String? = null
+    ) {
+        service.playQueue(
+            queue = queue,
+            shouldResume = shouldResume,
+            replace = replace,
+            title = title,
+            isRadio = isRadio
+        )
     }
 
     /**

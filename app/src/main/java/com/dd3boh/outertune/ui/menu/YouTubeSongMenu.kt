@@ -257,11 +257,13 @@ fun YouTubeSongMenu(
     if (showChooseQueueDialog) {
         AddToQueueDialog(
             onAdd = { queueName ->
-                playerConnection.service.queueBoard.addQueue(
+                val q = playerConnection.service.queueBoard.addQueue(
                     queueName, listOf(song.toMediaMetadata()),
                     forceInsert = true, delta = false
                 )
-                playerConnection.service.queueBoard.setCurrQueue()
+                q?.let {
+                    playerConnection.service.queueBoard.setCurrQueue(it)
+                }
             },
             onDismiss = {
                 showChooseQueueDialog = false

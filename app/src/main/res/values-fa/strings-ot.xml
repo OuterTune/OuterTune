@@ -151,7 +151,7 @@
     <string name="scanner_sensitivity_L3">مطابق عنوان، آلبوم ها، هنرمندان</string>
     <string name="scanner_type_title">استخراج کننده فراداده</string>
     <string name="scanner_type_taglib">از استخراج‌ کننده‌ فراداده‌ یکپارچه‌ TagLib استفاده کنید</string>
-    <string name="scanner_type_ffmpeg_ext">از استخراج‌ کننده‌ فراداده‌ FFMpeg استفاده کنید. نیاز به نصب بسته‌ ی خارجی دارد</string>
+    <string name="scanner_type_ffmpeg_ext">از استخراج‌ کننده‌ فراداده‌ FFmpeg استفاده کنید. نیاز به نصب بسته‌ ی خارجی دارد</string>
     <string name="scanner_variant_rescan">کل کتابخانه را دوباره اسکن کنید و ابرداده همه آهنگ‌ها را دوباره بارگیری کنید</string>
     <string name="scanner_online_artist_linking">سعی کند هنرمندان فایل‌های محلی را با هنرمندان موجود در یوتیوب موزیک مرتبط کند</string>
     <string name="clear_downloads_confirm">آیا از حذف همه دانلودها مطمئن هستید؟ فقط دانلودهای موجود در پوشه اصلی دانلود حذف خواهند شد.</string>
@@ -240,4 +240,10 @@
     <string name="extra_details">جزئیات اضافی</string>
     <string name="file_path">مسیر فایل</string>
     <string name="track_number">شماره آهنگ</string>
+    <string name="ffmpeg_lgpl">این نرم‌افزار از کتابخانه‌های پروژه FFmpeg تحت LGPLv2.1 استفاده می‌کند</string>
+    <string name="seek_increment">میزان پرش</string>
+    <plurals name="second">
+        <item quantity="one">1 ثانیه</item>
+        <item quantity="other">%d ثانیه</item>
+    </plurals>
 </resources>

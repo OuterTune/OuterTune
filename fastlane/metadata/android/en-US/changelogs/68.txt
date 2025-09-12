@@ -1,0 +1,11 @@
+Version 0.9.4
+
+## Changes and improvements
+• Initial F-Droid listing
+• Added seek forward and backwards buttons
+
+## Bug fixes
+• Remove all from library option sometimes doesn't work
+• Clicking to play a song jumps to the middle of the song
+
+Full changelog: https://github.com/OuterTune/OuterTune/releases/tag/v0.9.4

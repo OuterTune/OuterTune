@@ -16,6 +16,7 @@ include(":kugou")
 include(":lrclib")
 include(":material-color-utilities")
 include(":ffMetadataEx")
+include(":taglib")
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.
 // We assume, that OuterTune and NewPipe Extractor have the same parent directory.
@@ -34,16 +35,6 @@ include(":ffMetadataEx")
 //    }
 //}
 
-
-// Use a local copy of taglib by uncommenting the lines below.
-// We assume, that OuterTune and taglib have the same parent directory.
-//
-// Use a local copy of taglib
-//includeBuild("../taglib") {
-//    dependencySubstitution {
-//        substitute(module("com.kyant:taglib"))
-//    }
-//}
 
 includeBuild(file("media").toPath().toRealPath().toAbsolutePath().toString()) {
     dependencySubstitution {

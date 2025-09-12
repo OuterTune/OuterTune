@@ -1,5 +1,8 @@
 package com.dd3boh.outertune.constants
 
+import android.content.Context
+import com.dd3boh.outertune.R
+
 /*
 ---------------------------
 Appearance & interface
@@ -134,6 +137,18 @@ enum class ScannerM3uMatchCriteria {
 Player & audio
 ---------------------------
  */
+enum class SeekIncrement(val millisec: Int, val second: Int) {
+    OFF(0, 0), FIVE(5000, 5), TEN(10000, 10), FIFTEEN(15000, 15), TWENTY(20000, 20);
+
+    companion object {
+        fun getString(context: Context, seekIncrement: SeekIncrement) =
+            when(seekIncrement) {
+                OFF -> context.getString(androidx.compose.ui.R.string.state_off)
+                else -> context.resources.getQuantityString(R.plurals.second, seekIncrement.second, seekIncrement.second)
+            }
+
+    }
+}
 enum class AudioQuality {
     AUTO, HIGH, LOW
 }

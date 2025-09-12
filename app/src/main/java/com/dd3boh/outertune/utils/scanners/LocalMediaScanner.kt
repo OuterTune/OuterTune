@@ -68,7 +68,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
     private val TAG = LocalMediaScanner::class.simpleName.toString()
     private var advancedScannerImpl: MetadataScanner = when (scannerImpl) {
         ScannerImpl.TAGLIB -> TagLibScanner()
-        ScannerImpl.FFMPEG_EXT -> if (ENABLE_FFMETADATAEX) FFMpegScanner() else TagLibScanner()
+        ScannerImpl.FFMPEG_EXT -> if (ENABLE_FFMETADATAEX) FFmpegScanner() else TagLibScanner()
     }
 
     init {
@@ -103,7 +103,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
             // decide which scanner to use
             val ffmpegData =
-                if (advancedScannerImpl is TagLibScanner || (ENABLE_FFMETADATAEX && advancedScannerImpl is FFMpegScanner)) {
+                if (advancedScannerImpl is TagLibScanner || (ENABLE_FFMETADATAEX && advancedScannerImpl is FFmpegScanner)) {
                     advancedScannerImpl.getAllMetadataFromFile(file)
                 } else {
                     throw RuntimeException("Unsupported extractor")

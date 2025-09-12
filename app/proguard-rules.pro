@@ -82,5 +82,6 @@
     #public static int e(...);
 }
 
-## ffMetadataEx
+## OuterTune required modules
 -keep class wah.mikooomich.ffMetadataEx.** { *; }
+-keep class com.kyant.taglib.** { *; }

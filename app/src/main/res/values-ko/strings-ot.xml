@@ -67,7 +67,7 @@
     <string name="scanner_sensitivity_title">스캔 민감도 설정</string>
     <string name="scanner_sensitivity_L1">제목 일치</string>
     <string name="scanner_type_taglib">내장된 TagLib 메타데이터 추출기 사용</string>
-    <string name="scanner_type_ffmpeg_ext">FFMpeg 메타데이터 추출기 사용 (외부 패키지 설치 필요)</string>
+    <string name="scanner_type_ffmpeg_ext">FFmpeg 메타데이터 추출기 사용 (외부 패키지 설치 필요)</string>
     <string name="scanner_online_artist_linking">로컬 미디어 아티스트를 YouTube Music과 연동</string>
     <string name="import_failed_songs">불러오지 못했습니다:</string>
     <string name="experimental_settings_title">실험적 기능</string>

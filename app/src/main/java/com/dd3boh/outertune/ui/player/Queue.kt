@@ -49,6 +49,8 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.MoreVert
@@ -118,6 +120,8 @@ import com.dd3boh.outertune.constants.ListItemHeight
 import com.dd3boh.outertune.constants.LockQueueKey
 import com.dd3boh.outertune.constants.MiniPlayerHeight
 import com.dd3boh.outertune.constants.PlayerHorizontalPadding
+import com.dd3boh.outertune.constants.SeekIncrement
+import com.dd3boh.outertune.constants.SeekIncrementKey
 import com.dd3boh.outertune.extensions.metadata
 import com.dd3boh.outertune.extensions.move
 import com.dd3boh.outertune.extensions.supportsWideScreen
@@ -137,6 +141,7 @@ import com.dd3boh.outertune.ui.component.SelectHeader
 import com.dd3boh.outertune.ui.menu.PlayerMenu
 import com.dd3boh.outertune.ui.menu.QueueMenu
 import com.dd3boh.outertune.utils.makeTimeString
+import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -244,6 +249,10 @@ fun BoxScope.QueueContent(
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
+    val seekIncrement by rememberEnumPreference(
+        key = SeekIncrementKey,
+        defaultValue = SeekIncrement.OFF
+    )
 
     // ui
     val tabMode = context.tabMode()
@@ -741,12 +750,13 @@ fun BoxScope.QueueContent(
                                                     val index = index // race condition...?
                                                     if (detachedHead) {
                                                         detachedQueue?.setCurrentQueuePos(index)
-                                                        qb.setCurrQueue(detachedQueue)
+                                                        qb.setCurrQueue(detachedQueue, false)
                                                     } else {
                                                         playerConnection.player.seekToDefaultPosition(index)
                                                     }
                                                     playerConnection.player.prepare() // else cannot click to play after auto-skip onError stop
                                                     playerConnection.player.playWhenReady = true
+                                                    detachedHead = false
                                                 }
                                             }
                                         }
@@ -968,6 +978,20 @@ fun BoxScope.QueueContent(
                         )
                     }
 
+                    if(seekIncrement != SeekIncrement.OFF) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            ResizableIconButton (
+                                icon = Icons.Rounded.FastRewind,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .align(Alignment.Center),
+                                onClick = {
+                                    playerConnection.player.seekTo(playerConnection.player.currentPosition - seekIncrement.millisec)
+                                }
+                            )
+                        }
+                    }
+
                     Spacer(Modifier.width(8.dp))
 
                     Box(modifier = Modifier.weight(1f)) {
@@ -991,6 +1015,20 @@ fun BoxScope.QueueContent(
                     }
 
                     Spacer(Modifier.width(8.dp))
+
+                    if(seekIncrement != SeekIncrement.OFF) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            ResizableIconButton(
+                                icon = Icons.Rounded.FastForward,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .align(Alignment.Center),
+                                onClick = {
+                                    playerConnection.player.seekTo(playerConnection.player.currentPosition + seekIncrement.millisec)
+                                }
+                            )
+                        }
+                    }
 
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton(

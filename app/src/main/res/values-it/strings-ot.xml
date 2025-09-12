@@ -107,7 +107,7 @@
     <string name="audio_offload">Abilitare offload</string>
     <string name="auto_scanner_title">Scansione automatica</string>
     <string name="scan_paths_excl">Percorsi da scansionare esclusi</string>
-    <string name="scanner_type_ffmpeg_ext">Usa l\'estrattore di metadati FFMpeg. Richiede un pacchetto esterno da installare</string>
+    <string name="scanner_type_ffmpeg_ext">Usa l\'estrattore di metadati FFmpeg. Richiede un pacchetto esterno da installare</string>
     <string name="min_playback_duration_description">La quantità minima di un brano che deve essere riprodotto prima di essere considerato \"riprodotto\"</string>
     <string name="scanner_missing_ffmpeg">Estrattore FFmpeg non rilevato</string>
     <string name="m3u_import_playlist_failed">Importazione fallita</string>
@@ -163,7 +163,7 @@
     <string name="library_empty">I contenuti della tua libreria verranno mostrati qui</string>
     <string name="playlist_missing_note">Playlist mancanti? Fai clic qui per abilitare la modalità sync sead-write in impostazioni</string>
     <string name="no_updates_available">Nessun aggiornamento disponibile</string>
-    <string name="disable_lm_confirm">Sei sicuro di voler disabilitare le funzionalità dei media locali?</string>
+    <string name="disable_lm_confirm">Sei sicuro di voler disabilitare le funzionalità dei media locali? Il contenuto della tua libreria non sarà interessato..</string>
     <string name="clear_downloads_confirm">Sei sicuro di voler rimuovere tutti i download? Verranno rimossi solo quelli presenti nella cartella di download principale.</string>
     <string name="clear_image_cache_confirm">Sei sicuro di voler cancellare la cache delle immagini? Tutte le miniature degli album verranno rimosse.</string>
     <string name="clear_song_cache_confirm">Sei sicuro di voler cancellare la cache delle canzoni?</string>

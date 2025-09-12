@@ -83,7 +83,6 @@ import com.dd3boh.outertune.constants.SNACKBAR_VERY_SHORT
 import com.dd3boh.outertune.db.entities.FormatEntity
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.ui.component.button.IconButton
-import com.dd3boh.outertune.ui.component.LazyColumnScrollbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -185,9 +184,6 @@ fun ListDialog(
                 LazyColumn(
                     state = lazyListState,
                     content = content
-                )
-                LazyColumnScrollbar(
-                    state = lazyListState,
                 )
             }
         }

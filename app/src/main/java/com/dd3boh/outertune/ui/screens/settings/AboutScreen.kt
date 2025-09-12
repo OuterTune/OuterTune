@@ -67,13 +67,16 @@ import com.dd3boh.outertune.constants.OOBE_VERSION
 import com.dd3boh.outertune.constants.SNACKBAR_VERY_SHORT
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
-import com.dd3boh.outertune.ui.component.button.IconButton
-import com.dd3boh.outertune.ui.component.button.IconLabelButton
+import com.dd3boh.outertune.ui.component.ContributorCard
+import com.dd3boh.outertune.ui.component.ContributorInfo
+import com.dd3boh.outertune.ui.component.ContributorType.CUSTOM
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.SettingsClickToReveal
+import com.dd3boh.outertune.ui.component.button.IconButton
+import com.dd3boh.outertune.ui.component.button.IconLabelButton
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberPreference
-import com.dd3boh.outertune.utils.scanners.FFMpegScanner
+import com.dd3boh.outertune.utils.scanners.FFmpegScanner
 import java.text.DateFormat.getDateTimeInstance
 import java.util.Date
 
@@ -182,6 +185,12 @@ fun AboutScreen(
                         navController.navigate("settings/about/attribution")
                     }
                 )
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.oss_licenses_title)) },
+                    onClick = {
+                        navController.navigate("settings/about/oss_licenses")
+                    }
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -235,7 +244,7 @@ fun AboutScreen(
                         )
                     }
                     if (ENABLE_FFMETADATAEX) {
-                        info.add("FFMetadataEx version: ${FFMpegScanner.VERSION_STRING}")
+                        info.add("FFMetadataEx version: ${FFmpegScanner.VERSION_STRING}")
                     }
 
                     Column(
@@ -282,6 +291,18 @@ fun AboutScreen(
                         }
                     }
                 }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (ENABLE_FFMETADATAEX) {
+                ContributorCard(
+                    contributor = ContributorInfo(
+                        name = "FFmpeg",
+                        description = stringResource(R.string.ffmpeg_lgpl),
+                        type = listOf(CUSTOM),
+                        url = "https://github.com/OuterTune/ffMetadataEx/blob/main/Modules.md"
+                    )
+                )
             }
         }
 

@@ -24,7 +24,7 @@ import com.dd3boh.outertune.ui.utils.ARTIST_SEPARATORS
 import com.dd3boh.outertune.ui.utils.EXTRACTOR_TAG
 import wah.mikooomich.ffMetadataEx.AudioMetadata
 import wah.mikooomich.ffMetadataEx.FFMetadataEx
-import wah.mikooomich.ffMetadataEx.FFMpegWrapper
+import wah.mikooomich.ffMetadataEx.FFmpegWrapper
 import java.io.File
 import java.lang.Integer.parseInt
 import java.time.Instant
@@ -35,7 +35,7 @@ import kotlin.math.roundToLong
 
 const val toSeconds = 1000 * 60 * 16.7 // convert FFmpeg duration to seconds
 
-class FFMpegScanner() : MetadataScanner {
+class FFmpegScanner() : MetadataScanner {
     // load advanced scanner libs
     init {
 //        System.loadLibrary("avcodec")
@@ -57,7 +57,7 @@ class FFMpegScanner() : MetadataScanner {
         if (EXTRACTOR_DEBUG)
             Log.v(EXTRACTOR_TAG, "Starting Full Extractor session on: ${file.absolutePath}")
 
-        val ffmpeg = FFMpegWrapper()
+        val ffmpeg = FFmpegWrapper()
 
         ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
             val data: AudioMetadata? = ffmpeg.getFullAudioMetadata(fd.dup().detachFd())

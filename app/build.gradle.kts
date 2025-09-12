@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.aboutlibraries)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -28,8 +29,8 @@ android {
         applicationId = "com.dd3boh.outertune"
         minSdk = 24
         targetSdk = 36
-        versionCode = 67
-        versionName = "0.9.3.1"
+        versionCode = 68
+        versionName = "0.9.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -128,16 +129,45 @@ android {
     }
 
     tasks.withType<KotlinCompile> {
-        exclude("**/*LibrariesScreen.kt")
         if (!name.substringAfter("compile").lowercase().startsWith("full")) {
-            exclude("**/*FFMpegScanner.kt")
+            exclude("**/*FFmpegScanner.kt")
         } else {
-            exclude("**/*FFMpegScannerDud.kt")
+            exclude("**/*FFmpegScannerDud.kt")
         }
     }
 
 
-    // for IzzyOnDroid
+    aboutLibraries {
+        offlineMode = true
+
+        collect {
+            fetchRemoteLicense = false
+            fetchRemoteFunding = false
+            filterVariants.addAll("release")
+        }
+
+        export {
+            // Remove the "generated" timestamp to allow for reproducible builds
+            excludeFields = listOf("generated")
+        }
+
+        license {
+            // Define the strict mode, will fail if the project uses licenses not allowed
+            strictMode = com.mikepenz.aboutlibraries.plugin.StrictMode.FAIL
+            // Allowed set of licenses, this project will be able to use without build failure
+            allowedLicenses.addAll("Apache-2.0", "BSD-3-Clause", "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1", "EPL-2.0", "MIT", "MPL-2.0", "Public Domain")
+
+            // Full license text for license IDs mentioned here will be included, even if no detected dependency uses them.
+             additionalLicenses.addAll("apache_2_0", "gpl_2_1") // taglib, ffMpeg in ffMetadataEx
+        }
+
+        library {
+            duplicationMode = com.mikepenz.aboutlibraries.plugin.DuplicateMode.MERGE
+            duplicationRule = com.mikepenz.aboutlibraries.plugin.DuplicateRule.SIMPLE
+        }
+    }
+
+    // for RB
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
         includeInApk = false
@@ -186,8 +216,7 @@ dependencies {
     // ui
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
-//    implementation(libs.lazycolumnscrollbar)
-    implementation(files("../prebuilt/com.github.nanihadesuka_LazyColumnScrollbar_2.2.0.aar")) // prebuilt
+    implementation(libs.lazycolumnscrollbar)
     implementation(libs.shimmer)
 
     // material
@@ -223,15 +252,10 @@ dependencies {
     implementation(project(":kugou"))
     implementation(project(":lrclib"))
     implementation(project(":material-color-utilities"))
+    implementation(project(":taglib"))
 
     // misc
-    /*
-    "JitPack builds are broken with the latest CMake version.
-    Please download the [aar](https://github.com/Kyant0/taglib/releases) manually but not use maven."
-     */
-//    implementation(libs.taglib) // jitpack
-    implementation(files("../prebuilt/taglib-1.0.2-outertune-universal-release.aar")) // prebuilt
-//    implementation("com.kyant:taglib") // custom
+    implementation(libs.aboutlibraries.compose.m3)
 
     // sdk24 support
     // Support for N is officially unsupported even it the app should still work. Leave this outside of the version catalog.

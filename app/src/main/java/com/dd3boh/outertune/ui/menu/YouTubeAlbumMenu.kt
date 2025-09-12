@@ -222,12 +222,14 @@ fun YouTubeAlbumMenu(
         AddToQueueDialog(
             onAdd = { queueName ->
                 album?.songs?.let { song ->
-                    playerConnection.service.queueBoard.addQueue(
+                    val q = playerConnection.service.queueBoard.addQueue(
                         queueName, song.map { it.toMediaMetadata() },
                         forceInsert = true, delta = false
                     )
+                    q?.let {
+                        playerConnection.service.queueBoard.setCurrQueue(it)
+                    }
                 }
-                playerConnection.service.queueBoard.setCurrQueue()
             },
             onDismiss = {
                 showChooseQueueDialog = false

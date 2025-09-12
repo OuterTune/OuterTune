@@ -185,7 +185,7 @@ fun FolderMenu(
         }
         GridMenuItem(
             icon = Icons.Rounded.Shuffle,
-            title = R.string.add_to_queue
+            title = R.string.shuffle
         ) {
             coroutineScope.launch {
                 val songs = runBlocking(Dispatchers.IO) { database.localSongsInDirDeep(folder.getFullPath()) }
@@ -228,11 +228,13 @@ fun FolderMenu(
         AddToQueueDialog(
             onAdd = { queueName ->
                 if (allFolderSongs.isEmpty()) return@AddToQueueDialog
-                playerConnection.service.queueBoard.addQueue(
+                val q = playerConnection.service.queueBoard.addQueue(
                     queueName, allFolderSongs.map { it.toMediaMetadata() },
                     forceInsert = true, delta = false
                 )
-                playerConnection.service.queueBoard.setCurrQueue()
+                q?.let {
+                    playerConnection.service.queueBoard.setCurrQueue(it)
+                }
             },
             onDismiss = {
                 showChooseQueueDialog = false

@@ -96,7 +96,7 @@
     <string name="oobe_use_backup">J\'ai une sauvegarde</string>
     <string name="scan_paths_incl">Chemins d\'analyse</string>
     <string name="scanner_type_taglib">Utiliser l’extracteur de métadonnées intégré TagLib</string>
-    <string name="scanner_type_ffmpeg_ext">Utiliser l\'extracteur de métadonnées FFMpeg. Cela nécessite l\'installation d\'un package externe</string>
+    <string name="scanner_type_ffmpeg_ext">Utiliser l\'extracteur de métadonnées FFmpeg. Cela nécessite l\'installation d\'un package externe</string>
     <string name="scanner_strict_file_name_title">Noms de fichiers stricts</string>
     <string name="dev_settings_description">Révèle des paramètres avancés supplémentaires destinés à une utilisation en développement</string>
     <string name="sync_progress_active">Synchronisation avec le compte YouTube…</string>
@@ -242,4 +242,11 @@
     <string name="extra_details">Détails supplémentaires</string>
     <string name="file_path">Chemin du fichier</string>
     <string name="track_number">Numéro de piste</string>
+    <string name="ffmpeg_lgpl">Ce logiciel utilise les bibliothèques du projet FFmpeg sous la licence LGPLv2.1</string>
+    <string name="seek_increment">Rechercher une augmentation</string>
+    <plurals name="second">
+        <item quantity="one">1 seconde</item>
+        <item quantity="many">%d secondes</item>
+        <item quantity="other">%d secondes</item>
+    </plurals>
 </resources>
