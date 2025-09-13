@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Backup
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.ConfirmationNumber
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeveloperMode
@@ -45,12 +46,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalImageCache
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.AudioOffload
 import com.dd3boh.outertune.constants.DevSettingsKey
 import com.dd3boh.outertune.constants.OobeStatusKey
 import com.dd3boh.outertune.constants.SCANNER_OWNER_LM
@@ -58,10 +61,10 @@ import com.dd3boh.outertune.constants.ScannerImpl
 import com.dd3boh.outertune.constants.TabletUiKey
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
-import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SwitchPreference
+import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.scanners.LocalMediaScanner
@@ -81,8 +84,10 @@ fun ExperimentalSettings(
     val database = LocalDatabase.current
     val haptic = LocalHapticFeedback.current
     val imageCache = LocalImageCache.current
+    val uriHandler = LocalUriHandler.current
 
     // state variables and such
+    val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
     val (tabletUi, onTabletUiChange) = rememberPreference(TabletUiKey, defaultValue = false)
 
     val (devSettings, onDevSettingsChange) = rememberPreference(DevSettingsKey, defaultValue = false)
@@ -131,6 +136,21 @@ fun ExperimentalSettings(
         )
 
         if (devSettings) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.audio_offload)) },
+                description = stringResource(R.string.audio_offload_description),
+                icon = { Icon(Icons.Rounded.Bolt, null) },
+                checked = audioOffload,
+                onCheckedChange = onAudioOffloadChange
+            )
+            PreferenceEntry(
+                title = { Text("Important: About audio offload compatibility and issues") },
+                onClick = {
+                    uriHandler.openUri("https://github.com/OuterTune/OuterTune/wiki/Audio-offload")
+                }
+            )
+
+
             PreferenceEntry(
                 title = { Text("DEBUG: Force local to remote artist migration NOW") },
                 icon = { Icon(Icons.Rounded.Backup, null) },

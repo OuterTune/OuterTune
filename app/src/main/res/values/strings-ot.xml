@@ -148,7 +148,7 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Player settings -->
     <string name="audio_offload">Enable offload</string>
-    <string name="audio_offload_description">Use the offload audio path for audio playback. Disabling this may increase power usage but can be useful if you experience issues with audio playback or post processing</string>
+    <string name="audio_offload_description">Use the offload audio path for audio playback. Enabling this may reduce power usage but can lead experience issues with audio playback or post processing. This preference has no effect for unsupported codecs or devices</string>
     <string name="keep_alive_title">Prevent system killing app</string>
     <string name="keep_alive_description">Use a persistent foreground service to prevent OuterTune from being closed in the background.</string>
     <string name="persistent_queue_desc_ot">Restore previous open queue(s) when the app starts</string>

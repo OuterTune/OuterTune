@@ -55,7 +55,6 @@ fun PlayerSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
     val (keepAlive, onKeepAliveChange) = rememberPreference(key = KeepAliveKey, defaultValue = false)
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
 
@@ -120,13 +119,6 @@ fun PlayerSettings(
             ElevatedCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.audio_offload)) },
-                    description = stringResource(R.string.audio_offload_description),
-                    icon = { Icon(Icons.Rounded.Bolt, null) },
-                    checked = audioOffload,
-                    onCheckedChange = onAudioOffloadChange
-                )
                 SwitchPreference(
                     title = { Text(stringResource(R.string.keep_alive_title)) },
                     description = stringResource(R.string.keep_alive_description),
