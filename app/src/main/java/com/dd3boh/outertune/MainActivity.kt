@@ -379,6 +379,7 @@ class MainActivity : ComponentActivity() {
             var themeColor by rememberSaveable(stateSaver = ColorSaver) {
                 mutableStateOf(DefaultThemeColor)
             }
+
             try {
                 connectivityObserver.unregister()
             } catch (e: UninitializedPropertyAccessException) {
