@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.ContentCut
+import androidx.compose.material.icons.rounded.Gradient
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextFields
@@ -38,6 +39,7 @@ import com.dd3boh.outertune.constants.LyricFontSizeKey
 import com.dd3boh.outertune.constants.LyricKaraokeEnable
 import com.dd3boh.outertune.constants.LyricSourcePrefKey
 import com.dd3boh.outertune.constants.LyricTrimKey
+import com.dd3boh.outertune.constants.lyricHeardOpacityKey
 import com.dd3boh.outertune.constants.LyricUpdateSpeed
 import com.dd3boh.outertune.constants.LyricsPosition
 import com.dd3boh.outertune.constants.LyricsTextPositionKey
@@ -53,6 +55,8 @@ import com.dd3boh.outertune.utils.rememberPreference
 
 @Composable
 fun ColumnScope.LyricFormatFrag() {
+    val (lyricHeardOpacity, onlyricHeardOpacityChange) = rememberPreference(lyricHeardOpacityKey, defaultValue = false)
+
     val (lyricsPosition, onLyricsPositionChange) = rememberEnumPreference(
         LyricsTextPositionKey,
         defaultValue = LyricsPosition.CENTER
@@ -81,6 +85,13 @@ fun ColumnScope.LyricFormatFrag() {
         description = "$lyricFontSize sp",
         icon = { Icon(Icons.Rounded.TextFields, null) },
         onClick = { showFontSizeDialog = true }
+    )
+
+    SwitchPreference(
+        title = { Text(stringResource(R.string.lyrics_heard_opacity)) },
+        icon = { Icon(Icons.Rounded.Gradient, null) },
+        checked = lyricHeardOpacity,
+        onCheckedChange = onlyricHeardOpacityChange
     )
 
 
