@@ -81,6 +81,7 @@ import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.LyricClickable
 import com.dd3boh.outertune.constants.LyricFontSizeKey
+import com.dd3boh.outertune.constants.LyricHeardOpacityKey
 import com.dd3boh.outertune.constants.LyricKaraokeEnable
 import com.dd3boh.outertune.constants.LyricUpdateSpeed
 import com.dd3boh.outertune.constants.LyricsPosition
@@ -125,6 +126,7 @@ fun Lyrics(
 
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
     val lyricsFontSize by rememberPreference(LyricFontSizeKey, 20)
+    val lyricHeardOpacity by rememberPreference(LyricHeardOpacityKey, defaultValue = false)
 
     val lyricsClickable by rememberPreference(LyricClickable, true)
     val lyricsFancy by rememberPreference(LyricKaraokeEnable, false)
@@ -393,7 +395,11 @@ fun Lyrics(
                                     if (!isSynced || ((index == displayedCurrentLineIndex || (index == displayedCurrentLineIndex + 1 && item.isTranslated)))) {
                                         1f
                                     } else {
-                                        0.5f
+                                        if(index < displayedCurrentLineIndex && lyricHeardOpacity) {
+                                            1f
+                                        } else {
+                                            0.5f
+                                        }
                                     }
                                 )
                             )

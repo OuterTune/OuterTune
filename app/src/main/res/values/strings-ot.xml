@@ -176,6 +176,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="lyrics_settings_title">Lyrics</string>
     <string name="lyrics_synced_clickable">Clickable lyrics</string>
     <string name="lyrics_trim_title">Remove spaces around lyrics</string>
+    <string name="lyrics_heard_opacity">Lyrics already heard remain strong</string>
 
 <!-- Local player settings -->
     <string name="local_library_enable_title">Enable local media</string>
