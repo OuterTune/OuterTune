@@ -100,9 +100,9 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="checking_for_update">Checking for updates</string>
     <string name="device_info_title">Device information</string>
     <string name="ffmpeg_lgpl">This software uses libraries from the FFmpeg project under the LGPLv2.1</string>
-    <string name="help_bug_report_action">Submit a bug report (Via GitHub)</string>
-    <string name="help_contact_email_inquiries">Other inquires (Tap to copy Email)</string>
-    <string name="help_support_forum">Help and support (Via GitHub)</string>
+    <string name="help_bug_report_action">Submit a bug report (via GitHub)</string>
+    <string name="help_contact_email_inquiries">Other inquires (tap to copy email)</string>
+    <string name="help_support_forum">Help and support (via GitHub)</string>
     <string name="no_updates_available">No updates available</string>
     <string name="oss_licenses_title">Open source licenses</string>
     <string name="wiki">Wiki</string>
