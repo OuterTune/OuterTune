@@ -155,7 +155,7 @@ android {
             // Define the strict mode, will fail if the project uses licenses not allowed
             strictMode = com.mikepenz.aboutlibraries.plugin.StrictMode.FAIL
             // Allowed set of licenses, this project will be able to use without build failure
-            allowedLicenses.addAll("Apache-2.0", "BSD-3-Clause", "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1", "EPL-2.0", "MIT", "MPL-2.0", "Public Domain")
+            allowedLicenses.addAll("Apache-2.0", "BSD-3-Clause", "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1", "GPL-3.0-only", "EPL-2.0", "MIT", "MPL-2.0", "Public Domain")
 
             // Full license text for license IDs mentioned here will be included, even if no detected dependency uses them.
              additionalLicenses.addAll("apache_2_0", "gpl_2_1") // taglib, ffMpeg in ffMetadataEx
