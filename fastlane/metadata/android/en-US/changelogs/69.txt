@@ -1,0 +1,6 @@
+Version 0.9.4.1
+
+## Changes and improvements
+• Fix playback issues
+
+Full changelog: https://github.com/OuterTune/OuterTune/releases/tag/v0.9.4.1
