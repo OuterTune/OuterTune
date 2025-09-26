@@ -79,15 +79,15 @@ android {
     }
 
 // build variants and stuff
-    splits {
-        abi {
-            isEnable = true
-            reset()
-
-            include("x86_64", "x86", "armeabi-v7a", "arm64-v8a")
-            isUniversalApk = true
-        }
-    }
+//    splits {
+//        abi {
+//            isEnable = true
+//            reset()
+//
+//            include("x86_64", "x86", "armeabi-v7a", "arm64-v8a")
+//            isUniversalApk = true
+//        }
+//    }
 
     flavorDimensions.add("abi")
 
