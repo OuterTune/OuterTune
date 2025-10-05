@@ -121,20 +121,20 @@ object LrcUtils {
         }
     }
 
-    // begin OuterTune
+// begin OuterTune
     fun loadLyricsFile(musicFile: File?): String? {
         return loadTextFile(
+            musicFile?.let { File(it.parentFile, it.nameWithoutExtension + ".lrc") },
+            ""
+        )?: loadTextFile(
             musicFile?.let { File(it.parentFile, it.nameWithoutExtension + ".ttml") },
             ""
         )?: loadTextFile(
             musicFile?.let { File(it.parentFile, it.nameWithoutExtension + ".srt") },
             ""
-        )?: loadTextFile(
-            musicFile?.let { File(it.parentFile, it.nameWithoutExtension + ".lrc") },
-            ""
         )
     }
-    // end OuterTune
+// end OuterTune
 }
 
 // begin OuterTune
