@@ -178,6 +178,7 @@ class QueueBoard(
                     match.queuePos = match.queue.indexOf(match.queue.find { it.shuffleIndex == 0 })
                 }
 
+                saveQueueSongs(match)
                 return match
             }
 
@@ -198,6 +199,7 @@ class QueueBoard(
                     match.queuePos = match.queue.indexOf(match.queue.find { it.shuffleIndex == 0 })
                 }
 
+                saveQueue(match)
                 return match
             } else if (delta) {
                 if (QUEUE_DEBUG)
