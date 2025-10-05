@@ -11,7 +11,7 @@ lifecycle = "2.9.4"
 material3 = "1.4.0"
 media3 = "1.8.0"
 room = "2.8.1"
-hilt = "2.57.1"
+hilt = "2.57.2"
 ktor = "3.3.0"
 ksp = "2.2.0-2.0.2" # do not bump, database schema changes
 
@@ -61,7 +61,7 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
-apache-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.18.0" }
+apache-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.19.0" }
 
 hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
