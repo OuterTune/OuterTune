@@ -129,8 +129,6 @@ import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -324,6 +322,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        Log.i(MAIN_TAG, "onDestroy() called. isFinishing = $isFinishing")
         try {
             connectivityObserver.unregister()
         } catch (e: UninitializedPropertyAccessException) {
@@ -817,34 +816,6 @@ class MainActivity : ComponentActivity() {
                                 navController.popBackStack()
                                 navController.navigate(Screens.Home.route)
                             }
-                        }
-                    }
-
-                    LaunchedEffect(playerConnection) {
-                        val player = playerConnection?.player ?: return@LaunchedEffect
-                        if (player.currentMediaItem == null) {
-                            if (!playerBottomSheetState.isDismissed) {
-                                playerBottomSheetState.dismiss()
-                            }
-                        } else {
-                            if (playerBottomSheetState.isDismissed) {
-                                playerBottomSheetState.collapseSoft()
-                            }
-                        }
-                    }
-
-                    DisposableEffect(playerConnection, playerBottomSheetState) {
-                        val player = playerConnection?.player ?: return@DisposableEffect onDispose { }
-                        val listener = object : Player.Listener {
-                            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null && playerBottomSheetState.isDismissed) {
-                                    playerBottomSheetState.collapseSoft()
-                                }
-                            }
-                        }
-                        player.addListener(listener)
-                        onDispose {
-                            player.removeListener(listener)
                         }
                     }
 

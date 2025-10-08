@@ -81,6 +81,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -170,6 +171,13 @@ fun BottomSheetPlayer(
 
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
+
+    // use placeholder media
+    LaunchedEffect(Unit) {
+        if (mediaMetadata == null) {
+            playerConnection.mediaMetadata.value = playerConnection.service.queueBoard.getCurrentQueue()?.getCurrentSong()
+        }
+    }
 
     val thumbnailLazyGridState = rememberLazyGridState()
 
@@ -291,6 +299,15 @@ fun BottomSheetPlayer(
                 duration = playerConnection.player.duration
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { playerConnection.service.queueBoard.masterQueues.toList() }
+            .collect { updatedList ->
+                if (updatedList.isNotEmpty() && playerConnection.service.queueBoard.initialized) {
+                    state.collapseSoft()
+                }
+            }
     }
 
     // On today's episode of compose horror stories: The queue sheet click to expand on my Pixel with one-notch lower
@@ -585,6 +602,7 @@ fun BottomSheetPlayer(
                             .padding(4.dp)
                             .align(Alignment.Center),
                         color = onBackgroundColor,
+                        enabled = playerConnection.player.currentMediaItem != null,
                         onClick = {
                             playerConnection.triggerShuffle()
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
@@ -601,6 +619,9 @@ fun BottomSheetPlayer(
                             .align(Alignment.Center),
                         color = onBackgroundColor,
                         onClick = {
+                            if (playerConnection.player.currentMediaItem == null) {
+                                playerConnection.service.queueBoard.setCurrQueue()
+                            }
                             playerConnection.player.seekToPrevious()
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
                         }
@@ -615,6 +636,7 @@ fun BottomSheetPlayer(
                                 .size(32.dp)
                                 .align(Alignment.Center),
                             color = onBackgroundColor,
+                            enabled = playerConnection.player.currentMediaItem != null,
                             onClick = {
                                 playerConnection.player.seekTo(playerConnection.player.currentPosition - seekIncrement.millisec)
                             }
@@ -631,7 +653,10 @@ fun BottomSheetPlayer(
                         .clip(RoundedCornerShape(playPauseRoundness))
                         .background(MaterialTheme.colorScheme.primary)
                         .clickable {
-                            if (playbackState == STATE_ENDED) {
+                            if (playerConnection.player.currentMediaItem == null) {
+                                playerConnection.service.queueBoard.setCurrQueue()
+                                playerConnection.player.togglePlayPause()
+                            } else if (playbackState == STATE_ENDED) {
                                 playerConnection.player.seekTo(0, 0)
                                 playerConnection.player.playWhenReady = true
                             } else {
@@ -661,6 +686,7 @@ fun BottomSheetPlayer(
                                 .size(32.dp)
                                 .align(Alignment.Center),
                             color = onBackgroundColor,
+                            enabled = playerConnection.player.currentMediaItem != null,
                             onClick = {
                                 //ExoPlayer seek increment can only be set in builder
                                 //playerConnection.player.seekForward()
@@ -700,6 +726,7 @@ fun BottomSheetPlayer(
                             .padding(4.dp)
                             .align(Alignment.Center),
                         color = onBackgroundColor,
+                        enabled = playerConnection.player.currentMediaItem != null,
                         onClick = {
                             playerConnection.player.toggleRepeatMode()
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)

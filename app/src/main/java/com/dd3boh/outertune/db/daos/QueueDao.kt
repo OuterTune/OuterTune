@@ -58,6 +58,29 @@ interface QueueDao {
 
         return resultQueues
     }
+
+    suspend fun getResumptionQueue(): MultiQueueObject? {
+        val queues = getAllQueues().first()
+        if (queues.isEmpty()) return null
+        val q = queues.last()
+        val shuffledSongs = getQueueSongs(q.id).first()
+        if (shuffledSongs.isEmpty()) return null
+
+        return MultiQueueObject(
+            id = q.id,
+            title = q.title,
+            queue = shuffledSongs.map {
+                val s = it.song.toMediaMetadata()
+                s.shuffleIndex = it.shuffledIndex
+                s
+            }.toMutableList(),
+            shuffled = q.shuffled,
+            queuePos = q.queuePos,
+            lastSongPos = q.lastSongPos,
+            index = q.index,
+            playlistId = q.playlistId
+        )
+    }
     // endregion
 
     // region Inserts

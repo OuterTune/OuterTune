@@ -32,7 +32,6 @@ import com.dd3boh.outertune.utils.reportException
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -88,10 +87,19 @@ class MediaLibrarySessionCallback @Inject constructor(
 
     override fun onPlaybackResumption(
         mediaSession: MediaSession,
-        controller: MediaSession.ControllerInfo
-    ): ListenableFuture<MediaItemsWithStartPosition> {
-        // Already handled by the player. This just shuts up the exception
-        return SettableFuture.create<MediaItemsWithStartPosition>()
+        controller: MediaSession.ControllerInfo,
+        isForPlayback: Boolean,
+    ): ListenableFuture<MediaItemsWithStartPosition> = scope.future(Dispatchers.IO) {
+        val q = database.getResumptionQueue()
+        if (q == null) {
+            Log.w(TAG, "No queue data to load" )
+            return@future MediaItemsWithStartPosition(emptyList(), C.INDEX_UNSET, C.TIME_UNSET)
+        }
+        return@future MediaItemsWithStartPosition(
+            q.queue.map { it.toMediaItem() },
+            q.getQueuePosShuffled(),
+            q.lastSongPos
+        )
     }
 
     override fun onGetLibraryRoot(

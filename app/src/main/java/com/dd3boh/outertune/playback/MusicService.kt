@@ -221,6 +221,7 @@ class MusicService : MediaLibraryService(),
     var consecutivePlaybackErr = 0
 
     override fun onCreate() {
+        Log.i(TAG, "Starting MusicService")
         super.onCreate()
 
         player = ExoPlayer.Builder(this)
@@ -295,9 +296,9 @@ class MusicService : MediaLibraryService(),
 
         // lateinit tasks
         offloadScope.launch {
-            initQueue()
-            withContext(Dispatchers.Main) {
-                queueBoard.setCurrQueue()
+            Log.i(TAG, "Launching MusicService offloadScope tasks")
+            if (!queueBoard.initialized) {
+                initQueue()
             }
 
             combine(playerVolume, normalizeFactor) { playerVolume, normalizeFactor ->
@@ -562,12 +563,15 @@ class MusicService : MediaLibraryService(),
     }
 
     suspend fun initQueue() {
+        Log.i(TAG, "Initializing queue...")
+        val persistQueue = dataStore.get(PersistentQueueKey, true)
         val maxQueues = dataStore.get(MaxQueuesKey, 19)
-        if (dataStore.get(PersistentQueueKey, true)) {
+        if (persistQueue) {
             queueBoard = QueueBoard(this, database.readQueue().toMutableList(), maxQueues)
         } else {
             queueBoard = QueueBoard(this, maxQueues = maxQueues)
         }
+        Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue")
         queueBoard.initialized = true
     }
 
@@ -650,7 +654,10 @@ class MusicService : MediaLibraryService(),
             val mediaId = dataSpec.key ?: error("No media id")
             Log.d(TAG, "PLAYING: song id = $mediaId")
 
-            val song = queueBoard.getCurrentQueue()?.findSong(dataSpec.key ?: "")
+            var song = queueBoard.getCurrentQueue()?.findSong(dataSpec.key ?: "")
+            if (song == null) { // in the case of resumption, queueBoard may not be ready yet
+                song = runBlocking { database.song(dataSpec.key).first()?.toMediaMetadata() }
+            }
             // local song
             if (song?.localPath != null) {
                 if (song.isLocal) {

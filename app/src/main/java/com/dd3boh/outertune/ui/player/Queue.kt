@@ -417,6 +417,13 @@ fun BoxScope.QueueContent(
             }
             return@LaunchedEffect
         }
+        val fallBackQueue = qb.getCurrentQueue()
+        if (queueWindows.isEmpty() && fallBackQueue != null) {
+            detachedQueue = fallBackQueue
+            detachedHead = true
+            mqExpand = true
+            return@LaunchedEffect
+        }
 
         mutableSongs.apply {
             clear()
@@ -431,7 +438,7 @@ fun BoxScope.QueueContent(
     }
 
     LaunchedEffect(mqExpand) { // scroll to queue
-        if (mqExpand) {
+        if (mqExpand && playingQueue >= 0) {
             lazyQueuesListState.animateScrollToItem(playingQueue)
             if (currentWindowIndex != -1) {
                 lazySongsListState.scrollToItem(currentWindowIndex)

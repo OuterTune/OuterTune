@@ -112,7 +112,10 @@ fun MiniPlayer(
 
             IconButton(
                 onClick = {
-                    if (playbackState == Player.STATE_ENDED) {
+                    if (playerConnection.player.currentMediaItem == null) {
+                        playerConnection.service.queueBoard.setCurrQueue()
+                        playerConnection.player.togglePlayPause()
+                    } else if (playbackState == Player.STATE_ENDED) {
                         playerConnection.player.seekTo(0, 0)
                         playerConnection.player.playWhenReady = true
                     } else {
@@ -129,7 +132,13 @@ fun MiniPlayer(
 
             IconButton(
                 enabled = canSkipNext,
-                onClick = playerConnection.player::seekToNext
+                onClick = {
+                    if (playerConnection.player.currentMediaItem == null) {
+                        playerConnection.service.queueBoard.setCurrQueue()
+                        playerConnection.player.playWhenReady = true
+                    }
+                    playerConnection.player.seekToNext()
+                }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.skip_next),
