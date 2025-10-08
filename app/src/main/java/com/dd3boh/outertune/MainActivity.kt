@@ -10,6 +10,7 @@
 package com.dd3boh.outertune
 
 import android.annotation.SuppressLint
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -151,7 +152,6 @@ import com.dd3boh.outertune.constants.DynamicThemeKey
 import com.dd3boh.outertune.constants.ENABLE_UPDATE_CHECKER
 import com.dd3boh.outertune.constants.EnabledTabsKey
 import com.dd3boh.outertune.constants.ExcludedScanPathsKey
-import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.LastLocalScanKey
 import com.dd3boh.outertune.constants.LastVersionKey
 import com.dd3boh.outertune.constants.LibraryFilterKey
@@ -174,7 +174,6 @@ import com.dd3boh.outertune.constants.ScannerStrictExtKey
 import com.dd3boh.outertune.constants.SearchSource
 import com.dd3boh.outertune.constants.SearchSourceKey
 import com.dd3boh.outertune.constants.SlimNavBarKey
-import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.constants.UpdateAvailableKey
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.SearchHistory
@@ -328,25 +327,13 @@ class MainActivity : ComponentActivity() {
         } catch (e: UninitializedPropertyAccessException) {
             // lol
         }
-
-        /*
-         * While music is playing:
-         *      StopMusicOnTaskClearKey true: clearing from recent apps will kill service
-         *      StopMusicOnTaskClearKey false: clearing from recent apps will NOT kill service
-         * While music is not playing: 
-         *      Service will never be automatically killed
-         *
-         * Regardless of what happens, queues and last position are saves
-         */
-        unbindService(serviceConnection)
-
-        if (dataStore.get(StopMusicOnTaskClearKey, true) && dataStore.get(KeepAliveKey, false) && isFinishing) {
-//                stopService(Intent(this, MusicService::class.java)) // Believe me, this doesn't actually stop
-            playerConnection?.service?.onDestroy()
-            playerConnection = null
-        } else {
-            playerConnection?.service?.saveQueueToDisk()
+        // https://github.com/androidx/media/issues/805
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.UPSIDE_DOWN_CAKE && (playerConnection?.player?.playWhenReady != true || playerConnection?.player?.mediaItemCount == 0)) {
+            val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            nm.cancel(MusicService.NOTIFICATION_ID)
         }
+        unbindService(serviceConnection)
+        playerConnection = null
 
         super.onDestroy()
     }

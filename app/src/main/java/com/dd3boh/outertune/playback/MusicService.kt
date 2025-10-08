@@ -86,6 +86,7 @@ import com.dd3boh.outertune.constants.PlayerVolumeKey
 import com.dd3boh.outertune.constants.RepeatModeKey
 import com.dd3boh.outertune.constants.SkipOnErrorKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
+import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.constants.minPlaybackDurKey
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.Event
@@ -1067,7 +1068,7 @@ class MusicService : MediaLibraryService(),
         startInForegroundRequired: Boolean,
     ) {
         // FG keep alive
-        if (!(!player.isPlaying && dataStore.get(KeepAliveKey, false))) {
+        if (player.isPlaying || !dataStore.get(KeepAliveKey, false)) {
             super.onUpdateNotification(session, startInForegroundRequired)
         }
     }
@@ -1080,12 +1081,20 @@ class MusicService : MediaLibraryService(),
         mediaSession.release()
         mediaSession.player.release()
         super.onDestroy()
+        Log.i(TAG, "Terminated MusicService.")
     }
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
+        Log.i(TAG, "onTaskRemoved called")
+        if (dataStore.get(StopMusicOnTaskClearKey, true) && !dataStore.get(KeepAliveKey, false)) {
+            Log.i(TAG, "onTaskRemoved kill")
+            pauseAllPlayersAndStopSelf()
+        } else {
+            Log.i(TAG, "onTaskRemoved def")
+            super.onTaskRemoved(rootIntent)
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
