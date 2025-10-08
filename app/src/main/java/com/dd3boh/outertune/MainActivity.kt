@@ -341,7 +341,7 @@ class MainActivity : ComponentActivity() {
          */
         unbindService(serviceConnection)
 
-        if (dataStore.get(StopMusicOnTaskClearKey, false) && dataStore.get(KeepAliveKey, false) && isFinishing) {
+        if (dataStore.get(StopMusicOnTaskClearKey, true) && dataStore.get(KeepAliveKey, false) && isFinishing) {
 //                stopService(Intent(this, MusicService::class.java)) // Believe me, this doesn't actually stop
             playerConnection?.service?.onDestroy()
             playerConnection = null
