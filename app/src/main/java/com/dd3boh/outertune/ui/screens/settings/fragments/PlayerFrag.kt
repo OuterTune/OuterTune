@@ -124,7 +124,7 @@ fun PlaybackBehaviourFrag() {
     val (skipOnErrorKey, onSkipOnErrorChange) = rememberPreference(key = SkipOnErrorKey, defaultValue = false)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
         key = StopMusicOnTaskClearKey,
-        defaultValue = true
+        defaultValue = false
     )
 
     var showMinPlaybackDur by remember {
