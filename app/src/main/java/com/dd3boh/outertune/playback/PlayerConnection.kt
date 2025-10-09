@@ -9,6 +9,7 @@
 
 package com.dd3boh.outertune.playback
 
+import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -24,10 +25,8 @@ import com.dd3boh.outertune.extensions.currentMetadata
 import com.dd3boh.outertune.extensions.getCurrentQueueIndex
 import com.dd3boh.outertune.extensions.getQueueWindows
 import com.dd3boh.outertune.extensions.metadata
-import com.dd3boh.outertune.playback.MusicService.MusicBinder
 import com.dd3boh.outertune.playback.queues.Queue
 import com.dd3boh.outertune.utils.reportException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,12 +41,12 @@ import org.akanework.gramophone.logic.utils.SemanticLyrics
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
-    binder: MusicBinder,
+    binder: MediaControllerViewModel,
     val database: MusicDatabase,
-    scope: CoroutineScope,
 ) : Player.Listener {
-    val service = binder.service
+    val service = binder.getService()!!
     val player = service.player
+    val scope = binder.viewModelScope
 
     val playbackState = MutableStateFlow(player.playbackState)
     private val playWhenReady = MutableStateFlow(player.playWhenReady)
@@ -65,9 +64,6 @@ class PlayerConnection(
         } else {
             return@flatMapLatest flowOf()
         }
-    }
-    val currentFormat = mediaMetadata.flatMapLatest { mediaMetadata ->
-        database.format(mediaMetadata?.id)
     }
 
     private val currentMediaItemIndex = MutableStateFlow(-1)

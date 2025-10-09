@@ -1117,5 +1117,7 @@ class MusicService : MediaLibraryService(),
         const val NOTIFICATION_ID = 888
         const val ERROR_CODE_NO_STREAM = 1000001
         const val CHUNK_LENGTH = 512 * 1024L
+
+        const val COMMAND_GET_BINDER = "GET_BINDER"
     }
 }

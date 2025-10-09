@@ -64,6 +64,7 @@ class MediaLibrarySessionCallback @Inject constructor(
                 .add(MediaSessionConstants.CommandToggleStartRadio)
                 .add(MediaSessionConstants.CommandToggleShuffle)
                 .add(MediaSessionConstants.CommandToggleRepeatMode)
+                .add(SessionCommand(MusicService.COMMAND_GET_BINDER, Bundle.EMPTY))
                 .build(),
             connectionResult.availablePlayerCommands
         )
@@ -81,6 +82,11 @@ class MediaLibrarySessionCallback @Inject constructor(
             MediaSessionConstants.ACTION_TOGGLE_LIBRARY -> toggleLibrary()
             MediaSessionConstants.ACTION_TOGGLE_SHUFFLE -> session.player.toggleShuffleMode()
             MediaSessionConstants.ACTION_TOGGLE_REPEAT_MODE -> session.player.toggleRepeatMode()
+            MusicService.COMMAND_GET_BINDER -> return Futures.immediateFuture(
+                SessionResult(SessionResult.RESULT_SUCCESS).apply {
+                    extras.putBinder("music_binder", service.MusicBinder())
+                }
+            )
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }

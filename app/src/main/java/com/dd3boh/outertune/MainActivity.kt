@@ -11,20 +11,18 @@ package com.dd3boh.outertune
 
 import android.annotation.SuppressLint
 import android.app.NotificationManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
@@ -129,7 +127,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -179,8 +176,8 @@ import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.SearchHistory
 import com.dd3boh.outertune.extensions.tabMode
 import com.dd3boh.outertune.playback.DownloadUtil
+import com.dd3boh.outertune.playback.MediaControllerViewModel
 import com.dd3boh.outertune.playback.MusicService
-import com.dd3boh.outertune.playback.MusicService.MusicBinder
 import com.dd3boh.outertune.playback.PlayerConnection
 import com.dd3boh.outertune.ui.component.SearchBar
 import com.dd3boh.outertune.ui.component.button.IconButton
@@ -291,18 +288,8 @@ class MainActivity : ComponentActivity() {
     lateinit var connectivityObserver: NetworkConnectivityObserver
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            if (service is MusicBinder) {
-                playerConnection = PlayerConnection(service, database, lifecycleScope)
-            }
-        }
 
-        override fun onServiceDisconnected(name: ComponentName?) {
-            playerConnection?.dispose()
-            playerConnection = null
-        }
-    }
+    val controllerViewModel: MediaControllerViewModel by viewModels()
 
     // storage permission helpers
     val permissionLauncher =
@@ -316,8 +303,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        startService(Intent(this, MusicService::class.java))
-        bindService(Intent(this, MusicService::class.java), serviceConnection, BIND_AUTO_CREATE)
+        controllerViewModel.addControllerCallback(lifecycle) { controller, _ ->
+            playerConnection = PlayerConnection(controllerViewModel, database)
+        }
     }
 
     override fun onDestroy() {
@@ -332,7 +320,7 @@ class MainActivity : ComponentActivity() {
             val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             nm.cancel(MusicService.NOTIFICATION_ID)
         }
-        unbindService(serviceConnection)
+        lifecycle.removeObserver(controllerViewModel)
         playerConnection = null
 
         super.onDestroy()
@@ -342,6 +330,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycle.addObserver(controllerViewModel)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         activityLauncher = ActivityLauncherHelper(this)
