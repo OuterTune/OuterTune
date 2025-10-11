@@ -19,6 +19,7 @@ import android.net.ConnectivityManager
 import android.os.Binder
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -176,6 +177,7 @@ class MusicService : MediaLibraryService(),
     private val binder = MusicBinder()
     private lateinit var connectivityManager: ConnectivityManager
 
+    val qbInit = MutableStateFlow(false)
     var queueBoard = QueueBoard(this, maxQueues = 1)
     var queuePlaylistId: String? = null
 
@@ -298,7 +300,7 @@ class MusicService : MediaLibraryService(),
         // lateinit tasks
         offloadScope.launch {
             Log.i(TAG, "Launching MusicService offloadScope tasks")
-            if (!queueBoard.initialized) {
+            if (!qbInit.value) {
                 initQueue()
             }
 
@@ -448,7 +450,7 @@ class MusicService : MediaLibraryService(),
         isRadio: Boolean = false,
         title: String? = null
     ) {
-        if (!queueBoard.initialized) {
+        if (!qbInit.value) {
             runBlocking(Dispatchers.IO) {
                 initQueue()
             }
@@ -520,7 +522,7 @@ class MusicService : MediaLibraryService(),
      */
     fun enqueueNext(items: List<MediaItem>) {
         scope.launch {
-            if (!queueBoard.initialized) {
+            if (!qbInit.value) {
 
                 // when enqueuing next when player isn't active, play as a new song
                 if (items.isNotEmpty()) {
@@ -564,7 +566,7 @@ class MusicService : MediaLibraryService(),
     }
 
     suspend fun initQueue() {
-        Log.i(TAG, "Initializing queue...")
+        Log.i(TAG, "+initQueue()")
         val persistQueue = dataStore.get(PersistentQueueKey, true)
         val maxQueues = dataStore.get(MaxQueuesKey, 19)
         if (persistQueue) {
@@ -573,16 +575,19 @@ class MusicService : MediaLibraryService(),
             queueBoard = QueueBoard(this, maxQueues = maxQueues)
         }
         Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue")
-        queueBoard.initialized = true
+        qbInit.value = true
+        Log.i(TAG, "-initQueue()")
     }
 
     fun deInitQueue() {
+        Log.i(TAG, "+deInitQueue()")
         queueBoard.shutdown()
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
         // do not replace the object. Can lead to entire queue being deleted even though it is supposed to be saved already
-        queueBoard.initialized = false
+        qbInit.value = false
+        Log.i(TAG, "-deInitQueue()")
     }
 
     fun saveQueueToDisk() {

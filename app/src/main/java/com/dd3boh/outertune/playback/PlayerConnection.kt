@@ -9,6 +9,7 @@
 
 package com.dd3boh.outertune.playback
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.akanework.gramophone.logic.utils.SemanticLyrics
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -44,6 +46,8 @@ class PlayerConnection(
     binder: MediaControllerViewModel,
     val database: MusicDatabase,
 ) : Player.Listener {
+    val TAG = PlayerConnection::class.simpleName.toString()
+
     val service = binder.getService()!!
     val player = service.player
     val scope = binder.viewModelScope
@@ -86,13 +90,16 @@ class PlayerConnection(
 
         playbackState.value = player.playbackState
         playWhenReady.value = player.playWhenReady
-        mediaMetadata.value = player.currentMetadata
         queuePlaylistId.value = service.queuePlaylistId
         queueWindows.value = player.getQueueWindows()
         currentWindowIndex.value = player.getCurrentQueueIndex()
         currentMediaItemIndex.value = player.currentMediaItemIndex
         shuffleModeEnabled.value = player.shuffleModeEnabled
         repeatMode.value = player.repeatMode
+
+        scope.launch {
+            mediaMetadata.value = player.currentMetadata ?: database.getResumptionQueue()?.getCurrentSong()
+        }
     }
 
     fun playQueue(
@@ -208,5 +215,12 @@ class PlayerConnection(
 
     fun dispose() {
         player.removeListener(this)
+    }
+
+    fun softKillPlayer() {
+        Log.i(TAG, "Stopping player and uninitializing queue")
+        player.stop()
+        player.clearMediaItems()
+        service.deInitQueue()
     }
 }

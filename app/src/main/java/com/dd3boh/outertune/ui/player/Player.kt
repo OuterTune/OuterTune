@@ -11,6 +11,7 @@ package com.dd3boh.outertune.ui.player
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
@@ -81,7 +82,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -133,6 +133,7 @@ import com.dd3boh.outertune.extensions.tabMode
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.extensions.toggleRepeatMode
 import com.dd3boh.outertune.models.MediaMetadata
+import com.dd3boh.outertune.playback.MusicService
 import com.dd3boh.outertune.ui.component.BottomSheet
 import com.dd3boh.outertune.ui.component.BottomSheetState
 import com.dd3boh.outertune.ui.component.PlayerSliderTrack
@@ -158,6 +159,8 @@ fun BottomSheetPlayer(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
+    val TAG = "BottomSheetPlayer"
+
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -172,13 +175,6 @@ fun BottomSheetPlayer(
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
 
-    // use placeholder media
-    LaunchedEffect(Unit) {
-        if (mediaMetadata == null) {
-            playerConnection.mediaMetadata.value = playerConnection.service.queueBoard.getCurrentQueue()?.getCurrentSong()
-        }
-    }
-
     val thumbnailLazyGridState = rememberLazyGridState()
 
     val swipeToSkip by rememberPreference(SwipeToSkipKey, defaultValue = false)
@@ -187,6 +183,7 @@ fun BottomSheetPlayer(
         playerConnection.player.getMediaItemAt(previousIndex).metadata
     } else null
 
+    val qbInit by playerConnection.service.qbInit.collectAsState()
     val nextMediaMetadata = if (swipeToSkip && playerConnection.player.hasNextMediaItem()) {
         val nextIndex = playerConnection.player.nextMediaItemIndex
         playerConnection.player.getMediaItemAt(nextIndex).metadata
@@ -301,13 +298,11 @@ fun BottomSheetPlayer(
         }
     }
 
-    LaunchedEffect(Unit) {
-        snapshotFlow { playerConnection.service.queueBoard.masterQueues.toList() }
-            .collect { updatedList ->
-                if (updatedList.isNotEmpty() && playerConnection.service.queueBoard.initialized) {
-                    state.collapseSoft()
-                }
-            }
+    LaunchedEffect(qbInit) {
+      Log.d(TAG, "Queues changed, show player?: $qbInit")
+        if (qbInit && !playerConnection.service.queueBoard.masterQueues.isEmpty() && state.isDismissed) {
+            state.collapseSoft()
+        }
     }
 
     // On today's episode of compose horror stories: The queue sheet click to expand on my Pixel with one-notch lower
@@ -389,9 +384,7 @@ fun BottomSheetPlayer(
         },
         collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
         onDismiss = {
-            playerConnection.player.stop()
-            playerConnection.player.clearMediaItems()
-            playerConnection.service.deInitQueue()
+            playerConnection.softKillPlayer()
         },
         collapsedContent = {
             MiniPlayer(
@@ -628,9 +621,9 @@ fun BottomSheetPlayer(
                     )
                 }
 
-                if(seekIncrement != SeekIncrement.OFF) {
+                if (seekIncrement != SeekIncrement.OFF) {
                     Box(modifier = Modifier.weight(1f)) {
-                        ResizableIconButton (
+                        ResizableIconButton(
                             icon = Icons.Rounded.FastRewind,
                             modifier = Modifier
                                 .size(32.dp)
@@ -678,7 +671,7 @@ fun BottomSheetPlayer(
 
                 Spacer(Modifier.width(8.dp))
 
-                if(seekIncrement != SeekIncrement.OFF) {
+                if (seekIncrement != SeekIncrement.OFF) {
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton(
                             icon = Icons.Rounded.FastForward,

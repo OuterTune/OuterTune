@@ -892,11 +892,9 @@ fun BoxScope.QueueContent(
                             .border(1.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(12.dp))
                             .padding(2.dp)
                             .weight(1f)
-                            .clickable {
-                                if (!landscape) {
-                                    mqExpand = !mqExpand
-                                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                }
+                            .clickable(enabled = !landscape && !queueWindows.isEmpty()) {
+                                mqExpand = !mqExpand
+                                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                             }
                     ) {
                         Text(
@@ -909,7 +907,7 @@ fun BoxScope.QueueContent(
                         )
                         ResizableIconButton(
                             icon = if (mqExpand) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                            enabled = !landscape,
+                            enabled = !landscape && !queueWindows.isEmpty(),
                             onClick = {
                                 mqExpand = !mqExpand
                                 haptic.performHapticFeedback(HapticFeedbackType.ContextClick)

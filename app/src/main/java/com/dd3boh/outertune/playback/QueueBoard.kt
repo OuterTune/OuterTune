@@ -53,7 +53,6 @@ class QueueBoard(
     val masterQueues: SnapshotStateList<MultiQueueObject> = mutableStateListOf()
     private var masterIndex = masterQueues.size - 1 // current queue index
     var detachedHead = false
-    var initialized = false
 
     init {
         if (maxQueues < 0) {
