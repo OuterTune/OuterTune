@@ -241,7 +241,7 @@
     <string name="track_number">Номер на песен</string>
     <string name="bits_per_sample">Битове на проба</string>
     <string name="ffmpeg_lgpl">Този софтуер използва библиотеки от проекта FFmpeg под LGPLv2.1</string>
-    <string name="seek_increment">Търсене на увеличение</string>
+    <string name="seek_increment">Търсене на нарастване</string>
     <plurals name="second">
         <item quantity="one">%d секунда</item>
         <item quantity="other">%d секунди</item>
