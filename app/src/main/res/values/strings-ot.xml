@@ -201,7 +201,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="scanner_local_title">Local scanner</string>
     <string name="scanner_manual_btn">Trigger manual sync</string>
     <string name="scanner_rejected_dir">Invalid selection. A scan folder cannot be a subdirectory of the download folder, or the download folder itself</string>
-    <string name="scanner_warning">By default, the scanner will NOT reload any metadata of existing songs unless you specify otherwise above. Depending on the size of your library, it make take a while.</string>
+    <string name="scanner_warning">By default, the scanner will NOT reload any metadata of existing songs unless you specify otherwise above. Depending on the size of your library, it may take a while.</string>
 
 <!-- Scanner progress strings-->
 	<string name="scanner_missing_ffmpeg">FFmpeg extractor not detected</string>
