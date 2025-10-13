@@ -87,7 +87,7 @@
     <string name="tab_arrangement_disable_tip">--- अक्षम करने के लिए नीचे खींचें ---</string>
     <string name="audio_offload">ऑफ़लोड सक्षम करें</string>
     <string name="keep_alive_title">सिस्टम को ऐप बंद करने से रोकें</string>
-    <string name="keep_alive_description">OuterTune को पृष्ठभूमि में बंद होने से रोकने के लिए एक स्थायी फोरग्राउंड सेवा का उपयोग करें।</string>
+    <string name="keep_alive_description">OuterTune को पृष्ठभूमि में बंद होने से रोकने के लिए एक स्थायी फोरग्राउंड सेवा का उपयोग करें</string>
     <string name="persistent_queue_desc_ot">ऐप शुरू होने पर पिछली खुली कतार(कतारों) को पुनर्स्थापित करें</string>
     <string name="min_playback_duration">कम से कम चलाने की अवधि</string>
     <string name="min_playback_duration_description">किसी गीत को \"चलाया गया\" मानने से पहले उसे जितनी न्यूनतम अवधि तक चलाना आवश्यक है</string>
@@ -124,7 +124,7 @@
     <string name="scanner_rejected_dir">अमान्य चयन। स्कैन फ़ोल्डर डाउनलोड फ़ोल्डर का उप-फ़ोल्डर या स्वयं डाउनलोड फ़ोल्डर नहीं हो सकता</string>
     <string name="scanner_warning">डिफ़ॉल्ट रूप से, स्कैनर मौजूदा गानों का कोई मेटाडेटा पुनः लोड नहीं करेगा जब तक कि आप ऊपर कोई अन्य विकल्प न चुनें। आपकी लाइब्रेरी के आकार के अनुसार, इसमें कुछ समय लग सकता है।</string>
     <string name="scanner_missing_ffmpeg">FFmpeg एक्सट्रैक्टर नहीं मिला</string>
-    <string name="scanner_missing_storage_perm">स्कैनर को स्टोरेज अनुमतियों की आवश्यकता है</string>
+    <string name="scanner_missing_storage_perm">लोकल मीडिया स्कैनर को स्टोरेज अनुमतियों की आवश्यकता है</string>
     <string name="scanner_btn_idle">स्कैन करें</string>
     <string name="scanner_progress_complete">स्कैन पूर्ण हुआ</string>
     <string name="scanner_progress_discovering">खोजा जा रहा है…</string>
@@ -167,4 +167,19 @@
     <string name="att_project_support">प्रोजेक्ट सपोर्ट</string>
     <string name="seek_increment">सीक वृद्धि</string>
     <string name="lyrics_synced_clickable">क्लिक करने योग्य लिरिक्स</string>
+    <string name="att_translator">अनुवादक (%s)</string>
+    <string name="action_logout_tooltip">पूरी तरह से लॉग आउट करने के लिए, कृपया वेब पोर्टल में अपने YouTube खाते से साइन आउट करें इस लॉगआउट बटन का उपयोग करने से पहले</string>
+    <plurals name="scanner_n_song_processed">
+        <item quantity="one">%d गाना संसाधित</item>
+        <item quantity="other">%d गाने संसाधित</item>
+    </plurals>
+    <plurals name="scanner_n_song_found">
+        <item quantity="one">%d गाना मिला</item>
+        <item quantity="other">%d गाने मिले</item>
+    </plurals>
+    <string name="scanner_sensitivity_L2">शीर्षक और कलाकारों को मेल करें</string>
+    <string name="scanner_sensitivity_L3">शीर्षक, कलाकारों, एल्बमों को मेल करें</string>
+    <string name="scanner_type_title">मेटाडाटा निकालना</string>
+    <string name="scanner_type_taglib">एकीकृत TagLib से मेटाडाटा निकालना</string>
+    <string name="scanner_variant_rescan">पूरा संग्रह फ़िरसे स्कैन करें और सभी गानों के मेटाडाटा को फिर से लोड करें</string>
 </resources>
