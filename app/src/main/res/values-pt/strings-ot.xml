@@ -109,7 +109,7 @@
     <string name="audio_offload">Ativar descarga</string>
     <string name="audio_offload_description">Utilize o caminho de áudio de descarregamento para a reprodução de áudio. A ativação desta opção pode reduzir o consumo de energia, mas pode causar problemas com a reprodução ou o pós-processamento de áudio. Esta preferência não tem qualquer efeito para codecs ou dispositivos não suportados.</string>
     <string name="keep_alive_title">Evitar encerramento pelo sistema</string>
-    <string name="keep_alive_description">Usar um serviço de primeiro plano persistente para evitar que o OuterTune seja encerrado em segundo plano.</string>
+    <string name="keep_alive_description">Usar um serviço de primeiro plano persistente para evitar que o OuterTune seja encerrado em segundo plano</string>
     <string name="persistent_queue_desc_ot">Restaurar fila(s) aberta(s) previamente ao iniciar a app</string>
     <string name="min_playback_duration">Duração mínima de reprodução</string>
     <string name="min_playback_duration_description">A duração mínima que uma música deve ser reproduzida antes que seja considerada realmente reproduzida</string>
@@ -255,4 +255,9 @@
         <item quantity="many">%d segundos</item>
         <item quantity="other">%d segundos</item>
     </plurals>
+    <string name="action_logout_tooltip">Para sair completamente, saia da sua conta do YouTube no portal da web antes de usar este botão de saída</string>
+    <string name="max_queues_title">Número máximo de filas</string>
+    <string name="oobe_welcome_tip">Para uma melhor experiência, recomendamos concluir uma configuração rápida para personalizar as principais definições, como tema, conta do YouTube, mídia local e transferências.</string>
+    <string name="oobe_cache_title">Cache de músicas</string>
+    <string name="oobe_cache_subtitle">Escolha um tamanho para o cache de músicas. Isso pode ajudar a reduzir problemas de reprodução da Internet ou da API do YouTube</string>
 </resources>
