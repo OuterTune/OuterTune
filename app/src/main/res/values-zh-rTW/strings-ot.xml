@@ -109,4 +109,7 @@
     <string name="audio_decoder_preference">音頻解碼器</string>
     <string name="audio_decoder_system_only">僅使用系統解碼器</string>
     <string name="audio_decoder_system_with_ffmpeg">優先使用系統解碼器</string>
+    <string name="grp_interface">介面</string>
+    <string name="grp_layout">排版</string>
+    <string name="grp_lyrics_format">格式</string>
 </resources>
