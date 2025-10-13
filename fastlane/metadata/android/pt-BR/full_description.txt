@@ -5,7 +5,7 @@
 <li>Cliente do YouTube Music com possibilidade de baixar músicas (reprodução off-line), reprodução em segundo plano, sem anúncios, e sincronização com a conta</li>
 <li>Reprodução de arquivos locais de áudio (MP3, OGG, FLAC, etc.)</li>
 <li>Usa um extrator de etiquetas personalizado em vez do quebrado do MediaStore! (por exemplo, etiquetas delimitadas com barra invertida agora aparecem corretamente)</li>
-<li>Reproduzir músicas locais e do YouTube Music ao mesmo tempo</li>
+<li>Tocar músicas locais e do YouTube Music ao mesmo tempo</li>
 <li>Nova organização integrada da biblioteca</li>
 <li>Múltiplas filas de reprodução</li>
 <li>Letras sincronizadas, e suporte para letras palavra-por-palavra/karaoke (por exemplo, LRC, TTML)</li>
