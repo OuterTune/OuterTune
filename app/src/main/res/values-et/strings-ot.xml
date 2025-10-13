@@ -83,4 +83,27 @@
     <string name="scan_paths_excl">Skaneerimisest välistatud asukohad</string>
     <string name="scanner_local_title">Kohalik skaneerija</string>
     <string name="scanner_manual_btn">Käivita käsitsi sünkroonimine</string>
+    <string name="library_filter">Muusikakogu filter</string>
+    <string name="action_logout_tooltip">Täielikuks väljalogimiseks enne selle väljalogimise nupu kasutamist logige välja oma YouTube\'i kontolt veebiportaalis.</string>
+    <string name="token_adv_login_description">See on TÄIENDATUD sisselogimismeetod. Veebiportaali alternatiivina võite oma sisselogimistunnuse siin otse sisestada või uuendada. See võib näiteks kiirendada sisselogimist mitmel seadmel. Pange tähele, et rakendus ei aktsepteeri kehtetuid tunnuseformaate, mida ta ei suuda töödelda.</string>
+    <string name="token_hidden">Vajuta, et näidata tokeni</string>
+    <string name="token_shown">Vajuta veel kord, et kopeerida või redigeerida</string>
+    <string name="sync_conflict_add_only">Säilita kogu kohalik sisu, lisa uus kaug-sisu</string>
+    <string name="sync_conflict_overwrite">Kohaliku sisu asendamine kaugse sisuga</string>
+    <string name="sync_mode">Sünkroneerimis režiim</string>
+    <string name="sync_mode_ro">Ainult lugemiseks (Vaata kaugsisu)</string>
+    <string name="sync_mode_rw">Loe-Kirjuta (Lubab ka muuta kaugsisu)</string>
+    <string name="ytm_sync">Automaatselt sünkroniseeri sinu Youtube Music kontoga</string>
+    <string name="wifi_only">Wi-Fi ainult</string>
+    <string name="audio_decoder_ffmpeg_only">Mängija seaded</string>
+    <string name="audio_decoder_preference">Audiodekooder</string>
+    <string name="audio_decoder_system_only">Süsteemdekooderid ainult</string>
+    <string name="audio_decoder_system_with_ffmpeg">Eelista süsteemdekoodereid</string>
+    <string name="audio_offload">Lülita ülekandmist</string>
+    <string name="audio_offload_description">Kasutage heli taasesitamiseks heli ülekandeteed. Selle funktsiooni aktiveerimine võib vähendada energiatarbimist, kuid võib põhjustada probleeme heli taasesitamisel või järel töötlemisel. See eelistus ei mõjuta mittetoetatud koodekeid ega seadmeid.</string>
+    <string name="keep_alive_title">Välti rakenduse tapmist süsteemiga</string>
+    <string name="keep_alive_description">Kasutage püsivat esiplaaniteenust, et vältida OuterTune\'i sulgemist taustal.</string>
+    <string name="persistent_queue_desc_ot">Taasta eelmiseid avatuid esitusjärjekordi kui rakendus käivitub</string>
+    <string name="min_playback_duration">Minimaalne taasesitusaeg</string>
+    <string name="min_playback_duration_description">Minimaalne arv loost mis peab olema mängitud, et see oleks märgitud \"mängitud\"</string>
 </resources>
