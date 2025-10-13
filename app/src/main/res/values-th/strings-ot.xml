@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="android_auto">แอนดรอยด์ออโต้</string>
+    <string name="folders">โฟลเดอร์</string>
+    <string name="library">ไลบรารี</string>
+    <string name="recent_activity">กิจกรรมล่าสุด</string>
+    <string name="local_history">ประวัติการฟัง</string>
+    <string name="library_filter">ตัวกรองไลบรารี</string>
+    <string name="library_empty">ไลบรารีของคุณจะแสดงที่นี่</string>
+    <string name="missing_media_permission_warning">ตัวแอพต้องการสิทธิ์เข้าถึงการจัดเก็บข้อมูลของเพลงในเครื่อง คลิกเพื่ออนุญาต</string>
+    <string name="queues_title">คิวเพลง</string>
+    <string name="create_queue">สร้างคิวเพลงใหม่</string>
+    <string name="queue_searched_songs_ot">เพลงในคิว</string>
+    <string name="song_added_to_queue">%sเพิ่มเพลงนี้ในคิว</string>
+    <string name="song_added_to_queue_end">%sเพิ่มเพลงลงในคิว</string>
+    <string name="queues_empty">ไม่มีเพลงในคิว</string>
+    <string name="auto_playlist">เพลย์ลิสต์อัตโนมัติ</string>
+    <string name="select">เลือกโหมด</string>
+    <string name="like_all">เพลงที่ชอบทั้งหมด</string>
+    <string name="more_settings">ตั้งค่าเพิ่มเติม</string>
+    <string name="delete_lyric_confirm">คุณต้องการลบเพลงนี้จริงหรือไม่? %s</string>
+    <string name="tap_show_more">แตะเพื่อดูข้อมูลเพิ่มเติม</string>
+    <string name="err_invalid_ytm_song">ไม่สามารถเล่นเพลงได้ สามารถเล่นได้เฉพาะเพลงที่เข้าถึงได้บน YouTube Music เท่านั้น</string>
+    <string name="err_play_next_on_error">เกิดข้อผิดพลาด ข้ามไปเล่นเพลงถัดไป</string>
+    <string name="err_stop_on_error">เกิดข้อผิดพลาด เครื่องเล่นเพลงเบื้องหลังหยุดลง</string>
+    <string name="err_stop_on_too_many_errors">เกิดข้อผิดพลาดมากเกินไป เครื่องเล่นหยุดทำงาน</string>
+    <string name="wait_to_reconnect">รอการเชื่อมต่อ</string>
+    <string name="sort_by_date_modified">แก้ไขวันที่</string>
+    <string name="sort_by_date_released">วันที่เปิดตัว</string>
+    <string name="sort_by_like_date">วันที่กดชอบ</string>
+    <string name="sort_by_play_count">จำนวนการเล่น</string>
+    <string name="sort_by_track_number">หมายเลขแทร็ก</string>
+    <string name="create_sync_playlist">ซิงค์เพลย์ลิสต์</string>
+    <string name="create_sync_playlist_description">หมายเหตุ: วิธีนี้ช่วยให้สามารถซิงค์กับ YouTube Music ได้ แต่คุณไม่สามารถเพิ่มเพลงในเครื่องลงในเพลย์ลิสต์ที่ซิงค์นี้ได้</string>
+    <string name="disc_number">เพลงที่</string>
+    <string name="extra_details">รายละเอียดเพิ่มเติม</string>
+</resources>
