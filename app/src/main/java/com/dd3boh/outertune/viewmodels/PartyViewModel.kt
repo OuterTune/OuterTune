@@ -360,12 +360,8 @@ class PartyViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Check if current track is ready before allowing play
-                if (isPlaying && !isCurrentTrackReady) {
-                    Log.w("PartyVM", "Current track not ready yet, buffering...")
-                    _events.value = PartyEvent.Error("Track is still buffering, please wait...")
-                    return@launch
-                }
+                // If trying to play but readiness is uncertain, still issue the command.
+                // The player will catch up via elastic/hard sync.
 
                 // Issue command
                 issueCommand(if (isPlaying) "play" else "pause", position)
@@ -408,7 +404,8 @@ class PartyViewModel @Inject constructor(
                     return@launch
                 }
 
-                issueCommand("prev")
+                // Service does not support 'prev'; seek to start of current track instead
+                issueCommand("seek", position = 0)
 
             } catch (e: Exception) {
                 Log.e("PartyVM", "Failed to skip to previous track", e)
@@ -631,6 +628,11 @@ class PartyViewModel @Inject constructor(
                 connection.player.pause()
             }
 
+            // Ensure position aligns to authoritative state on decree
+            try {
+                connection.player.seekTo(party.progressMs)
+            } catch (_: Exception) { }
+
             // Ensure normal speed
             connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
 
@@ -656,6 +658,19 @@ class PartyViewModel @Inject constructor(
         val authoritativePos = party.progressMs
         val localPos = connection.player.currentPosition
         val drift = authoritativePos - localPos
+
+        // Hard-correct if drift is very large (e.g., join mid-playback or network hiccup)
+        val LARGE_DRIFT_MS = 2000L
+        if (kotlin.math.abs(drift) >= LARGE_DRIFT_MS) {
+            try {
+                connection.player.seekTo(authoritativePos)
+                connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+                Log.d("PartyVM", "Hard sync: seek to ${authoritativePos}ms (drift ${drift}ms)")
+            } catch (e: Exception) {
+                Log.w("PartyVM", "Hard sync seek failed: ${e.message}")
+            }
+            return
+        }
 
         val targetSpeed = when {
             drift > DRIFT_THRESHOLD_MS -> SPEED_FAST // Behind, speed up

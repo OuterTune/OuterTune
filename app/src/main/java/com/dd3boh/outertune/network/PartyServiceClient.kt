@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.Dispatcher
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -22,7 +23,14 @@ import org.json.JSONObject
  *   Returns 200/202 on accepted; service will update RTDB itself.
  */
 class PartyServiceClient(
-    private val http: OkHttpClient = OkHttpClient()
+    private val http: OkHttpClient = OkHttpClient.Builder()
+        .dispatcher(
+            Dispatcher().apply {
+                maxRequests = 64
+                maxRequestsPerHost = 16
+            }
+        )
+        .build()
 ) {
     private val TAG = "PartyServiceClient"
     private val json = "application/json; charset=utf-8".toMediaType()

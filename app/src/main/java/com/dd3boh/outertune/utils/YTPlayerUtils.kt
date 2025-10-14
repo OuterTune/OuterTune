@@ -28,12 +28,20 @@ import com.zionhuang.innertube.models.YouTubeClient.Companion.TVHTML5_SIMPLY_EMB
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.zionhuang.innertube.models.response.PlayerResponse
 import okhttp3.OkHttpClient
+import okhttp3.Dispatcher
 
 object YTPlayerUtils {
 
     private const val TAG = "YTPlayerUtils"
 
     private val httpClient = OkHttpClient.Builder()
+        .dispatcher(
+            Dispatcher().apply {
+                // Allow parallel validations and fallbacks without head-of-line blocking
+                maxRequests = 64
+                maxRequestsPerHost = 16
+            }
+        )
         .proxy(YouTube.proxy)
         .build()
 

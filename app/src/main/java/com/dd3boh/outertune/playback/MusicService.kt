@@ -46,6 +46,7 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.analytics.PlaybackStats
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
@@ -141,6 +142,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import okhttp3.Dispatcher
 import java.io.File
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -240,6 +242,19 @@ class MusicService : MediaLibraryService(),
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(createDataSourceFactory()))
             .setRenderersFactory(createRenderersFactory(isGaplessOffloadAllowed))
+            .setLoadControl(
+                // Slightly larger buffers for smoother party sync under jitter while keeping
+                // startup reasonably quick. Back buffer helps quick seeks to previous content.
+                DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(
+                        /* minBufferMs = */ 15_000,
+                        /* maxBufferMs = */ 50_000,
+                        /* bufferForPlaybackMs = */ 2_000,
+                        /* bufferForPlaybackAfterRebufferMs = */ 5_000,
+                    )
+                    .setBackBuffer(/* backBufferDurationMs = */ 15_000, /* retainBackBufferFromKeyframe = */ true)
+                    .build()
+            )
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .setAudioAttributes(
@@ -654,7 +669,15 @@ class MusicService : MediaLibraryService(),
                         DefaultDataSource.Factory(
                             this,
                             OkHttpDataSource.Factory(
+                                // Use a higher-concurrency dispatcher to allow parallel requests
+                                // when resolving/validating streams and metadata.
                                 OkHttpClient.Builder()
+                                    .dispatcher(
+                                        Dispatcher().apply {
+                                            maxRequests = 64
+                                            maxRequestsPerHost = 16
+                                        }
+                                    )
                                     .proxy(YouTube.proxy)
                                     .build()
                             )
