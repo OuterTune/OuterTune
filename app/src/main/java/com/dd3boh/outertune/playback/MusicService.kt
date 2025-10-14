@@ -202,6 +202,20 @@ class MusicService : MediaLibraryService(),
     // Player vars
     val currentMediaMetadata = MutableStateFlow<MediaMetadata?>(null)
 
+    // OuterConnect session state (lightweight, set by PartyViewModel via PlayerConnection)
+    @Volatile
+    private var ocActive: Boolean = false
+    @Volatile
+    private var ocHostId: String? = null
+    @Volatile
+    private var ocCurrentUserId: String? = null
+    @Volatile
+    private var isServiceDestroyed: Boolean = false
+
+    // Pre-party snapshot to restore user's playback after leaving a party
+    private var prePartySaved: Boolean = false
+    private var prePartyPlayWhenReady: Boolean = false
+
     private val currentSong = currentMediaMetadata.flatMapLatest { mediaMetadata ->
         database.song(mediaMetadata?.id)
     }.stateIn(offloadScope, SharingStarted.Lazily, null)
@@ -444,8 +458,18 @@ class MusicService : MediaLibraryService(),
         shouldResume: Boolean = false,
         replace: Boolean = false,
         isRadio: Boolean = false,
-        title: String? = null
+        title: String? = null,
+        // When true, allows non-host devices to update their local queue during an active
+        // OuterConnect session as part of passive sync. User-initiated control should still
+        // be blocked for non-hosts.
+        allowNonHostForSync: Boolean = false
     ) {
+        // In OuterConnect, only the host should be allowed to replace/play queues
+        if (ocActive && !isOcHost() && !allowNonHostForSync) {
+            Log.w(TAG, "playQueue blocked for non-host during OuterConnect session")
+            Toast.makeText(this, getString(R.string.only_host_can_control), Toast.LENGTH_SHORT).show()
+            return
+        }
         if (!queueBoard.initialized) {
             runBlocking(Dispatchers.IO) {
                 initQueue()
@@ -546,6 +570,11 @@ class MusicService : MediaLibraryService(),
     }
 
     fun triggerShuffle() {
+        if (ocActive && !isOcHost()) {
+            Log.w(TAG, "triggerShuffle blocked for non-host during OuterConnect session")
+            Toast.makeText(this, getString(R.string.only_host_can_control), Toast.LENGTH_SHORT).show()
+            return
+        }
         val oldIndex = player.currentMediaItemIndex
         queueBoard.setCurrQueuePosIndex(oldIndex)
         val currentQueue = queueBoard.getCurrentQueue() ?: return
@@ -806,42 +835,21 @@ class MusicService : MediaLibraryService(),
 // Misc
 
     fun updateNotification() {
+        // Only expose one custom action in notification: Like.
+        // The default transport controls (previous, play/pause, next) are provided by Media3.
         mediaSession.setCustomLayout(
             listOf(
-                CommandButton.Builder(ICON_UNDEFINED)
-                    .setDisplayName(getString(if (queueBoard.getCurrentQueue()?.shuffled == true) R.string.action_shuffle_off else R.string.action_shuffle_on))
-                    .setSessionCommand(CommandToggleShuffle)
-                    .setCustomIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle_off)
-                    .build(),
-                CommandButton.Builder(ICON_UNDEFINED)
+                CommandButton.Builder(
+                    if (currentSong.value?.song?.liked == true)
+                        CommandButton.ICON_HEART_FILLED else CommandButton.ICON_HEART_UNFILLED
+                )
                     .setDisplayName(
                         getString(
-                            when (player.repeatMode) {
-                                REPEAT_MODE_OFF -> R.string.repeat_mode_off
-                                REPEAT_MODE_ONE -> R.string.repeat_mode_one
-                                REPEAT_MODE_ALL -> R.string.repeat_mode_all
-                                else -> throw IllegalStateException()
-                            }
+                            if (currentSong.value?.song?.liked == true)
+                                R.string.action_remove_like else R.string.action_like
                         )
                     )
-                    .setCustomIconResId(
-                        when (player.repeatMode) {
-                            REPEAT_MODE_OFF -> R.drawable.repeat_off
-                            REPEAT_MODE_ONE -> R.drawable.repeat_one
-                            REPEAT_MODE_ALL -> R.drawable.repeat_on
-                            else -> throw IllegalStateException()
-                        }
-                    )
-                    .setSessionCommand(CommandToggleRepeatMode)
-                    .build(),
-                CommandButton.Builder(if (currentSong.value?.song?.liked == true) CommandButton.ICON_HEART_FILLED else CommandButton.ICON_HEART_UNFILLED)
-                    .setDisplayName(getString(if (currentSong.value?.song?.liked == true) R.string.action_remove_like else R.string.action_like))
                     .setSessionCommand(CommandToggleLike)
-                    .setEnabled(currentSong.value != null)
-                    .build(),
-                CommandButton.Builder(CommandButton.ICON_RADIO)
-                    .setDisplayName(getString(R.string.start_radio))
-                    .setSessionCommand(CommandToggleStartRadio)
                     .setEnabled(currentSong.value != null)
                     .build()
             )
@@ -1067,6 +1075,7 @@ class MusicService : MediaLibraryService(),
 
     override fun onDestroy() {
         Log.i(TAG, "Terminating MusicService.")
+        isServiceDestroyed = true
         deInitQueue()
 
         mediaSession.player.stop()
@@ -1101,5 +1110,84 @@ class MusicService : MediaLibraryService(),
         const val NOTIFICATION_ID = 888
         const val ERROR_CODE_NO_STREAM = 1000001
         const val CHUNK_LENGTH = 512 * 1024L
+    }
+
+    // ===== OuterConnect hooks =====
+    /**
+     * Enable or disable OuterConnect (party) session. When enabling, we snapshot the user's current
+     * playback and switch to an ephemeral, non-persistent queue so party changes don't leak into the
+     * user's library. When disabling, we restore the user's previous queue and play state.
+     */
+    fun setPartySession(active: Boolean, hostId: String?, currentUserId: String?) {
+        val wasActive = ocActive
+        ocActive = active
+        ocHostId = hostId
+        ocCurrentUserId = currentUserId
+
+        // Edge-trigger transition handling
+        if (active && !wasActive) {
+            beginPartyEphemeralSession()
+        } else if (!active && wasActive) {
+            endPartyEphemeralSessionAndRestore()
+        }
+    }
+
+    /** True if we are in an OuterConnect session and this device is the host. */
+    private fun isOcHost(): Boolean = ocActive && ocHostId != null && ocHostId == ocCurrentUserId
+
+    /** Expose whether queue persistence should be enabled. Disabled during OuterConnect sessions. */
+    fun isQueuePersistenceEnabled(): Boolean = dataStore.get(PersistentQueueKey, true) && !ocActive
+
+    /** Expose whether party session is active (for QueueBoard checks). */
+    fun isPartySessionActive(): Boolean = ocActive
+
+    /** Snapshot personal playback and switch to an ephemeral queue for party-only playback. */
+    private fun beginPartyEphemeralSession() {
+        try {
+            // Snapshot play/pause state
+            prePartyPlayWhenReady = player.playWhenReady
+
+            // Persist current queues to DB so we can restore exactly
+            if (queueBoard.initialized && queueBoard.getCurrentQueue() != null) {
+                saveQueueToDisk()
+            }
+
+            // Pause and clear player items to avoid leaking sound during transition
+            player.pause()
+            player.setMediaItems(emptyList())
+
+            // Tear down current (persistent) QueueBoard without overwriting our just-saved state
+            // Note: deInitQueue() will save the queue if persistence is enabled; we just saved above
+            deInitQueue()
+
+            // Build a fresh ephemeral QueueBoard and mark it initialized to avoid initQueue() DB load
+            queueBoard = QueueBoard(this, maxQueues = 1)
+            queueBoard.initialized = true
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to switch to party ephemeral session: ${e.message}", e)
+        }
+        prePartySaved = true
+    }
+
+    /** Restore user's pre-party playback from DB and original play/pause state. */
+    private fun endPartyEphemeralSessionAndRestore() {
+        try {
+            // Stop current playback and clear player items
+            player.pause()
+            player.setMediaItems(emptyList())
+
+            // Re-initialize queues from DB
+            runBlocking(Dispatchers.IO) {
+                initQueue()
+            }
+            // Load current queue into the player and resume if they were playing
+            queueBoard.setCurrQueue(true)
+            player.playWhenReady = prePartyPlayWhenReady
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to restore pre-party session: ${e.message}", e)
+        } finally {
+            prePartySaved = false
+            prePartyPlayWhenReady = false
+        }
     }
 }

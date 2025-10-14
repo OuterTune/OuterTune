@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- OuterTune-specific strings -->
+    <string name="add_to_oc_queue">Add to OC queue</string>
+    <string name="play_in_outerconnect">Play in OuterConnect</string>
+</resources>

@@ -47,6 +47,8 @@ import com.dd3boh.outertune.ui.dialog.ArtistDialog
 import com.dd3boh.outertune.utils.reportException
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.AlbumItem
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.dd3boh.outertune.viewmodels.PartyViewModel
 
 @Composable
 fun YouTubeAlbumMenu(
@@ -60,6 +62,7 @@ fun YouTubeAlbumMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val album by database.albumWithSongs(albumItem.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
+    val partyViewModel: PartyViewModel = hiltViewModel()
 
     var showChooseQueueDialog by rememberSaveable {
         mutableStateOf(false)
@@ -159,6 +162,15 @@ fun YouTubeAlbumMenu(
             title = R.string.add_to_queue
         ) {
             showChooseQueueDialog = true
+        }
+        GridMenuItem(
+            icon = Icons.AutoMirrored.Rounded.QueueMusic,
+            title = R.string.add_to_oc_queue
+        ) {
+            album?.songs?.let { songs ->
+                partyViewModel.addTracksAndMaybePlay(songs.map { it.toMediaMetadata() })
+            }
+            onDismiss()
         }
         GridMenuItem(
             icon = Icons.AutoMirrored.Rounded.PlaylistAdd,

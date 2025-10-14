@@ -23,6 +23,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.AccessTokenKey
 import com.dd3boh.outertune.constants.AccountChannelHandleKey
 import com.dd3boh.outertune.constants.AccountEmailKey
 import com.dd3boh.outertune.constants.AccountNameKey
@@ -30,11 +31,13 @@ import com.dd3boh.outertune.constants.DataSyncIdKey
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.constants.VisitorDataKey
+import com.dd3boh.outertune.constants.VisitorDataKey
 import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.reportException
 import com.zionhuang.innertube.YouTube
+import com.zionhuang.innertube.utils.parseCookieString
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -48,6 +51,7 @@ fun LoginScreen(
     var visitorData by rememberPreference(VisitorDataKey, "")
     var dataSyncId by rememberPreference(DataSyncIdKey, "")
     var innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    var accessToken by rememberPreference(AccessTokenKey, "")
     var accountName by rememberPreference(AccountNameKey, "")
     var accountEmail by rememberPreference(AccountEmailKey, "")
     var accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
@@ -67,6 +71,14 @@ fun LoginScreen(
 
                         if (url?.startsWith("https://music.youtube.com") == true) {
                             innerTubeCookie = CookieManager.getInstance().getCookie(url)
+                            
+                            // Store Access Token: Generate authentication token from successful login
+                            if (innerTubeCookie.contains("SAPISID")) {
+                                // Extract SAPISID as the access token (unique session identifier)
+                                val cookieMap = parseCookieString(innerTubeCookie)
+                                accessToken = cookieMap["SAPISID"] ?: ""
+                            }
+                            
                             GlobalScope.launch {
                                 YouTube.accountInfo().onSuccess {
                                     accountName = it.name

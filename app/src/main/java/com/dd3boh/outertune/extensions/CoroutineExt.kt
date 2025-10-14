@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.extensions
 
 import kotlinx.coroutines.CoroutineExceptionHandler
+import com.dd3boh.outertune.utils.InternalLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
@@ -18,4 +19,6 @@ fun <T> Flow<T>.collectLatest(scope: CoroutineScope, action: suspend (value: T) 
     }
 }
 
-val SilentHandler = CoroutineExceptionHandler { _, _ -> }
+val SilentHandler = CoroutineExceptionHandler { _, throwable ->
+    InternalLog.logException("SilentHandler", throwable)
+}

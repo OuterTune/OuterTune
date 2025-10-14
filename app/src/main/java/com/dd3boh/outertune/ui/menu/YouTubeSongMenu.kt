@@ -37,6 +37,7 @@ import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
@@ -62,6 +63,7 @@ import com.dd3boh.outertune.utils.syncCoroutine
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.SongItem
 import kotlinx.coroutines.launch
+import com.dd3boh.outertune.viewmodels.PartyViewModel
 
 @Composable
 fun YouTubeSongMenu(
@@ -75,6 +77,7 @@ fun YouTubeSongMenu(
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val syncUtils = LocalSyncUtils.current
+    val partyViewModel: PartyViewModel = hiltViewModel()
 
     val librarySong by database.song(song.id).collectAsState(initial = null)
     val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
@@ -167,6 +170,15 @@ fun YouTubeSongMenu(
                     items = listOf(song.toMediaMetadata())
                 )
             )
+            onDismiss()
+        }
+
+        // OuterConnect: Add to OC queue and optionally play (host controls playback)
+        GridMenuItem(
+            icon = Icons.AutoMirrored.Rounded.QueueMusic,
+            title = R.string.add_to_oc_queue
+        ) {
+            partyViewModel.addTracksAndMaybePlay(listOf(song.toMediaMetadata()))
             onDismiss()
         }
         GridMenuItem(

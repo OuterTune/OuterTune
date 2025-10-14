@@ -27,6 +27,13 @@ import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.items.YouTubeListItem
 import com.zionhuang.innertube.models.ArtistItem
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.dd3boh.outertune.viewmodels.PartyViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import com.zionhuang.innertube.YouTube
+import com.dd3boh.outertune.models.toMediaMetadata
+import com.zionhuang.innertube.utils.completed
 
 @Composable
 fun YouTubeArtistMenu(
@@ -37,6 +44,8 @@ fun YouTubeArtistMenu(
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val libraryArtist by database.artist(artist.id).collectAsState(initial = null)
+    val partyViewModel: PartyViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
 
     YouTubeListItem(
         item = artist,
@@ -96,6 +105,19 @@ fun YouTubeArtistMenu(
             ) {
                 playerConnection.playQueue(YouTubeQueue(watchEndpoint), isRadio = true)
                 onDismiss()
+            }
+        }
+        // OuterConnect: Add artist songs to OC queue (using shuffle playlist when available)
+        artist.shuffleEndpoint?.playlistId?.let { playlistId ->
+            GridMenuItem(
+                icon = Icons.Rounded.Shuffle,
+                title = R.string.add_to_oc_queue
+            ) {
+                scope.launch {
+                    val songs = YouTube.playlist(playlistId).completed().getOrNull()?.songs.orEmpty()
+                    partyViewModel.addTracksAndMaybePlay(songs.map { it.toMediaMetadata() })
+                    onDismiss()
+                }
             }
         }
         GridMenuItem(

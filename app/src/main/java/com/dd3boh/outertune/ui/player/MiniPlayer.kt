@@ -67,6 +67,7 @@ fun MiniPlayer(
     position: Long,
     duration: Long,
     modifier: Modifier = Modifier,
+    controlsEnabled: Boolean = true,
 ) {
     val density = LocalDensity.current
 
@@ -111,6 +112,7 @@ fun MiniPlayer(
             }
 
             IconButton(
+                enabled = controlsEnabled,
                 onClick = {
                     if (playbackState == Player.STATE_ENDED) {
                         playerConnection.player.seekTo(0, 0)
@@ -122,18 +124,18 @@ fun MiniPlayer(
             ) {
                 Icon(
                     imageVector = if (playbackState == Player.STATE_ENDED) Icons.Rounded.Replay else if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    tint = iconButtonColor,
+                    tint = iconButtonColor.copy(alpha = if (controlsEnabled) 1f else 0.5f),
                     contentDescription = null
                 )
             }
 
             IconButton(
-                enabled = canSkipNext,
+                enabled = canSkipNext && controlsEnabled,
                 onClick = playerConnection.player::seekToNext
             ) {
                 Icon(
                     painter = painterResource(R.drawable.skip_next),
-                    tint = iconButtonColor.copy(alpha = (if (canSkipNext) 1f else 0.5f)),
+                    tint = iconButtonColor.copy(alpha = (if (canSkipNext && controlsEnabled) 1f else 0.5f)),
                     contentDescription = null
                 )
             }

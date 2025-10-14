@@ -144,6 +144,10 @@ import com.dd3boh.outertune.utils.coilCoroutine
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.dd3boh.outertune.viewmodels.PartyViewModel
+import androidx.compose.runtime.SideEffect
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -157,8 +161,18 @@ fun BottomSheetPlayer(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val haptic = LocalHapticFeedback.current
+    // Party context
+    val partyViewModel: PartyViewModel = hiltViewModel()
+    val partyState by partyViewModel.partyState.collectAsState()
+    val inParty by partyViewModel.isConnected.collectAsState()
     val playerConnection = LocalPlayerConnection.current ?: return
+    // Wire MusicService connection into PartyViewModel so it can sync state
+    LaunchedEffect(playerConnection) {
+        partyViewModel.setPlayerConnection(playerConnection)
+    }
+    val currentUserId = remember { FirebaseAuth.getInstance().currentUser?.uid ?: "" }
+    val isHost = remember(partyState, inParty, currentUserId) { inParty && partyState?.hostId == currentUserId }
+    val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val context = LocalContext.current
 
@@ -371,6 +385,15 @@ fun BottomSheetPlayer(
             }
         },
         collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+        onCollapsedClick = {
+            if (inParty) {
+                partyState?.code?.let { code ->
+                    navController.navigate("party/$code")
+                }
+            } else {
+                state.expandSoft()
+            }
+        },
         onDismiss = {
             playerConnection.player.stop()
             playerConnection.player.clearMediaItems()
@@ -379,7 +402,8 @@ fun BottomSheetPlayer(
         collapsedContent = {
             MiniPlayer(
                 position = position,
-                duration = duration
+                duration = duration,
+                controlsEnabled = !inParty || isHost
             )
         }
     ) {
@@ -580,6 +604,7 @@ fun BottomSheetPlayer(
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = if (shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle_off,
+                        enabled = !inParty || isHost,
                         modifier = Modifier
                             .size(32.dp)
                             .padding(4.dp)
@@ -595,7 +620,7 @@ fun BottomSheetPlayer(
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = Icons.Rounded.SkipPrevious,
-                        enabled = canSkipPrevious,
+                        enabled = canSkipPrevious && (!inParty || isHost),
                         modifier = Modifier
                             .size(32.dp)
                             .align(Alignment.Center),
@@ -611,6 +636,7 @@ fun BottomSheetPlayer(
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton (
                             icon = Icons.Rounded.FastRewind,
+                            enabled = !inParty || isHost,
                             modifier = Modifier
                                 .size(32.dp)
                                 .align(Alignment.Center),
@@ -630,14 +656,13 @@ fun BottomSheetPlayer(
                         .animateContentSize()
                         .clip(RoundedCornerShape(playPauseRoundness))
                         .background(MaterialTheme.colorScheme.primary)
-                        .clickable {
+                        .clickable(enabled = !inParty || isHost) {
                             if (playbackState == STATE_ENDED) {
                                 playerConnection.player.seekTo(0, 0)
                                 playerConnection.player.playWhenReady = true
                             } else {
                                 playerConnection.player.togglePlayPause()
                             }
-                            // play/pause is slightly harder haptic
                             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                         }
                 ) {
@@ -657,6 +682,7 @@ fun BottomSheetPlayer(
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton(
                             icon = Icons.Rounded.FastForward,
+                            enabled = !inParty || isHost,
                             modifier = Modifier
                                 .size(32.dp)
                                 .align(Alignment.Center),
@@ -675,7 +701,7 @@ fun BottomSheetPlayer(
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = Icons.Rounded.SkipNext,
-                        enabled = canSkipNext,
+                        enabled = canSkipNext && (!inParty || isHost),
                         modifier = Modifier
                             .size(32.dp)
                             .align(Alignment.Center),
@@ -695,14 +721,17 @@ fun BottomSheetPlayer(
                             REPEAT_MODE_ONE -> R.drawable.repeat_one
                             else -> throw IllegalStateException()
                         },
+                        enabled = !inParty || isHost,
                         modifier = Modifier
                             .size(32.dp)
                             .padding(4.dp)
                             .align(Alignment.Center),
                         color = onBackgroundColor,
                         onClick = {
-                            playerConnection.player.toggleRepeatMode()
-                            haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+                            if (!inParty || isHost) {
+                                playerConnection.player.toggleRepeatMode()
+                                haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+                            }
                         }
                     )
                 }

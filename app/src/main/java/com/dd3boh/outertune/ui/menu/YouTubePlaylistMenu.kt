@@ -62,6 +62,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.dd3boh.outertune.viewmodels.PartyViewModel
 
 @Composable
 fun YouTubePlaylistMenu(
@@ -76,6 +78,7 @@ fun YouTubePlaylistMenu(
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
+    val partyViewModel: PartyViewModel = hiltViewModel()
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -241,6 +244,22 @@ fun YouTubePlaylistMenu(
             title = R.string.add_to_queue
         ) {
             showChooseQueueDialog = true
+        }
+
+        // OuterConnect: Add playlist to OC queue
+        GridMenuItem(
+            icon = Icons.AutoMirrored.Rounded.QueueMusic,
+            title = R.string.add_to_oc_queue
+        ) {
+            coroutineScope.launch {
+                val items = if (songs.isEmpty()) {
+                    withContext(Dispatchers.IO) {
+                        YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
+                    }
+                } else songs
+                partyViewModel.addTracksAndMaybePlay(items.map { it.toMediaMetadata() })
+                onDismiss()
+            }
         }
 
         GridMenuItem(

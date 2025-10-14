@@ -870,7 +870,8 @@ class QueueBoard(
     }
 
     private fun saveQueueSongs(mq: MultiQueueObject) {
-        if (player.dataStore.get(PersistentQueueKey, true)) {
+        // Disable persistence while in party session to keep it temporary
+        if (player.isQueuePersistenceEnabled()) {
             queueSongMap.add(
                 PriorityJob(
                     0,
@@ -886,7 +887,8 @@ class QueueBoard(
     }
 
     private fun saveQueue(mq: MultiQueueObject) {
-        if (player.dataStore.get(PersistentQueueKey, true)) {
+        // Disable persistence while in party session to keep it temporary
+        if (player.isQueuePersistenceEnabled()) {
             queueEntity.add(
                 PriorityJob(
                     0,
@@ -902,13 +904,16 @@ class QueueBoard(
     }
 
     private fun saveAllQueues(mq: MutableList<MultiQueueObject>) {
-        if (player.dataStore.get(PersistentQueueKey, true)) {
+        // Disable persistence while in party session to keep it temporary
+        if (player.isQueuePersistenceEnabled()) {
+            // Take a snapshot copy immediately to avoid capturing a live SnapshotStateList in a delayed coroutine
+            val snapshot = mq.toList()
             queueEntity.add(
                 // we select most recent task, therefore "lowest" numeric priority at the end of the list == "highest" priority
                 PriorityJob(
                     -1,
                     coroutineScope.launch(start = CoroutineStart.DEFAULT) {
-                        player.database.updateAllQueues(mq)
+                        player.database.updateAllQueues(snapshot)
                     }
                 )
             )

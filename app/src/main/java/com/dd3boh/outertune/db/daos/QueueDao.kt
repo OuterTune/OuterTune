@@ -89,11 +89,16 @@ interface QueueDao {
 
     @Transaction
     fun updateAllQueues(mqs: List<MultiQueueObject>) {
-        mqs.forEachIndexed { index, q -> q.index = index }
+        // Take an immutable snapshot to avoid iterating a SnapshotStateList across threads
+        val snapshot: List<MultiQueueObject> = mqs.mapIndexed { index, q ->
+            // Use data class copy to avoid mutating the original list elements used by Compose
+            q.copy(index = index)
+        }
         CoroutineScope(Dispatchers.IO).launch {
-            QueueBoard.mutex.withLock { // possible ConcurrentModificationException
-                nukeAliens(mqs.map { it.id })
-                mqs.forEach { updateQueue(it) }
+            QueueBoard.mutex.withLock {
+                // Use the snapshot for all DB ops to prevent ConcurrentModificationException
+                nukeAliens(snapshot.map { it.id })
+                snapshot.forEach { updateQueue(it) }
             }
         }
     }

@@ -67,6 +67,7 @@ fun BottomSheet(
     modifier: Modifier = Modifier,
     background: @Composable (BoxScope.() -> Unit) = { },
     onDismiss: (() -> Unit)? = null,
+    onCollapsedClick: (() -> Unit)? = null,
     collapsedContent: @Composable BoxScope.() -> Unit,
     collapsedBackgroundColor: Color = Color.Transparent,
     content: @Composable BoxScope.() -> Unit,
@@ -137,7 +138,7 @@ fun BottomSheet(
                         alpha = 1f - (state.progress * 4).coerceAtMost(1f)
                     }
                     .clickable(
-                        onClick = state::expandSoft
+                        onClick = { onCollapsedClick?.invoke() ?: state.expandSoft() }
                     )
                     .fillMaxWidth()
                     .height(state.collapsedBound)

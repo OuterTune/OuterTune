@@ -40,5 +40,7 @@ val ytmCoroutine = Dispatchers.IO.limitedParallelism(MAX_YTM_CONTENT_JOBS)
 val playerCoroutine = newFixedThreadPoolContext(4, "player_service_offload")
 
 fun reportException(throwable: Throwable) {
+    // Print to logcat and write to internal file logger
     throwable.printStackTrace()
+    InternalLog.logException("reportException", throwable)
 }

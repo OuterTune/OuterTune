@@ -24,6 +24,7 @@ import coil3.memory.MemoryCache
 import coil3.request.CachePolicy
 import coil3.request.allowHardware
 import coil3.request.crossfade
+import com.dd3boh.outertune.constants.AccessTokenKey
 import com.dd3boh.outertune.constants.AccountChannelHandleKey
 import com.dd3boh.outertune.constants.AccountEmailKey
 import com.dd3boh.outertune.constants.AccountNameKey
@@ -44,12 +45,14 @@ import com.dd3boh.outertune.extensions.toEnum
 import com.dd3boh.outertune.extensions.toInetSocketAddress
 import com.dd3boh.outertune.utils.CoilBitmapLoader
 import com.dd3boh.outertune.utils.LocalArtworkPathKeyer
+import com.dd3boh.outertune.utils.InternalLog
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.get
 import com.dd3boh.outertune.utils.reportException
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.YouTubeLocale
 import com.zionhuang.kugou.KuGou
+import com.google.firebase.FirebaseApp
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -72,6 +75,19 @@ class App : Application(), SingletonImageLoader.Factory {
 
         if (BuildConfig.DEBUG) {
             System.setProperty("kotlinx.coroutines.debug", "on")
+        }
+
+        // Initialize internal logging and global crash capture
+        InternalLog.init(this)
+        InternalLog.i(TAG, "App startup: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+
+        // Initialize Firebase
+        try {
+            FirebaseApp.initializeApp(this)
+            Log.d(TAG, "Firebase initialized successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize Firebase: ${e.message}", e)
+            InternalLog.logException(TAG, e)
         }
 
         instance = this;
@@ -210,10 +226,17 @@ class App : Application(), SingletonImageLoader.Factory {
         lateinit var instance: App
             private set
 
+        /**
+         * Logout: Delete the saved authentication token from storage
+         * 
+         * When the user signs out, this function's job is to find and delete 
+         * the saved access token from DataStore, effectively logging them out.
+         */
         fun forgetAccount(context: Context) {
             runBlocking {
                 context.dataStore.edit { settings ->
-                    settings.remove(InnerTubeCookieKey)
+                    settings.remove(AccessTokenKey)        // Clear the access token (primary)
+                    settings.remove(InnerTubeCookieKey)     // Clear cookie (fallback)
                     settings.remove(VisitorDataKey)
                     settings.remove(DataSyncIdKey)
                     settings.remove(AccountNameKey)

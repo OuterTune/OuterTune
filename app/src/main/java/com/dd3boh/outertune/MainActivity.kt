@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2024 z-huang/InnerTune
- * Copyright (C) 2025 O​u​t​er​Tu​ne Project
+ * Copyright (C) 2025 OuterTune Project
  *
  * SPDX-License-Identifier: GPL-3.0
  *
@@ -196,10 +196,16 @@ import com.dd3boh.outertune.ui.player.BottomSheetPlayer
 import com.dd3boh.outertune.ui.screens.AccountScreen
 import com.dd3boh.outertune.ui.screens.AlbumScreen
 import com.dd3boh.outertune.ui.screens.BrowseScreen
+import com.dd3boh.outertune.ui.screens.ConnectScreen
+// Temporarily disabled due to Ktor HttpTimeout dependency issue
+import com.dd3boh.outertune.ui.screens.GemListScreen
+import com.dd3boh.outertune.ui.screens.GemQScreen
 import com.dd3boh.outertune.ui.screens.HistoryScreen
 import com.dd3boh.outertune.ui.screens.HomeScreen
 import com.dd3boh.outertune.ui.screens.LoginScreen
 import com.dd3boh.outertune.ui.screens.MoodAndGenresScreen
+import com.dd3boh.outertune.ui.screens.OuterConnectScreen
+import com.dd3boh.outertune.ui.screens.PartyScreen
 import com.dd3boh.outertune.ui.screens.PlayerScreen
 import com.dd3boh.outertune.ui.screens.Screens
 import com.dd3boh.outertune.ui.screens.Screens.LibraryFilter
@@ -702,13 +708,20 @@ class MainActivity : ComponentActivity() {
                     }
 
                     val shouldShowNavigationBar = remember(navBackStackEntry, searchActive, shouldHideNavAndPlayer) {
-                        (!useRail || tabMode) && !searchActive && !shouldHideNavAndPlayer && navBackStackEntry?.destination?.route?.startsWith(
-                            "settings"
-                        ) != true
+                        (!useRail || tabMode)
+                                && !searchActive
+                                && !shouldHideNavAndPlayer
+                                && navBackStackEntry?.destination?.route?.startsWith("settings") != true
+                                && navBackStackEntry?.destination?.route?.startsWith("party/") != true
                     }
 
                     val shouldShowNavigationRail = remember(navBackStackEntry, searchActive, shouldHideNavAndPlayer) {
-                        useRail && !searchActive && !shouldHideNavAndPlayer
+                        useRail && !searchActive && !shouldHideNavAndPlayer && navBackStackEntry?.destination?.route?.startsWith("party/") != true
+                    }
+
+                    // Hide mini-player while in party
+                    val inPartyRoute = remember(navBackStackEntry) {
+                        navBackStackEntry?.destination?.route?.startsWith("party/") == true
                     }
 
                     fun getNavPadding(): Dp {
@@ -727,7 +740,7 @@ class MainActivity : ComponentActivity() {
 
                     val playerBottomSheetState = rememberBottomSheetState(
                         dismissedBound = 0.dp,
-                        collapsedBound = if (!shouldHideNavAndPlayer) bottomInset + (if (!tabMode) getNavPadding() else 0.dp) + MiniPlayerHeight else 0.dp,
+                        collapsedBound = if (!shouldHideNavAndPlayer && !inPartyRoute) bottomInset + (if (!tabMode) getNavPadding() else 0.dp) + MiniPlayerHeight else 0.dp,
                         expandedBound = maxHeight,
                     )
 
@@ -740,7 +753,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             var bottom = bottomInset
 
-                            if (!playerBottomSheetState.isDismissed && !tabMode) bottom += MiniPlayerHeight
+                            if (!playerBottomSheetState.isDismissed && !tabMode && !inPartyRoute) bottom += MiniPlayerHeight
                             if (!useRail) {
                                 if (shouldShowNavigationBar && !tabMode) bottom += NavigationBarHeight
                                 windowsInsets
@@ -969,6 +982,9 @@ class MainActivity : ComponentActivity() {
                                     composable(Screens.Library.route) {
                                         LibraryScreen(navController, scrollBehavior)
                                     }
+                                    composable(Screens.Create.route) {
+                                        ConnectScreen(navController, scrollBehavior)
+                                    }
                                     composable("history") {
                                         HistoryScreen(navController)
                                     }
@@ -1157,6 +1173,36 @@ class MainActivity : ComponentActivity() {
 
                                     composable("setup_wizard") {
                                         SetupWizard(navController)
+                                    }
+                                    
+                                    // OuterConnect Routes
+                                    composable("outer_connect") {
+                                        OuterConnectScreen(navController)
+                                    }
+                                    composable("party/{partyCode}") { backStackEntry ->
+                                        val partyCode = backStackEntry.arguments?.getString("partyCode") ?: ""
+                                        // Lock orientation to portrait while in the party room to avoid
+                                        // activity recreation and playback restarts on rotation.
+                                        val activity = this@MainActivity
+                                        DisposableEffect(Unit) {
+                                            val previous = activity.requestedOrientation
+                                            activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                                            onDispose {
+                                                activity.requestedOrientation = previous
+                                            }
+                                        }
+                                        PartyScreen(
+                                            navController = navController,
+                                            partyCode = partyCode
+                                        )
+                                    }
+                                    
+                                    composable("gemq") {
+                                        GemQScreen(navController)
+                                    }
+
+                                    composable("gemlist") {
+                                        GemListScreen(navController)
                                     }
                                 }
                             }
@@ -1638,7 +1684,8 @@ class MainActivity : ComponentActivity() {
 val LocalDatabase = staticCompositionLocalOf<MusicDatabase> { error("No database provided") }
 val LocalMenuState = staticCompositionLocalOf<MenuState> { error("No menu state provided") }
 val LocalPlayerConnection = staticCompositionLocalOf<PlayerConnection?> { error("No PlayerConnection provided") }
-val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No player WindowInsets provided") }
+// Provide a safe default to avoid crashes when a composable reads this outside the provider scope
+val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { WindowInsets(0) }
 val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
 val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
 val LocalNetworkConnected = staticCompositionLocalOf<Boolean> { error("No Network Status provided") }

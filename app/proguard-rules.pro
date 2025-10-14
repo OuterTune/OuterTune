@@ -1,3 +1,14 @@
+# Keep Ktor client plugin classes used by Google Generative AI SDK
+-keep class io.ktor.client.plugins.** { *; }
+-keep class io.ktor.client.plugins.contentnegotiation.** { *; }
+-keep class io.ktor.client.plugins.HttpTimeout { *; }
+-keep class io.ktor.client.plugins.HttpTimeout$* { *; }
+
+# Keep Google Generative AI internal classes that may be accessed via reflection
+-keep class com.google.ai.** { *; }
+
+# Do not warn about Ktor shaded/internal APIs
+-dontwarn io.ktor.**
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.kts.
