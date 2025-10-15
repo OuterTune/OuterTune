@@ -11,11 +11,8 @@ package com.dd3boh.outertune
  */
 object ApiConfig {
     
-    /**
-     * Gemini AI API Key
-     * Get your key from: https://aistudio.google.com/app/apikey
-     */
-    const val GEMINI_API_KEY = "AIzaSyDmJU1uoF-4ZH2_AsK_6UfkwBYioh5gJog"
+    // Gemini API key is now user-configurable via Settings (DataStore)
+    // Navigate to Settings > Experimental > Gemini API to set your key.
     
     /**
      * Firebase configuration

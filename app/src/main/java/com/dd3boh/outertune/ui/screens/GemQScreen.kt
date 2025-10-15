@@ -71,6 +71,8 @@ import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.extensions.toMediaItem
+import com.dd3boh.outertune.constants.GeminiApiKey
+import com.dd3boh.outertune.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -91,6 +93,7 @@ fun GemQScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var progress by remember { mutableFloatStateOf(0f) }
+    val (geminiKey, _) = rememberPreference(GeminiApiKey, defaultValue = "")
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = tween(durationMillis = 450),
@@ -275,7 +278,7 @@ fun GemQScreen(
                             }
                         )
                     },
-                    enabled = prompt.isNotBlank() && geminiState !is GeminiState.Loading,
+                    enabled = prompt.isNotBlank() && geminiState !is GeminiState.Loading && geminiKey.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(
@@ -304,7 +307,7 @@ fun GemQScreen(
                                 )
                                 Text("Generating Queue… ${(animatedProgress * 100).roundToInt()}%")
                             } else {
-                                Text("Generate AI Queue")
+                                Text(if (geminiKey.isBlank()) "Add Gemini API key in Settings" else "Generate AI Queue")
                             }
                         }
                     }

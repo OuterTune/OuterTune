@@ -70,6 +70,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.db.entities.PlaylistEntity
+import com.dd3boh.outertune.constants.GeminiApiKey
+import com.dd3boh.outertune.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -93,6 +95,7 @@ fun GemListScreen(
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current
     var progress by remember { mutableFloatStateOf(0f) }
+    val (geminiKey, _) = rememberPreference(GeminiApiKey, defaultValue = "")
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = tween(durationMillis = 450),
@@ -338,7 +341,7 @@ fun GemListScreen(
                             }
                         )
                     },
-                    enabled = prompt.isNotBlank() && playlistName.isNotBlank() && geminiState !is GeminiState.Loading,
+                    enabled = prompt.isNotBlank() && playlistName.isNotBlank() && geminiState !is GeminiState.Loading && geminiKey.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     // Fill overlay behind content to show progress
@@ -373,7 +376,7 @@ fun GemListScreen(
                                 )
                                 Text("Creating AI Playlist… ${(animatedProgress * 100).roundToInt()}%")
                             } else {
-                                Text("Generate AI Playlist")
+                                Text(if (geminiKey.isBlank()) "Add Gemini API key in Settings" else "Generate AI Playlist")
                             }
                         }
                     }

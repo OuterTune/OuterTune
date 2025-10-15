@@ -3,7 +3,10 @@ package com.dd3boh.outertune.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dd3boh.outertune.ApiConfig
+import android.content.Context
+import androidx.datastore.preferences.core.emptyPreferences
+import com.dd3boh.outertune.constants.GeminiApiKey
+import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.PlaylistSongMap
@@ -19,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -72,7 +76,8 @@ sealed class GeminiState {
 
 @HiltViewModel
 class GeminiViewModel @Inject constructor(
-    private val database: MusicDatabase
+    private val database: MusicDatabase,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
 ) : ViewModel() {
     
     private val _state = MutableStateFlow<GeminiState>(GeminiState.Idle)
@@ -88,7 +93,9 @@ class GeminiViewModel @Inject constructor(
             val connection = url.openConnection() as HttpURLConnection
             
             connection.requestMethod = "POST"
-            connection.setRequestProperty("x-goog-api-key", ApiConfig.GEMINI_API_KEY)
+            val key = context.dataStore.data.firstOrNull()?.get(GeminiApiKey).orEmpty()
+            if (key.isBlank()) throw Exception("Gemini API key not set. Add it in Settings.")
+            connection.setRequestProperty("x-goog-api-key", key)
             connection.setRequestProperty("Content-Type", "application/json")
             connection.doOutput = true
             // Allow very long generations (100 songs); 0 means no timeout
@@ -137,7 +144,7 @@ class GeminiViewModel @Inject constructor(
                 errorReader.close()
                 Log.e("GeminiViewModel", "HTTP Error $responseCode: $errorResponse")
                 when (responseCode) {
-                    401 -> throw Exception("Invalid API key. Please check your Gemini API key in ApiConfig.")
+                    401 -> throw Exception("Invalid API key. Please check your Gemini API key in Settings.")
                     403 -> throw Exception("API access forbidden. Please verify your API key has proper permissions.")
                     429 -> throw Exception("Rate limit exceeded. Please try again later.")
                     else -> throw Exception("API request failed with code $responseCode: $errorResponse")
@@ -166,7 +173,9 @@ class GeminiViewModel @Inject constructor(
             val connection = url.openConnection() as HttpURLConnection
 
             connection.requestMethod = "POST"
-            connection.setRequestProperty("x-goog-api-key", ApiConfig.GEMINI_API_KEY)
+            val key = context.dataStore.data.firstOrNull()?.get(GeminiApiKey).orEmpty()
+            if (key.isBlank()) throw Exception("Gemini API key not set. Add it in Settings.")
+            connection.setRequestProperty("x-goog-api-key", key)
             connection.setRequestProperty("Content-Type", "application/json")
             connection.doOutput = true
             // Allow very long generations (100 songs); 0 means no timeout
@@ -228,7 +237,7 @@ class GeminiViewModel @Inject constructor(
                 errorReader.close()
                 Log.e("GeminiViewModel", "HTTP Error $responseCode: $errorResponse")
                 when (responseCode) {
-                    401 -> throw Exception("Invalid API key. Please check your Gemini API key in ApiConfig.")
+                    401 -> throw Exception("Invalid API key. Please check your Gemini API key in Settings.")
                     403 -> throw Exception("API access forbidden. Please verify your API key has proper permissions.")
                     429 -> throw Exception("Rate limit exceeded. Please try again later.")
                     else -> throw Exception("API request failed with code $responseCode: $errorResponse")

@@ -119,6 +119,9 @@ val LocalLibraryEnableKey = booleanPreferencesKey("localLibraryEnable")
 val AutomaticScannerKey = booleanPreferencesKey("autoLocalScanner")
 val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
 val ScannerImplKey = stringPreferencesKey("scannerImpl")
+
+// Gemini / AI
+val GeminiApiKey = stringPreferencesKey("geminiApiKey")
 val ScannerStrictExtKey = booleanPreferencesKey("scannerStrictExt")
 val LookupYtmArtistsKey = booleanPreferencesKey("lookupYtmArtists")
 

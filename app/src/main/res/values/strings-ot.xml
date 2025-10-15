@@ -349,4 +349,24 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="speed_medium">Medium</string>
     <string name="speed_fast">Fast</string>
     <string name="speed_very_fast">Very fast</string>
+
+    <!-- Gemini API key settings -->
+    <string name="prefs_gemini_api_group">Gemini API key</string>
+    <string name="prefs_gemini_api_title">Google Gemini API</string>
+    <string name="prefs_gemini_api_desc">Enter your personal Gemini API key to enable AI features like GemQ and GemList. Keys are stored locally on this device only.</string>
+    <string name="prefs_gemini_api_label">API key</string>
+    <string name="get_api_key">Get API key</string>
+    <string name="clear">Clear</string>
+    <string name="saved">Saved</string>
+    <string name="cleared">Cleared</string>
+    <string name="prefs_gemini_api_status_on">Status: Enabled</string>
+    <string name="prefs_gemini_api_status_off">Status: Disabled (add an API key)</string>
+    <string name="prefs_gemini_api_howto">How to get an API key</string>
+    <string name="learn_more">Learn more</string>
+    <string name="prefs_gemini_api_howto_steps">1) Visit Google AI Studio and sign in with your Google account.
+2) Open "API keys" and create a new Gemini API key.
+3) Copy the key and paste it into the field above, then tap Save.
+4) Return to GemQ/GemList and try again.
+
+Note: Your key is stored locally on this device only.</string>
 </resources>
