@@ -58,6 +58,7 @@ data class PartyState(
     val name: String = "",
     val hostId: String = "",
     val isPlaying: Boolean = false,
+    val isPartyEnding: Boolean = false,
     val progressMs: Long = 0,
     val currentPositionMs: Long = 0, // Alias for progressMs
     val currentTrack: PartyTrack? = null,
@@ -117,6 +118,8 @@ class PartyViewModel @Inject constructor(
     // Party listener
     private var partyListener: ValueEventListener? = null
     private var currentPartyCode: String? = null
+    // Track whether we've toggled MusicService into an isolated party session
+    private var partySessionActive: Boolean = false
 
     // DRIFT CORRECTION CONSTANTS
     private val DRIFT_THRESHOLD_MS = 250L // When to apply speed adjustment
@@ -124,6 +127,23 @@ class PartyViewModel @Inject constructor(
     private val SPEED_FAST = 1.05f // Speed up to catch up
     private val SPEED_SLOW = 0.95f // Slow down to fall back
     private val SPEED_NORMAL = 1.0f
+    // Ensure client (host + members) intentionally lags the RTDB by this amount
+    private val CLIENT_LAG_MS = 300L
+
+    /**
+     * Compute the authoritative target position for now based on the server's lastUpdated
+     * timestamp and progressMs, with an intentional client-side lag for stability.
+     */
+    private fun computeLaggedAuthoritativePosition(party: PartyState): Long {
+        val base = party.progressMs.coerceAtLeast(0L)
+        val lastTs = party.lastUpdated
+        val now = System.currentTimeMillis()
+        val delta = if (lastTs > 0 && now > lastTs) (now - lastTs) else 0L
+        val advanced = if (party.isPlaying) base + delta else base
+        val lagged = (advanced - CLIENT_LAG_MS).coerceAtLeast(0L)
+        val duration = party.currentTrack?.durationMs ?: 0L
+        return if (duration > 0) lagged.coerceAtMost(duration) else lagged
+    }
 
     init {
         viewModelScope.launch {
@@ -192,6 +212,7 @@ class PartyViewModel @Inject constructor(
                     "createdAt" to ServerValue.TIMESTAMP,
                     "state" to mapOf(
                         "isPlaying" to false,
+                        "isPartyEnding" to false,
                         "progressMs" to 0,
                         "currentTrack" to null,
                         "nextTrack" to null,
@@ -264,6 +285,14 @@ class PartyViewModel @Inject constructor(
                 currentPartyCode = code
                 _isConnected.value = true
                 _events.value = PartyEvent.PartyJoined(code)
+                // Immediately switch MusicService into isolated party session. Host ID will be updated
+                // on first state snapshot.
+                playerConnection?.service?.setPartySession(
+                    active = true,
+                    hostId = null,
+                    currentUserId = a.currentUser?.uid
+                )
+                partySessionActive = true
                 
                 Log.d("PartyVM", "Joined party: $code")
 
@@ -285,9 +314,10 @@ class PartyViewModel @Inject constructor(
 
                 if (party != null && partyCode != null) {
                     if (isHost()) {
-                        // Host leaving - delete entire party
-                        database?.reference?.child("parties")?.child(partyCode)?.removeValue()?.await()
-                        _events.value = PartyEvent.PartyEnded
+                        // Host: issue final decree and wait for executor (web service) to dismantle
+                        issueCommand("end_party")
+                        // Do not tear down local listeners/session here; wait for RTDB removal
+                        return@launch
                     } else {
                         _events.value = PartyEvent.PartyLeft
                     }
@@ -302,6 +332,17 @@ class PartyViewModel @Inject constructor(
                 lastExecutedCommandId = null
                 isCurrentTrackReady = false
                 isNextTrackReady = false
+                // Disable isolated party session in MusicService and restore user playback
+                if (partySessionActive) {
+                    try {
+                        playerConnection?.service?.setPartySession(
+                            active = false,
+                            hostId = null,
+                            currentUserId = auth?.currentUser?.uid
+                        )
+                    } catch (_: Exception) {}
+                    partySessionActive = false
+                }
 
             } catch (e: Exception) {
                 Log.e("PartyVM", "Failed to leave party", e)
@@ -621,20 +662,17 @@ class PartyViewModel @Inject constructor(
             // Update queue
             updatePlayerQueue(party, connection)
 
-            // Align play/pause state
-            if (party.isPlaying) {
-                connection.player.play()
-            } else {
-                connection.player.pause()
-            }
-
-            // Ensure position aligns to authoritative state on decree
+            // Seek FIRST to desired lagged authoritative position
             try {
-                connection.player.seekTo(party.progressMs)
+                val desired = computeLaggedAuthoritativePosition(party)
+                connection.player.seekTo(desired)
             } catch (_: Exception) { }
 
-            // Ensure normal speed
+            // Reset speed adjustments
             connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+
+            // Then align play/pause state
+            if (party.isPlaying) connection.player.play() else connection.player.pause()
 
             return
         }
@@ -654,8 +692,11 @@ class PartyViewModel @Inject constructor(
      */
     private fun applyElasticSync(party: PartyState, connection: PlayerConnection) {
         if (!party.isPlaying) return
+        // Only adjust when player is ready and actually playing
+        if (connection.player.playbackState != Player.STATE_READY || !connection.player.playWhenReady) return
 
-        val authoritativePos = party.progressMs
+        // Target a lagged authoritative position computed from lastUpdated
+        val authoritativePos = computeLaggedAuthoritativePosition(party)
         val localPos = connection.player.currentPosition
         val drift = authoritativePos - localPos
 
@@ -740,7 +781,7 @@ class PartyViewModel @Inject constructor(
                 title = "Party Queue",
                 items = items,
                 startIndex = 0,
-                position = party.progressMs
+                position = computeLaggedAuthoritativePosition(party)
             )
 
             connection.service.playQueue(
@@ -819,11 +860,42 @@ class PartyViewModel @Inject constructor(
                     if (snapshot.exists()) {
                         val state = snapshot.toPartyStateFromRoot(partyCode)
                         _partyState.value = state
+                        // Keep MusicService informed of the current host/user so it can enforce
+                        // isolation and host-only controls internally
+                        if (!partySessionActive) {
+                            try {
+                                playerConnection?.service?.setPartySession(
+                                    active = true,
+                                    hostId = state.hostId,
+                                    currentUserId = auth?.currentUser?.uid
+                                )
+                                partySessionActive = true
+                            } catch (_: Exception) {}
+                        } else {
+                            try {
+                                playerConnection?.service?.setPartySession(
+                                    active = true,
+                                    hostId = state.hostId,
+                                    currentUserId = auth?.currentUser?.uid
+                                )
+                            } catch (_: Exception) {}
+                        }
                         Log.d("PartyVM", "State updated: playing=${state.isPlaying}, pos=${state.progressMs}, host=${state.hostId}, name=${state.name}")
                     } else {
                         _partyState.value = null
                         _events.value = PartyEvent.PartyEnded
                         stopPartyListener()
+                        // Party node removed – exit isolated session
+                        if (partySessionActive) {
+                            try {
+                                playerConnection?.service?.setPartySession(
+                                    active = false,
+                                    hostId = null,
+                                    currentUserId = auth?.currentUser?.uid
+                                )
+                            } catch (_: Exception) {}
+                            partySessionActive = false
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e("PartyVM", "Error parsing state", e)
@@ -935,6 +1007,7 @@ private fun DataSnapshot.toPartyState(partyCode: String): PartyState {
         name = "", // Load from parent if needed
         hostId = "", // Load from parent if needed
         isPlaying = child("isPlaying").getValue(Boolean::class.java) ?: false,
+        isPartyEnding = child("isPartyEnding").getValue(Boolean::class.java) ?: false,
         progressMs = progressValue,
         currentPositionMs = progressValue,
         currentTrack = currentTrack,
@@ -1005,6 +1078,7 @@ private fun DataSnapshot.toPartyStateFromRoot(partyCode: String): PartyState {
         name = name,
         hostId = hostId,
         isPlaying = stateSnap.child("isPlaying").getValue(Boolean::class.java) ?: false,
+        isPartyEnding = stateSnap.child("isPartyEnding").getValue(Boolean::class.java) ?: false,
         progressMs = progressValue,
         currentPositionMs = progressValue,
         currentTrack = currentTrack,

@@ -65,6 +65,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -106,6 +107,8 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.only
+import com.dd3boh.outertune.ui.components.PartyQrDialog
+import com.dd3boh.outertune.ui.components.QrScannerDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,6 +137,8 @@ fun PartyScreen(
     var isSearching by remember { mutableStateOf(false) }
     var activeTab by remember { mutableStateOf(PartyTab.Queue) }
     val scope = rememberCoroutineScope()
+    var showQr by remember { mutableStateOf(false) }
+    var showScanner by remember { mutableStateOf(false) }
 
     // Handle party events
     LaunchedEffect(events) {
@@ -182,11 +187,7 @@ fun PartyScreen(
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable {
-                                partyState?.code?.let {
-                                    clipboardManager.setText(AnnotatedString(it))
-                                }
-                            }
+                            modifier = Modifier.clickable { showQr = true }
                         ) {
                             Text(
                                 text = partyState?.code ?: partyCode,
@@ -195,23 +196,21 @@ fun PartyScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Rounded.ContentCopy,
-                                contentDescription = "Copy party code",
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            IconButton(onClick = {
+                                partyState?.code?.let { clipboardManager.setText(AnnotatedString(it)) }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.ContentCopy,
+                                    contentDescription = "Copy party code",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
+                // No back arrow: users must leave via the explicit Leave button to keep
+                // the party running in background if they just navigate away.
                 actions = {
                     IconButton(onClick = { showMembersDialog = true }) {
                         Icon(
@@ -219,14 +218,21 @@ fun PartyScreen(
                             contentDescription = "View members"
                         )
                     }
+                    val isHost = partyState?.hostId == com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
                     IconButton(onClick = {
-                        partyViewModel.leaveParty()
-                        navController.navigateUp()
+                        if (isHost) {
+                            // Host: issue end_party decree. Navigation will happen after party removal.
+                            partyViewModel.leaveParty()
+                        } else {
+                            // Member: leave immediately
+                            partyViewModel.leaveParty()
+                            navController.navigateUp()
+                        }
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
-                            contentDescription = "Leave Party",
-                            tint = MaterialTheme.colorScheme.error
+                            contentDescription = if (isHost) "End Party for Everyone" else "Leave Party",
+                            tint = if (isHost) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.error
                         )
                     }
                 },
@@ -241,6 +247,10 @@ fun PartyScreen(
             LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom)
         )
     ) { innerPadding ->
+        // Block system back from leaving the party; require explicit Leave button.
+        BackHandler(enabled = true) {
+            scope.launch { snackbarHost.showSnackbar("Use the Leave button in the top bar to exit the party.") }
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -262,6 +272,19 @@ fun PartyScreen(
                     onSkipPrevious = { if (isHost) partyViewModel.prevTrack() },
                     onSkipNext = { if (isHost) partyViewModel.nextTrack() }
                 )
+                // If host has ended the party, show a blocking banner and auto-exit for MEMBERS only
+                if (state.isPartyEnding && !isHost) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = {},
+                        confirmButton = {},
+                        title = { Text("Party ended by host") },
+                        text = { Text("The host has ended the party. Returning to the main screen…") }
+                    )
+                    LaunchedEffect("ending-${'$'}{state.code}") {
+                        delay(2800)
+                        navController.navigateUp()
+                    }
+                }
                 ImportButtonsRow(
                     onImportPlaylists = { showPlaylistImport = true },
                     onImportAlbums = { showAlbumImport = true }
@@ -373,6 +396,22 @@ fun PartyScreen(
                                 }
                             }
                         }
+                    )
+                }
+
+                if (showQr) {
+                    PartyQrDialog(code = state.code, onDismiss = { showQr = false })
+                }
+
+                if (showScanner) {
+                    QrScannerDialog(
+                        onResult = { code ->
+                            showScanner = false
+                            if (code.isNotBlank()) {
+                                navController.navigate("party/${'$'}code")
+                            }
+                        },
+                        onDismiss = { showScanner = false }
                     )
                 }
             } ?: run {

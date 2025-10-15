@@ -69,6 +69,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import com.dd3boh.outertune.ui.components.QrScannerDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -352,6 +353,7 @@ private fun JoinPartyTab(
 ) {
     var partyCode by remember { mutableStateOf("") }
     var isJoining by remember { mutableStateOf(false) }
+    var showScanner by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -401,6 +403,15 @@ private fun JoinPartyTab(
                 .padding(bottom = 24.dp)
         )
 
+        FilledTonalButton(
+            onClick = { showScanner = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+        ) {
+            Text("Scan QR to Join")
+        }
+
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
@@ -411,6 +422,16 @@ private fun JoinPartyTab(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(if (isLoading) "Joining Party..." else "Join Party")
+        }
+
+        if (showScanner) {
+            QrScannerDialog(
+                onResult = { code ->
+                    showScanner = false
+                    partyViewModel.joinParty(code)
+                },
+                onDismiss = { showScanner = false }
+            )
         }
     }
 }
