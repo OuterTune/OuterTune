@@ -122,13 +122,28 @@ class PartyViewModel @Inject constructor(
     private var partySessionActive: Boolean = false
 
     // DRIFT CORRECTION CONSTANTS
-    private val DRIFT_THRESHOLD_MS = 250L // When to apply speed adjustment
-    private val DRIFT_IN_SYNC_MS = 100L // When to return to normal speed
-    private val SPEED_FAST = 1.05f // Speed up to catch up
-    private val SPEED_SLOW = 0.95f // Slow down to fall back
+    // Thresholds retained for reference; PI controller manages most corrections dynamically
+    private val DRIFT_THRESHOLD_MS = 250L // legacy threshold for large drift (still used for logs)
+    private val DRIFT_IN_SYNC_MS = 50L // when within this, we're effectively in sync
     private val SPEED_NORMAL = 1.0f
     // Ensure client (host + members) intentionally lags the RTDB by this amount
-    private val CLIENT_LAG_MS = 300L
+    private val CLIENT_LAG_MS = 200L
+
+    // PI controller gains and limits for elastic synchronization
+    // Kp scales immediate drift (in seconds) to speed delta; Ki integrates residual error over time
+    private val KP = 0.8f
+    private val KI = 0.15f
+    // Speed clamps (tight for small drifts, wider for larger drifts handled dynamically)
+    private val MIN_SPEED_SMALL = 0.99f
+    private val MAX_SPEED_SMALL = 1.01f
+    private val MIN_SPEED_MED = 0.97f
+    private val MAX_SPEED_MED = 1.03f
+    private val MIN_SPEED_LARGE = 0.94f
+    private val MAX_SPEED_LARGE = 1.06f
+
+    // PI controller state
+    private var piIntegralSec = 0.0
+    private var lastPiUpdateMs = 0L
 
     /**
      * Compute the authoritative target position for now based on the server's lastUpdated
@@ -638,7 +653,7 @@ class PartyViewModel @Inject constructor(
                 } catch (e: Exception) {
                     Log.e("PartyVM", "Error in elastic sync", e)
                 } finally {
-                    delay(300) // Check every 300ms
+                    delay(200) // Check every 200ms for tighter coupling
                 }
             }
         }
@@ -656,6 +671,8 @@ class PartyViewModel @Inject constructor(
             lastExecutedCommandId = incomingCommandId
             isCurrentTrackReady = false
             isNextTrackReady = false
+            // Reset PI controller state on decree
+            resetElasticController()
 
             Log.d("PartyVM", "New decree detected: $incomingCommandId")
 
@@ -706,6 +723,7 @@ class PartyViewModel @Inject constructor(
             try {
                 connection.player.seekTo(authoritativePos)
                 connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+                resetElasticController()
                 Log.d("PartyVM", "Hard sync: seek to ${authoritativePos}ms (drift ${drift}ms)")
             } catch (e: Exception) {
                 Log.w("PartyVM", "Hard sync seek failed: ${e.message}")
@@ -713,17 +731,49 @@ class PartyViewModel @Inject constructor(
             return
         }
 
-        val targetSpeed = when {
-            drift > DRIFT_THRESHOLD_MS -> SPEED_FAST // Behind, speed up
-            drift < -DRIFT_THRESHOLD_MS -> SPEED_SLOW // Ahead, slow down
-            kotlin.math.abs(drift) < DRIFT_IN_SYNC_MS -> SPEED_NORMAL // In sync
-            else -> connection.player.playbackParameters.speed // Keep current adjustment
+        // PI Controller
+        val now = System.currentTimeMillis()
+        if (lastPiUpdateMs == 0L) {
+            lastPiUpdateMs = now
+            return
+        }
+        val dtSec = ((now - lastPiUpdateMs).coerceAtLeast(1L)).toDouble() / 1000.0
+        lastPiUpdateMs = now
+
+        // Integrate error (anti-windup)
+        val driftSec = drift.toDouble() / 1000.0
+        piIntegralSec += driftSec * dtSec
+        // Clamp integral to reasonable bounds
+        piIntegralSec = piIntegralSec.coerceIn(-0.5, 0.5)
+
+        // Dynamic speed clamps based on drift magnitude
+        val absDrift = kotlin.math.abs(drift)
+        val (minSpeed, maxSpeed) = when {
+            absDrift < 150 -> MIN_SPEED_SMALL to MAX_SPEED_SMALL
+            absDrift < 400 -> MIN_SPEED_MED to MAX_SPEED_MED
+            else -> MIN_SPEED_LARGE to MAX_SPEED_LARGE
         }
 
-        if (connection.player.playbackParameters.speed != targetSpeed) {
-            connection.player.playbackParameters = PlaybackParameters(targetSpeed)
-            Log.d("PartyVM", "Drift: ${drift}ms, Speed: $targetSpeed")
+        // Compute target speed and clamp
+        val rawSpeed = 1.0 + (KP * driftSec) + (KI * piIntegralSec)
+        val targetSpeed = rawSpeed.coerceIn(minSpeed.toDouble(), maxSpeed.toDouble()).toFloat()
+
+        // If nearly in sync, normalize speed and bleed integral
+        val finalSpeed = if (absDrift <= DRIFT_IN_SYNC_MS) {
+            // Decay integral toward 0 when in sync to prevent overshoot
+            piIntegralSec *= 0.9
+            SPEED_NORMAL
+        } else targetSpeed
+
+        if (connection.player.playbackParameters.speed != finalSpeed) {
+            connection.player.playbackParameters = PlaybackParameters(finalSpeed)
+            Log.d("PartyVM", "Drift: ${drift}ms, dt=${"%.3f".format(dtSec)}s, speed=${"%.3f".format(finalSpeed)} (raw=${"%.3f".format(rawSpeed)})")
         }
+    }
+
+    private fun resetElasticController() {
+        piIntegralSec = 0.0
+        lastPiUpdateMs = 0L
     }
 
     /**
