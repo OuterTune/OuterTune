@@ -298,9 +298,10 @@ fun BottomSheetPlayer(
         }
     }
 
-    LaunchedEffect(qbInit) {
-      Log.d(TAG, "Queues changed, show player?: $qbInit")
+    LaunchedEffect(qbInit, playerConnection.service.queueBoard.masterQueues.toList()) {
+      Log.d(TAG, "Queues changed. qbInit = $qbInit")
         if (qbInit && !playerConnection.service.queueBoard.masterQueues.isEmpty() && state.isDismissed) {
+            Log.d(TAG, "Triggering sheet collapseSoft")
             state.collapseSoft()
         }
     }

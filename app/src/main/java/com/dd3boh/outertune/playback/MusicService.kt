@@ -574,7 +574,7 @@ class MusicService : MediaLibraryService(),
         } else {
             queueBoard = QueueBoard(this, maxQueues = maxQueues)
         }
-        Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue")
+        Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue. Queues loaded = ${queueBoard.masterQueues.size}")
         qbInit.value = true
         Log.i(TAG, "-initQueue()")
     }
