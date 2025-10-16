@@ -136,7 +136,10 @@ fun YouTubeBrowseScreen(
                                     if (item.id == mediaMetadata?.id) {
                                         playerConnection.player.togglePlayPause()
                                     } else {
-                                        playerConnection.playQueue(YouTubeQueue.radio(item.toMediaMetadata()))
+                                        playerConnection.playQueue(
+                                            YouTubeQueue.radio(item.toMediaMetadata()),
+                                            isRadio = true,
+                                        )
                                     }
                                 }
 

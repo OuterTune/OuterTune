@@ -469,7 +469,9 @@ fun ArtistScreen(
                                                 onClick = {
                                                     when (item) {
                                                         is SongItem -> playerConnection.playQueue(
-                                                            YouTubeQueue.radio(item.toMediaMetadata()),
+                                                            YouTubeQueue.radio(item.toMediaMetadata()
+                                                            ),
+                                                            isRadio = true,
                                                             title = artistPage.artist.title
                                                         )
 

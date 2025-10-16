@@ -154,7 +154,7 @@ fun YouTubeSongMenu(
             icon = Icons.Rounded.Radio,
             title = R.string.start_radio
         ) {
-            playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+            playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()), isRadio = true)
             onDismiss()
         }
         GridMenuItem(
