@@ -301,13 +301,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-    override fun onStart() {
-        super.onStart()
-        controllerViewModel.addControllerCallback(lifecycle) { controller, _ ->
-            playerConnection = PlayerConnection(controllerViewModel, database)
-        }
-    }
-
     override fun onDestroy() {
         Log.i(MAIN_TAG, "onDestroy() called. isFinishing = $isFinishing")
         try {
@@ -331,6 +324,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lifecycle.addObserver(controllerViewModel)
+        controllerViewModel.addControllerCallback(lifecycle) { controller, _ ->
+            playerConnection = PlayerConnection(controllerViewModel, database)
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         activityLauncher = ActivityLauncherHelper(this)
