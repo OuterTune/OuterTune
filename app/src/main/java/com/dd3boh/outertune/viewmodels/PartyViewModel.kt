@@ -121,6 +121,18 @@ class PartyViewModel @Inject constructor(
     // Track whether we've toggled MusicService into an isolated party session
     private var partySessionActive: Boolean = false
 
+    // Rolling latency smoothing (last 3 samples of now - lastUpdated)
+    private val latencySamplesMs: ArrayDeque<Long> = ArrayDeque(3)
+
+    // Firebase server time offset (ms). serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+    private var serverTimeOffsetMs: Long = 0L
+    private var serverTimeOffsetListener: ValueEventListener? = null
+
+    // Micro-seek configuration to quickly converge medium drift without long PI chase
+    private val MEDIUM_DRIFT_SEEK_THRESHOLD_MS = 350L
+    private val MICRO_SEEK_MIN_INTERVAL_MS = 2000L
+    private var lastMicroSeekMs: Long = 0L
+
     // DRIFT CORRECTION CONSTANTS
     // Thresholds retained for reference; PI controller manages most corrections dynamically
     private val DRIFT_THRESHOLD_MS = 250L // legacy threshold for large drift (still used for logs)
@@ -151,10 +163,17 @@ class PartyViewModel @Inject constructor(
      */
     private fun computeLaggedAuthoritativePosition(party: PartyState): Long {
         val base = party.progressMs.coerceAtLeast(0L)
-        val lastTs = party.lastUpdated
-        val now = System.currentTimeMillis()
-        val delta = if (lastTs > 0 && now > lastTs) (now - lastTs) else 0L
-        val advanced = if (party.isPlaying) base + delta else base
+        // Use Firebase server time offset to neutralize device clock skew
+        val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+        val sample = if (party.lastUpdated > 0L && serverNow > party.lastUpdated) (serverNow - party.lastUpdated) else 0L
+
+        // Compute smoothed latency as mean of last 3 samples (including this one if available)
+        val smoothedLatencyMs = synchronized(latencySamplesMs) {
+            // Use existing rolling average if populated; otherwise fall back to current sample
+            if (latencySamplesMs.isEmpty()) sample else (latencySamplesMs.sum().toDouble() / latencySamplesMs.size).toLong()
+        }
+
+        val advanced = if (party.isPlaying) base + smoothedLatencyMs else base
         val lagged = (advanced - CLIENT_LAG_MS).coerceAtLeast(0L)
         val duration = party.currentTrack?.durationMs ?: 0L
         return if (duration > 0) lagged.coerceAtMost(duration) else lagged
@@ -298,6 +317,8 @@ class PartyViewModel @Inject constructor(
                 // Start listening to party state
                 startPartyListener(code)
                 currentPartyCode = code
+                // Start server time offset tracking to remove device clock skew
+                startServerTimeOffsetListener()
                 _isConnected.value = true
                 _events.value = PartyEvent.PartyJoined(code)
                 // Immediately switch MusicService into isolated party session. Host ID will be updated
@@ -340,6 +361,7 @@ class PartyViewModel @Inject constructor(
 
                 // Clean up
                 stopPartyListener()
+                stopServerTimeOffsetListener()
                 stopMusicServiceSync()
                 currentPartyCode = null
                 _partyState.value = null
@@ -708,7 +730,7 @@ class PartyViewModel @Inject constructor(
      * Apply elastic sync - smooth drift correction using speed adjustment
      */
     private fun applyElasticSync(party: PartyState, connection: PlayerConnection) {
-        if (!party.isPlaying) return
+    if (!party.isPlaying) return
         // Only adjust when player is ready and actually playing
         if (connection.player.playbackState != Player.STATE_READY || !connection.player.playWhenReady) return
 
@@ -731,6 +753,22 @@ class PartyViewModel @Inject constructor(
             return
         }
 
+        // Micro-seek for medium drift to snap into the control band quickly
+        val absDrift = kotlin.math.abs(drift)
+        val nowMs = System.currentTimeMillis()
+        if (absDrift >= MEDIUM_DRIFT_SEEK_THRESHOLD_MS && absDrift < LARGE_DRIFT_MS &&
+            (nowMs - lastMicroSeekMs) >= MICRO_SEEK_MIN_INTERVAL_MS) {
+            try {
+                connection.player.seekTo(authoritativePos)
+                lastMicroSeekMs = nowMs
+                // After a micro-seek, normalize speed; PI will take over small residuals
+                connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+                resetElasticController()
+                Log.d("PartyVM", "Micro-seek applied to ${authoritativePos}ms (drift ${drift}ms)")
+            } catch (_: Exception) {}
+            return
+        }
+
         // PI Controller
         val now = System.currentTimeMillis()
         if (lastPiUpdateMs == 0L) {
@@ -747,7 +785,6 @@ class PartyViewModel @Inject constructor(
         piIntegralSec = piIntegralSec.coerceIn(-0.5, 0.5)
 
         // Dynamic speed clamps based on drift magnitude
-        val absDrift = kotlin.math.abs(drift)
         val (minSpeed, maxSpeed) = when {
             absDrift < 150 -> MIN_SPEED_SMALL to MAX_SPEED_SMALL
             absDrift < 400 -> MIN_SPEED_MED to MAX_SPEED_MED
@@ -910,6 +947,8 @@ class PartyViewModel @Inject constructor(
                     if (snapshot.exists()) {
                         val state = snapshot.toPartyStateFromRoot(partyCode)
                         _partyState.value = state
+                        // Record latency sample for smoothing
+                        recordLatencySample(state)
                         // Keep MusicService informed of the current host/user so it can enforce
                         // isolation and host-only controls internally
                         if (!partySessionActive) {
@@ -961,6 +1000,42 @@ class PartyViewModel @Inject constructor(
         }
 
         partyRef.addValueEventListener(partyListener!!)
+    }
+
+    private fun recordLatencySample(state: PartyState) {
+        val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+        val sample = if (state.lastUpdated > 0L && serverNow > state.lastUpdated) (serverNow - state.lastUpdated) else 0L
+        synchronized(latencySamplesMs) {
+            if (latencySamplesMs.size >= 3) latencySamplesMs.removeFirst()
+            latencySamplesMs.addLast(sample)
+        }
+    }
+
+    private fun startServerTimeOffsetListener() {
+        val db = database ?: return
+        // Avoid duplicate listener
+        if (serverTimeOffsetListener != null) return
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                try {
+                    val offset = snapshot.getValue(Long::class.java) ?: 0L
+                    serverTimeOffsetMs = offset
+                } catch (_: Exception) {}
+            }
+            override fun onCancelled(error: DatabaseError) {
+                // no-op
+            }
+        }
+        db.reference.child(".info/serverTimeOffset").addValueEventListener(listener)
+        serverTimeOffsetListener = listener
+    }
+
+    private fun stopServerTimeOffsetListener() {
+        val db = database ?: return
+        serverTimeOffsetListener?.let { listener ->
+            db.reference.child(".info/serverTimeOffset").removeEventListener(listener)
+        }
+        serverTimeOffsetListener = null
     }
 
     /**
