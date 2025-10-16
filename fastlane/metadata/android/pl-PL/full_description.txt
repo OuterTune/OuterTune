@@ -1,0 +1,21 @@
+<p><i>OuterTune</i> to pochodna innej aplikacji: <a href="https://github.com/z-huang/InnerTune" target="_blank" rel="nofollow noopener">InnerTune</a>. Ta aplikacja jest zarazem odtwarzaczem muzyki jak i klientem YouTube Music</p>
+
+<p><br><b>Funkcje:</b></p>
+</ul>
+<li>Klient YouTube Music z pobieraniem muzyki, offline odtwarzaniem, graniem w tle, bez reklam oraz z synchronizacją kont.</li>
+<li>Lokalny odtwarzacz audio(MP3, OGG, FLAC, itd.)</li>
+<li>Używa 'custom tag extractor' zamiast zepsutego metadata ekstraktora MediaStore! (n.p. tagi zdelomitowane ze ukosnikiem teraz są pokazywane poprawnie)</li>
+Odtwarzaj lokalnie i graj piosenki z YouTube Music w tym samym czasie</li>
+<li>Nowy zintegrowany design wyglądu biblioteki</li>
+<li>Wielokrotne kolejki</li>
+<li>Zsynchronizowane teksty piosenek , oraz wsparcie dla słowo w słowo/Karaoke (n.p. LRC, TTML)</li>
+<li>Normalizacja audio, dostosowanie tempa i tonu oraz różne inne efekty dźwiękowe
+<li>Wsparcie dla Auto Android</li>
+</ul>
+
+<p><br><b>Uwaga:</b></p>
+</ul>
+<li>Android 8 (Oreo)oraz wyżej jest wspierany. Aplikacja może nie działać na wersji Android 7.x, gdyż nie jest ona oficjalnie wspierana przez nas.</li>
+<li>OuterTune jest a fazie stabilnej bety. Chociaż że aplikacja może być używana jako twoje źródło muzyki,prosimy uważać na możliwość napotkania bugów, niekompletnych funkcji, czy też innych nieprawidłowości. Prosimy o zgłaszanie problemów na naszym Githubie!
+<li>Prosimy odwiedzić naszą wikipedię dla większej ilości informacji, między innymi FAQs, poradniki, and instrukcje obsługi: <a href="https://github.com/OuterTune/OuterTune/wiki/Frequently-Asked-Questions-(FAQ)">https://github.com/OuterTune/OuterTune/wiki/Frequently-Asked-Questions-(FAQ)</a></li>
+</ul>

@@ -18,7 +18,7 @@
     <string name="tab_arrangement_disable_tip">--- Przeciągnij poniżej tego miejsca, aby wyłączyć ---</string>
     <string name="slim_navbar_description">Usuń etykiety aby zmniejszyć wysokość paska nawigacji</string>
     <string name="filter_arrangement">Ułóż filtry</string>
-    <string name="audio_offload_description">Użyj zewnętrznej drogi audio do odtwarzania dźwięku. Wyłączenie tej funkcji może zwiększyć zużycie baterii, ale może też być pomocne, jeśli doświadczasz problemów z odtwarzaniem dźwięku lub post processingiem</string>
+    <string name="audio_offload_description">Użyj zewnętrznej drogi audio do odtwarzania dźwięku. Włączenie tej funkcji może zmniejszyć zużycie baterii, ale może też powodować problemy z odtwarzaniem dźwięku lub post processingiem. Ta preferencja nie ma żadnego efektu dla nie wspieranych algorytmów lub urządzeń</string>
     <string name="attrib_zhuang">Zion Huang dla InnerTune</string>
     <string name="library">Biblioteka</string>
     <string name="queue_local_history">Historia (lokalne)</string>
@@ -64,7 +64,7 @@
     <string name="local_player_settings_title">Media lokalne</string>
     <string name="lyrics_prefer_local_description">Priorytetyzuj rozwiązanie lokalnych plików tekstowych przed użyciem wszystkich dostawców z chmury. Wyłącz tę opcję aby priorytetyzować dostawców z chmury</string>
     <string name="scanner_progress_syncing">Synchronizacja…</string>
-    <string name="scanner_missing_ffmpeg">Nie odnaleziono ekstraktora FFmpeg</string>
+    <string name="scanner_missing_ffmpeg">Nie wykryto ekstraktora FFmpeg</string>
     <string name="grp_lyrics_source">Źródła tekstów</string>
     <plurals name="scanner_n_song_processed">
         <item quantity="one">%d piosenki przetworzone</item>
@@ -112,7 +112,7 @@
     <string name="scanner_ytm_link_start">Rozpoczynanie linkowania artysty YouTube…</string>
     <string name="import_failed_songs">Nie udało się zaimportować</string>
     <string name="scanner_ytm_link_success">Ukończono próbę linkowania artysty YouTube</string>
-    <string name="keep_alive_description">Użyj trwałej usługi, aby powstrzymać zamknięcie OuterTune w tle.</string>
+    <string name="keep_alive_description">Użyj trwałej usługi w tle, aby powstrzymać zamknięcie OuterTune w tle</string>
     <string name="scanner_variant_rescan">Przeskanuj całą bibliotekę ponownie i załaduj ponownie metadane wszystkich utworów</string>
     <string name="scanner_online_artist_linking">Spróbuj nie łączyć artystów z lokalnych plików do tych z YouTube Music</string>
     <string name="scanner_progress_complete">Skanowanie ukończone</string>
@@ -132,7 +132,7 @@
     <string name="flat_subfolders_description">Wyłącz tę opcję aby zachować strukturę plików jak na dysku</string>
     <string name="auto_scanner_description">Automatycznie skanuj w poszukiwaniu utworów po otwarciu aplikacji. Nie ładuje ponownie metadanych istniejących utworów.</string>
     <string name="scanner_sensitivity_L2">Dopasuj tytuł i artystów</string>
-    <string name="scanner_warning">Skaner NIE ZAŁADUJE domyślnie żadnych metadanych istniejących utworów o ile nie określisz tego wyżej. W zależności od rozmiarów twojej biblioteki może to zająć chwilę.</string>
+    <string name="scanner_warning">Skaner NIE ZAŁADUJE domyślnie żadnych metadanych istniejących utworów o ile nie określisz tego wyżej. W zależności od rozmiarów twojej biblioteki ta czynność może zająć chwilę.</string>
     <string name="scanner_scan_fail">Skanowanie nieudane</string>
     <string name="dev_settings_title">Włącz ustawienia programistyczne</string>
     <string name="scanner_ytm_link_fail">Nieudane podejście linkowania artysty YouTube</string>
@@ -141,7 +141,7 @@
     <string name="scanner_strict_file_name_description">Po włączeniu nazwy plików NIE BĘDĄ ignorowane. np. Utwór.ogg będzie inną piosenką niż Utwór.flac. Wrażliwość skanera pozostanie taka sama</string>
     <string name="scanner_sensitivity_title">Dostosuj wrażliwość skanera</string>
     <string name="scanner_type_taglib">Używaj zintegrowanego wykrywacza metadanych TagLib</string>
-    <string name="scanner_type_ffmpeg_ext">Używaj wykrywacza danych FFmpeg. Wymaga zainstalowania zewnętrznego pakietu</string>
+    <string name="scanner_type_ffmpeg_ext">Używaj wykrywacza danych FFmpeg. Proszę używać tylko pełnej wersji aplikacji. Rdzeniowy wariant może powodować problemy ze śledzeniem piosenek</string>
     <string name="pause_remote_listen_history">Zatrzymaj udostępnianie historii odtwarzania z YouTube Music</string>
     <string name="experimental_settings_title">Eksperymentalne</string>
     <string name="dev_settings_description">Odkrywa dodatkowe ustawienia przeznaczone do użycia podczas programowania</string>
@@ -159,7 +159,7 @@
     <string name="sync_mode_ro">Tylko do odczytu (Przeglądaj zawartość zdalną)</string>
     <string name="sync_mode_rw">Do odczytu i zapisu (Pozwól również na zmiany w zawartości zdalnej)</string>
     <string name="grp_sync">Synchronizacja</string>
-    <string name="disable_lm_confirm">Czy na pewno check wyłączyć funkcję lokalnych mediów?</string>
+    <string name="disable_lm_confirm">Czy na pewno check wyłączyć funkcję lokalnych mediów? Twoja zawartość biblioteki nie zostanie naruszona.</string>
     <string name="scanner_progress_discovering">Odkrywanie…</string>
     <string name="scanner_progress_processing">Procesowanie…</string>
     <string name="oobe_ytm_integration">Integracja z YouTube Music</string>
@@ -225,11 +225,11 @@
     <string name="err_restore_incompatible_database">Nie można odtworzyć niekompatybilnej bazy danych</string>
     <string name="m3u_import_failed">Nie znaleziono piosenek. Nie prawidłowy plik M3U lub nie znaleziono pasujących piosenek</string>
     <string name="tap_show_more">Kliknij, by uzyskać więcej informacji</string>
-    <string name="err_invalid_ytm_song">Nie udało się odtworzyć utworu. Można odtworzyć tylko treści dostępne w YouTube Music.</string>
+    <string name="err_invalid_ytm_song">Nie udało się odtworzyć piosenki. Można odtworzyć tylko treści dostępne w YouTube Music</string>
     <string name="app_info_title">Informacje o aplikacji</string>
     <string name="device_info_title">Informacje o urządzeniu</string>
     <string name="help_bug_report_action">Wyślij zgłoszenie błędu (przez GitHub)</string>
-    <string name="help_contact_email_inquiries">Inne zapytania (Nacisńij, by skopiować Email)</string>
+    <string name="help_contact_email_inquiries">Inne zapytania (Naciśnij, by skopiować email)</string>
     <string name="help_support_forum">Wspieraj i pomóż (przez GitHub)</string>
     <string name="wiki">Wiki</string>
     <string name="all_contributors">Pokaż wszystkich współtwórców</string>
@@ -244,4 +244,23 @@
     <string name="extra_details">Dodatkowe szczegóły</string>
     <string name="file_path">Ścieżka pliku</string>
     <string name="track_number">Numer utworu</string>
+    <string name="library_filter">Filter biblioteki</string>
+    <string name="toggle_lyrics">Włącz/wyłącz tekst piosenki</string>
+    <string name="ffmpeg_lgpl">To oprogramowanie używa biblioteki z projektu FFmpeg pod LGPLv2.1</string>
+    <string name="action_logout_tooltip">By w pełni się wylogować, proszę o wylogowanie się że swojego konta YouTube q przeglądarce przed naciśnięciem przycisku wylogowania</string>
+    <string name="audio_decoder_ffmpeg_only">Priorytetyzuj dekoder FFmpeg</string>
+    <string name="audio_decoder_preference">Dekoder audio</string>
+    <string name="audio_decoder_system_only">Wyłącznie systemowe dekodery</string>
+    <string name="audio_decoder_system_with_ffmpeg">Priorytetyzuj systemowe dekodery</string>
+    <string name="seek_increment">Szukaj przyrostu</string>
+    <string name="max_queues_title">Maksymalna liczba kolejek</string>
+    <string name="oobe_welcome_tip">Dla najlepszego doświadczenia, rekomendujemy wypełnienie quick setup by spersonalizować kluczowe ustawienia takie jak motyw, konto YouTube, lokalne media i pobrania.</string>
+    <string name="oobe_cache_title">Cache piosenek</string>
+    <string name="oobe_cache_subtitle">Wybierz rozmiar cache piosenek. Może to pomoc w redukcji zużycia internetu albo problemów z odtwarzanie za pomocą YouTube API</string>
+    <plurals name="second">
+        <item quantity="one">%d jeden</item>
+        <item quantity="few">%d kilka</item>
+        <item quantity="many">%d wiele</item>
+        <item quantity="other">%d wiele</item>
+    </plurals>
 </resources>
