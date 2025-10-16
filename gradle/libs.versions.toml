@@ -5,14 +5,14 @@ androidGradlePlugin = "8.13.0"
 annotation = "1.9.1"
 kotlin = "2.2.0" # do not bump, database schema changes
 coil = "3.3.0"
-compose = "1.9.2"
+compose = "1.9.3"
 lazycolumnscrollbar = "2.2.0"
 lifecycle = "2.9.4"
 material3 = "1.4.0"
 media3 = "1.8.0"
-room = "2.8.1"
+room = "2.8.2"
 hilt = "2.57.2"
-ktor = "3.3.0"
+ktor = "3.3.1"
 ksp = "2.2.0-2.0.2" # do not bump, database schema changes
 
 [libraries]
