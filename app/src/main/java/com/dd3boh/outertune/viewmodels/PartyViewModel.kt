@@ -156,6 +156,30 @@ class PartyViewModel @Inject constructor(
         return if (duration > 0) lagged.coerceAtMost(duration) else lagged
     }
 
+    /**
+     * Whether playback should be audible now: requires RTDB to have advanced at least CLIENT_LAG_MS
+     * since the last update so we maintain a fixed delay behind the master clock.
+     */
+    private fun shouldStartPlayback(party: PartyState): Boolean {
+        val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+        val age = if (party.lastUpdated > 0L && serverNow > party.lastUpdated) (serverNow - party.lastUpdated) else 0L
+        return age >= CLIENT_LAG_MS
+    }
+
+    /** Return true if the player has at least minMs of buffered audio ahead of the current position. */
+    private fun hasBufferedAheadMs(connection: PlayerConnection, minMs: Long): Boolean {
+        return try {
+            val player = connection.player
+            val ahead = (player.bufferedPosition - player.currentPosition).coerceAtLeast(0L)
+            ahead >= minMs
+        } catch (_: Exception) { false }
+    }
+
+    /** Gate audible start: require 1s RTDB age and >=5s buffered ahead. */
+    private fun canAudiblyPlay(party: PartyState, connection: PlayerConnection): Boolean {
+        return shouldStartPlayback(party) && hasBufferedAheadMs(connection, 5_000L)
+    }
+
     init {
         viewModelScope.launch {
             val a = auth
@@ -443,7 +467,8 @@ class PartyViewModel @Inject constructor(
 
                     conn.player.seekTo(desired)
                     conn.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
-                    if (isPlaying) conn.player.play() else conn.player.pause()
+                    // Do not force immediate play; decree/heartbeat will start after 1s/5s gate
+                    if (!isPlaying) conn.player.pause()
                 } catch (_: Exception) { /* best-effort; RTDB will confirm */ }
 
             } catch (e: Exception) {
@@ -708,23 +733,23 @@ class PartyViewModel @Inject constructor(
                 connection.player.seekTo(desired)
             } catch (_: Exception) { }
 
-            // Reset speed adjustments
+            // Keep normal speed (seek-based sync)
             connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
 
-            // Then align play/pause state
-            if (party.isPlaying) connection.player.play() else connection.player.pause()
+            // Align play/pause for all clients: wait for 1s RTDB age and >=5s buffer
+            if (party.isPlaying && canAudiblyPlay(party, connection)) connection.player.play() else connection.player.pause()
 
             return
         }
 
-        // HEARTBEAT - Elastic drift correction applied separately in elasticSyncJob
-        // Just ensure play/pause state is aligned
-        if (party.isPlaying && !connection.player.playWhenReady) {
-            connection.player.play()
-        }
-        if (!party.isPlaying && connection.player.playWhenReady) {
-            connection.player.pause()
-        }
+        // HEARTBEAT - Align play/pause with 1s/5s gate for all devices; periodic seek loop handles position
+        if (party.isPlaying) {
+            if (canAudiblyPlay(party, connection)) {
+                if (!connection.player.playWhenReady) connection.player.play()
+            } else if (connection.player.playWhenReady) {
+                connection.player.pause()
+            }
+        } else if (connection.player.playWhenReady) connection.player.pause()
     }
 
     /**
@@ -818,7 +843,8 @@ class PartyViewModel @Inject constructor(
 
             connection.service.playQueue(
                 listQueue,
-                playWhenReady = party.isPlaying,
+                // Let syncing logic decide when to start playback (1s/5s gate)
+                playWhenReady = false,
                 shouldResume = false,
                 replace = true,
                 isRadio = false,
