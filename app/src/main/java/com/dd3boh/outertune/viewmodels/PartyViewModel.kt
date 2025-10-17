@@ -128,11 +128,14 @@ class PartyViewModel @Inject constructor(
     private var serverTimeOffsetListener: ValueEventListener? = null
 
     // SEEK-BASED SYNC CONSTANTS (fixed 1s lag behind RTDB for all clients)
-    private val IN_SYNC_TOLERANCE_MS = 75L     // if within ±75ms, do nothing
-    private val MAX_SEEK_INTERVAL_MS = 1000L   // limit correction seeks to 1/sec to avoid thrash
+    private val IN_SYNC_TOLERANCE_MS = 200L     // small drift is tolerated to avoid jitter
+    private val HARD_DRIFT_THRESHOLD_MS = 400L  // only correct when drift grows beyond this
+    private val HARD_DRIFT_SUSTAIN_MS = 2000L   // require sustained drift > threshold for 2s
+    private val MAX_SEEK_INTERVAL_MS = 5000L    // never correct more than once every 5s
     private val SPEED_NORMAL = 1.0f
     private val CLIENT_LAG_MS = 1000L          // fixed client lag
     private var lastSeekCorrectionAtMs: Long = 0L
+    private var driftOverThresholdSinceMs: Long? = null
 
     /**
      * Compute the authoritative target position for now based on the server's lastUpdated
@@ -742,14 +745,12 @@ class PartyViewModel @Inject constructor(
             return
         }
 
-        // HEARTBEAT - Align play/pause with 1s/5s gate for all devices; periodic seek loop handles position
+        // HEARTBEAT - Don't re-gate; only reflect play/pause state changes to avoid jitter
         if (party.isPlaying) {
-            if (canAudiblyPlay(party, connection)) {
-                if (!connection.player.playWhenReady) connection.player.play()
-            } else if (connection.player.playWhenReady) {
-                connection.player.pause()
-            }
-        } else if (connection.player.playWhenReady) connection.player.pause()
+            if (!connection.player.playWhenReady) connection.player.play()
+        } else if (connection.player.playWhenReady) {
+            connection.player.pause()
+        }
     }
 
     /**
@@ -770,16 +771,33 @@ class PartyViewModel @Inject constructor(
         val localPos = player.currentPosition
         val drift = authoritativePos - localPos
 
-        if (kotlin.math.abs(drift) <= IN_SYNC_TOLERANCE_MS) return
-
+        val absDrift = kotlin.math.abs(drift)
         val now = System.currentTimeMillis()
-        if (now - lastSeekCorrectionAtMs < MAX_SEEK_INTERVAL_MS) return
 
-        try {
-            player.seekTo(authoritativePos)
-            lastSeekCorrectionAtMs = now
-            Log.d("PartyVM", "Seek sync: drift=${drift}ms, seekTo=${authoritativePos}")
-        } catch (_: Exception) { }
+        // Reset sustained tracker when back within tolerant range
+        if (absDrift <= IN_SYNC_TOLERANCE_MS) {
+            driftOverThresholdSinceMs = null
+            return
+        }
+
+        // If drift is above hard threshold, start or continue the sustained timer
+        if (absDrift >= HARD_DRIFT_THRESHOLD_MS) {
+            val startedAt = driftOverThresholdSinceMs ?: now.also { driftOverThresholdSinceMs = it }
+            val sustained = now - startedAt >= HARD_DRIFT_SUSTAIN_MS
+            val tooSoon = now - lastSeekCorrectionAtMs < MAX_SEEK_INTERVAL_MS
+            if (sustained && !tooSoon) {
+                try {
+                    player.seekTo(authoritativePos)
+                    lastSeekCorrectionAtMs = now
+                    driftOverThresholdSinceMs = null
+                    Log.d("PartyVM", "Seek sync (sustained): drift=${drift}ms, seekTo=${authoritativePos}")
+                } catch (_: Exception) { }
+            }
+            return
+        }
+
+        // For mid-range drift between tolerance and hard threshold, do nothing to avoid jitter
+        // We'll let it ride unless it grows or stays large for a while.
     }
 
 
