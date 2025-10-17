@@ -27,7 +27,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
 import javax.inject.Inject
 import java.util.UUID
-import com.dd3boh.outertune.extensions.isUserLoggedIn
 
 /**
  * OPTIMAL PARTY VIEWMODEL
@@ -113,7 +112,7 @@ class PartyViewModel @Inject constructor(
 
     // Sync jobs
     private var stateSyncJob: Job? = null
-    private var elasticSyncJob: Job? = null
+    private var periodicSeekSyncJob: Job? = null
 
     // Party listener
     private var partyListener: ValueEventListener? = null
@@ -128,20 +127,12 @@ class PartyViewModel @Inject constructor(
     private var serverTimeOffsetMs: Long = 0L
     private var serverTimeOffsetListener: ValueEventListener? = null
 
-    // Micro-seek configuration to quickly converge medium drift without long PI chase
-    private val MEDIUM_DRIFT_SEEK_THRESHOLD_MS = 350L
-    private val MICRO_SEEK_MIN_INTERVAL_MS = 2000L
-    private var lastMicroSeekMs: Long = 0L
-
-    // DRIFT CORRECTION CONSTANTS (Buffered sync)
-    private val DRIFT_THRESHOLD_FAST_MS = 250L // if behind target > 250ms, speed up
-    private val DRIFT_THRESHOLD_SLOW_MS = -250L // if ahead of target < -250ms (too close to master), slow down
-    private val DRIFT_IN_SYNC_MS = 100L // within +/-100ms of target buffer -> normal speed
-    private val SPEED_FAST = 1.05f
-    private val SPEED_SLOW = 0.95f
+    // SEEK-BASED SYNC CONSTANTS (fixed 1s lag behind RTDB for all clients)
+    private val IN_SYNC_TOLERANCE_MS = 75L     // if within ±75ms, do nothing
+    private val MAX_SEEK_INTERVAL_MS = 1000L   // limit correction seeks to 1/sec to avoid thrash
     private val SPEED_NORMAL = 1.0f
-    // Intentional buffer behind RTDB master clock
-    private val CLIENT_LAG_MS = 1000L
+    private val CLIENT_LAG_MS = 1000L          // fixed client lag
+    private var lastSeekCorrectionAtMs: Long = 0L
 
     /**
      * Compute the authoritative target position for now based on the server's lastUpdated
@@ -675,18 +666,18 @@ class PartyViewModel @Inject constructor(
             }
         }
 
-        // Elastic sync job - drift correction loop
-        elasticSyncJob = viewModelScope.launch {
+        // Periodic seek-based sync loop
+        periodicSeekSyncJob = viewModelScope.launch {
             while (true) {
                 try {
                     val party = _partyState.value
-                    if (party != null && party.isPlaying) {
-                        applyElasticSync(party, connection)
+                    if (party != null) {
+                        applySeekSync(party, connection)
                     }
                 } catch (e: Exception) {
-                    Log.e("PartyVM", "Error in elastic sync", e)
+                    Log.e("PartyVM", "Error in seek sync", e)
                 } finally {
-                    delay(200) // Check every 200ms for tighter coupling
+                    delay(200) // evaluate 5x/sec
                 }
             }
         }
@@ -737,29 +728,33 @@ class PartyViewModel @Inject constructor(
     }
 
     /**
-     * Apply elastic sync - smooth drift correction using speed adjustment
+     * Apply seek-based sync: seek to the lagged authoritative position when drift exceeds a small tolerance.
+     * Speed stays at 1.0x. Seeks are rate-limited.
      */
-    private fun applyElasticSync(party: PartyState, connection: PlayerConnection) {
-    if (!party.isPlaying) return
-        // Only adjust when player is ready and actually playing
-        if (connection.player.playbackState != Player.STATE_READY || !connection.player.playWhenReady) return
+    private fun applySeekSync(party: PartyState, connection: PlayerConnection) {
+        val player = connection.player
+        // Keep speed at normal at all times
+        if (player.playbackParameters.speed != SPEED_NORMAL) {
+            player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+        }
 
-        // Target a lagged authoritative position computed from lastUpdated
+        // Only correct when player is ready
+        if (player.playbackState != Player.STATE_READY) return
+
         val authoritativePos = computeLaggedAuthoritativePosition(party)
-        val localPos = connection.player.currentPosition
+        val localPos = player.currentPosition
         val drift = authoritativePos - localPos
 
-        // Buffered elastic correction without seeks
-        val finalSpeed = when {
-            drift > DRIFT_THRESHOLD_FAST_MS -> SPEED_FAST
-            drift < DRIFT_THRESHOLD_SLOW_MS -> SPEED_SLOW
-            kotlin.math.abs(drift) <= DRIFT_IN_SYNC_MS -> SPEED_NORMAL
-            else -> connection.player.playbackParameters.speed // keep current if in between bands
-        }
-        if (connection.player.playbackParameters.speed != finalSpeed) {
-            connection.player.playbackParameters = PlaybackParameters(finalSpeed)
-            Log.d("PartyVM", "Buffered elastic: drift=${drift}ms, speed=${finalSpeed}")
-        }
+        if (kotlin.math.abs(drift) <= IN_SYNC_TOLERANCE_MS) return
+
+        val now = System.currentTimeMillis()
+        if (now - lastSeekCorrectionAtMs < MAX_SEEK_INTERVAL_MS) return
+
+        try {
+            player.seekTo(authoritativePos)
+            lastSeekCorrectionAtMs = now
+            Log.d("PartyVM", "Seek sync: drift=${drift}ms, seekTo=${authoritativePos}")
+        } catch (_: Exception) { }
     }
 
 
@@ -872,9 +867,9 @@ class PartyViewModel @Inject constructor(
      */
     private fun stopMusicServiceSync() {
         stateSyncJob?.cancel()
-        elasticSyncJob?.cancel()
+        periodicSeekSyncJob?.cancel()
         stateSyncJob = null
-        elasticSyncJob = null
+        periodicSeekSyncJob = null
 
         playerConnection?.let { conn ->
             playerEventListener?.let { conn.player.removeListener(it) }
