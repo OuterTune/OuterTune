@@ -12,13 +12,11 @@ import com.dd3boh.outertune.db.entities.QueueSong
 import com.dd3boh.outertune.db.entities.QueueSongMap
 import com.dd3boh.outertune.models.MultiQueueObject
 import com.dd3boh.outertune.models.toMediaMetadata
-import com.dd3boh.outertune.playback.QueueBoard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 
 @Dao
 interface QueueDao {
@@ -112,12 +110,11 @@ interface QueueDao {
 
     @Transaction
     fun updateAllQueues(mqs: List<MultiQueueObject>) {
+        val mqs = mqs.toList() // please no more ConcurrentModificationException I beg you
         mqs.forEachIndexed { index, q -> q.index = index }
         CoroutineScope(Dispatchers.IO).launch {
-            QueueBoard.mutex.withLock { // possible ConcurrentModificationException
-                nukeAliens(mqs.map { it.id })
-                mqs.forEach { updateQueue(it) }
-            }
+            nukeAliens(mqs.map { it.id })
+            mqs.forEach { updateQueue(it) }
         }
     }
 

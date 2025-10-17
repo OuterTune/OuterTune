@@ -19,7 +19,6 @@ import android.net.ConnectivityManager
 import android.os.Binder
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -583,20 +582,20 @@ class MusicService : MediaLibraryService(),
         Log.i(TAG, "+deInitQueue()")
         queueBoard.shutdown()
         if (dataStore.get(PersistentQueueKey, true)) {
-            saveQueueToDisk()
+            runBlocking(Dispatchers.IO) {
+                saveQueueToDisk()
+            }
         }
         // do not replace the object. Can lead to entire queue being deleted even though it is supposed to be saved already
         qbInit.value = false
         Log.i(TAG, "-deInitQueue()")
     }
 
-    fun saveQueueToDisk() {
+    suspend fun saveQueueToDisk() {
         val pos = player.currentPosition
         val data = queueBoard.getAllQueues()
-        runBlocking(Dispatchers.IO) {
-            data.last().lastSongPos = pos
-            database.updateAllQueues(data)
-        }
+        data.last().lastSongPos = pos
+        database.updateAllQueues(data)
     }
 
 

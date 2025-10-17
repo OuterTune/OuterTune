@@ -921,7 +921,6 @@ class QueueBoard(
     }
 
     companion object {
-        val mutex = Mutex()
 
         fun shuffleInPlace(list: List<MediaMetadata>) {
             val rng = (0..(list.size - 1)).shuffled()
