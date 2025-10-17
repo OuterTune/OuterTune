@@ -133,29 +133,15 @@ class PartyViewModel @Inject constructor(
     private val MICRO_SEEK_MIN_INTERVAL_MS = 2000L
     private var lastMicroSeekMs: Long = 0L
 
-    // DRIFT CORRECTION CONSTANTS
-    // Thresholds retained for reference; PI controller manages most corrections dynamically
-    private val DRIFT_THRESHOLD_MS = 250L // legacy threshold for large drift (still used for logs)
-    private val DRIFT_IN_SYNC_MS = 50L // when within this, we're effectively in sync
+    // DRIFT CORRECTION CONSTANTS (Buffered sync)
+    private val DRIFT_THRESHOLD_FAST_MS = 250L // if behind target > 250ms, speed up
+    private val DRIFT_THRESHOLD_SLOW_MS = -250L // if ahead of target < -250ms (too close to master), slow down
+    private val DRIFT_IN_SYNC_MS = 100L // within +/-100ms of target buffer -> normal speed
+    private val SPEED_FAST = 1.05f
+    private val SPEED_SLOW = 0.95f
     private val SPEED_NORMAL = 1.0f
-    // Ensure client (host + members) intentionally lags the RTDB by this amount
-    private val CLIENT_LAG_MS = 200L
-
-    // PI controller gains and limits for elastic synchronization
-    // Kp scales immediate drift (in seconds) to speed delta; Ki integrates residual error over time
-    private val KP = 0.8f
-    private val KI = 0.15f
-    // Speed clamps (tight for small drifts, wider for larger drifts handled dynamically)
-    private val MIN_SPEED_SMALL = 0.99f
-    private val MAX_SPEED_SMALL = 1.01f
-    private val MIN_SPEED_MED = 0.97f
-    private val MAX_SPEED_MED = 1.03f
-    private val MIN_SPEED_LARGE = 0.94f
-    private val MAX_SPEED_LARGE = 1.06f
-
-    // PI controller state
-    private var piIntegralSec = 0.0
-    private var lastPiUpdateMs = 0L
+    // Intentional buffer behind RTDB master clock
+    private val CLIENT_LAG_MS = 1000L
 
     /**
      * Compute the authoritative target position for now based on the server's lastUpdated
@@ -444,6 +430,31 @@ class PartyViewModel @Inject constructor(
                 // Issue command
                 issueCommand(if (isPlaying) "play" else "pause", position)
 
+                // Host preemptive local alignment:
+                // Immediately align the local player to the expected lagged target so the host
+                // never perceives being ahead while we wait for RTDB to propagate.
+                try {
+                    val conn = playerConnection ?: return@launch
+                    val state = _partyState.value ?: return@launch
+
+                    // Project the base progress for this command
+                    val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+                    val age = if (state.lastUpdated > 0L && serverNow > state.lastUpdated) (serverNow - state.lastUpdated) else 0L
+                    val baseProgress = when {
+                        position > 0 -> position
+                        isPlaying -> (state.progressMs + age)
+                        else -> state.progressMs
+                    }
+                    val duration = state.currentTrack?.durationMs ?: 0L
+                    val desired = (baseProgress - CLIENT_LAG_MS)
+                        .coerceAtLeast(0L)
+                        .let { if (duration > 0L) it.coerceAtMost(duration) else it }
+
+                    conn.player.seekTo(desired)
+                    conn.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+                    if (isPlaying) conn.player.play() else conn.player.pause()
+                } catch (_: Exception) { /* best-effort; RTDB will confirm */ }
+
             } catch (e: Exception) {
                 Log.e("PartyVM", "Failed to update playback", e)
                 _events.value = PartyEvent.Error("Failed to update playback: ${e.message}")
@@ -693,8 +704,7 @@ class PartyViewModel @Inject constructor(
             lastExecutedCommandId = incomingCommandId
             isCurrentTrackReady = false
             isNextTrackReady = false
-            // Reset PI controller state on decree
-            resetElasticController()
+            // Nothing else; decree seek below will align us to buffered target
 
             Log.d("PartyVM", "New decree detected: $incomingCommandId")
 
@@ -739,79 +749,19 @@ class PartyViewModel @Inject constructor(
         val localPos = connection.player.currentPosition
         val drift = authoritativePos - localPos
 
-        // Hard-correct if drift is very large (e.g., join mid-playback or network hiccup)
-        val LARGE_DRIFT_MS = 2000L
-        if (kotlin.math.abs(drift) >= LARGE_DRIFT_MS) {
-            try {
-                connection.player.seekTo(authoritativePos)
-                connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
-                resetElasticController()
-                Log.d("PartyVM", "Hard sync: seek to ${authoritativePos}ms (drift ${drift}ms)")
-            } catch (e: Exception) {
-                Log.w("PartyVM", "Hard sync seek failed: ${e.message}")
-            }
-            return
+        // Buffered elastic correction without seeks
+        val finalSpeed = when {
+            drift > DRIFT_THRESHOLD_FAST_MS -> SPEED_FAST
+            drift < DRIFT_THRESHOLD_SLOW_MS -> SPEED_SLOW
+            kotlin.math.abs(drift) <= DRIFT_IN_SYNC_MS -> SPEED_NORMAL
+            else -> connection.player.playbackParameters.speed // keep current if in between bands
         }
-
-        // Micro-seek for medium drift to snap into the control band quickly
-        val absDrift = kotlin.math.abs(drift)
-        val nowMs = System.currentTimeMillis()
-        if (absDrift >= MEDIUM_DRIFT_SEEK_THRESHOLD_MS && absDrift < LARGE_DRIFT_MS &&
-            (nowMs - lastMicroSeekMs) >= MICRO_SEEK_MIN_INTERVAL_MS) {
-            try {
-                connection.player.seekTo(authoritativePos)
-                lastMicroSeekMs = nowMs
-                // After a micro-seek, normalize speed; PI will take over small residuals
-                connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
-                resetElasticController()
-                Log.d("PartyVM", "Micro-seek applied to ${authoritativePos}ms (drift ${drift}ms)")
-            } catch (_: Exception) {}
-            return
-        }
-
-        // PI Controller
-        val now = System.currentTimeMillis()
-        if (lastPiUpdateMs == 0L) {
-            lastPiUpdateMs = now
-            return
-        }
-        val dtSec = ((now - lastPiUpdateMs).coerceAtLeast(1L)).toDouble() / 1000.0
-        lastPiUpdateMs = now
-
-        // Integrate error (anti-windup)
-        val driftSec = drift.toDouble() / 1000.0
-        piIntegralSec += driftSec * dtSec
-        // Clamp integral to reasonable bounds
-        piIntegralSec = piIntegralSec.coerceIn(-0.5, 0.5)
-
-        // Dynamic speed clamps based on drift magnitude
-        val (minSpeed, maxSpeed) = when {
-            absDrift < 150 -> MIN_SPEED_SMALL to MAX_SPEED_SMALL
-            absDrift < 400 -> MIN_SPEED_MED to MAX_SPEED_MED
-            else -> MIN_SPEED_LARGE to MAX_SPEED_LARGE
-        }
-
-        // Compute target speed and clamp
-        val rawSpeed = 1.0 + (KP * driftSec) + (KI * piIntegralSec)
-        val targetSpeed = rawSpeed.coerceIn(minSpeed.toDouble(), maxSpeed.toDouble()).toFloat()
-
-        // If nearly in sync, normalize speed and bleed integral
-        val finalSpeed = if (absDrift <= DRIFT_IN_SYNC_MS) {
-            // Decay integral toward 0 when in sync to prevent overshoot
-            piIntegralSec *= 0.9
-            SPEED_NORMAL
-        } else targetSpeed
-
         if (connection.player.playbackParameters.speed != finalSpeed) {
             connection.player.playbackParameters = PlaybackParameters(finalSpeed)
-            Log.d("PartyVM", "Drift: ${drift}ms, dt=${"%.3f".format(dtSec)}s, speed=${"%.3f".format(finalSpeed)} (raw=${"%.3f".format(rawSpeed)})")
+            Log.d("PartyVM", "Buffered elastic: drift=${drift}ms, speed=${finalSpeed}")
         }
     }
 
-    private fun resetElasticController() {
-        piIntegralSec = 0.0
-        lastPiUpdateMs = 0L
-    }
 
     /**
      * Update player queue based on party state
