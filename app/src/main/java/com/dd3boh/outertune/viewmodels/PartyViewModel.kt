@@ -128,14 +128,18 @@ class PartyViewModel @Inject constructor(
     private var serverTimeOffsetListener: ValueEventListener? = null
 
     // SEEK-BASED SYNC CONSTANTS (fixed 1s lag behind RTDB for all clients)
-    private val IN_SYNC_TOLERANCE_MS = 200L     // small drift is tolerated to avoid jitter
-    private val HARD_DRIFT_THRESHOLD_MS = 400L  // only correct when drift grows beyond this
-    private val HARD_DRIFT_SUSTAIN_MS = 2000L   // require sustained drift > threshold for 2s
-    private val MAX_SEEK_INTERVAL_MS = 5000L    // never correct more than once every 5s
+    private val IN_SYNC_TOLERANCE_MS = 80L      // small drift is tolerated to avoid jitter
+    private val HARD_DRIFT_THRESHOLD_MS = 300L  // correct quicker when drift grows beyond this
+    private val HARD_DRIFT_SUSTAIN_MS = 1000L   // require sustained drift > threshold for 1s
+    private val MAX_SEEK_INTERVAL_MS = 3000L    // never correct more than once every 3s
+    // Phase-lock: snap to the authoritative position at each server-time 1s boundary
+    private val PHASE_LOCK_INTERVAL_MS = 1000L
+    private val PHASE_LOCK_TOLERANCE_MS = 60L
     private val SPEED_NORMAL = 1.0f
     private val CLIENT_LAG_MS = 1000L          // fixed client lag
     private var lastSeekCorrectionAtMs: Long = 0L
     private var driftOverThresholdSinceMs: Long? = null
+    private var lastPhaseLockBoundaryMs: Long = 0L
 
     /**
      * Compute the authoritative target position for now based on the server's lastUpdated
@@ -145,15 +149,9 @@ class PartyViewModel @Inject constructor(
         val base = party.progressMs.coerceAtLeast(0L)
         // Use Firebase server time offset to neutralize device clock skew
         val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
-        val sample = if (party.lastUpdated > 0L && serverNow > party.lastUpdated) (serverNow - party.lastUpdated) else 0L
-
-        // Compute smoothed latency as mean of last 3 samples (including this one if available)
-        val smoothedLatencyMs = synchronized(latencySamplesMs) {
-            // Use existing rolling average if populated; otherwise fall back to current sample
-            if (latencySamplesMs.isEmpty()) sample else (latencySamplesMs.sum().toDouble() / latencySamplesMs.size).toLong()
-        }
-
-        val advanced = if (party.isPlaying) base + smoothedLatencyMs else base
+        val ageSinceUpdate = if (party.lastUpdated > 0L && serverNow > party.lastUpdated) (serverNow - party.lastUpdated) else 0L
+        // Project strictly based on server time elapsed since lastUpdated, avoiding per-client smoothing
+        val advanced = if (party.isPlaying) base + ageSinceUpdate else base
         val lagged = (advanced - CLIENT_LAG_MS).coerceAtLeast(0L)
         val duration = party.currentTrack?.durationMs ?: 0L
         return if (duration > 0) lagged.coerceAtMost(duration) else lagged
@@ -705,7 +703,12 @@ class PartyViewModel @Inject constructor(
                 } catch (e: Exception) {
                     Log.e("PartyVM", "Error in seek sync", e)
                 } finally {
-                    delay(200) // evaluate 5x/sec
+                    // Align checks with server 1s boundaries to keep all devices snapping together
+                    val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+                    val untilNext = PHASE_LOCK_INTERVAL_MS - (serverNow % PHASE_LOCK_INTERVAL_MS)
+                    // Keep a minimum cadence in case of timing jitter
+                    val sleep = untilNext.coerceIn(50L, 250L)
+                    delay(sleep)
                 }
             }
         }
@@ -772,32 +775,48 @@ class PartyViewModel @Inject constructor(
         val drift = authoritativePos - localPos
 
         val absDrift = kotlin.math.abs(drift)
-        val now = System.currentTimeMillis()
+        val nowLocal = System.currentTimeMillis()
 
-        // Reset sustained tracker when back within tolerant range
+        // 1) Phase-lock snap: once per server-second boundary, snap within a tight tolerance
+        val serverNow = nowLocal + serverTimeOffsetMs
+        val boundary = (serverNow / PHASE_LOCK_INTERVAL_MS) * PHASE_LOCK_INTERVAL_MS
+        if (boundary > lastPhaseLockBoundaryMs && party.isPlaying) {
+            lastPhaseLockBoundaryMs = boundary
+            if (absDrift > PHASE_LOCK_TOLERANCE_MS) {
+                try {
+                    player.seekTo(authoritativePos)
+                    lastSeekCorrectionAtMs = nowLocal
+                    driftOverThresholdSinceMs = null
+                    Log.d("PartyVM", "Phase-lock seek: drift=${drift}ms -> ${authoritativePos}")
+                } catch (_: Exception) { }
+                return
+            } else {
+                // Within tight tolerance; consider in-sync
+                driftOverThresholdSinceMs = null
+                return
+            }
+        }
+
+        // 2) Hard drift fallback outside boundary: correct only when sustained and rate-limited
         if (absDrift <= IN_SYNC_TOLERANCE_MS) {
             driftOverThresholdSinceMs = null
             return
         }
-
-        // If drift is above hard threshold, start or continue the sustained timer
         if (absDrift >= HARD_DRIFT_THRESHOLD_MS) {
-            val startedAt = driftOverThresholdSinceMs ?: now.also { driftOverThresholdSinceMs = it }
-            val sustained = now - startedAt >= HARD_DRIFT_SUSTAIN_MS
-            val tooSoon = now - lastSeekCorrectionAtMs < MAX_SEEK_INTERVAL_MS
+            val startedAt = driftOverThresholdSinceMs ?: nowLocal.also { driftOverThresholdSinceMs = it }
+            val sustained = nowLocal - startedAt >= HARD_DRIFT_SUSTAIN_MS
+            val tooSoon = nowLocal - lastSeekCorrectionAtMs < MAX_SEEK_INTERVAL_MS
             if (sustained && !tooSoon) {
                 try {
                     player.seekTo(authoritativePos)
-                    lastSeekCorrectionAtMs = now
+                    lastSeekCorrectionAtMs = nowLocal
                     driftOverThresholdSinceMs = null
-                    Log.d("PartyVM", "Seek sync (sustained): drift=${drift}ms, seekTo=${authoritativePos}")
+                    Log.d("PartyVM", "Seek sync (hard fallback): drift=${drift}ms, seekTo=${authoritativePos}")
                 } catch (_: Exception) { }
             }
             return
         }
-
-        // For mid-range drift between tolerance and hard threshold, do nothing to avoid jitter
-        // We'll let it ride unless it grows or stays large for a while.
+        // For mid-range drift, defer to the next phase-lock boundary to avoid jitter.
     }
 
 
