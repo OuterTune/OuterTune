@@ -91,6 +91,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="grp_lyrics_parser">Parser</string>
     <string name="grp_lyrics_source">Lyric sources</string>
     <string name="grp_manual_scanner">Manual scanner</string>
+    <string name="grp_more_settings">More settings</string>
     <string name="grp_proxy">Proxy</string>
     <string name="grp_sync">Sync</string>
 

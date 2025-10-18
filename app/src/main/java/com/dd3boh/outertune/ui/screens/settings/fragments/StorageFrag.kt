@@ -140,7 +140,6 @@ fun ColumnScope.BackupAndRestoreFrag(viewModel: BackupRestoreViewModel) {
 fun ColumnScope.DownloadsFrag() {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val database = LocalDatabase.current
     val downloadCache = LocalPlayerConnection.current?.service?.downloadCache ?: return
     val downloadUtil = LocalDownloadUtil.current
 
