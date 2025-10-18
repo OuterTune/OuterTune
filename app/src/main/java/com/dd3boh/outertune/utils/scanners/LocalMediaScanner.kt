@@ -12,11 +12,13 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.ui.util.fastDistinctBy
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.datastore.preferences.core.edit
 import androidx.documentfile.provider.DocumentFile
+import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
 import com.dd3boh.outertune.constants.SCANNER_DEBUG
@@ -49,6 +51,7 @@ import com.zionhuang.innertube.models.ArtistItem
 import com.zionhuang.innertube.models.SongItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -62,6 +65,7 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.Locale
+import kotlin.onFailure
 
 class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
     private val TAG = LocalMediaScanner::class.simpleName.toString()
@@ -877,7 +881,11 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                         context.dataStore.edit { settings ->
                             settings[ScannerImplKey] = ScannerImpl.TAGLIB.toString()
                             settings[AutomaticScannerKey] = false
-                            // TODO: toast user maybe...?
+                            runBlocking(Dispatchers.Main) {
+                                // TODO: string resource (but will anyone even notice this...)
+                                Toast.makeText(context, "FFmpeg extractors are missing", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Auto scanner has been disabled to prevent data conflicts. You will need to enable this in local media settings again if you want automatic scanning.", Toast.LENGTH_LONG).show()
+                            }
                         }
                     }
                 }

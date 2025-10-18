@@ -35,6 +35,7 @@ const val MAX_YTM_CONTENT_JOBS = 16
 /**
  * Constants
  */
+const val AUTO_SCAN_COOLDOWN = 39600000L // 11 hours
 const val LYRIC_FETCH_TIMEOUT = 60000L
 const val SNACKBAR_VERY_SHORT = 2000L
 

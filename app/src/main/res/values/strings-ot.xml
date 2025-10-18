@@ -190,7 +190,8 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Scanner settings -->
     <string name="auto_scanner_title">Scan automatically</string>
-    <string name="auto_scanner_description">Automatically scan for songs when opening the app. This does not reload metadata of existing songs.</string>
+    <string name="auto_scanner_description">Periodically refresh local media songs and custom downloads folders when opening the app</string>
+    <string name="auto_scanner_tooltip">For local media, this does not reload metadata of existing songs. Use the manual scanner with the rescan checkbox selected if you also wish to refresh metadata.</string>
 
     <string name="scan_paths_title">Configure scan locations…</string>
     <string name="scan_paths_description">Select folders on your local storage to scan for songs</string>
@@ -206,6 +207,9 @@ while also allowing users to translate our app as well. New, specific strings to
 <!-- Scanner progress strings-->
 	<string name="scanner_missing_ffmpeg">FFmpeg extractor not detected</string>
     <string name="scanner_missing_storage_perm">The local media scanner requires storage permissions to function</string>
+
+    <string name="scanner_auto_end">Local media and song downloads refresh complete!</string>
+    <string name="scanner_auto_start">Refreshing local media and song download folders…</string>
 
     <string name="scanner_btn_idle">Scan</string>
     <string name="scanner_progress_complete">Scan complete</string>

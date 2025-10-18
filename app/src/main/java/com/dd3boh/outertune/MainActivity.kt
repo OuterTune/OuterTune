@@ -139,6 +139,7 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
+import com.dd3boh.outertune.constants.AUTO_SCAN_COOLDOWN
 import com.dd3boh.outertune.constants.AppBarHeight
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
@@ -407,7 +408,7 @@ class MainActivity : ComponentActivity() {
             val (excludedScanPaths) = rememberPreference(ExcludedScanPathsKey, defaultValue = "")
             val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
             val (lookupYtmArtists) = rememberPreference(LookupYtmArtistsKey, defaultValue = false)
-            val (autoScan) = rememberPreference(AutomaticScannerKey, defaultValue = false)
+            val (autoScan) = rememberPreference(AutomaticScannerKey, defaultValue = true)
             val (lastLocalScan, onLastLocalScanChange) = rememberPreference(
                 LastLocalScanKey,
                 LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
@@ -421,12 +422,41 @@ class MainActivity : ComponentActivity() {
             val (lastVer, onLastVerChange) = rememberPreference(LastVersionKey, defaultValue = "0.0.0")
 
             LaunchedEffect(Unit) {
-                downloadUtil.resumeDownloadsOnStart()
-
+                // local media & download folders auto scan
                 coroutineScope.launch((lmScannerCoroutine)) {
+                    if (!autoScan || oobeStatus < OOBE_VERSION) {
+                        Log.i(MAIN_TAG, "Automatic scan is disabled, and/or user has not passed OOBE")
+                        return@launch
+                    }
+                    if (lastLocalScan + AUTO_SCAN_COOLDOWN > LocalDateTime.now().toInstant(ZoneOffset.UTC)
+                            .toEpochMilli()
+                    ) {
+                        Log.i(MAIN_TAG, "Aborting automatic scan. Not enough time has passed since the last scan")
+                        downloadUtil.resumeDownloadsOnStart()
+                        return@launch
+                    }
+                    Log.i(MAIN_TAG, "Starting local media and downloads auto scan")
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = this@MainActivity.getString(R.string.scanner_auto_start),
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+
+                    // scan download folders
+                    downloadUtil.scanDownloads()
+                    downloadUtil.resumeDownloadsOnStart()
+                    if (!localLibEnable) { //
+                        onLastLocalScanChange(LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli())
+                        playerConnection?.service?.initQueue()
+                        Log.i(MAIN_TAG, "Downloads scan completed. Local media is disabled.")
+                    }
+
+                    // local media scan
                     val perms = checkSelfPermission(MEDIA_PERMISSION_LEVEL)
                     // Check if the permissions for local media access
-                    if (scannerState.value <= 0 && autoScan && oobeStatus >= OOBE_VERSION && localLibEnable) {
+                    if (scannerState.value <= 0 && localLibEnable) {
                         if (perms == PackageManager.PERMISSION_GRANTED) {
                             // equivalent to (quick scan)
                             try {
@@ -471,13 +501,27 @@ class MainActivity : ComponentActivity() {
                             onLastLocalScanChange(LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli())
                             clearDtCache()
                             playerConnection?.service?.initQueue()
+                            Log.i(MAIN_TAG, "Local media and downloads scan completed")
                         } else if (perms == PackageManager.PERMISSION_DENIED) {
                             // Request the permission using the permission launcher
                             permissionLauncher.launch(MEDIA_PERMISSION_LEVEL)
+                            Log.w(MAIN_TAG, "Not enough permission to perform local media scan")
                         }
+                    } else if (localLibEnable) {
+                        Log.w(MAIN_TAG, "Cannot perform local media scan, scanner is in use")
+                    }
+
+                    Log.i(MAIN_TAG, "Local media and downloads auto scan complete")
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = this@MainActivity.getString(R.string.scanner_auto_end),
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                        )
                     }
                 }
 
+                // update checker
                 coroutineScope.launch(Dispatchers.IO) {
                     if (!ENABLE_UPDATE_CHECKER) return@launch
                     if (compareVersion(lastVer, BuildConfig.VERSION_NAME) <= 0) {
