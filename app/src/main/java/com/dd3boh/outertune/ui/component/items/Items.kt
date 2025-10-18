@@ -92,6 +92,7 @@ import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.component.PlayingIndicator
 import com.dd3boh.outertune.ui.component.PlayingIndicatorBox
 import com.dd3boh.outertune.utils.LocalArtworkPath
+import com.dd3boh.outertune.utils.getDownloadState
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.reportException
@@ -106,6 +107,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
 const val ActiveBoxAlpha = 0.6f
@@ -399,7 +401,7 @@ fun YouTubeListItem(
         }
         if (item is SongItem) {
             val downloads by LocalDownloadUtil.current.downloads.collectAsState()
-            Icon.Download(downloads[item.id]?.state)
+            Icon.Download(downloads[item.id])
         }
     },
     isActive: Boolean = false,
@@ -465,7 +467,7 @@ fun YouTubeGridItem(
         }
         if (item is SongItem) {
             val downloads by LocalDownloadUtil.current.downloads.collectAsState()
-            Icon.Download(downloads[item.id]?.state)
+            Icon.Download(downloads[item.id])
         }
     },
     thumbnailRatio: Float = if (item is SongItem) 16f / 9 else 1f,
@@ -789,6 +791,29 @@ object Icon {
 
     @Composable
     fun Download(state: Int?) {
+        when (state) {
+            STATE_COMPLETED -> Icon(
+                imageVector = Icons.Rounded.OfflinePin,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(18.dp)
+                    .padding(end = 2.dp)
+            )
+
+            STATE_QUEUED, STATE_DOWNLOADING -> CircularProgressIndicator(
+                strokeWidth = 2.dp,
+                modifier = Modifier
+                    .size(16.dp)
+                    .padding(end = 2.dp)
+            )
+
+            else -> {}
+        }
+    }
+
+    @Composable
+    fun Download(localDateTime: LocalDateTime?) {
+        val state = getDownloadState(localDateTime)
         when (state) {
             STATE_COMPLETED -> Icon(
                 imageVector = Icons.Rounded.OfflinePin,

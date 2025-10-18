@@ -111,6 +111,7 @@ import com.dd3boh.outertune.ui.menu.YouTubeAlbumMenu
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.ui.utils.getNSongsString
 import com.dd3boh.outertune.utils.LocalArtworkPath
+import com.dd3boh.outertune.utils.getDownloadState
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.viewmodels.AlbumViewModel
@@ -169,18 +170,7 @@ fun AlbumScreen(
         val songs = albumWithSongs?.songs?.filterNot { it.song.isLocal }?.map { it.id }
         if (songs.isNullOrEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
-            val remaining = songs.filterNot { downloads[it]?.state == Download.STATE_COMPLETED }
-            downloadState =
-                if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s == it.key } }.isEmpty())
-                    Download.STATE_COMPLETED
-                else if (songs.all {
-                        downloads[it]?.state == Download.STATE_QUEUED
-                                || downloads[it]?.state == Download.STATE_DOWNLOADING
-                                || downloads[it]?.state == Download.STATE_COMPLETED
-                    })
-                    Download.STATE_DOWNLOADING
-                else
-                    Download.STATE_STOPPED
+            downloadState = getDownloadState(songs.map { downloads[it] })
         }
     }
 

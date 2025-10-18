@@ -35,9 +35,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
-import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
-import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.media3.exoplayer.offline.Download.STATE_STOPPED
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
@@ -56,6 +53,7 @@ import com.dd3boh.outertune.ui.component.items.AlbumListItem
 import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
 import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
 import com.dd3boh.outertune.ui.dialog.ArtistDialog
+import com.dd3boh.outertune.utils.getDownloadState
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -104,18 +102,7 @@ fun AlbumMenu(
         val songs = songs.filterNot { it.song.isLocal }
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
-            val remaining = songs.filterNot { downloads[it.id]?.state == STATE_COMPLETED }
-            downloadState =
-                if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s.id == it.key } }.isEmpty())
-                    STATE_COMPLETED
-                else if (songs.all {
-                        downloads[it.id]?.state == STATE_QUEUED
-                                || downloads[it.id]?.state == STATE_DOWNLOADING
-                                || downloads[it.id]?.state == STATE_COMPLETED
-                    })
-                    STATE_DOWNLOADING
-                else
-                    STATE_STOPPED
+            downloadState = getDownloadState(songs.map { downloads[it.id] })
         }
     }
 

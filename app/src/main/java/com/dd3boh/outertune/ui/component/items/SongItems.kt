@@ -123,15 +123,9 @@ fun SongListItem(
                 } else if (showInLibraryIcon && song.song.inLibrary != null) {
                     Icon.Library()
                 }
-                if (showDownloadIcon) {
-                    val downloadUtil = LocalDownloadUtil.current
-                    if (downloadUtil.getCustomDownload(song.id)) {
-                        Icon.Download(Download.STATE_COMPLETED)
-                    } else {
-                        val download by downloadUtil.getDownload(song.id)
-                            .collectAsState(initial = null)
-                        Icon.Download(download?.state)
-                    }
+                if (showDownloadIcon && !song.song.isLocal) {
+                    val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
+                    Icon.Download(download)
                 }
             },
             thumbnailContent = {
@@ -343,24 +337,7 @@ fun SongGridItem(
         }
         if (showDownloadIcon) {
             val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
-            when (download?.state) {
-                Download.STATE_COMPLETED -> Icon(
-                    imageVector = Icons.Rounded.OfflinePin,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(18.dp)
-                        .padding(end = 2.dp)
-                )
-
-                Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> CircularProgressIndicator(
-                    strokeWidth = 2.dp,
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(end = 2.dp)
-                )
-
-                else -> {}
-            }
+            Icon.Download(download)
         }
     },
     isActive: Boolean = false,

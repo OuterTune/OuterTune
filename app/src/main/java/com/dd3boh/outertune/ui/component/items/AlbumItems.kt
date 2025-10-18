@@ -24,10 +24,12 @@ import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.models.toMediaMetadata
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.utils.getNSongsString
+import com.dd3boh.outertune.utils.getDownloadState
 import com.dd3boh.outertune.utils.joinByBullet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.ZoneOffset
 
 @Composable
 fun AlbumListItem(
@@ -55,18 +57,7 @@ fun AlbumListItem(
             val songs = songs.filterNot { it.song.isLocal }
             if (songs.isEmpty()) return@LaunchedEffect
             downloadUtil.downloads.collect { downloads ->
-                downloadState = when {
-                    songs.all { s -> downloads[s.id]?.state == Download.STATE_COMPLETED || downloadUtil.customDownloads.value.any { s.id == it.key } } -> Download.STATE_COMPLETED
-                    songs.all {
-                        downloads[it.id]?.state in listOf(
-                            Download.STATE_QUEUED,
-                            Download.STATE_DOWNLOADING,
-                            Download.STATE_COMPLETED
-                        )
-                    } -> Download.STATE_DOWNLOADING
-
-                    else -> Download.STATE_STOPPED
-                }
+                downloadState = getDownloadState(songs.map { downloads[it.id] })
             }
         }
 
@@ -129,18 +120,7 @@ fun AlbumGridItem(
             val songs = songs.filterNot { it.song.isLocal }
             if (songs.isEmpty()) return@LaunchedEffect
             downloadUtil.downloads.collect { downloads ->
-                downloadState = when {
-                    songs.all { downloads[it.id]?.state == Download.STATE_COMPLETED } -> Download.STATE_COMPLETED
-                    songs.all {
-                        downloads[it.id]?.state in listOf(
-                            Download.STATE_QUEUED,
-                            Download.STATE_DOWNLOADING,
-                            Download.STATE_COMPLETED
-                        )
-                    } -> Download.STATE_DOWNLOADING
-
-                    else -> Download.STATE_STOPPED
-                }
+                downloadState = getDownloadState(songs.map { downloads[it.id] })
             }
         }
 

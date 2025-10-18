@@ -189,7 +189,7 @@ fun YouTubeSongMenu(
             showChoosePlaylistDialog = true
         }
         DownloadGridMenu(
-            state = if (downloadUtil.getCustomDownload(song.id)) STATE_COMPLETED else download?.state,
+            localDateTime = download,
             onDownload = {
                 database.transaction {
                     insert(song.toMediaMetadata())

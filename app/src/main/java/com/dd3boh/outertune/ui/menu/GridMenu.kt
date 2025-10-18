@@ -46,7 +46,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.utils.getDownloadState
 import com.dd3boh.outertune.utils.makeTimeString
+import java.time.LocalDateTime
 
 val GridMenuItemHeight = 96.dp
 
@@ -148,6 +150,44 @@ fun LazyGridScope.DownloadGridMenu(
     onRemoveDownload: () -> Unit,
     onDownload: () -> Unit,
 ) {
+    when (state) {
+        Download.STATE_COMPLETED -> {
+            GridMenuItem(
+                icon = Icons.Rounded.OfflinePin,
+                title = R.string.remove_download,
+                onClick = onRemoveDownload
+            )
+        }
+
+        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+            GridMenuItem(
+                icon = {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                },
+                title = R.string.downloading,
+                onClick = onRemoveDownload
+            )
+        }
+
+        else -> {
+            GridMenuItem(
+                icon = Icons.Rounded.Download,
+                title = R.string.action_download,
+                onClick = onDownload
+            )
+        }
+    }
+}
+
+fun LazyGridScope.DownloadGridMenu(
+    localDateTime: LocalDateTime?,
+    onRemoveDownload: () -> Unit,
+    onDownload: () -> Unit,
+) {
+    val state = getDownloadState(localDateTime)
     when (state) {
         Download.STATE_COMPLETED -> {
             GridMenuItem(

@@ -247,7 +247,7 @@ fun SongMenu(
 
         if (!song.song.isLocal)
             DownloadGridMenu(
-                state = if (downloadUtil.getCustomDownload(song.id)) STATE_COMPLETED else download?.state,
+                localDateTime = download,
                 onDownload = {
                     downloadUtil.download(song.toMediaMetadata())
                 },
