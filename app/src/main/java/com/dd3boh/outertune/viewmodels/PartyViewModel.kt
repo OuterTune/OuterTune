@@ -685,6 +685,14 @@ class PartyViewModel @Inject constructor(
                 if (party != null) {
                     try {
                         syncPartyStateToPlayer(party, connection)
+                        // Provide server-projected master progress to MusicService for prefetching
+                        try {
+                            val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+                            val age = if (party.lastUpdated > 0L && serverNow > party.lastUpdated) (serverNow - party.lastUpdated) else 0L
+                            val masterProgressNow = if (party.isPlaying) (party.progressMs + age) else party.progressMs
+                            val durationMs = party.currentTrack?.durationMs ?: 0L
+                            connection.service.setPartyPrefetchHint(masterProgressNow, party.isPlaying, durationMs)
+                        } catch (_: Exception) { }
                     } catch (e: Exception) {
                         Log.e("PartyVM", "Error syncing state", e)
                     }

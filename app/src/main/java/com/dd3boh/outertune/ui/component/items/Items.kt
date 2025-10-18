@@ -78,6 +78,8 @@ import coil3.imageLoader
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
+import com.dd3boh.outertune.ui.tv.rememberIsTv
+import com.dd3boh.outertune.ui.tv.tvFocusable
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.GridThumbnailHeight
 import com.dd3boh.outertune.constants.ListItemHeight
@@ -122,6 +124,7 @@ inline fun ListItem(
     isActive: Boolean = false,
     isAvailable: Boolean = true,
 ) {
+    val isTv = rememberIsTv()
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = if (isActive) {
@@ -129,6 +132,7 @@ inline fun ListItem(
                 .height(ListItemHeight)
                 .padding(horizontal = 8.dp)
                 .clip(RoundedCornerShape(8.dp))
+                .tvFocusable(isTv)
                 .background(
                     color = // selected active
                         if (isSelected == true) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
@@ -139,11 +143,13 @@ inline fun ListItem(
                 .height(ListItemHeight)
                 .padding(horizontal = 8.dp)
                 .clip(RoundedCornerShape(8.dp))
+                .tvFocusable(isTv)
                 .background(color = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.4f))
         } else {
             modifier // default
                 .height(ListItemHeight)
                 .padding(horizontal = 8.dp)
+                .tvFocusable(isTv)
         }
     ) {
         Box(
@@ -246,15 +252,18 @@ fun GridItem(
     thumbnailRatio: Float = 1f,
     fillMaxWidth: Boolean = false,
 ) {
+    val isTv = rememberIsTv()
     Column(
         modifier = if (fillMaxWidth) {
             modifier
                 .padding(12.dp)
                 .fillMaxWidth()
+                .tvFocusable(isTv)
         } else {
             modifier
                 .padding(12.dp)
                 .width(GridThumbnailHeight * thumbnailRatio)
+                .tvFocusable(isTv)
         }
     ) {
         BoxWithConstraints(

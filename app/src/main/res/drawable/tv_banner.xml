@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple placeholder TV banner; replace with branded asset later -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#121212" />
+        </shape>
+    </item>
+    <item android:gravity="center">
+        <shape android:shape="rectangle">
+            <size android:width="960dp" android:height="540dp" />
+            <solid android:color="#1E88E5" />
+        </shape>
+    </item>
+</layer-list>

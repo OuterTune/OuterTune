@@ -42,6 +42,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
+import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -144,6 +145,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Dispatcher
 import java.io.File
+import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -388,6 +390,11 @@ class MusicService : MediaLibraryService(),
                         }
                     }
                 }
+            }
+
+            // Start sync-aware prefetch worker (runs only during OuterConnect sessions)
+            offloadScope.launch {
+                prefetchWorker()
             }
         }
     }
@@ -1211,6 +1218,161 @@ class MusicService : MediaLibraryService(),
         } finally {
             prePartySaved = false
             prePartyPlayWhenReady = false
+        }
+    }
+
+    // ===== Sync-aware prefetch (OuterConnect) =====
+    private data class PrefetchHint(val progressNowMs: Long, val isPlaying: Boolean, val durationMs: Long)
+    // Latest server-projected progress (without client lag), set by PartyViewModel
+    private val ocPrefetchHint = MutableStateFlow<PrefetchHint?>(null)
+    // Simple in-memory cache for resolved stream URLs to avoid re-fetching too often
+    private val prefetchUrlCache = HashMap<String, Pair<String, Long>>()
+
+    /** ViewModel calls this with the authoritative (server) progress projected to now. */
+    fun setPartyPrefetchHint(progressNowMs: Long, isPlaying: Boolean, durationMs: Long) {
+        if (!ocActive) return
+        ocPrefetchHint.value = PrefetchHint(progressNowMs, isPlaying, durationMs)
+    }
+
+    /** Background worker that pre-caches the next ~30s of the current track near master progress. */
+    private suspend fun prefetchWorker() {
+        while (!isServiceDestroyed) {
+            try {
+                if (!ocActive) {
+                    delay(1000)
+                    continue
+                }
+                val hint = ocPrefetchHint.value
+                val mediaItem = player.currentMediaItem
+                val mediaId = mediaItem?.mediaId
+                if (hint == null || mediaId.isNullOrEmpty()) {
+                    delay(500)
+                    continue
+                }
+
+                // Resolve stream URL (reuse cached URL if still valid)
+                val streamUrl = getOrFetchStreamUrl(mediaId) ?: run {
+                    delay(500)
+                    continue
+                }
+
+                // Estimate bytes per ms from known bitrate or contentLength/duration
+                val format = database.format(mediaId).first()
+                // Ensure duration is always in ms and of type Long
+                val durationMs: Long = when {
+                    hint.durationMs > 0L -> hint.durationMs
+                    mediaItem.metadata?.duration != null -> mediaItem.metadata!!.duration!!.toLong() * 1000L
+                    else -> -1L
+                }
+                // Normalize to Long to avoid generic Number operations
+                val bitrate: Long = format?.bitrate?.toLong() ?: -1L
+                val contentLength: Long = when (val cl = format?.contentLength) {
+                    null -> -1L
+                    is Long -> cl
+                    else -> kotlin.runCatching { cl.toString().toLong() }.getOrElse { -1L }
+                }
+
+                val bytesPerMs: Double = when {
+                    bitrate > 0L -> bitrate.toDouble() / 8.0 / 1000.0
+                    durationMs > 0L && contentLength > 0L -> contentLength.toDouble() / durationMs.toDouble()
+                    else -> { delay(500); continue }
+                }
+
+                // Define the high-priority window: [masterNow, masterNow + 30s]
+                val startMs = hint.progressNowMs.coerceIn(0L, (durationMs - 1L).coerceAtLeast(0L))
+                val endMs = kotlin.math.min((startMs + 30_000L), (durationMs - 1L).coerceAtLeast(0L))
+                if (endMs <= startMs) { delay(500); continue }
+
+                val startByte = (startMs * bytesPerMs).toLong()
+                val endByte = (endMs * bytesPerMs).toLong()
+
+                // Prefetch up to 2 MiB per tick to avoid monopolizing bandwidth
+                var budgetBytes: Long = 2L * 1024 * 1024
+                var offset: Long = startByte
+
+                while (offset < endByte && budgetBytes > 0) {
+                    val remaining: Long = endByte - offset
+                    val segLen: Long = kotlin.math.min(CHUNK_LENGTH, remaining).coerceAtMost(budgetBytes)
+                    // Skip if already cached in playerCache
+                    if (!playerCache.isCached(mediaId, offset, segLen)) {
+                        // Read into cache via a CacheDataSource
+                        try {
+                            prefetchSegmentToPlayerCache(streamUrl, mediaId, offset, segLen)
+                        } catch (_: IOException) {
+                            break
+                        } catch (_: Exception) {
+                            break
+                        }
+                        budgetBytes -= segLen
+                    }
+                    offset += segLen
+                }
+            } catch (e: Exception) {
+                // Swallow and retry later; do not crash service
+                Log.d(TAG, "prefetchWorker: ${e.message}")
+            } finally {
+                delay(1000)
+            }
+        }
+    }
+
+    private fun prefetchSegmentToPlayerCache(streamUrl: String, mediaId: String, position: Long, length: Long) {
+        val upstream = DefaultDataSource.Factory(
+            this,
+            OkHttpDataSource.Factory(
+                OkHttpClient.Builder()
+                    .dispatcher(Dispatcher().apply {
+                        maxRequests = 64
+                        maxRequestsPerHost = 16
+                    })
+                    .proxy(YouTube.proxy)
+                    .build()
+            )
+        )
+        val cacheDs = CacheDataSource.Factory()
+            .setCache(playerCache)
+            .setUpstreamDataSourceFactory(upstream)
+            .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
+            .createDataSource()
+
+        val spec = DataSpec.Builder()
+            .setUri(streamUrl)
+            .setKey(mediaId)
+            .setPosition(position)
+            .setLength(length)
+            .build()
+
+        var opened = false
+        try {
+            cacheDs.open(spec)
+            opened = true
+            val buffer = ByteArray(32 * 1024)
+            while (true) {
+                val r = cacheDs.read(buffer, 0, buffer.size)
+                if (r <= 0) break
+            }
+        } finally {
+            if (opened) try { cacheDs.close() } catch (_: Exception) {}
+        }
+    }
+
+    private fun getOrFetchStreamUrl(mediaId: String): String? {
+        // Use cached URL if valid
+        prefetchUrlCache[mediaId]?.let { (url, expiry) ->
+            if (expiry > System.currentTimeMillis()) return url
+        }
+        return runBlocking(Dispatchers.IO) {
+            try {
+                val audioQuality by enumPreference(this@MusicService, AudioQualityKey, AudioQuality.AUTO)
+                val playbackData = YTPlayerUtils.playerResponseForPlayback(
+                    mediaId,
+                    audioQuality = audioQuality,
+                    connectivityManager = connectivityManager,
+                ).getOrNull() ?: return@runBlocking null
+                val streamUrl = playbackData.streamUrl
+                prefetchUrlCache[mediaId] = streamUrl to (System.currentTimeMillis() + playbackData.streamExpiresInSeconds * 1000L)
+                streamUrl
+            } catch (_: Exception) { null }
         }
     }
 }

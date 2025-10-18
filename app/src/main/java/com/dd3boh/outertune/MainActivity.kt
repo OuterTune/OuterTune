@@ -282,6 +282,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.inject.Inject
+import com.dd3boh.outertune.ui.tv.rememberIsTv
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -537,6 +538,8 @@ class MainActivity : ComponentActivity() {
                 pureBlack = pureBlack,
                 themeColor = themeColor
             ) {
+                // Detect TV mode once and expose via CompositionLocal
+                val isTv = rememberIsTv()
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxSize()
@@ -547,7 +550,8 @@ class MainActivity : ComponentActivity() {
                     val tabMode = this@MainActivity.tabMode()
                     val useRail by remember {
                         derivedStateOf {
-                            windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED && !tabMode
+                            // On TV, prefer rail regardless of window size
+                            isTv || (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED && !tabMode)
                         }
                     }
 
@@ -708,7 +712,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     val shouldShowNavigationBar = remember(navBackStackEntry, searchActive, shouldHideNavAndPlayer) {
-                        (!useRail || tabMode)
+                        (!useRail || tabMode) && !isTv
                                 && !searchActive
                                 && !shouldHideNavAndPlayer
                                 && navBackStackEntry?.destination?.route?.startsWith("settings") != true
@@ -1366,10 +1370,10 @@ class MainActivity : ComponentActivity() {
                             }
 
                             @Composable
-                            fun navRail(alignment: Alignment = Alignment.BottomStart) {
+                            fun navRail(alignment: Alignment = Alignment.CenterStart) {
                                 if (useRail && shouldShowNavigationRail) {
                                     Column(
-                                        verticalArrangement = Arrangement.Bottom,
+                                        verticalArrangement = if (isTv) Arrangement.Center else Arrangement.Bottom,
                                         modifier = Modifier
                                             .align(alignment)
                                             .fillMaxHeight()
@@ -1384,7 +1388,7 @@ class MainActivity : ComponentActivity() {
                                         NavigationRail(
                                             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
                                             header = {
-                                                Spacer(Modifier.height(8.dp))
+                                                Spacer(Modifier.height(if (isTv) 24.dp else 8.dp))
                                                 Image(
                                                     modifier = Modifier
 
@@ -1409,7 +1413,7 @@ class MainActivity : ComponentActivity() {
                                                         )
                                                     },
                                                     label = {
-                                                        if (!slimNav) {
+                                                        if (!slimNav && !isTv) {
                                                             Text(
                                                                 text = stringResource(screen.titleId),
                                                                 maxLines = 1,
@@ -1545,7 +1549,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             // tab
-                            if (tabMode) {
+                            if (tabMode && !isTv) {
                                 Row {
                                     if (oobeStatus >= OOBE_VERSION) {
                                         PlayerScreen(
@@ -1565,17 +1569,17 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             } else {
-                                // phone
+                                // phone / TV
                                 navHost()
                                 searchBar()
                                 navRail()
-                                if (oobeStatus >= OOBE_VERSION) {
+                                if (oobeStatus >= OOBE_VERSION && !isTv) {
                                     BottomSheetPlayer(
                                         state = playerBottomSheetState,
                                         navController = navController
                                     )
                                 }
-                                navbar()
+                                if (!isTv) navbar()
                                 bottomSheetMenu()
                             }
 
