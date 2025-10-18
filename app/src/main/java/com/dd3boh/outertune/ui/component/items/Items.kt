@@ -210,16 +210,10 @@ fun ListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
     isSelected: Boolean? = false,
     isActive: Boolean = false,
-    isLocalSong: Boolean? = null,
 ) = ListItem(
     title = title,
     subtitle = {
         badges()
-
-        // local song indicator
-        if (isLocalSong == true) {
-            Icon.FolderCopy()
-        }
 
         if (!subtitle.isNullOrEmpty()) {
             Text(
@@ -329,6 +323,9 @@ fun MediaMetadataListItem(
     isActive: Boolean = false,
     isSelected: Boolean? = false,
     isPlaying: Boolean = false,
+    showLikedIcon: Boolean = true,
+    showInLibraryIcon: Boolean = true,
+    showDownloadIcon: Boolean = true,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) = ListItem(
     title = mediaMetadata.title,
@@ -336,6 +333,20 @@ fun MediaMetadataListItem(
         mediaMetadata.artists.joinToString { it.name },
         makeTimeString(mediaMetadata.duration * 1000L)
     ),
+    badges = {
+        if (showLikedIcon && mediaMetadata.liked) {
+            Icon.Favorite()
+        }
+        if (showInLibraryIcon && mediaMetadata.isLocal) {
+            Icon.FolderCopy()
+        } else if (showInLibraryIcon && mediaMetadata.inLibrary != null) {
+            Icon.Library()
+        }
+        if (showDownloadIcon && !mediaMetadata.isLocal) {
+            val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
+            Icon.Download(download)
+        }
+    },
     thumbnailContent = {
         ItemThumbnail(
             thumbnailUrl = if (mediaMetadata.isLocal) mediaMetadata.localPath else mediaMetadata.thumbnailUrl,
@@ -349,7 +360,6 @@ fun MediaMetadataListItem(
     modifier = modifier,
     isSelected = isSelected,
     isActive = isActive,
-    isLocalSong = mediaMetadata.isLocal
 )
 
 @Composable
