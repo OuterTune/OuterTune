@@ -10,6 +10,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
@@ -108,11 +109,20 @@ class MediaLibrarySessionCallback @Inject constructor(
         }
         Log.i(TAG, "Resumption queue found. Loading queue: size = ${q.queue.size}, queue name = ${q.title}, " +
                 "queuePosShuffled = ${q.getQueuePosShuffled()}, lastSongPos = ${q.lastSongPos},")
-        return@future MediaItemsWithStartPosition(
-            q.queue.map { it.toMediaItem() },
-            q.getQueuePosShuffled(),
-            q.lastSongPos
-        )
+
+       if (isForPlayback) {
+           return@future MediaItemsWithStartPosition(
+               q.getCurrentQueueShuffled().map { it.toMediaItem(isBrowsable = true) },
+               q.getQueuePosShuffled(),
+               q.lastSongPos
+           )
+       } else {
+           return@future MediaItemsWithStartPosition(
+               listOf(q.getCurrentSong()!!.toMediaItem(isBrowsable = true)),
+               q.getQueuePosShuffled(),
+               q.lastSongPos
+           )
+       }
     }
 
     override fun onGetLibraryRoot(
@@ -458,8 +468,24 @@ class MediaLibrarySessionCallback @Inject constructor(
                     .setArtworkUri(if (song.isLocal) song.localPath?.toUri() else song.thumbnailUrl?.toUri())
                     .setIsPlayable(isPlayable)
                     .setIsBrowsable(isBrowsable)
-                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                    .setMediaType(MEDIA_TYPE_MUSIC)
                     .build()
             )
             .build()
+
+    private fun com.dd3boh.outertune.models.MediaMetadata.toMediaItem(isPlayable: Boolean = true, isBrowsable: Boolean = false) = MediaItem.Builder()
+        .setMediaId(id)
+        .setMediaMetadata(
+           MediaMetadata.Builder()
+                .setTitle(title)
+                .setSubtitle(artists.joinToString { it.name })
+                .setArtist(artists.joinToString { it.name })
+                .setArtworkUri(if (isLocal) localPath?.toUri() else thumbnailUrl?.toUri())
+                .setAlbumTitle(album?.title)
+                .setIsPlayable(isPlayable)
+                .setIsBrowsable(isBrowsable)
+                .setMediaType(MEDIA_TYPE_MUSIC)
+                .build()
+        )
+        .build()
 }
