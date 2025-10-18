@@ -17,8 +17,6 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <!-- Android TV compatibility -->
-    <uses-feature android:name="android.software.leanback" android:required="false" />
 
     <queries>
         <intent>
@@ -33,8 +31,7 @@
         android:appCategory="audio"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:banner="@drawable/tv_banner"
+    android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OuterTune"
         android:enableOnBackInvokedCallback="true"
@@ -59,11 +56,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
-            <!-- Android TV launcher entry -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
 
             <!-- Youtube filter -->
             <intent-filter android:autoVerify="true">
