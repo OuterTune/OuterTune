@@ -580,10 +580,11 @@ class MusicService : MediaLibraryService(),
 
     fun deInitQueue() {
         Log.i(TAG, "+deInitQueue()")
+        val pos = player.currentPosition
         queueBoard.shutdown()
         if (dataStore.get(PersistentQueueKey, true)) {
             runBlocking(Dispatchers.IO) {
-                saveQueueToDisk()
+                saveQueueToDisk(pos)
             }
         }
         // do not replace the object. Can lead to entire queue being deleted even though it is supposed to be saved already
@@ -591,10 +592,9 @@ class MusicService : MediaLibraryService(),
         Log.i(TAG, "-deInitQueue()")
     }
 
-    suspend fun saveQueueToDisk() {
-        val pos = player.currentPosition
+    suspend fun saveQueueToDisk(currentPosition: Long) {
         val data = queueBoard.getAllQueues()
-        data.last().lastSongPos = pos
+        data.last().lastSongPos = currentPosition
         database.updateAllQueues(data)
     }
 
