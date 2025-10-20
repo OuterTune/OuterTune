@@ -9,7 +9,6 @@
 package com.dd3boh.outertune.utils.scanners
 
 import android.content.Context
-import android.media.MediaPlayer
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -26,6 +25,7 @@ import com.dd3boh.outertune.constants.ScannerImpl
 import com.dd3boh.outertune.constants.ScannerImplKey
 import com.dd3boh.outertune.constants.ScannerM3uMatchCriteria
 import com.dd3boh.outertune.constants.ScannerMatchCriteria
+import com.dd3boh.outertune.constants.scannerWhitelistExts
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.AlbumEntity
 import com.dd3boh.outertune.db.entities.Artist
@@ -96,12 +96,6 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         val path = file.absolutePath
         try {
             if (!file.exists()) throw IOException("File not found")
-
-            // test if system can play
-            val testPlayer = MediaPlayer()
-            testPlayer.setDataSource(path)
-            testPlayer.prepare()
-            testPlayer.release()
 
             // decide which scanner to use
             val ffmpegData =
@@ -943,10 +937,19 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                     if (file != null) {
                         val songsHere = ArrayList<DocumentFile>()
                         scanDfRecursive(file, songsHere) {
-                            // we can expect lrc is not a song
-                            // TODO: allowlist file ext, allow user to force scan for all files
-                            val ext = it.substringAfterLast('.')
-                            !(ext == "lrc" || ext == "ttml")
+                            // Allow: audio mime, or certain audio exts
+                            // Disallow: x-mpegurl (m3u)
+                            val mime = it.type ?: return@scanDfRecursive false
+                            if (!mime.startsWith("audio")) {
+                                if (it.name?.substringAfterLast('.') !in scannerWhitelistExts) {
+                                    return@scanDfRecursive false
+                                }
+                            }
+                            if (mime == "audio/x-mpegurl") {
+                                return@scanDfRecursive false
+                            }
+
+                            return@scanDfRecursive true
                         }
 
                         allSongs.addAll(songsHere.fastFilter { incl ->
@@ -968,7 +971,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             dir: DocumentFile,
             result: ArrayList<DocumentFile>,
             scanHidden: Boolean = false,
-            validator: ((String) -> Boolean)? = null
+            validator: ((DocumentFile) -> Boolean)? = null
         ): DocumentFile? {
             val files = dir.listFiles()
             for (file in files) {
@@ -977,9 +980,8 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                     // look into subdirs
                     scanDfRecursive(file, result, scanHidden, validator)
                 } else {
-                    val name = file.name ?: continue
                     // add if file matches
-                    if (validator == null || validator(name)) {
+                    if (validator == null || validator(file)) {
                         result.add(file)
                         scannerProgressProbe++
                         if (scannerProgressProbe % 20 == 0) {

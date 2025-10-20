@@ -59,8 +59,19 @@ const val SYNC_CD = 60000 * 30
 
 const val MAX_PLAYER_CONSECUTIVE_ERR = 3
 
+/**
+ * Misc weird constants
+ */
+
 val DEFAULT_PLAYER_BACKGROUND =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PlayerBackgroundStyle.BLUR else PlayerBackgroundStyle.GRADIENT
+
+val scannerWhitelistExts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    listOf("dsf", "dff", "xm", "mod", "tta", "ape", "wv")
+} else {
+    listOf("opus", "dsf", "dff", "xm", "mod", "tta", "ape", "wv")
+}
+
 
 /**
  * Debug

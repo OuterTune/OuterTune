@@ -31,6 +31,7 @@ public class TreeDocumentFileOt extends DocumentFile {
     private static final String TAG = "DocumentFile";
     private Context mContext;
     private Uri mUri;
+    private String mMime;
     private String mName;
     private String mId;
     public TreeDocumentFileOt(@Nullable DocumentFile parent, Context context, Uri uri) {
@@ -38,10 +39,11 @@ public class TreeDocumentFileOt extends DocumentFile {
         mContext = context;
         mUri = uri;
     }
-    public TreeDocumentFileOt(@Nullable DocumentFile parent, Context context, Uri uri, String name) {
+    public TreeDocumentFileOt(@Nullable DocumentFile parent, Context context, Uri uri, String name, String mime) {
         super(parent);
         mContext = context;
         mUri = uri;
+        mMime = mime;
         mName = name;
         int startIndex = name.lastIndexOf("[");
         int endIndex = name.lastIndexOf("]");
@@ -87,7 +89,11 @@ public class TreeDocumentFileOt extends DocumentFile {
     }
     @Override
     public @Nullable String getType() {
-        return DocumentsContractApi19Ot.getType(mContext, mUri);
+        if (mMime != null) {
+            return mMime;
+        } else {
+            return DocumentsContractApi19Ot.getType(mContext, mUri);
+        }
     }
     @Override
     public boolean isDirectory() {
@@ -135,20 +141,24 @@ public class TreeDocumentFileOt extends DocumentFile {
         final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(mUri,
                 DocumentsContract.getDocumentId(mUri));
         final ArrayList<Uri> results = new ArrayList<>();
+        final ArrayList<String> resultMimes = new ArrayList<>();
         final ArrayList<String> resultNames = new ArrayList<>();
         Cursor c = null;
         try {
             c = resolver.query(childrenUri, new String[] {
                     DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                    DocumentsContract.Document.COLUMN_DISPLAY_NAME
+                    DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                    DocumentsContract.Document.COLUMN_MIME_TYPE
             }, null, null, null);
             while (c.moveToNext()) {
                 final String documentId = c.getString(0);
                 final String documentName = c.getString(1);
+                final String documentMime = c.getString(2);
                 final Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(mUri,
                         documentId);
-                resultNames.add(documentName);
                 results.add(documentUri);
+                resultMimes.add(documentMime);
+                resultNames.add(documentName);
             }
         } catch (Exception e) {
             Log.w(TAG, "Failed query: " + e);
@@ -156,10 +166,11 @@ public class TreeDocumentFileOt extends DocumentFile {
             closeQuietly(c);
         }
         final Uri[] result = results.toArray(new Uri[0]);
+        final String[] mime = resultMimes.toArray(new String[0]);
         final String[] name = resultNames.toArray(new String[0]);
         final DocumentFile[] resultFiles = new DocumentFile[result.length];
         for (int i = 0; i < result.length; i++) {
-            resultFiles[i] = new TreeDocumentFileOt(this, mContext, result[i], name[i]);
+            resultFiles[i] = new TreeDocumentFileOt(this, mContext, result[i], name[i], mime[i]);
         }
         return resultFiles;
     }
