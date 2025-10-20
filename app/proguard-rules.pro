@@ -85,3 +85,7 @@
 ## OuterTune required modules
 -keep class wah.mikooomich.ffMetadataEx.** { *; }
 -keep class com.kyant.taglib.** { *; }
+
+## Quality of life for logs
+-keepclasseswithmembernames class com.dd3boh.outertune.playback.**
+-keepclasseswithmembernames class com.dd3boh.outertune.utils.scanners.**
