@@ -101,7 +101,7 @@ class MediaLibrarySessionCallback @Inject constructor(
         isForPlayback: Boolean,
     ): ListenableFuture<MediaItemsWithStartPosition> = scope.future(Dispatchers.IO) {
         // TODO: when this is stable, change to debug
-        Log.i(TAG, "onPlaybackResumption() called")
+        Log.i(TAG, "onPlaybackResumption() called. isForPlayback = $isForPlayback")
         val q = database.getResumptionQueue()
         if (q == null) {
             Log.w(TAG, "No resumption queue data. Loading empty list")
@@ -112,13 +112,13 @@ class MediaLibrarySessionCallback @Inject constructor(
 
        if (isForPlayback) {
            return@future MediaItemsWithStartPosition(
-               q.getCurrentQueueShuffled().map { it.toMediaItem(isBrowsable = true) },
+               q.getCurrentQueueShuffled().map { it.toMediaItem() },
                q.getQueuePosShuffled(),
                q.lastSongPos
            )
        } else {
            return@future MediaItemsWithStartPosition(
-               listOf(q.getCurrentSong()!!.toMediaItem(isBrowsable = true)),
+               listOf(q.getCurrentSong()!!.toMediaItem()),
                q.getQueuePosShuffled(),
                q.lastSongPos
            )
@@ -475,6 +475,9 @@ class MediaLibrarySessionCallback @Inject constructor(
 
     private fun com.dd3boh.outertune.models.MediaMetadata.toMediaItem(isPlayable: Boolean = true, isBrowsable: Boolean = false) = MediaItem.Builder()
         .setMediaId(id)
+        .setUri(id)
+        .setCustomCacheKey(id)
+        .setTag(this)
         .setMediaMetadata(
            MediaMetadata.Builder()
                 .setTitle(title)
