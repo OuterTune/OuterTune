@@ -236,6 +236,8 @@ while also allowing users to translate our app as well. New, specific strings to
 <!-- Scanner parameter settings-->
     <string name="scanner_strict_file_name_title">Strict file names</string>
     <string name="scanner_strict_file_name_description">When enabled, file names will NOT be ignored. Ex. "Song.ogg" will be a different song from "Song.flac". Scanner sensitivity preference will still apply</string>
+    <string name="scanner_strict_file_paths_title">Match file paths instead of metadata</string>
+    <string name="scanner_strict_file_paths_description">Disables all smart matching of metadata. This can cause issues if files are moved in your local storage, but allows for the same song in different folders</string>
     <string name="scanner_sensitivity_title">Configure scanner sensitivity</string>
     <string name="scanner_sensitivity_L0">Take first result provided by YouTube when searching on YouTube is enabled, otherwise match title</string>
     <string name="scanner_sensitivity_L1">Match title</string>

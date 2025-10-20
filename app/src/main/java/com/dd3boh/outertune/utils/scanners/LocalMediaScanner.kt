@@ -18,7 +18,6 @@ import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.datastore.preferences.core.edit
 import androidx.documentfile.provider.DocumentFile
-import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
 import com.dd3boh.outertune.constants.SCANNER_DEBUG
@@ -205,6 +204,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         newSongs: java.util.ArrayList<SongTempData>,
         matchStrength: ScannerMatchCriteria,
         strictFileNames: Boolean,
+        strictFilePaths: Boolean,
         refreshExisting: Boolean = false,
         noDisable: Boolean = false
     ) {
@@ -257,7 +257,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
             // check if this song is known to the library
             val songMatch = querySong.first().filter {
-                return@filter compareSong(it, song.song, matchStrength, strictFileNames)
+                return@filter compareSong(it, song.song, matchStrength, strictFileNames, strictFilePaths)
             }
 
             if (SCANNER_DEBUG) {
@@ -412,6 +412,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         newSongs: List<Uri>,
         matchCriteria: ScannerMatchCriteria,
         strictFileNames: Boolean,
+        strictFilePaths: Boolean,
     ) {
         Log.i(TAG, "------------ SYNC: Starting Quick (additive delta) Library Sync ------------")
         Log.d(TAG, "Entries to process: ${newSongs.size}")
@@ -507,7 +508,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
         if (finalSongs.isNotEmpty()) {
             scannerState.value = 0
-            syncDB(database, finalSongs, matchCriteria, strictFileNames, noDisable = true)
+            syncDB(database, finalSongs, matchCriteria, strictFileNames, strictFilePaths, noDisable = true)
             scannerState.value = 2
         } else {
             Log.i(TAG, "Not syncing, no valid songs found!")
@@ -542,6 +543,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         newSongs: List<Uri>,
         matchCriteria: ScannerMatchCriteria,
         strictFileNames: Boolean,
+        strictFilePaths: Boolean,
     ) {
         Log.i(TAG, "------------ SYNC: Starting FULL Library Sync ------------")
         Log.d(TAG, "Entries to process: ${newSongs.size}")
@@ -622,7 +624,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
              * TODO: Delete all local format entity before scan
              */
             scannerState.value = 0
-            syncDB(database, finalSongs, matchCriteria, strictFileNames, refreshExisting = true)
+            syncDB(database, finalSongs, matchCriteria, strictFileNames, strictFilePaths, refreshExisting = true)
             scannerState.value = 2
         } else {
             Log.i(TAG, "Not syncing, no valid songs found!")
@@ -1102,8 +1104,12 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             a: Song,
             b: Song,
             matchStrength: ScannerMatchCriteria = ScannerMatchCriteria.LEVEL_2,
-            strictFileNames: Boolean = false
+            strictFileNames: Boolean = false,
+            strictFilePaths: Boolean = false,
         ): Boolean {
+            if (strictFilePaths) {
+                return a.song.localPath == b.song.localPath
+            }
             // if match file names
             if (strictFileNames &&
                 (a.song.localPath?.substringAfterLast('/') !=

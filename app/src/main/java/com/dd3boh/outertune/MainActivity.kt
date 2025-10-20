@@ -164,6 +164,7 @@ import com.dd3boh.outertune.constants.PauseSearchHistoryKey
 import com.dd3boh.outertune.constants.PureBlackKey
 import com.dd3boh.outertune.constants.SCANNER_OWNER_LM
 import com.dd3boh.outertune.constants.ScanPathsKey
+import com.dd3boh.outertune.constants.ScannerStrictFilePathsKey
 import com.dd3boh.outertune.constants.ScannerImpl
 import com.dd3boh.outertune.constants.ScannerImplKey
 import com.dd3boh.outertune.constants.ScannerMatchCriteria
@@ -404,11 +405,12 @@ class MainActivity : ComponentActivity() {
                 key = ScannerImplKey,
                 defaultValue = ScannerImpl.TAGLIB
             )
-            val (scanPaths) = rememberPreference(ScanPathsKey, defaultValue = "")
-            val (excludedScanPaths) = rememberPreference(ExcludedScanPathsKey, defaultValue = "")
-            val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
-            val (lookupYtmArtists) = rememberPreference(LookupYtmArtistsKey, defaultValue = false)
-            val (autoScan) = rememberPreference(AutomaticScannerKey, defaultValue = true)
+            val scanPaths by rememberPreference(ScanPathsKey, defaultValue = "")
+            val excludedScanPaths by rememberPreference(ExcludedScanPathsKey, defaultValue = "")
+            val strictExtensions by rememberPreference(ScannerStrictExtKey, defaultValue = false)
+            val strictFilePaths by rememberPreference(ScannerStrictFilePathsKey, defaultValue = false)
+            val lookupYtmArtists by rememberPreference(LookupYtmArtistsKey, defaultValue = false)
+            val autoScan by rememberPreference(AutomaticScannerKey, defaultValue = true)
             val (lastLocalScan, onLastLocalScanChange) = rememberPreference(
                 LastLocalScanKey,
                 LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
@@ -467,7 +469,7 @@ class MainActivity : ComponentActivity() {
                                     this@MainActivity, scannerImpl, SCANNER_OWNER_LM
                                 )
                                 val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
-                                scanner.quickSync(database, uris, scannerSensitivity, strictExtensions)
+                                scanner.quickSync(database, uris, scannerSensitivity, strictExtensions, strictFilePaths)
 
                                 // start artist linking job
                                 if (lookupYtmArtists && scannerState.value <= 0) {

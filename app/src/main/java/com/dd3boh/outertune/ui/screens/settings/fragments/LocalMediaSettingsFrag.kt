@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material.icons.rounded.WarningAmber
@@ -76,6 +77,7 @@ import com.dd3boh.outertune.constants.ScannerImplKey
 import com.dd3boh.outertune.constants.ScannerMatchCriteria
 import com.dd3boh.outertune.constants.ScannerSensitivityKey
 import com.dd3boh.outertune.constants.ScannerStrictExtKey
+import com.dd3boh.outertune.constants.ScannerStrictFilePathsKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.ui.component.EnumListPreference
 import com.dd3boh.outertune.ui.component.PreferenceEntry
@@ -139,6 +141,7 @@ fun ColumnScope.LocalScannerFrag() {
         defaultValue = ScannerImpl.TAGLIB
     )
     val strictExtensions by rememberPreference(ScannerStrictExtKey, defaultValue = false)
+    val strictFilePaths by rememberPreference(ScannerStrictFilePathsKey, defaultValue = false)
     val downloadPath by rememberPreference(DownloadPathKey, "")
     val (scanPaths, onScanPathsChange) = rememberPreference(ScanPathsKey, defaultValue = "")
     val (excludedScanPaths, onExcludedScanPathsChange) = rememberPreference(ExcludedScanPathsKey, defaultValue = "")
@@ -207,7 +210,7 @@ fun ColumnScope.LocalScannerFrag() {
                         try {
                             val scanner = getScanner(context, scannerImpl, SCANNER_OWNER_LM)
                             val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
-                            scanner.fullSync(database, uris, scannerSensitivity, strictExtensions)
+                            scanner.fullSync(database, uris, scannerSensitivity, strictExtensions, strictFilePaths)
 
                             delay(1000)
                             // start artist linking job
@@ -251,7 +254,8 @@ fun ColumnScope.LocalScannerFrag() {
                         try {
                             val scanner = getScanner(context, scannerImpl, SCANNER_OWNER_LM)
                             val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
-                            scanner.quickSync(database, uris, scannerSensitivity, strictExtensions)
+                            scanner.quickSync(database, uris, scannerSensitivity, strictExtensions,
+                                strictFilePaths)
 
                             delay(1000)
                             // start artist linking job
@@ -593,6 +597,7 @@ fun ColumnScope.LocalScannerExtraFrag() {
         defaultValue = ScannerImpl.TAGLIB
     )
     val (strictExtensions, onStrictExtensionsChange) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
+    val (strictFilePaths, onStrictFilePathsChange) = rememberPreference(ScannerStrictFilePathsKey, defaultValue = false)
 
 
     // scanner sensitivity
@@ -607,15 +612,26 @@ fun ColumnScope.LocalScannerExtraFrag() {
                 ScannerMatchCriteria.LEVEL_2 -> stringResource(R.string.scanner_sensitivity_L2)
                 ScannerMatchCriteria.LEVEL_3 -> stringResource(R.string.scanner_sensitivity_L3)
             }
-        }
+        },
+        isEnabled = !strictFilePaths,
     )
     // strict file ext
     SwitchPreference(
         title = { Text(stringResource(R.string.scanner_strict_file_name_title)) },
         description = stringResource(R.string.scanner_strict_file_name_description),
         icon = { Icon(Icons.Rounded.TextFields, null) },
+        isEnabled = !strictFilePaths,
         checked = strictExtensions,
         onCheckedChange = onStrictExtensionsChange
+    )
+    // compare file path only
+    SwitchPreference(
+        title = { Text(stringResource(R.string.scanner_strict_file_paths_title)) },
+        description = stringResource(R.string.scanner_strict_file_paths_description),
+        icon = { Icon(Icons.Rounded.MoreHoriz, null) },
+        isEnabled = !strictFilePaths,
+        checked = strictFilePaths,
+        onCheckedChange = onStrictFilePathsChange,
     )
     // scanner type
     if (ENABLE_FFMETADATAEX) {
