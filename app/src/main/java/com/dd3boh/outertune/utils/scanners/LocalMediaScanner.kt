@@ -64,7 +64,6 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.Locale
-import kotlin.onFailure
 
 class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
     private val TAG = LocalMediaScanner::class.simpleName.toString()
@@ -1067,9 +1066,9 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
          *  Either null == different albums
          */
         fun compareAlbum(a: AlbumEntity?, b: AlbumEntity?): Boolean {
-            if (a != b && (a == null || b == null)) return false
+            if (a == null && b == null) return false
 
-            return a!!.title.lowercase(Locale.getDefault()) == b!!.title.lowercase(Locale.getDefault())
+            return a?.title?.lowercase(Locale.getDefault()) == b?.title?.lowercase(Locale.getDefault())
         }
 
         /**
