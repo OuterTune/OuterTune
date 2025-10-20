@@ -150,10 +150,7 @@ fun ColumnScope.LocalScannerFrag() {
     var fullRescan by remember { mutableStateOf(false) }
     val (lookupYtmArtists, onLookupYtmArtistsChange) = rememberPreference(LookupYtmArtistsKey, defaultValue = false)
 
-    val (lastLocalScan, onLastLocalScanChange) = rememberPreference(
-        LastLocalScanKey,
-        LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
-    )
+    val (lastLocalScan, onLastLocalScanChange) = rememberPreference(LastLocalScanKey, 0L)
 
     LaunchedEffect(scanPaths) {
         if (scanPaths.isBlank()) {

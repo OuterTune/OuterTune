@@ -120,7 +120,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
@@ -140,10 +139,7 @@ fun FolderScreen(
     val snackbarHostState = LocalSnackbarHostState.current
 
     val (flatSubfolders, onFlatSubfoldersChange) = rememberPreference(FlatSubfoldersKey, defaultValue = true)
-    val lastLocalScan by rememberPreference(
-        LastLocalScanKey,
-        LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
-    )
+    val lastLocalScan by rememberPreference(LastLocalScanKey, 0L)
     val localLibEnable by rememberPreference(LocalLibraryEnableKey, defaultValue = true)
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(FolderSongSortTypeKey, FolderSongSortType.NAME)

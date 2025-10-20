@@ -140,6 +140,7 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
 import com.dd3boh.outertune.constants.AUTO_SCAN_COOLDOWN
+import com.dd3boh.outertune.constants.AUTO_SCAN_SOFT_COOLDOWN
 import com.dd3boh.outertune.constants.AppBarHeight
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
@@ -164,12 +165,12 @@ import com.dd3boh.outertune.constants.PauseSearchHistoryKey
 import com.dd3boh.outertune.constants.PureBlackKey
 import com.dd3boh.outertune.constants.SCANNER_OWNER_LM
 import com.dd3boh.outertune.constants.ScanPathsKey
-import com.dd3boh.outertune.constants.ScannerStrictFilePathsKey
 import com.dd3boh.outertune.constants.ScannerImpl
 import com.dd3boh.outertune.constants.ScannerImplKey
 import com.dd3boh.outertune.constants.ScannerMatchCriteria
 import com.dd3boh.outertune.constants.ScannerSensitivityKey
 import com.dd3boh.outertune.constants.ScannerStrictExtKey
+import com.dd3boh.outertune.constants.ScannerStrictFilePathsKey
 import com.dd3boh.outertune.constants.SearchSource
 import com.dd3boh.outertune.constants.SearchSourceKey
 import com.dd3boh.outertune.constants.SlimNavBarKey
@@ -411,10 +412,7 @@ class MainActivity : ComponentActivity() {
             val strictFilePaths by rememberPreference(ScannerStrictFilePathsKey, defaultValue = false)
             val lookupYtmArtists by rememberPreference(LookupYtmArtistsKey, defaultValue = false)
             val autoScan by rememberPreference(AutomaticScannerKey, defaultValue = true)
-            val (lastLocalScan, onLastLocalScanChange) = rememberPreference(
-                LastLocalScanKey,
-                LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
-            )
+            val (lastLocalScan, onLastLocalScanChange) = rememberPreference(LastLocalScanKey, 0L)
 
             // updater
             val (updateAvailable, onUpdateAvailableChange) = rememberPreference(
@@ -430,14 +428,14 @@ class MainActivity : ComponentActivity() {
                         Log.i(MAIN_TAG, "Automatic scan is disabled, and/or user has not passed OOBE")
                         return@launch
                     }
-                    if (lastLocalScan + AUTO_SCAN_COOLDOWN > LocalDateTime.now().toInstant(ZoneOffset.UTC)
-                            .toEpochMilli()
-                    ) {
+                    val timeNow = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+                    if (lastLocalScan + AUTO_SCAN_COOLDOWN > timeNow) {
                         Log.i(MAIN_TAG, "Aborting automatic scan. Not enough time has passed since the last scan")
                         downloadUtil.resumeDownloadsOnStart()
                         return@launch
                     }
                     Log.i(MAIN_TAG, "Starting local media and downloads auto scan")
+                    onLastLocalScanChange(timeNow - AUTO_SCAN_COOLDOWN + AUTO_SCAN_SOFT_COOLDOWN) // min cooldown to avoid crash loops
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
                             message = this@MainActivity.getString(R.string.scanner_auto_start),
@@ -449,8 +447,8 @@ class MainActivity : ComponentActivity() {
                     // scan download folders
                     downloadUtil.scanDownloads()
                     downloadUtil.resumeDownloadsOnStart()
-                    if (!localLibEnable) { //
-                        onLastLocalScanChange(LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli())
+                    if (!localLibEnable) {
+                        onLastLocalScanChange(timeNow)
                         playerConnection?.service?.initQueue()
                         Log.i(MAIN_TAG, "Downloads scan completed. Local media is disabled.")
                     }
@@ -487,7 +485,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
-                            } catch (e: ScannerAbortException) {
+                            } catch (e: Exception) {
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         message = "${this@MainActivity.getString(R.string.scanner_scan_fail)}: ${e.message}",
@@ -495,12 +493,13 @@ class MainActivity : ComponentActivity() {
                                         duration = SnackbarDuration.Short
                                     )
                                 }
+                                reportException(e)
                             } finally {
                                 destroyScanner(SCANNER_OWNER_LM)
                             }
 
                             // post scan actions
-                            onLastLocalScanChange(LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli())
+                            onLastLocalScanChange(timeNow)
                             clearDtCache()
                             playerConnection?.service?.initQueue()
                             Log.i(MAIN_TAG, "Local media and downloads scan completed")
