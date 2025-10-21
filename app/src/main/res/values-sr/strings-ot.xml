@@ -261,4 +261,9 @@
     <string name="oobe_cache_title" translatable="false"></string>
     <string name="toggle_lyrics" translatable="false"></string>
     <string name="seek_increment" translatable="false"></string>
+    <plurals name="second" translatable="false">
+        <item quantity="one"></item>
+        <item quantity="few"></item>
+        <item quantity="other"></item>
+    </plurals>
 </resources>

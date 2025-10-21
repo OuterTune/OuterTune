@@ -261,4 +261,9 @@
     <string name="oobe_local_media_subtitle" translatable="false"></string>
     <string name="tab_arrangement_disable_tip" translatable="false"></string>
     <string name="seek_increment" translatable="false"></string>
+    <plurals name="second" translatable="false">
+        <item quantity="one"></item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
+    </plurals>
 </resources>
