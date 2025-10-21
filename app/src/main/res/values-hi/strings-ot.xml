@@ -259,4 +259,8 @@
     <string name="m3u_import_failed" translatable="false"></string>
     <string name="dl_migrate_description" translatable="false"></string>
     <string name="oobe_local_media_subtitle" translatable="false"></string>
+    <plurals name="second" translatable="false">
+        <item quantity="one"></item>
+        <item quantity="other"></item>
+    </plurals>
 </resources>

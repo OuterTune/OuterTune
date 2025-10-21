@@ -256,4 +256,7 @@
     <string name="lyrics_synced_clickable" translatable="false"></string>
     <string name="scanner_scan_fail" translatable="false"></string>
     <string name="oobe_local_media_subtitle" translatable="false"></string>
+    <plurals name="second" translatable="false">
+        <item quantity="other"></item>
+    </plurals>
 </resources>

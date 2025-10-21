@@ -267,4 +267,12 @@
     <string name="m3u_import_failed" translatable="false"></string>
     <string name="oobe_local_media_subtitle" translatable="false"></string>
     <string name="seek_increment" translatable="false"></string>
+    <plurals name="second" translatable="false">
+        <item quantity="zero"></item>
+        <item quantity="one"></item>
+        <item quantity="two"></item>
+        <item quantity="few"></item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
+    </plurals>
 </resources>
