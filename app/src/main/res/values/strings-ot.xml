@@ -110,7 +110,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="slim_navbar_title" translatable="false">Slim navbar</string>
     <string name="slim_navbar_description" translatable="false">Remove text labels to reduce navbar height</string>
     <string name="tab_arrangement" translatable="false">Arrange tabs</string>
-    <string name="tab_arrangement_disable_tip">--- Drag below here to disable ---</string>
+    <string name="tab_arrangement_disable_tip" translatable="false">--- Drag below here to disable ---</string>
     <string name="tab_arrangement_home_required" translatable="false">The Home tab is required.</string>
     <string name="tablet_ui_title" translatable="false">Force tablet UI</string>
     <string name="tablet_ui_title_description" translatable="false">Enable a landscape interface that is optimized for larger screens regardless of the current screen size</string>
@@ -145,7 +145,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="min_playback_duration_description" translatable="false">The minimum amount of a song that must be played before it is considered \"played\"</string>
     <string name="swipe2Queue" translatable="false">Swipe to queue</string>
     <string name="swipe2Queue_description" translatable="false">Swipe on a song to add it to enqueue next directly after currently playing song</string>
-    <string name="seek_increment">Seek increment</string>
+    <string name="seek_increment" translatable="false">Seek increment</string>
     <!--Lyrics settings -->
     <string name="lyrics_font_Size" translatable="false">Font size</string>
     <string name="lyrics_karaoke_title" translatable="false">Karaoke style lyrics.</string>

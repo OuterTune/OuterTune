@@ -259,4 +259,5 @@
     <string name="dl_rescan_confirm" translatable="false"></string>
     <string name="grp_more_settings" translatable="false"></string>
     <string name="oobe_cache_title" translatable="false"></string>
+    <string name="seek_increment" translatable="false"></string>
 </resources>
