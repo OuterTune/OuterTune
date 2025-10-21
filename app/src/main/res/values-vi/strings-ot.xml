@@ -257,4 +257,7 @@
     <string name="scanner_scan_fail" translatable="false"></string>
     <string name="oobe_local_media_subtitle" translatable="false"></string>
     <string name="seek_increment" translatable="false"></string>
+    <plurals name="second" translatable="false">
+        <item quantity="other"></item>
+    </plurals>
 </resources>
