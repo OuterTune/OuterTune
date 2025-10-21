@@ -178,7 +178,7 @@
     <string name="attribution_title">Attribution</string>
     <string name="oss_licenses_title">Licences open source</string>
     <string name="lyrics_karaoke_title">Paroles de style karaoké.</string>
-    <string name="disable_lm_confirm">Voulez-vous vraiment désactiver les fonctionnalités multimédias locales ? Le contenu de votre bibliothèque ne sera pas affecté.</string>
+    <string name="disable_lm_confirm">Voulez-vous vraiment désactiver les fonctionnalités multimédias locales ? Le contenu de votre bibliothèque ne sera pas affecté.</string>
     <string name="scanner_progress_discovering">À la découverte…</string>
     <string name="scanner_progress_processing">Traitement…</string>
     <string name="clear_image_cache_confirm">Voulez-vous vraiment vider le cache des images ? Toutes les vignettes d\'album existantes seront supprimées.</string>
