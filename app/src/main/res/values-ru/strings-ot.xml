@@ -263,10 +263,4 @@
     <string name="oobe_welcome_tip">Для наилучшего опыта рекомендуем пройти быструю начальную настройку, чтобы персонализировать основные параметры, такие как тема, аккаунт YouTube, локальные медиа и загрузки.</string>
     <string name="oobe_cache_title">Кэш песен</string>
     <string name="oobe_cache_subtitle">Выберите размер кэша песен. Это может помочь уменьшить проблемы с воспроизведением, связанные с интернет-соединением или API YouTube</string>
-    <string name="scanner_auto_start" translatable="false"></string>
-    <string name="auto_scanner_tooltip" translatable="false"></string>
-    <string name="audio_gapless_offload" translatable="false"></string>
-    <string name="scanner_auto_end" translatable="false"></string>
-    <string name="audio_gapless_offload_description" translatable="false"></string>
-    <string name="grp_more_settings" translatable="false"></string>
 </resources>

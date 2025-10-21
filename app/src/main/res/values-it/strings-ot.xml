@@ -260,10 +260,4 @@
     <string name="oobe_cache_title">Cache del brano</string>
     <string name="oobe_welcome_tip">Per la migliore esperienza, ti consigliamo di completare una configurazione rapida per personalizzare le impostazioni chiave come il tema, account YouTube, media locali e downloads.</string>
     <string name="max_queues_title">Numero massimo di code</string>
-    <string name="scanner_auto_start" translatable="false"></string>
-    <string name="auto_scanner_tooltip" translatable="false"></string>
-    <string name="audio_gapless_offload" translatable="false"></string>
-    <string name="scanner_auto_end" translatable="false"></string>
-    <string name="audio_gapless_offload_description" translatable="false"></string>
-    <string name="grp_more_settings" translatable="false"></string>
 </resources>

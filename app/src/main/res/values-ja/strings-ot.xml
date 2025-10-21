@@ -254,10 +254,4 @@
     <string name="oobe_welcome_tip">快適に使用するには、テーマ、YouTubeアカウント、端末内メディア、ダウンロードなど自分向けにするための主な設定を簡単に設定することをお勧めします。</string>
     <string name="oobe_cache_subtitle">曲のキャッシュのサイズを選択。ネット接続やYouTube APIの再生に関する問題を軽減します</string>
     <string name="library_filter">ライブラリを絞り込み</string>
-    <string name="scanner_auto_start" translatable="false"></string>
-    <string name="auto_scanner_tooltip" translatable="false"></string>
-    <string name="audio_gapless_offload" translatable="false"></string>
-    <string name="scanner_auto_end" translatable="false"></string>
-    <string name="audio_gapless_offload_description" translatable="false"></string>
-    <string name="grp_more_settings" translatable="false"></string>
 </resources>

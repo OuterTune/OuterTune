@@ -246,21 +246,4 @@
         <item quantity="other">%d Sekunden</item>
     </plurals>
     <string name="seek_increment">Sprungintervall</string>
-    <string name="scanner_auto_start" translatable="false"></string>
-    <string name="auto_scanner_tooltip" translatable="false"></string>
-    <string name="audio_decoder_system_only" translatable="false"></string>
-    <string name="action_logout_tooltip" translatable="false"></string>
-    <string name="audio_decoder_system_with_ffmpeg" translatable="false"></string>
-    <string name="oobe_cache_subtitle" translatable="false"></string>
-    <string name="max_queues_title" translatable="false"></string>
-    <string name="audio_decoder_preference" translatable="false"></string>
-    <string name="audio_gapless_offload" translatable="false"></string>
-    <string name="scanner_auto_end" translatable="false"></string>
-    <string name="oobe_welcome_tip" translatable="false"></string>
-    <string name="audio_decoder_ffmpeg_only" translatable="false"></string>
-    <string name="audio_gapless_offload_description" translatable="false"></string>
-    <string name="library_filter" translatable="false"></string>
-    <string name="grp_more_settings" translatable="false"></string>
-    <string name="oobe_cache_title" translatable="false"></string>
-    <string name="toggle_lyrics" translatable="false"></string>
 </resources>

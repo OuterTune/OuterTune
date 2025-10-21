@@ -260,10 +260,4 @@
     <string name="oobe_cache_title">Cache de músicas</string>
     <string name="oobe_cache_subtitle">Selecione um tamanho para a cache de músicas. Isso pode ajudar a reduzir problemas com a internet ou reprodução com a API do YouTube</string>
     <string name="action_logout_tooltip">Para desconectar-se totalmente, desconecte-se da sua conta do YouTube pelo portal web antes de usar este botão</string>
-    <string name="scanner_auto_start" translatable="false"></string>
-    <string name="auto_scanner_tooltip" translatable="false"></string>
-    <string name="audio_gapless_offload" translatable="false"></string>
-    <string name="scanner_auto_end" translatable="false"></string>
-    <string name="audio_gapless_offload_description" translatable="false"></string>
-    <string name="grp_more_settings" translatable="false"></string>
 </resources>

@@ -241,23 +241,4 @@
     <string name="audio_decoder_system_only">仅使用系统解码器</string>
     <string name="audio_decoder_system_with_ffmpeg">优先使用系统解码器</string>
     <string name="library_filter">过滤器</string>
-    <string name="scanner_auto_start" translatable="false"></string>
-    <string name="auto_scanner_tooltip" translatable="false"></string>
-    <string name="dl_storage_tooltip" translatable="false"></string>
-    <string name="action_logout_tooltip" translatable="false"></string>
-    <string name="sort_by_track_number" translatable="false"></string>
-    <string name="disc_number" translatable="false"></string>
-    <string name="track_number" translatable="false"></string>
-    <string name="oobe_cache_subtitle" translatable="false"></string>
-    <string name="dl_rescan_description" translatable="false"></string>
-    <string name="max_queues_title" translatable="false"></string>
-    <string name="audio_gapless_offload" translatable="false"></string>
-    <string name="scanner_auto_end" translatable="false"></string>
-    <string name="oobe_welcome_tip" translatable="false"></string>
-    <string name="bits_per_sample" translatable="false"></string>
-    <string name="audio_gapless_offload_description" translatable="false"></string>
-    <string name="dl_rescan_confirm" translatable="false"></string>
-    <string name="grp_more_settings" translatable="false"></string>
-    <string name="oobe_cache_title" translatable="false"></string>
-    <string name="seek_increment" translatable="false"></string>
 </resources>
