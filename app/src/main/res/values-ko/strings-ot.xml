@@ -236,4 +236,5 @@
         <item quantity="other">초</item>
     </plurals>
     <string name="att_project_support">프로젝트 지원</string>
+    <string name="oobe_welcome_tip" translatable="false"></string>
 </resources>
