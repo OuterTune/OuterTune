@@ -263,4 +263,10 @@
         <item quantity="many">%d wiele</item>
         <item quantity="other">%d wiele</item>
     </plurals>
+    <string name="scanner_auto_start" translatable="false"></string>
+    <string name="auto_scanner_tooltip" translatable="false"></string>
+    <string name="audio_gapless_offload" translatable="false"></string>
+    <string name="scanner_auto_end" translatable="false"></string>
+    <string name="audio_gapless_offload_description" translatable="false"></string>
+    <string name="grp_more_settings" translatable="false"></string>
 </resources>

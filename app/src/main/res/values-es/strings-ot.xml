@@ -260,4 +260,10 @@
     <string name="oobe_welcome_tip">Para disfrutar de la mejor experiencia, te recomendamos completar una configuración rápida para personalizar ajustes clave como el tema, la cuenta de YouTube, los medios locales y las descargas.</string>
     <string name="oobe_cache_title">Caché de canciones</string>
     <string name="oobe_cache_subtitle">Elige un tamaño para el caché de canciones. Esto puede ayudar a reducir los problemas de reproducción de Internet o de la API de YouTube</string>
+    <string name="scanner_auto_start" translatable="false"></string>
+    <string name="auto_scanner_tooltip" translatable="false"></string>
+    <string name="audio_gapless_offload" translatable="false"></string>
+    <string name="scanner_auto_end" translatable="false"></string>
+    <string name="audio_gapless_offload_description" translatable="false"></string>
+    <string name="grp_more_settings" translatable="false"></string>
 </resources>

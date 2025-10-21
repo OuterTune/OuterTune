@@ -257,4 +257,10 @@
     <string name="oobe_welcome_tip">За най-добро изживяване препоръчваме да извършите бърза настройка, за да персонализирате ключови настройки, като тема, YouTube акаунт, локални медии и изтегляния.</string>
     <string name="oobe_cache_title">Кеш на песен</string>
     <string name="oobe_cache_subtitle">Изберете размер на кеша на песента. Това може да помогне за намаляване на проблеми с възпроизвеждането с интернет или YouTube API</string>
+    <string name="scanner_auto_start" translatable="false"></string>
+    <string name="auto_scanner_tooltip" translatable="false"></string>
+    <string name="audio_gapless_offload" translatable="false"></string>
+    <string name="scanner_auto_end" translatable="false"></string>
+    <string name="audio_gapless_offload_description" translatable="false"></string>
+    <string name="grp_more_settings" translatable="false"></string>
 </resources>

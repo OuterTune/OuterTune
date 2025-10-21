@@ -1,356 +1,303 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!-- This file hosts strings specific to OuterTune. This separation allows us to easily recycle translations from upstream InnerTune,
-while also allowing users to translate our app as well. New, specific strings to OuterTune go here. -->
-
-<resources>
-<!-- General -->
-    <string name="android_auto">Android Auto</string>
-
-<!-- Bottom navigation -->
-    <string name="folders">Folders</string>
-    <string name="library">Library</string>
-
-<!-- Home -->
-    <string name="recent_activity">Recent activity</string>
-
-<!-- History screen-->
-    <string name="local_history">Local</string>
-    <string name="queue_local_history">History (local)</string>
-    <string name="queue_remote_history">History (remote)</string>
-    <string name="remote_history">Remote</string>
-
-<!-- Library screens -->
-    <string name="library_filter">Library filter</string>
-    <string name="library_empty">Your library contents will show up here</string>
-    <string name="missing_media_permission_warning">Storage permissions is required for local media. Click to grant permission.</string>
-
-<!-- Queue -->
-    <string name="queues_title">Queues</string>
-    <string name="create_queue">New queue</string>
-    <string name="queue_searched_songs_ot">Search: </string>
-    <string name="song_added_to_queue">\"%s\" inserted into queue</string>
-    <string name="song_added_to_queue_end">\"%s\" added to the end of queue</string>
-    <string name="queues_empty">No queues</string>
-
-<!-- Playlist -->
-    <string name="auto_playlist">Auto playlist</string>
-
-<!-- Menu -->
-    <string name="select">Selection mode</string>
-    <string name="like_all">Like all</string>
-    <string name="more_settings">More settings</string>
-    <string name="delete_lyric_confirm">Do you really want to delete the stored lyrics for \"%s\"?</string>
-    <string name="tap_show_more">Tap to show more information</string>
-
-<!-- Player -->
-    <string name="err_invalid_ytm_song">Failed to play song. Only content accessible on YouTube Music can be played</string>
-    <string name="err_play_next_on_error">Error occurred. Playing next</string>
-    <string name="err_stop_on_error">Error occurred. Playback stopped</string>
-    <string name="err_stop_on_too_many_errors">Too many errors. Playback stopped</string>
-    <string name="wait_to_reconnect">Wait to reconnect</string>
-
-<!-- Sort menu -->
-    <string name="sort_by_date_modified">Date modified</string>
-    <string name="sort_by_date_released">Date released</string>
-    <string name="sort_by_like_date">Date liked</string>
-    <string name="sort_by_play_count">Play count</string>
-    <string name="sort_by_track_number">Track number</string>
-
-<!-- Dialog -->
-    <string name="bits_per_sample">Bits per sample</string>
-    <string name="create_sync_playlist">Sync Playlist</string>
-    <string name="create_sync_playlist_description">Note: This allows for syncing with YouTube Music. This is NOT changeable later. You cannot add local songs to synced playlists.</string>
-    <string name="disc_number">Disc number</string>
-    <string name="extra_details">Extra details</string>
-    <string name="file_path">File path</string>
-    <string name="track_number">Track number</string>
-    <string name="play_count">Play count</string>
-    <string name="playlist_add_local_to_synced_note">Note: Adding local songs to synced/remote playlists is unsupported. Any other combination is valid</string>
-    <string name="playlist_missing_note">Playlists missing? Click here to enable sync read-write mode in settings</string>
-    <string name="toggle_lyrics">Toggle lyrics</string>
-
-<!-- Sync-->
-    <string name="sync_progress_active">Syncing with YouTube account…</string>
-    <string name="sync_progress_success">Sync complete</string>
-
-<!-- Settings -->
-    <string name="prefs_advanced">Advanced</string>
-    <string name="settings_debug">Debug</string>
-
-    <string name="grp_account_sync">Account and sync</string>
-    <string name="grp_audio">Audio</string>
-    <string name="grp_behavior">Behavior</string>
-    <string name="grp_extra_scanner_settings">Additional scanner settings</string>
-    <string name="grp_general">General</string>
-    <string name="grp_interface">Interface</string>
-    <string name="grp_layout">Layout</string>
-    <string name="grp_library_and_content">Library and content</string>
-	<string name="grp_localization">Localization</string>
-    <string name="grp_lyrics_format">Formatting</string>
-    <string name="grp_lyrics_parser">Parser</string>
-    <string name="grp_lyrics_source">Lyric sources</string>
-    <string name="grp_manual_scanner">Manual scanner</string>
-    <string name="grp_more_settings">More settings</string>
-    <string name="grp_proxy">Proxy</string>
-    <string name="grp_sync">Sync</string>
-
-<!-- About settings -->
-    <string name="app_info_title">Application information</string>
-    <string name="check_for_update">Check for updates</string>
-    <string name="checking_for_update">Checking for updates</string>
-    <string name="device_info_title">Device information</string>
-    <string name="ffmpeg_lgpl">This software uses libraries from the FFmpeg project under the LGPLv2.1</string>
-    <string name="help_bug_report_action">Submit a bug report (Via GitHub)</string>
-    <string name="help_contact_email_inquiries">Other inquires (Tap to copy email)</string>
-    <string name="help_support_forum">Help and support (Via GitHub)</string>
-    <string name="no_updates_available">No updates available</string>
-    <string name="oss_licenses_title">Open source licenses</string>
-    <string name="wiki">Wiki</string>
-
-<!-- Contributions -->
-    <string name="all_contributors">Show all contributors</string>
-    <string name="att_contributor">Contributor</string>
-    <string name="att_lead_developer">Lead developer</string>
-    <string name="att_maintainer">Maintainer</string>
-    <string name="att_project_support">Project support</string>
-    <string name="att_translator">Translator (%s)</string>
-    <string name="attrib_zhuang">Zion Huang for InnerTune</string>
-    <string name="attribution_title">Attribution</string>
-    <string name="special_thanks">Special thanks</string>
-
-<!-- Appearance settings -->
-    <string name="new_interface">New interface layout</string>
-    <string name="player_background_blur">Blur</string>
-    <string name="player_background_default">Follow theme</string>
-    <string name="player_background_gradient">Gradient</string>
-    <string name="player_background_style">Player background style</string>
-    <string name="show_liked_and_downloaded_playlist">Show playlists for liked and downloaded songs in library</string>
-    <string name="slim_navbar_title">Slim navbar</string>
-    <string name="slim_navbar_description">Remove text labels to reduce navbar height</string>
-    <string name="tab_arrangement">Arrange tabs</string>
+while also allowing users to translate our app as well. New, specific strings to OuterTune go here. --><resources>
+    <!-- General -->
+    <string name="android_auto" translatable="false">Android Auto</string>
+    <!-- Bottom navigation -->
+    <string name="folders" translatable="false">Folders</string>
+    <string name="library" translatable="false">Library</string>
+    <!-- Home -->
+    <string name="recent_activity" translatable="false">Recent activity</string>
+    <!-- History screen-->
+    <string name="local_history" translatable="false">Local</string>
+    <string name="queue_local_history" translatable="false">History (local)</string>
+    <string name="queue_remote_history" translatable="false">History (remote)</string>
+    <string name="remote_history" translatable="false">Remote</string>
+    <!-- Library screens -->
+    <string name="library_filter" translatable="false">Library filter</string>
+    <string name="library_empty" translatable="false">Your library contents will show up here</string>
+    <string name="missing_media_permission_warning" translatable="false">Storage permissions is required for local media. Click to grant permission.</string>
+    <!-- Queue -->
+    <string name="queues_title" translatable="false">Queues</string>
+    <string name="create_queue" translatable="false">New queue</string>
+    <string name="queue_searched_songs_ot" translatable="false">Search:</string>
+    <string name="song_added_to_queue" translatable="false">\"%s\" inserted into queue</string>
+    <string name="song_added_to_queue_end" translatable="false">\"%s\" added to the end of queue</string>
+    <string name="queues_empty" translatable="false">No queues</string>
+    <!-- Playlist -->
+    <string name="auto_playlist" translatable="false">Auto playlist</string>
+    <!-- Menu -->
+    <string name="select" translatable="false">Selection mode</string>
+    <string name="like_all" translatable="false">Like all</string>
+    <string name="more_settings" translatable="false">More settings</string>
+    <string name="delete_lyric_confirm" translatable="false">Do you really want to delete the stored lyrics for \"%s\"?</string>
+    <string name="tap_show_more" translatable="false">Tap to show more information</string>
+    <!-- Player -->
+    <string name="err_invalid_ytm_song" translatable="false">Failed to play song. Only content accessible on YouTube Music can be played</string>
+    <string name="err_play_next_on_error" translatable="false">Error occurred. Playing next</string>
+    <string name="err_stop_on_error" translatable="false">Error occurred. Playback stopped</string>
+    <string name="err_stop_on_too_many_errors" translatable="false">Too many errors. Playback stopped</string>
+    <string name="wait_to_reconnect" translatable="false">Wait to reconnect</string>
+    <!-- Sort menu -->
+    <string name="sort_by_date_modified" translatable="false">Date modified</string>
+    <string name="sort_by_date_released" translatable="false">Date released</string>
+    <string name="sort_by_like_date" translatable="false">Date liked</string>
+    <string name="sort_by_play_count" translatable="false">Play count</string>
+    <string name="sort_by_track_number" translatable="false">Track number</string>
+    <!-- Dialog -->
+    <string name="bits_per_sample" translatable="false">Bits per sample</string>
+    <string name="create_sync_playlist" translatable="false">Sync Playlist</string>
+    <string name="create_sync_playlist_description" translatable="false">Note: This allows for syncing with YouTube Music. This is NOT changeable later. You cannot add local songs to synced playlists.</string>
+    <string name="disc_number" translatable="false">Disc number</string>
+    <string name="extra_details" translatable="false">Extra details</string>
+    <string name="file_path" translatable="false">File path</string>
+    <string name="track_number" translatable="false">Track number</string>
+    <string name="play_count" translatable="false">Play count</string>
+    <string name="playlist_add_local_to_synced_note" translatable="false">Note: Adding local songs to synced/remote playlists is unsupported. Any other combination is valid</string>
+    <string name="playlist_missing_note" translatable="false">Playlists missing? Click here to enable sync read-write mode in settings</string>
+    <string name="toggle_lyrics" translatable="false">Toggle lyrics</string>
+    <!-- Sync-->
+    <string name="sync_progress_active" translatable="false">Syncing with YouTube account…</string>
+    <string name="sync_progress_success" translatable="false">Sync complete</string>
+    <!-- Settings -->
+    <string name="prefs_advanced" translatable="false">Advanced</string>
+    <string name="settings_debug" translatable="false">Debug</string>
+    <string name="grp_account_sync" translatable="false">Account and sync</string>
+    <string name="grp_audio" translatable="false">Audio</string>
+    <string name="grp_behavior" translatable="false">Behavior</string>
+    <string name="grp_extra_scanner_settings" translatable="false">Additional scanner settings</string>
+    <string name="grp_general" translatable="false">General</string>
+    <string name="grp_interface" translatable="false">Interface</string>
+    <string name="grp_layout" translatable="false">Layout</string>
+    <string name="grp_library_and_content" translatable="false">Library and content</string>
+    <string name="grp_localization" translatable="false">Localization</string>
+    <string name="grp_lyrics_format" translatable="false">Formatting</string>
+    <string name="grp_lyrics_parser" translatable="false">Parser</string>
+    <string name="grp_lyrics_source" translatable="false">Lyric sources</string>
+    <string name="grp_manual_scanner" translatable="false">Manual scanner</string>
+    <string name="grp_more_settings" translatable="false">More settings</string>
+    <string name="grp_proxy" translatable="false">Proxy</string>
+    <string name="grp_sync" translatable="false">Sync</string>
+    <!-- About settings -->
+    <string name="app_info_title" translatable="false">Application information</string>
+    <string name="check_for_update" translatable="false">Check for updates</string>
+    <string name="checking_for_update" translatable="false">Checking for updates</string>
+    <string name="device_info_title" translatable="false">Device information</string>
+    <string name="ffmpeg_lgpl" translatable="false">This software uses libraries from the FFmpeg project under the LGPLv2.1</string>
+    <string name="help_bug_report_action" translatable="false">Submit a bug report (Via GitHub)</string>
+    <string name="help_contact_email_inquiries" translatable="false">Other inquires (Tap to copy email)</string>
+    <string name="help_support_forum" translatable="false">Help and support (Via GitHub)</string>
+    <string name="no_updates_available" translatable="false">No updates available</string>
+    <string name="oss_licenses_title" translatable="false">Open source licenses</string>
+    <string name="wiki" translatable="false">Wiki</string>
+    <!-- Contributions -->
+    <string name="all_contributors" translatable="false">Show all contributors</string>
+    <string name="att_contributor" translatable="false">Contributor</string>
+    <string name="att_lead_developer" translatable="false">Lead developer</string>
+    <string name="att_maintainer" translatable="false">Maintainer</string>
+    <string name="att_project_support" translatable="false">Project support</string>
+    <string name="att_translator" translatable="false">Translator (%s)</string>
+    <string name="attrib_zhuang" translatable="false">Zion Huang for InnerTune</string>
+    <string name="attribution_title" translatable="false">Attribution</string>
+    <string name="special_thanks" translatable="false">Special thanks</string>
+    <!-- Appearance settings -->
+    <string name="new_interface" translatable="false">New interface layout</string>
+    <string name="player_background_blur" translatable="false">Blur</string>
+    <string name="player_background_default" translatable="false">Follow theme</string>
+    <string name="player_background_gradient" translatable="false">Gradient</string>
+    <string name="player_background_style" translatable="false">Player background style</string>
+    <string name="show_liked_and_downloaded_playlist" translatable="false">Show playlists for liked and downloaded songs in library</string>
+    <string name="slim_navbar_title" translatable="false">Slim navbar</string>
+    <string name="slim_navbar_description" translatable="false">Remove text labels to reduce navbar height</string>
+    <string name="tab_arrangement" translatable="false">Arrange tabs</string>
     <string name="tab_arrangement_disable_tip">--- Drag below here to disable ---</string>
-    <string name="tab_arrangement_home_required">The Home tab is required.</string>
-    <string name="tablet_ui_title">Force tablet UI</string>
-    <string name="tablet_ui_title_description">Enable a landscape interface that is optimized for larger screens regardless of the current screen size</string>
-    <string name="filter_arrangement">Arrange filters</string>
-
-<!-- Content settings -->
-    <string name="like_autodownload">Automatically download your liked songs</string>
-    <string name="action_logout_tooltip">To fully log out, please sign out of your YouTube account in the web portal before using this logout button</string>
-    <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
-    <string name="token_hidden">Tap to show token</string>
-    <string name="token_shown">Tap again to copy or edit</string>
-    <string name="sync_conflict_add_only">Keep all local content, add new remote content</string>
-    <string name="sync_conflict_overwrite">Overwrite local content with remote content</string>
-    <string name="sync_conflict_title">Conflict resolution</string>
-    <string name="sync_mode">Sync mode</string>
-    <string name="sync_mode_ro">Read only (View remote content)</string>
-    <string name="sync_mode_rw">Read write (Also allow changes to remote content)</string>
-    <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
-    <string name="wifi_only">Wi-Fi only</string>
-
-<!-- Player settings -->
-    <string name="audio_decoder_ffmpeg_only">Prioritize FFmpeg decoders</string>
-    <string name="audio_decoder_preference">Audio decoder</string>
-    <string name="audio_decoder_system_only">System decoders only</string>
-    <string name="audio_decoder_system_with_ffmpeg">Prioritize system decoders</string>
+    <string name="tab_arrangement_home_required" translatable="false">The Home tab is required.</string>
+    <string name="tablet_ui_title" translatable="false">Force tablet UI</string>
+    <string name="tablet_ui_title_description" translatable="false">Enable a landscape interface that is optimized for larger screens regardless of the current screen size</string>
+    <string name="filter_arrangement" translatable="false">Arrange filters</string>
+    <!-- Content settings -->
+    <string name="like_autodownload" translatable="false">Automatically download your liked songs</string>
+    <string name="action_logout_tooltip" translatable="false">To fully log out, please sign out of your YouTube account in the web portal before using this logout button</string>
+    <string name="token_adv_login_description" translatable="false">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
+    <string name="token_hidden" translatable="false">Tap to show token</string>
+    <string name="token_shown" translatable="false">Tap again to copy or edit</string>
+    <string name="sync_conflict_add_only" translatable="false">Keep all local content, add new remote content</string>
+    <string name="sync_conflict_overwrite" translatable="false">Overwrite local content with remote content</string>
+    <string name="sync_conflict_title" translatable="false">Conflict resolution</string>
+    <string name="sync_mode" translatable="false">Sync mode</string>
+    <string name="sync_mode_ro" translatable="false">Read only (View remote content)</string>
+    <string name="sync_mode_rw" translatable="false">Read write (Also allow changes to remote content)</string>
+    <string name="ytm_sync" translatable="false">Automatically sync with your YouTube Music account</string>
+    <string name="wifi_only" translatable="false">Wi-Fi only</string>
+    <!-- Player settings -->
+    <string name="audio_decoder_ffmpeg_only" translatable="false">Prioritize FFmpeg decoders</string>
+    <string name="audio_decoder_preference" translatable="false">Audio decoder</string>
+    <string name="audio_decoder_system_only" translatable="false">System decoders only</string>
+    <string name="audio_decoder_system_with_ffmpeg" translatable="false">Prioritize system decoders</string>
     <string name="audio_gapless_offload" translatable="false">Gapless offload</string>
     <string name="audio_gapless_offload_description" translatable="false">Allow gapless offload if supported by the device and audio format. Some devices advertise support (Ex. Google Pixel 9 series), but the feature is good as useless in ExoPlayer because playback breaks after playing one song. When troubleshooting issues with offload, we suggest turning gapless offload off</string>
-    <string name="audio_offload">Enable offload</string>
-    <string name="audio_offload_description">Use the offload audio path for audio playback. Enabling this may reduce power usage but can lead experience issues with audio playback or post processing. This preference has no effect for unsupported codecs or devices</string>
-    <string name="keep_alive_title">Prevent system killing app</string>
-    <string name="keep_alive_description">Use a persistent foreground service to prevent OuterTune from being closed in the background</string>
-    <string name="persistent_queue_desc_ot">Restore previous open queue(s) when the app starts</string>
-    <string name="min_playback_duration">Minimum playback duration</string>
-    <string name="min_playback_duration_description">The minimum amount of a song that must be played before it is considered \"played\"</string>
-    <string name="swipe2Queue">Swipe to queue</string>
-    <string name="swipe2Queue_description">Swipe on a song to add it to "enqueue next" directly after currently playing song</string>
+    <string name="audio_offload" translatable="false">Enable offload</string>
+    <string name="audio_offload_description" translatable="false">Use the offload audio path for audio playback. Enabling this may reduce power usage but can lead experience issues with audio playback or post processing. This preference has no effect for unsupported codecs or devices</string>
+    <string name="keep_alive_title" translatable="false">Prevent system killing app</string>
+    <string name="keep_alive_description" translatable="false">Use a persistent foreground service to prevent OuterTune from being closed in the background</string>
+    <string name="persistent_queue_desc_ot" translatable="false">Restore previous open queue(s) when the app starts</string>
+    <string name="min_playback_duration" translatable="false">Minimum playback duration</string>
+    <string name="min_playback_duration_description" translatable="false">The minimum amount of a song that must be played before it is considered \"played\"</string>
+    <string name="swipe2Queue" translatable="false">Swipe to queue</string>
+    <string name="swipe2Queue_description" translatable="false">Swipe on a song to add it to enqueue next directly after currently playing song</string>
     <string name="seek_increment">Seek increment</string>
-
-<!--Lyrics settings -->
-    <string name="lyrics_font_Size">Font size</string>
-    <string name="lyrics_karaoke_title">Karaoke style lyrics.</string>
-    <string name="lyrics_karaoke_description">Enables word by word lyric syncing. Requires lyrics format support.</string>
-    <string name="lyrics_karaoke_hz_title">Adjust karaoke lyrics update speed</string>
-    <string name="lyrics_multiline_title">Read multiline lyrics</string>
-    <string name="lyrics_multiline_description">Treat all the lines between sync points as one lyric text</string>
-    <string name="lyrics_prefer_local">Prefer local lyric files</string>
-    <string name="lyrics_prefer_local_description">Prioritize resolving local lyric files before using all cloud providers. Turn this off to prioritize cloud providers</string>
-    <string name="lyrics_settings_title">Lyrics</string>
-    <string name="lyrics_synced_clickable">Clickable lyrics</string>
-    <string name="lyrics_trim_title">Remove spaces around lyrics</string>
-
-<!-- Local player settings -->
-    <string name="local_library_enable_title">Enable local media</string>
-    <string name="local_library_enable_description">Disabling will hide local library from the app</string>
-    <string name="local_player_settings_title">Local media</string>
-    <string name="flat_subfolders_title">Flatten subfolders</string>
-    <string name="flat_subfolders_description">Disable to preserve the file structure as on disk</string>
-    <string name="disable_lm_confirm">Are you sure you want to disable local media features? Your library contents will not be affected.</string>
-
-<!-- Scanner settings -->
-    <string name="auto_scanner_title">Scan automatically</string>
-    <string name="auto_scanner_description">Periodically refresh local media songs and custom downloads folders when opening the app</string>
-    <string name="auto_scanner_tooltip">For local media, this does not reload metadata of existing songs. Use the manual scanner with the rescan checkbox selected if you also wish to refresh metadata.</string>
-
-    <string name="scan_paths_title">Configure scan locations…</string>
-    <string name="scan_paths_description">Select folders on your local storage to scan for songs</string>
-    <string name="scan_paths_tooltip">All subdirectories will also be affected</string>
-    <string name="scan_paths_add_folder">Add new folder</string>
-    <string name="scan_paths_incl">Scan paths</string>
-    <string name="scan_paths_excl">Excluded scan paths</string>
-    <string name="scanner_local_title">Local scanner</string>
-    <string name="scanner_manual_btn">Trigger manual sync</string>
-    <string name="scanner_rejected_dir">Invalid selection. A scan folder cannot be a subdirectory of the download folder, or the download folder itself</string>
-    <string name="scanner_warning">By default, the scanner will NOT reload any metadata of existing songs unless you specify otherwise above. Depending on the size of your library, it may take a while.</string>
-
-<!-- Scanner progress strings-->
-	<string name="scanner_missing_ffmpeg">FFmpeg extractor not detected</string>
-    <string name="scanner_missing_storage_perm">The local media scanner requires storage permissions to function</string>
-
-    <string name="scanner_auto_end">Local media and song downloads refresh complete!</string>
-    <string name="scanner_auto_start">Refreshing local media and song download folders…</string>
-
-    <string name="scanner_btn_idle">Scan</string>
-    <string name="scanner_progress_complete">Scan complete</string>
-    <string name="scanner_progress_discovering">Discovering…</string>
-    <string name="scanner_progress_processing">Processing…</string>
-	<string name="scanner_progress_scanning">Scanning…</string>
-    <string name="scanner_progress_syncing">Syncing…</string>
-	<string name="scanner_scan_fail">Scanner failed</string>
-
-	<string name="scanner_ytm_link_fail">YouTube artist linking job failed</string>
-	<string name="scanner_ytm_link_start">Starting YouTube artist linking…</string>
-	<string name="scanner_ytm_link_success">YouTube artist linking job complete</string>
-
-    <plurals name="scanner_n_song_processed">
+    <!--Lyrics settings -->
+    <string name="lyrics_font_Size" translatable="false">Font size</string>
+    <string name="lyrics_karaoke_title" translatable="false">Karaoke style lyrics.</string>
+    <string name="lyrics_karaoke_description" translatable="false">Enables word by word lyric syncing. Requires lyrics format support.</string>
+    <string name="lyrics_karaoke_hz_title" translatable="false">Adjust karaoke lyrics update speed</string>
+    <string name="lyrics_multiline_title" translatable="false">Read multiline lyrics</string>
+    <string name="lyrics_multiline_description" translatable="false">Treat all the lines between sync points as one lyric text</string>
+    <string name="lyrics_prefer_local" translatable="false">Prefer local lyric files</string>
+    <string name="lyrics_prefer_local_description" translatable="false">Prioritize resolving local lyric files before using all cloud providers. Turn this off to prioritize cloud providers</string>
+    <string name="lyrics_settings_title" translatable="false">Lyrics</string>
+    <string name="lyrics_synced_clickable" translatable="false">Clickable lyrics</string>
+    <string name="lyrics_trim_title" translatable="false">Remove spaces around lyrics</string>
+    <!-- Local player settings -->
+    <string name="local_library_enable_title" translatable="false">Enable local media</string>
+    <string name="local_library_enable_description" translatable="false">Disabling will hide local library from the app</string>
+    <string name="local_player_settings_title" translatable="false">Local media</string>
+    <string name="flat_subfolders_title" translatable="false">Flatten subfolders</string>
+    <string name="flat_subfolders_description" translatable="false">Disable to preserve the file structure as on disk</string>
+    <string name="disable_lm_confirm" translatable="false">Are you sure you want to disable local media features? Your library contents will not be affected.</string>
+    <!-- Scanner settings -->
+    <string name="auto_scanner_title" translatable="false">Scan automatically</string>
+    <string name="auto_scanner_description" translatable="false">Periodically refresh local media songs and custom downloads folders when opening the app</string>
+    <string name="auto_scanner_tooltip" translatable="false">For local media, this does not reload metadata of existing songs. Use the manual scanner with the rescan checkbox selected if you also wish to refresh metadata.</string>
+    <string name="scan_paths_title" translatable="false">Configure scan locations…</string>
+    <string name="scan_paths_description" translatable="false">Select folders on your local storage to scan for songs</string>
+    <string name="scan_paths_tooltip" translatable="false">All subdirectories will also be affected</string>
+    <string name="scan_paths_add_folder" translatable="false">Add new folder</string>
+    <string name="scan_paths_incl" translatable="false">Scan paths</string>
+    <string name="scan_paths_excl" translatable="false">Excluded scan paths</string>
+    <string name="scanner_local_title" translatable="false">Local scanner</string>
+    <string name="scanner_manual_btn" translatable="false">Trigger manual sync</string>
+    <string name="scanner_rejected_dir" translatable="false">Invalid selection. A scan folder cannot be a subdirectory of the download folder, or the download folder itself</string>
+    <string name="scanner_warning" translatable="false">By default, the scanner will NOT reload any metadata of existing songs unless you specify otherwise above. Depending on the size of your library, it may take a while.</string>
+    <!-- Scanner progress strings-->
+	<string name="scanner_missing_ffmpeg" translatable="false">FFmpeg extractor not detected</string>
+    <string name="scanner_missing_storage_perm" translatable="false">The local media scanner requires storage permissions to function</string>
+    <string name="scanner_auto_end" translatable="false">Local media and song downloads refresh complete!</string>
+    <string name="scanner_auto_start" translatable="false">Refreshing local media and song download folders…</string>
+    <string name="scanner_btn_idle" translatable="false">Scan</string>
+    <string name="scanner_progress_complete" translatable="false">Scan complete</string>
+    <string name="scanner_progress_discovering" translatable="false">Discovering…</string>
+    <string name="scanner_progress_processing" translatable="false">Processing…</string>
+    <string name="scanner_progress_scanning" translatable="false">Scanning…</string>
+    <string name="scanner_progress_syncing" translatable="false">Syncing…</string>
+    <string name="scanner_scan_fail" translatable="false">Scanner failed</string>
+    <string name="scanner_ytm_link_fail" translatable="false">YouTube artist linking job failed</string>
+    <string name="scanner_ytm_link_start" translatable="false">Starting YouTube artist linking…</string>
+    <string name="scanner_ytm_link_success" translatable="false">YouTube artist linking job complete</string>
+    <plurals name="scanner_n_song_processed" translatable="false">
         <item quantity="one">%d song processed</item>
         <item quantity="other">%d songs processed</item>
     </plurals>
-    <plurals name="scanner_n_song_found">
+    <plurals name="scanner_n_song_found" translatable="false">
         <item quantity="one">%d song found</item>
         <item quantity="other">%d songs found</item>
     </plurals>
-
-<!-- Scanner parameter settings-->
-    <string name="scanner_strict_file_name_title">Strict file names</string>
-    <string name="scanner_strict_file_name_description">When enabled, file names will NOT be ignored. Ex. "Song.ogg" will be a different song from "Song.flac". Scanner sensitivity preference will still apply</string>
-    <string name="scanner_sensitivity_title">Configure scanner sensitivity</string>
-    <string name="scanner_sensitivity_L0">Take first result provided by YouTube when searching on YouTube is enabled, otherwise match title</string>
-    <string name="scanner_sensitivity_L1">Match title</string>
-    <string name="scanner_sensitivity_L2">Match title and artists</string>
-    <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
-
-    <string name="scanner_type_title">Metadata extractor</string>
-    <string name="scanner_type_taglib">Use integrated TagLib metadata extractor</string>
-    <string name="scanner_type_ffmpeg_ext">Use FFmpeg metadata extractor. Please only use the "full" variant of the app. The "core" variant could cause issues with song tracking</string>
-
-    <string name="scanner_variant_rescan">Rescan the entire library and reload all songs\' metadata</string>
-    <string name="scanner_online_artist_linking">Try to link local files\' artists with ones on YouTube Music</string>
-
-<!-- Storage setting -->
-    <string name="clear_downloads_confirm">Are you sure you want to remove all downloads? Only downloads in the main download folder will be removed.</string>
-    <string name="clear_image_cache_confirm">Are you sure you want to clear image cache? All exiting album thumbnails will be removed.</string>
-    <string name="clear_song_cache_confirm">Are you sure you want to clear song cache?</string>
-    <string name="dl_calculate_size">Tap to calculate download size</string>
-    <string name="dl_extra_path_title">Configure extra import locations…</string>
-    <string name="dl_extra_path_description">Songs from these folders will only appear in the app if you\'ve played them before or added them to a playlist</string>
-    <string name="dl_migrate_title">Migrate downloads to external storage…</string>
-    <string name="dl_migrate_description">Move downloads from the app\'s internal storage to the device\'s external storage</string>
-    <string name="dl_migrate_confirm">This will migrate ALL internal downloads to \"%s\", and this action cannot be undone. Continue?</string>
-    <string name="dl_main_path_title">Set external download folder…</string>
-    <string name="dl_main_path_description">Select downloads storage location</string>
-    <string name="dl_oobe_tooltip">Songs are download to the app\'s private internal storage. To download songs to the external storage, you need to choose a folder first. You can add, change or remove folders, or migrate Internal Downloads to External Downloads later in Settings.</string>
-    <string name="dl_rescan_title">Rescan download folders…</string>
-    <string name="dl_rescan_description">Update the database and refresh the download registry if any files or folders have changed</string>
-	<string name="dl_rescan_confirm">Rescan all download folders now? This can take a few minutes depending on the size of your library.</string>
-    <string name="dl_size_used_cache">Internal: %s used</string>
-    <string name="dl_size_used_main">External: %s used</string>
-    <string name="dl_size_used_extra">Extra imports: %s used</string>
-    <string name="dl_storage_tooltip">Internal Downloads are saved in the app’s private storage and aren’t accessible without root.
-        \n\nExternal Downloads are saved to your device’s external storage (e.g., /sdcard or micro SD cards) and can be accessed or edited directly with a file explorer. For the External Downloads folder, we recommend choosing an empty folder specifically for song downloads, as OuterTune may modify or delete files in that folder.
-        \n\nExtra Import folders are read-only and used for loading additional songs. OuterTune will never change or delete files in these folders. You can select these folders in the advanced section.
-        \n\nWhen you clear downloads, only internal songs are deleted. External Downloads and Extra Import songs must be removed manually, either through the song’s menu or manually via a file explorer.
-        \n\nRescan download folders: Song downloads in the External Downloads and Extra Imports folders are NOT updated automatically. If you manually add, remove, or change files using a file explorer, you may need to rescan the download folders to update the app’s database. This option is available in the advanced section.
-    </string>
-    <string name="restart_to_apply_changes">An app restart is required for changes to take effect</string>
-
-<!-- Privacy settings -->
-    <string name="pause_remote_listen_history">Pause sharing listen history with YouTube Music</string>
-
-<!-- Backup and restore settings -->
-    <string name="err_restore_incompatible_database">Could not restore incompatible database</string>
-    <string name="import_innertune_tooltip">Restoring InnerTune backups are supported, albeit a possibility of anomalies due to technical limitations</string>
-
-<!-- Experimental settings -->
-    <string name="experimental_settings_title">Experimental</string>
-    <string name="dev_settings_title">Enable developer settings</string>
-    <string name="dev_settings_description">Reveals additional advanced settings intended for development use</string>
-
-    <string name="swipe_to_skip_title">Swipe horizontally to change song</string>
-    <string name="swipe_to_skip_description">Enable swiping horizontally in the player to switch songs</string>
-
-    <string name="max_queues_title">Maximum number of queues</string>
-
-<!-- Setup wizard -->
-    <string name="oobe_welcome_message">Welcome to OuterTune</string>
-    <string name="oobe_welcome_tip">For the best experience, we recommend completing a quick setup to personalize key settings like theme, YouTube account, local media, and downloads.</string>
-
+    <!-- Scanner parameter settings-->
+    <string name="scanner_strict_file_name_title" translatable="false">Strict file names</string>
+    <string name="scanner_strict_file_name_description" translatable="false">When enabled, file names will NOT be ignored. Ex. Song.ogg will be a different song from Song.flac. Scanner sensitivity preference will still apply</string>
+    <string name="scanner_sensitivity_title" translatable="false">Configure scanner sensitivity</string>
+    <string name="scanner_sensitivity_L0" translatable="false">Take first result provided by YouTube when searching on YouTube is enabled, otherwise match title</string>
+    <string name="scanner_sensitivity_L1" translatable="false">Match title</string>
+    <string name="scanner_sensitivity_L2" translatable="false">Match title and artists</string>
+    <string name="scanner_sensitivity_L3" translatable="false">Match title, artists, albums</string>
+    <string name="scanner_type_title" translatable="false">Metadata extractor</string>
+    <string name="scanner_type_taglib" translatable="false">Use integrated TagLib metadata extractor</string>
+    <string name="scanner_type_ffmpeg_ext" translatable="false">Use FFmpeg metadata extractor. Please only use the full variant of the app. The core variant could cause issues with song tracking</string>
+    <string name="scanner_variant_rescan" translatable="false">Rescan the entire library and reload all songs\' metadata</string>
+    <string name="scanner_online_artist_linking" translatable="false">Try to link local files\' artists with ones on YouTube Music</string>
+    <!-- Storage setting -->
+    <string name="clear_downloads_confirm" translatable="false">Are you sure you want to remove all downloads? Only downloads in the main download folder will be removed.</string>
+    <string name="clear_image_cache_confirm" translatable="false">Are you sure you want to clear image cache? All exiting album thumbnails will be removed.</string>
+    <string name="clear_song_cache_confirm" translatable="false">Are you sure you want to clear song cache?</string>
+    <string name="dl_calculate_size" translatable="false">Tap to calculate download size</string>
+    <string name="dl_extra_path_title" translatable="false">Configure extra import locations…</string>
+    <string name="dl_extra_path_description" translatable="false">Songs from these folders will only appear in the app if you\'ve played them before or added them to a playlist</string>
+    <string name="dl_migrate_title" translatable="false">Migrate downloads to external storage…</string>
+    <string name="dl_migrate_description" translatable="false">Move downloads from the app\'s internal storage to the device\'s external storage</string>
+    <string name="dl_migrate_confirm" translatable="false">This will migrate ALL internal downloads to \"%s\", and this action cannot be undone. Continue?</string>
+    <string name="dl_main_path_title" translatable="false">Set external download folder…</string>
+    <string name="dl_main_path_description" translatable="false">Select downloads storage location</string>
+    <string name="dl_oobe_tooltip" translatable="false">Songs are download to the app\'s private internal storage. To download songs to the external storage, you need to choose a folder first. You can add, change or remove folders, or migrate Internal Downloads to External Downloads later in Settings.</string>
+    <string name="dl_rescan_title" translatable="false">Rescan download folders…</string>
+    <string name="dl_rescan_description" translatable="false">Update the database and refresh the download registry if any files or folders have changed</string>
+    <string name="dl_rescan_confirm" translatable="false">Rescan all download folders now? This can take a few minutes depending on the size of your library.</string>
+    <string name="dl_size_used_cache" translatable="false">Internal: %s used</string>
+    <string name="dl_size_used_main" translatable="false">External: %s used</string>
+    <string name="dl_size_used_extra" translatable="false">Extra imports: %s used</string>
+    <string name="dl_storage_tooltip" translatable="false">Internal Downloads are saved in the app’s private storage and aren’t accessible without root. \n\nExternal Downloads are saved to your device’s external storage (e.g., /sdcard or micro SD cards) and can be accessed or edited directly with a file explorer. For the External Downloads folder, we recommend choosing an empty folder specifically for song downloads, as OuterTune may modify or delete files in that folder. \n\nExtra Import folders are read-only and used for loading additional songs. OuterTune will never change or delete files in these folders. You can select these folders in the advanced section. \n\nWhen you clear downloads, only internal songs are deleted. External Downloads and Extra Import songs must be removed manually, either through the song’s menu or manually via a file explorer. \n\nRescan download folders: Song downloads in the External Downloads and Extra Imports folders are NOT updated automatically. If you manually add, remove, or change files using a file explorer, you may need to rescan the download folders to update the app’s database. This option is available in the advanced section.</string>
+    <string name="restart_to_apply_changes" translatable="false">An app restart is required for changes to take effect</string>
+    <!-- Privacy settings -->
+    <string name="pause_remote_listen_history" translatable="false">Pause sharing listen history with YouTube Music</string>
+    <!-- Backup and restore settings -->
+    <string name="err_restore_incompatible_database" translatable="false">Could not restore incompatible database</string>
+    <string name="import_innertune_tooltip" translatable="false">Restoring InnerTune backups are supported, albeit a possibility of anomalies due to technical limitations</string>
+    <!-- Experimental settings -->
+    <string name="experimental_settings_title" translatable="false">Experimental</string>
+    <string name="dev_settings_title" translatable="false">Enable developer settings</string>
+    <string name="dev_settings_description" translatable="false">Reveals additional advanced settings intended for development use</string>
+    <string name="swipe_to_skip_title" translatable="false">Swipe horizontally to change song</string>
+    <string name="swipe_to_skip_description" translatable="false">Enable swiping horizontally in the player to switch songs</string>
+    <string name="max_queues_title" translatable="false">Maximum number of queues</string>
+    <!-- Setup wizard -->
+    <string name="oobe_welcome_message" translatable="false">Welcome to OuterTune</string>
+    <string name="oobe_welcome_tip" translatable="false">For the best experience, we recommend completing a quick setup to personalize key settings like theme, YouTube account, local media, and downloads.</string>
     <!-- Landing -->
-    <string name="oobe_ytm_integration">YouTube Music Integration</string>
-    <string name="oobe_ytm_integration_description">Access your favorite tracks seamlessly</string>
-    <string name="oobe_ad_free_exp">No YouTube ADs</string>
-    <string name="oobe_ad_free_exp_description">Enjoy uninterrupted music playback</string>
-    <string name="oobe_local_music_support">Extensive Local Music Support</string>
-    <string name="oobe_local_music_support_description">Play your music files (ex. MP3, OGG, FLAC, etc.)</string>
-    <string name="oobe_cross_platform_sync">Cross-Platform Sync</string>
-    <string name="oobe_cross_platform_sync_description">Keep your music in harmony across devices</string>
-    <string name="oobe_use_backup">I have a backup</string>
-
+    <string name="oobe_ytm_integration" translatable="false">YouTube Music Integration</string>
+    <string name="oobe_ytm_integration_description" translatable="false">Access your favorite tracks seamlessly</string>
+    <string name="oobe_ad_free_exp" translatable="false">No YouTube ADs</string>
+    <string name="oobe_ad_free_exp_description" translatable="false">Enjoy uninterrupted music playback</string>
+    <string name="oobe_local_music_support" translatable="false">Extensive Local Music Support</string>
+    <string name="oobe_local_music_support_description" translatable="false">Play your music files (ex. MP3, OGG, FLAC, etc.)</string>
+    <string name="oobe_cross_platform_sync" translatable="false">Cross-Platform Sync</string>
+    <string name="oobe_cross_platform_sync_description" translatable="false">Keep your music in harmony across devices</string>
+    <string name="oobe_use_backup" translatable="false">I have a backup</string>
     <!-- Interface setup page -->
-    <string name="oobe_interface_subtitle">Customize how OuterTune looks and what content it shows you.</string>
-
+    <string name="oobe_interface_subtitle" translatable="false">Customize how OuterTune looks and what content it shows you.</string>
     <!-- Account setup page -->
-    <string name="oobe_ytm_logon_title">Account</string>
-    <string name="oobe_ytm_logon_subtitle">Sign in to your YouTube Music account to sync and access private account content. This is optional.</string>
-
+    <string name="oobe_ytm_logon_title" translatable="false">Account</string>
+    <string name="oobe_ytm_logon_subtitle" translatable="false">Sign in to your YouTube Music account to sync and access private account content. This is optional.</string>
     <!-- Local media setup -->
-    <string name="oobe_local_media_title">Local media</string>
-    <string name="oobe_local_media_subtitle">Choose folders that contain your music. We\'ll scan them for songs to import.</string>
-
+    <string name="oobe_local_media_title" translatable="false">Local media</string>
+    <string name="oobe_local_media_subtitle" translatable="false">Choose folders that contain your music. We\'ll scan them for songs to import.</string>
     <!-- Downloads -->
-    <string name="oobe_cache_title">Song cache</string>
-    <string name="oobe_cache_subtitle">Choose a song cache size. This can help reduce internet or YouTube API playback issues</string>
-    <string name="oobe_downloads_title">Song downloads</string>
-    <string name="oobe_downloads_subtitle">Choose a folder where downloaded songs will be saved.</string>
-
+    <string name="oobe_cache_title" translatable="false">Song cache</string>
+    <string name="oobe_cache_subtitle" translatable="false">Choose a song cache size. This can help reduce internet or YouTube API playback issues</string>
+    <string name="oobe_downloads_title" translatable="false">Song downloads</string>
+    <string name="oobe_downloads_subtitle" translatable="false">Choose a folder where downloaded songs will be saved.</string>
     <!-- Setup complete -->
-    <string name="oobe_complete_title">You\'re All Set!</string>
-    <string name="oobe_complete">OuterTune is set up and ready to use. Explore your music, discover new tracks, and enjoy the experience!</string>
-
-<!-- M3U -->
-    <string name="import_failed_songs">Could not import</string>
-    <string name="import_success_songs">Successfully imported</string>
-    <string name="m3u_export">Export as M3U file</string>
-    <string name="m3u_import_failed"> "No songs found. Invalid M3U file, or no song matches were found"</string>
-    <string name="m3u_import_playlist">Import a playlist (m3u)</string>
-    <string name="m3u_import_playlist_failed">Failed to import</string>
-    <string name="m3u_ytm_lookup">Search on YouTube Music for songs not found in the app database</string>
-
-<!-- Misc -->
-    <string name="action_back">Back</string>
-    <string name="action_next">Next</string>
-    <string name="action_skip">Skip</string>
-    <string name="action_cancel">Cancel</string>
-    <string name="info">Information</string>
+    <string name="oobe_complete_title" translatable="false">You\'re All Set!</string>
+    <string name="oobe_complete" translatable="false">OuterTune is set up and ready to use. Explore your music, discover new tracks, and enjoy the experience!</string>
+    <!-- M3U -->
+    <string name="import_failed_songs" translatable="false">Could not import</string>
+    <string name="import_success_songs" translatable="false">Successfully imported</string>
+    <string name="m3u_export" translatable="false">Export as M3U file</string>
+    <string name="m3u_import_failed" translatable="false">No songs found. Invalid M3U file, or no song matches were found</string>
+    <string name="m3u_import_playlist" translatable="false">Import a playlist (m3u)</string>
+    <string name="m3u_import_playlist_failed" translatable="false">Failed to import</string>
+    <string name="m3u_ytm_lookup" translatable="false">Search on YouTube Music for songs not found in the app database</string>
+    <!-- Misc -->
+    <string name="action_back" translatable="false">Back</string>
+    <string name="action_next" translatable="false">Next</string>
+    <string name="action_skip" translatable="false">Skip</string>
+    <string name="action_cancel" translatable="false">Cancel</string>
+    <string name="info" translatable="false">Information</string>
     <plurals name="second">
         <item quantity="one">%d second</item>
         <item quantity="other">%d seconds</item>
     </plurals>
-    <string name="speed_very_slow">Very slow</string>
-    <string name="speed_slow">Slow</string>
-    <string name="speed_medium">Medium</string>
-    <string name="speed_fast">Fast</string>
-    <string name="speed_very_fast">Very fast</string>
+    <string name="speed_very_slow" translatable="false">Very slow</string>
+    <string name="speed_slow" translatable="false">Slow</string>
+    <string name="speed_medium" translatable="false">Medium</string>
+    <string name="speed_fast" translatable="false">Fast</string>
+    <string name="speed_very_fast" translatable="false">Very fast</string>
 </resources>
