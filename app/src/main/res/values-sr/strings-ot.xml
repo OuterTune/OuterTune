@@ -236,4 +236,28 @@
     <string name="speed_medium">Srednje</string>
     <string name="speed_fast">Brzo</string>
     <string name="speed_very_fast">Veoma brzo</string>
+    <string name="scanner_auto_start" translatable="false"></string>
+    <string name="auto_scanner_tooltip" translatable="false"></string>
+    <string name="audio_decoder_system_only" translatable="false"></string>
+    <string name="extra_details" translatable="false"></string>
+    <string name="action_logout_tooltip" translatable="false"></string>
+    <string name="audio_decoder_system_with_ffmpeg" translatable="false"></string>
+    <string name="ffmpeg_lgpl" translatable="false"></string>
+    <string name="sort_by_track_number" translatable="false"></string>
+    <string name="disc_number" translatable="false"></string>
+    <string name="track_number" translatable="false"></string>
+    <string name="oobe_cache_subtitle" translatable="false"></string>
+    <string name="max_queues_title" translatable="false"></string>
+    <string name="audio_decoder_preference" translatable="false"></string>
+    <string name="audio_gapless_offload" translatable="false"></string>
+    <string name="scanner_auto_end" translatable="false"></string>
+    <string name="oobe_welcome_tip" translatable="false"></string>
+    <string name="audio_decoder_ffmpeg_only" translatable="false"></string>
+    <string name="bits_per_sample" translatable="false"></string>
+    <string name="file_path" translatable="false"></string>
+    <string name="audio_gapless_offload_description" translatable="false"></string>
+    <string name="library_filter" translatable="false"></string>
+    <string name="grp_more_settings" translatable="false"></string>
+    <string name="oobe_cache_title" translatable="false"></string>
+    <string name="toggle_lyrics" translatable="false"></string>
 </resources>
