@@ -266,4 +266,5 @@
     <string name="oobe_ad_free_exp_description" translatable="false"></string>
     <string name="m3u_import_failed" translatable="false"></string>
     <string name="oobe_local_media_subtitle" translatable="false"></string>
+    <string name="seek_increment" translatable="false"></string>
 </resources>

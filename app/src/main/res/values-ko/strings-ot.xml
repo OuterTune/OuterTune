@@ -259,4 +259,5 @@
     <string name="oobe_cache_title" translatable="false"></string>
     <string name="toggle_lyrics" translatable="false"></string>
     <string name="lyrics_synced_clickable" translatable="false"></string>
+    <string name="seek_increment" translatable="false"></string>
 </resources>
