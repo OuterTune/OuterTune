@@ -22,7 +22,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -33,9 +32,6 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
-import com.dd3boh.outertune.constants.FolderSongSortDescendingKey
-import com.dd3boh.outertune.constants.FolderSongSortType
-import com.dd3boh.outertune.constants.FolderSongSortTypeKey
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.DirectoryTree
@@ -46,9 +42,8 @@ import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
 import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.lmScannerCoroutine
-import com.dd3boh.outertune.utils.rememberEnumPreference
-import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.reportException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -57,16 +52,13 @@ import java.io.IOException
 @Composable
 fun FolderMenu(
     folder: DirectoryTree,
+    coroutineScope: CoroutineScope,
     navController: NavController,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-
-    val sortType by rememberEnumPreference(FolderSongSortTypeKey, FolderSongSortType.CREATE_DATE)
-    val sortDescending by rememberPreference(FolderSongSortDescendingKey, true)
 
     val allFolderSongs = remember { mutableStateListOf<Song>() }
     var subDirSongCount by remember {
@@ -96,14 +88,12 @@ fun FolderMenu(
         }
     }
 
-    fun fetchAllSongsRecursive(onFetch: (() -> Unit)? = null) {
-        coroutineScope.launch(Dispatchers.IO) {
-            val dbSongs = database.localSongsInDirDeep(folder.getFullSquashedDir()).first()
-            allFolderSongs.clear()
-            allFolderSongs.addAll(dbSongs)
-            if (onFetch != null) {
-                onFetch()
-            }
+    suspend fun fetchAllSongsRecursive(onFetch: (() -> Unit)? = null) {
+        val dbSongs = database.localSongsInDirDeep(folder.getFullSquashedDir()).first()
+        allFolderSongs.clear()
+        allFolderSongs.addAll(dbSongs)
+        if (onFetch != null) {
+            onFetch()
         }
     }
 
@@ -149,8 +139,8 @@ fun FolderMenu(
             title = R.string.play
         ) {
             onDismiss()
-            fetchAllSongsRecursive {
-                coroutineScope.launch(Dispatchers.IO) {
+            coroutineScope.launch(Dispatchers.IO) {
+                fetchAllSongsRecursive {
                     playerConnection.playQueue(
                         ListQueue(
                             title = folder.getSquashedDir().substringAfterLast('/'),
@@ -165,8 +155,8 @@ fun FolderMenu(
             title = R.string.play_next
         ) {
             onDismiss()
-            fetchAllSongsRecursive {
-                coroutineScope.launch(Dispatchers.IO) {
+            coroutineScope.launch(Dispatchers.IO) {
+                fetchAllSongsRecursive {
                     playerConnection.enqueueNext(allFolderSongs.map { it.toMediaItem() })
                 }
             }
@@ -176,7 +166,9 @@ fun FolderMenu(
             title = R.string.add_to_queue
         ) {
             showChooseQueueDialog = true
-            fetchAllSongsRecursive()
+            coroutineScope.launch(Dispatchers.IO) {
+                fetchAllSongsRecursive()
+            }
         }
         GridMenuItem(
             icon = Icons.Rounded.Shuffle,
@@ -200,7 +192,9 @@ fun FolderMenu(
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
-            fetchAllSongsRecursive()
+            coroutineScope.launch(Dispatchers.IO) {
+                fetchAllSongsRecursive()
+            }
         }
         GridMenuItem(
             icon = Icons.Rounded.Output,

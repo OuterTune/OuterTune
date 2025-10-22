@@ -70,7 +70,6 @@ import androidx.compose.ui.util.fastSumBy
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalMenuState
 import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
@@ -132,7 +131,6 @@ fun FolderScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val database = LocalDatabase.current
     val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -406,6 +404,7 @@ fun FolderScreen(
                                     menuState.show {
                                         FolderMenu(
                                             folder = currDir,
+                                            coroutineScope = coroutineScope,
                                             navController = navController,
                                             onDismiss = menuState::dismiss
                                         )
