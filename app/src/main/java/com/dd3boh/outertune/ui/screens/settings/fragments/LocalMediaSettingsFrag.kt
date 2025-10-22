@@ -207,8 +207,19 @@ fun ColumnScope.LocalScannerFrag() {
                     if (fullRescan) {
                         try {
                             val scanner = getScanner(context, scannerImpl, SCANNER_OWNER_LM)
-                            val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
-                            scanner.fullSync(database, uris, scannerSensitivity, strictExtensions, strictFilePaths)
+                            if (scannerImpl == ScannerImpl.MEDIASTORE) {
+                                scanner.fullMediaStoreSync(
+                                    database,
+                                    uriListFromString(scanPaths),
+                                    uriListFromString(excludedScanPaths),
+                                    scannerSensitivity,
+                                    strictExtensions,
+                                    strictFilePaths
+                                )
+                            } else {
+                                val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
+                                scanner.fullSync(database, uris, scannerSensitivity, strictExtensions, strictFilePaths)
+                            }
 
                             delay(1000)
                             // start artist linking job
@@ -251,9 +262,23 @@ fun ColumnScope.LocalScannerFrag() {
                         // quick scan
                         try {
                             val scanner = getScanner(context, scannerImpl, SCANNER_OWNER_LM)
-                            val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
-                            scanner.quickSync(database, uris, scannerSensitivity, strictExtensions,
-                                strictFilePaths)
+
+                            if (scannerImpl == ScannerImpl.MEDIASTORE) {
+                                scanner.fullMediaStoreSync(
+                                    database,
+                                    uriListFromString(scanPaths),
+                                    uriListFromString(excludedScanPaths),
+                                    scannerSensitivity,
+                                    strictExtensions,
+                                    strictFilePaths
+                                )
+                            } else {
+                                val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
+                                scanner.quickSync(
+                                    database, uris, scannerSensitivity, strictExtensions,
+                                    strictFilePaths
+                                )
+                            }
 
                             delay(1000)
                             // start artist linking job
@@ -631,20 +656,21 @@ fun ColumnScope.LocalScannerExtraFrag() {
         onCheckedChange = onStrictFilePathsChange,
     )
     // scanner type
-    if (ENABLE_FFMETADATAEX) {
-        EnumListPreference(
-            title = { Text(stringResource(R.string.scanner_type_title)) },
-            icon = { Icon(Icons.Rounded.Speed, null) },
-            selectedValue = scannerImpl,
-            onValueSelected = onScannerImplChange,
-            valueText = {
-                when (it) {
-                    ScannerImpl.TAGLIB -> stringResource(R.string.scanner_type_taglib)
-                    ScannerImpl.FFMPEG_EXT -> stringResource(R.string.scanner_type_ffmpeg_ext)
-                }
-            },
-            values = ScannerImpl.entries,
-        )
-    }
+    EnumListPreference(
+        title = { Text(stringResource(R.string.scanner_type_title)) },
+        icon = { Icon(Icons.Rounded.Speed, null) },
+        selectedValue = scannerImpl,
+        onValueSelected = onScannerImplChange,
+        valueText = {
+            when (it) {
+                ScannerImpl.MEDIASTORE -> stringResource(R.string.scanner_type_mediastore)
+                ScannerImpl.TAGLIB -> stringResource(R.string.scanner_type_taglib)
+                ScannerImpl.FFMPEG_EXT -> stringResource(R.string.scanner_type_ffmpeg_ext)
+            }
+        },
+        disabled = { it == ScannerImpl.FFMPEG_EXT && !ENABLE_FFMETADATAEX },
+        values = ScannerImpl.entries,
+    )
+    InfoLabel(stringResource(R.string.scanner_type_tooltip))
 }
 

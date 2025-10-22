@@ -8,8 +8,11 @@
 
 package com.dd3boh.outertune.utils.scanners
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.util.fastDistinctBy
@@ -30,6 +33,8 @@ import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.AlbumEntity
 import com.dd3boh.outertune.db.entities.Artist
 import com.dd3boh.outertune.db.entities.ArtistEntity
+import com.dd3boh.outertune.db.entities.FormatEntity
+import com.dd3boh.outertune.db.entities.GenreEntity
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.db.entities.SongAlbumMap
 import com.dd3boh.outertune.db.entities.SongArtistMap
@@ -40,6 +45,7 @@ import com.dd3boh.outertune.models.DirectoryTree
 import com.dd3boh.outertune.models.MediaMetadata
 import com.dd3boh.outertune.models.SongTempData
 import com.dd3boh.outertune.models.toMediaMetadata
+import com.dd3boh.outertune.ui.utils.ARTIST_SEPARATORS
 import com.dd3boh.outertune.utils.closestAlbumMatch
 import com.dd3boh.outertune.utils.closestMatch
 import com.dd3boh.outertune.utils.dataStore
@@ -62,7 +68,9 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Locale
 
 class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
@@ -70,6 +78,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
     private var advancedScannerImpl: MetadataScanner = when (scannerImpl) {
         ScannerImpl.TAGLIB -> TagLibScanner()
         ScannerImpl.FFMPEG_EXT -> if (ENABLE_FFMETADATAEX) FFmpegScanner() else TagLibScanner()
+        ScannerImpl.MEDIASTORE -> MediaStoreExtractor() // unused
     }
 
     init {
@@ -144,7 +153,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
 
     /**
-     * Scan MediaStore for songs given a list of paths to scan for.
+     * Scan the given scan paths for songs given a list of paths to scan for.
      * This will replace all data in the database for a given song.
      *
      * @param scanPaths List of whitelist paths to scan under. This assumes
@@ -391,7 +400,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
     /**
      * A faster scanner implementation that adds new songs to the database,
-     * and does not touch older songs entires (apart from removing
+     * and does not touch older songs entries (apart from removing
      * inacessable songs from libaray).
      *
      * No remote artist lookup is done
@@ -614,6 +623,240 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         scannerJobs.forEach {
             val song = it.getCompleted()
             song?.song?.let { finalSongs.add(song) }
+        }
+
+        scannerProgressCurrent.value = scannerProgressProbe.value
+        if (finalSongs.isNotEmpty()) {
+            /**
+             * TODO: Delete all local format entity before scan
+             */
+            scannerState.value = 0
+            syncDB(database, finalSongs, matchCriteria, strictFileNames, strictFilePaths, refreshExisting = true)
+            scannerState.value = 2
+        } else {
+            Log.i(TAG, "Not syncing, no valid songs found!")
+        }
+
+        scannerState.value = 0
+        Log.i(TAG, "------------ SYNC: Finished Quick (additive delta) Library Sync ------------")
+    }
+
+
+    /**
+     * Run a full scan and ful database update. This will update all song data in the
+     * database of all songs, and also disable inacessable songs
+     *
+     * No remote artist lookup is done
+     *
+     * WARNING: cachedDirectoryTree is not refreshed and may lead to inconsistencies.
+     * It is highly recommend to rebuild the tree after scanner operation
+     *
+     * @param newSongs List of songs. This is expecting a barebones DirectoryTree
+     * (only paths are necessary), thus you may use the output of refreshLocal().toList()
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    suspend fun fullMediaStoreSync(
+        database: MusicDatabase,
+        scanPaths: List<Uri>,
+        excludedScanPaths: List<Uri>,
+        matchCriteria: ScannerMatchCriteria,
+        strictFileNames: Boolean,
+        strictFilePaths: Boolean,
+    ) {
+        Log.i(TAG, "------------ SYNC: Starting MediaStore FULL Library Sync ------------")
+        scannerState.value = 2
+        scannerProgressCurrent.value = 0
+        scannerProgressProbe.value = 0
+
+        val mediastoreProjection = arrayListOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.DISPLAY_NAME,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ARTIST_ID,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.DATE_MODIFIED,
+            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.RELATIVE_PATH,
+            MediaStore.Audio.Media.VOLUME_NAME,
+            MediaStore.Audio.Media.MIME_TYPE,
+            MediaStore.Audio.Media.BITRATE,
+            MediaStore.Audio.Media.SIZE,
+        ).apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                add(MediaStore.Audio.Media.GENRE)
+                add(MediaStore.Audio.Media.GENRE_ID)
+                add(MediaStore.Audio.Media.CD_TRACK_NUMBER)
+                add(MediaStore.Audio.Media.WRITER)
+                add(MediaStore.Audio.Media.DISC_NUMBER)
+            }
+        }
+
+        val finalSongs = ArrayList<SongTempData>()
+
+
+        val contentResolver: ContentResolver = context.contentResolver
+        val selectionBuilder = StringBuilder("${MediaStore.Audio.Media.IS_MUSIC} != 0")
+        val selectionArgs = mutableListOf<String>()
+        scanPaths.forEachIndexed { index, path ->
+            val convertedPath = absoluteFilePathFromUri(context, path)
+            if (index == 0) {
+                selectionBuilder.append(" AND (")
+            } else {
+                selectionBuilder.append(" OR ")
+            }
+            selectionBuilder.append("${MediaStore.Audio.Media.DATA} LIKE ?")
+            selectionArgs.add("$convertedPath%")
+        }
+        selectionBuilder.append(")")
+        val selection = selectionBuilder.toString()
+
+        // Query for audio files
+        val cursor = contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            mediastoreProjection.toTypedArray(),
+            selection,
+            selectionArgs.toTypedArray(),
+            null
+        )
+        cursor?.use { cursor ->
+            // Columns indices
+            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
+            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            val artistIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val albumIDColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+            val dateModifiedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED)
+            val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+            val storageVolumeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.VOLUME_NAME)
+
+            val mimeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.MIME_TYPE)
+            val bitrateColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BITRATE)
+
+            var genreColumn: Int? = null
+            var genreIdColumn: Int? = null
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                genreColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.GENRE_ID)
+                genreIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.GENRE)
+            }
+            val trackNumberColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.CD_TRACK_NUMBER)
+            val writerColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.WRITER)
+            val discNumberColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISC_NUMBER)
+
+            while (cursor.moveToNext()) {
+                val id = SongEntity.generateSongId()
+                val name = cursor.getString(nameColumn) // file name
+                var title = cursor.getString(titleColumn) // song title
+                val duration = cursor.getInt(durationColumn) / 1000
+                val artist = cursor.getString(artistColumn)
+                val artistID = cursor.getString(artistIdColumn)
+                val albumID = cursor.getString(albumIDColumn)
+                val album = cursor.getString(albumColumn)
+                val rawYear = cursor.getString(yearColumn)
+                val rawDateModified = cursor.getString(dateModifiedColumn)
+                val path = cursor.getString(pathColumn)
+                val storageVol = cursor.getString(storageVolumeColumn)
+
+                if (excludedScanPaths.any { path.startsWith(it.path ?: "") }) continue
+
+                // extra stream info
+                val bitrate = cursor.getInt(bitrateColumn)
+                val mime = cursor.getString(mimeColumn)
+
+
+                var genre: String? = null
+
+                var genreId: Long? = null
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    genre = cursor.getString(genreColumn!!)
+                    genreId = cursor.getLong(genreIdColumn!!)
+                }
+                val trackNumber = cursor.getInt(trackNumberColumn)
+                val writer = cursor.getString(writerColumn)
+                val discNumber = cursor.getInt(discNumberColumn)
+
+                if (SCANNER_DEBUG)
+                    Log.d(TAG, "ID: $id, Name: $name, ARTIST: $artist, PATH: $storageVol --> $path")
+
+                if (title.isBlank()) { // songs with no title tag
+                    title = name.substringBeforeLast('.')
+                }
+
+                val year = rawYear?.toIntOrNull()
+                var dateModified: LocalDateTime? = null
+
+                try {
+                    rawDateModified?.toLongOrNull()?.let {
+                        // TODO: wai r u 1970s
+                        dateModified = LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneOffset.UTC)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                val artistList = ArrayList<ArtistEntity>()
+                val genresList = ArrayList<GenreEntity>()
+
+
+                artist.split(ARTIST_SEPARATORS).forEach { artistVal ->
+                    artistList.add(ArtistEntity(ArtistEntity.generateArtistId(), artistVal, isLocal = true))
+                }
+
+                genre?.split(ARTIST_SEPARATORS)?.forEach { genreVal ->
+                    genresList.add(GenreEntity(GenreEntity.generateGenreId(), genreVal, isLocal = true))
+                }
+                val albumEntity = if (album != null && albumID != null) AlbumEntity(
+                    id = albumID,
+                    title = album,
+                    thumbnailUrl = path,
+                    songCount = 1,
+                    duration = duration,
+                    isLocal = true
+                ) else null
+
+                finalSongs.add(
+                    SongTempData(
+                        Song(
+                            song = SongEntity(
+                                id = id,
+                                title = title,
+                                duration = duration,
+                                thumbnailUrl = path,
+                                inLibrary = LocalDateTime.now(),
+                                isLocal = true,
+                                localPath = path,
+                                trackNumber = trackNumber,
+                                discNumber = discNumber,
+                                albumId = albumID,
+                                albumName = album,
+                                year = year,
+                                dateModified = dateModified,
+                            ),
+                            artists = artistList,
+                            // album not working
+                            album = albumEntity,
+                            genre = genresList
+                        ),
+                        FormatEntity(
+                            id = id,
+                            itag = -1,
+                            mimeType = mime,
+                            codecs = mime.substringAfter('/'),
+                            bitrate = bitrate,
+                            sampleRate = -1,
+                            contentLength = duration.toLong(),
+                            loudnessDb = null,
+                        )
+                    )
+                )
+            }
         }
 
         scannerProgressCurrent.value = scannerProgressProbe.value
@@ -884,7 +1127,11 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                             runBlocking(Dispatchers.Main) {
                                 // TODO: string resource (but will anyone even notice this...)
                                 Toast.makeText(context, "FFmpeg extractors are missing", Toast.LENGTH_SHORT).show()
-                                Toast.makeText(context, "Auto scanner has been disabled to prevent data conflicts. You will need to enable this in local media settings again if you want automatic scanning.", Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context,
+                                    "Auto scanner has been disabled to prevent data conflicts. You will need to enable this in local media settings again if you want automatic scanning.",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                         }
                     }

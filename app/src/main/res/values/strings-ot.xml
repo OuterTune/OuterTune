@@ -192,7 +192,7 @@ while also allowing users to translate our app as well. New, specific strings to
 <!-- Scanner settings -->
     <string name="auto_scanner_title">Scan automatically</string>
     <string name="auto_scanner_description">Periodically refresh local media songs and custom downloads folders when opening the app</string>
-    <string name="auto_scanner_tooltip">For local media, this does not reload metadata of existing songs. Use the manual scanner with the rescan checkbox selected if you also wish to refresh metadata.</string>
+    <string name="auto_scanner_tooltip">For local media, automatic scanning does not reload the metadata of existing songs. Use the manual scanner with the rescan checkbox selected if you also wish to refresh metadata.</string>
 
     <string name="scan_paths_title">Configure scan locations…</string>
     <string name="scan_paths_description">Select folders on your local storage to scan for songs</string>
@@ -245,6 +245,8 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
 
     <string name="scanner_type_title">Metadata extractor</string>
+    <string name="scanner_type_tooltip">The system scanner is faster, but may incorrectly extract some metadata compared to other extractors. Please note that switching scanners won\'t automatically reload the metadata of existing songs.</string>
+    <string name="scanner_type_mediastore">Use MediaStore system scanner and extractors</string>
     <string name="scanner_type_taglib">Use integrated TagLib metadata extractor</string>
     <string name="scanner_type_ffmpeg_ext">Use FFmpeg metadata extractor. Please only use the "full" variant of the app. The "core" variant could cause issues with song tracking</string>
 
