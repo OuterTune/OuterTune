@@ -194,6 +194,7 @@ import com.dd3boh.outertune.ui.menu.MenuState
 import com.dd3boh.outertune.ui.menu.YouTubeSongMenu
 import com.dd3boh.outertune.ui.player.BottomSheetPlayer
 import com.dd3boh.outertune.ui.screens.AccountScreen
+import com.dd3boh.outertune.ui.screens.AIFeaturesScreen
 import com.dd3boh.outertune.ui.screens.AlbumScreen
 import com.dd3boh.outertune.ui.screens.BrowseScreen
 import com.dd3boh.outertune.ui.screens.ConnectScreen
@@ -983,8 +984,11 @@ class MainActivity : ComponentActivity() {
                                     composable(Screens.Library.route) {
                                         LibraryScreen(navController, scrollBehavior)
                                     }
-                                    composable(Screens.Create.route) {
-                                        ConnectScreen(navController, scrollBehavior)
+                                    composable(Screens.OuterConnect.route) {
+                                        OuterConnectScreen(navController, scrollBehavior)
+                                    }
+                                    composable(Screens.AIFeatures.route) {
+                                        AIFeaturesScreen(navController, scrollBehavior)
                                     }
                                     composable("history") {
                                         HistoryScreen(navController)

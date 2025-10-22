@@ -14,7 +14,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material.icons.rounded.Album
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.GroupAdd
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.MusicNote
@@ -37,6 +39,8 @@ sealed class Screens(
     data object Playlists : Screens(R.string.playlists, Icons.AutoMirrored.Rounded.QueueMusic, "playlists")
     data object Library : Screens(R.string.library, Icons.Rounded.LibraryMusic, "library")
     data object Create : Screens(R.string.create, Icons.Rounded.AddCircle, "create")
+    data object OuterConnect : Screens(R.string.outer_connect, Icons.Rounded.GroupAdd, "outer_connect")
+    data object AIFeatures : Screens(R.string.ai_features, Icons.Rounded.AutoAwesome, "ai_features")
 
     enum class LibraryFilter {
         ALL, ALBUMS, ARTISTS, PLAYLISTS, SONGS, FOLDERS
@@ -56,6 +60,8 @@ sealed class Screens(
          * L: Playlists
          * M: Library
          * C: Create
+         * O: OuterConnect
+         * I: AI Features
          *
          * Not/won't implement
          * P: Player
@@ -70,7 +76,9 @@ sealed class Screens(
             Albums to 'B',
             Playlists to 'L',
             Library to 'M',
-            Create to 'C'
+            Create to 'C',
+            OuterConnect to 'O',
+            AIFeatures to 'I'
         )
 
         fun getAllScreens() = screenPairs.map { it.first }

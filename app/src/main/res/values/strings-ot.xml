@@ -11,6 +11,8 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="folders">Folders</string>
     <string name="library">Library</string>
     <string name="create">Create</string>
+    <string name="outer_connect">OuterConnect</string>
+    <string name="ai_features">AI Features</string>
 
 <!-- Home -->
     <string name="recent_activity">Recent activity</string>
