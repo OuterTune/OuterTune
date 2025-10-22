@@ -10,6 +10,7 @@
 package com.dd3boh.outertune.ui.player
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -148,6 +149,7 @@ import com.dd3boh.outertune.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -447,6 +449,15 @@ fun BoxScope.QueueContent(
     }
 
     LaunchedEffect(Unit) {
+        combine(snapshotFlow { qb.masterQueues.toList() }, playerConnection.service.qbInit) { updatedList, init ->
+            updatedList to init
+        }.collect { (updatedList, init) ->
+            Log.d("Queue.kt", "Trigger loading queue. init = $init")
+            mutableQueues.clear()
+            mutableQueues.addAll(qb.getAllQueues())
+            playingQueue = updatedList.indexOf(qb.getCurrentQueue())
+        }
+
         snapshotFlow { qb.masterQueues.toList() }
             .collect { updatedList ->
                 // Handle the updated list

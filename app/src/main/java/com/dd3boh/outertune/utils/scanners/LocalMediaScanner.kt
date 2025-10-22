@@ -159,7 +159,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         val songs = ArrayList<Uri>()
         Log.i(TAG, "------------ SCAN: Starting Full Scanner ------------")
         scannerState.value = 1
-        scannerProgressProbe = 0
+        scannerProgressProbe.value = 0
         scannerProgressTotal.value = 0
         scannerProgressCurrent.value = -1
 
@@ -207,18 +207,22 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         }
         Log.i(TAG, "------------ SYNC: Starting Local Library Sync ------------")
         scannerState.value = 3
-//        scannerProgressProbe = 0 // using separate variable instead
+//        scannerProgressProbe.value = 0 // using separate variable instead
         // deduplicate
         val finalSongs = ArrayList<SongTempData>()
-        newSongs.forEach { song ->
-            if (finalSongs.none { s -> compareSong(song.song, s.song, matchStrength, strictFileNames) }) {
-                finalSongs.add(song)
+        if (strictFilePaths) {
+            finalSongs.addAll(newSongs)
+        } else {
+            newSongs.forEach { song ->
+                if (finalSongs.none { s -> compareSong(song.song, s.song, matchStrength, strictFileNames) }) {
+                    finalSongs.add(song)
+                }
             }
         }
         Log.d(TAG, "Entries to process: ${newSongs.size}. After dedup: ${finalSongs.size}")
         scannerProgressTotal.value = finalSongs.size
         scannerProgressCurrent.value = 0
-        scannerProgressProbe = 0
+        scannerProgressProbe.value = 0
         val mod = if (newSongs.size < 20) {
             2
         } else if (newSongs.size < 50) {
@@ -241,7 +245,6 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             if (scannerRequestCancel) {
                 if (SCANNER_DEBUG)
                     Log.i(TAG, "WARNING: Requested to cancel Local Library Sync. Aborting.")
-                scannerRequestCancel = false
                 throw ScannerAbortException("Scanner canceled during Local Library Sync")
             }
 
@@ -412,7 +415,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         scannerState.value = 2
         scannerProgressTotal.value = newSongs.size
         scannerProgressCurrent.value = 0
-        scannerProgressProbe = 0
+        scannerProgressProbe.value = 0
 
         Log.d(TAG, "Scanning for files...")
         // get list of all songs in db, then get songs unknown to the database
@@ -435,7 +438,6 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         delta.forEach { s ->
             if (scannerRequestCancel) {
                 Log.i(TAG, "WARNING: Requested to cancel. Aborting.")
-                scannerRequestCancel = false
                 throw ScannerAbortException("Scanner canceled during Quick (additive delta) Library Sync")
             }
 
@@ -455,15 +457,15 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                             }
                             try {
                                 ret = advancedScan(File(s))
-                                scannerProgressProbe++
-                                if (SCANNER_DEBUG && scannerProgressProbe % mod == 0) {
+                                scannerProgressProbe.value++
+                                if (SCANNER_DEBUG && scannerProgressProbe.value % mod == 0) {
                                     Log.d(
                                         TAG,
-                                        "------------ SCAN: Full Scanner: $scannerProgressProbe discovered ------------"
+                                        "------------ SCAN: Full Scanner: ${scannerProgressProbe.value} discovered ------------"
                                     )
                                 }
-                                if (scannerProgressProbe % mod == 0) {
-                                    scannerProgressCurrent.value = scannerProgressProbe
+                                if (scannerProgressProbe.value % mod == 0) {
+                                    scannerProgressCurrent.value = scannerProgressProbe.value
                                 }
                             } catch (e: InvalidAudioFileException) {
                                 ret = null
@@ -473,17 +475,21 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                     )
                 }
             } else {
+                if (scannerRequestCancel) {
+                    Log.i(TAG, "WARNING: Requested to cancel. Aborting.")
+                    throw ScannerAbortException("Scanner canceled during Quick (additive delta) Library Sync")
+                }
                 // force synchronous scanning of songs. Do not catch errors
                 finalSongs.add(advancedScan(File(s)))
-                scannerProgressProbe++
-                if (SCANNER_DEBUG && scannerProgressProbe % 5 == 0) {
+                scannerProgressProbe.value++
+                if (SCANNER_DEBUG && scannerProgressProbe.value % 5 == 0) {
                     Log.d(
                         TAG,
-                        "------------ SCAN: Full Scanner: $scannerProgressProbe discovered ------------"
+                        "------------ SCAN: Full Scanner: ${scannerProgressProbe.value} discovered ------------"
                     )
                 }
-                if (scannerProgressProbe % 5 == 0) {
-                    scannerProgressCurrent.value = scannerProgressProbe
+                if (scannerProgressProbe.value % 5 == 0) {
+                    scannerProgressCurrent.value = scannerProgressProbe.value
                 }
             }
         }
@@ -507,7 +513,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             Log.i(TAG, "Not syncing, no valid songs found!")
         }
 
-        scannerProgressCurrent.value = scannerProgressProbe
+        scannerProgressCurrent.value = scannerProgressProbe.value
         // we handle disabling songs here instead
         scannerState.value = 3
         finalize(database)
@@ -543,7 +549,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         scannerState.value = 2
         scannerProgressTotal.value = newSongs.size
         scannerProgressCurrent.value = 0
-        scannerProgressProbe = 0
+        scannerProgressProbe.value = 0
         val mod = if (newSongs.size < 20) {
             2
         } else if (newSongs.size < 50) {
@@ -559,7 +565,6 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         newSongs.forEach { uri ->
             if (scannerRequestCancel) {
                 Log.i(TAG, "WARNING: Requested to cancel. Aborting.")
-                scannerRequestCancel = false
                 throw ScannerAbortException("Scanner canceled during FULL Library Sync")
             }
 
@@ -577,15 +582,15 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                             }
                             try {
                                 val ret = advancedScan(uri)
-                                scannerProgressProbe++
-                                if (SCANNER_DEBUG && scannerProgressProbe % mod == 0) {
+                                scannerProgressProbe.value++
+                                if (SCANNER_DEBUG && scannerProgressProbe.value % mod == 0) {
                                     Log.d(
                                         TAG,
-                                        "------------ SCAN: Full Scanner: $scannerProgressProbe discovered ------------"
+                                        "------------ SCAN: Full Scanner: ${scannerProgressProbe.value} discovered ------------"
                                     )
                                 }
-                                if (scannerProgressProbe % mod == 0) {
-                                    scannerProgressCurrent.value = scannerProgressProbe
+                                if (scannerProgressProbe.value % mod == 0) {
+                                    scannerProgressCurrent.value = scannerProgressProbe.value
                                 }
                                 ret
                             } catch (e: InvalidAudioFileException) {
@@ -611,7 +616,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             song?.song?.let { finalSongs.add(song) }
         }
 
-        scannerProgressCurrent.value = scannerProgressProbe
+        scannerProgressCurrent.value = scannerProgressProbe.value
         if (finalSongs.isNotEmpty()) {
             /**
              * TODO: Delete all local format entity before scan
@@ -644,7 +649,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         val allLocal = database.allLocalArtists().first()
         scannerProgressTotal.value = allLocal.size
         scannerProgressCurrent.value = 0
-        scannerProgressProbe = 0
+        scannerProgressProbe.value = 0
         val mod = if (allLocal.size < 20) {
             2
         } else if (allLocal.size < 50) {
@@ -695,11 +700,11 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                 }
             }
 
-            scannerProgressProbe++
-            if (scannerProgressProbe % mod == 0) {
-                scannerProgressCurrent.value = scannerProgressProbe
+            scannerProgressProbe.value++
+            if (scannerProgressProbe.value % mod == 0) {
+                scannerProgressCurrent.value = scannerProgressProbe.value
             }
-            if (SCANNER_DEBUG && scannerProgressProbe % mod == 0) {
+            if (SCANNER_DEBUG && scannerProgressProbe.value % mod == 0) {
                 Log.v(
                     TAG,
                     "------------ SYNC: youtubeArtistLookup job: $ scannerProgressCurrent.value/${scannerProgressTotal.value} artists processed ------------"
@@ -855,7 +860,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         var scannerState = MutableStateFlow(-1)
         var scannerProgressTotal = MutableStateFlow(-1)
         var scannerProgressCurrent = MutableStateFlow(-1)
-        var scannerProgressProbe = -1
+        var scannerProgressProbe = MutableStateFlow(-1)
 
 
         /**
@@ -887,7 +892,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                 localScanner = LocalMediaScanner(context, scannerImpl)
                 scannerProgressTotal.value = 0
                 scannerProgressCurrent.value = -1
-                scannerProgressProbe = 0
+                scannerProgressProbe.value = 0
             }
 
             ownerId = owner
@@ -905,7 +910,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             scannerRequestCancel = false
             scannerProgressTotal.value = -1
             scannerProgressCurrent.value = -1
-            scannerProgressProbe = -1
+            scannerProgressProbe.value = -1
 
             Log.i(TAG, "Scanner instance destroyed")
         }
@@ -983,9 +988,9 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                     // add if file matches
                     if (validator == null || validator(file)) {
                         result.add(file)
-                        scannerProgressProbe++
-                        if (scannerProgressProbe % 20 == 0) {
-                            scannerProgressTotal.value = scannerProgressProbe
+                        scannerProgressProbe.value++
+                        if (scannerProgressProbe.value % 20 == 0) {
+                            scannerProgressTotal.value = scannerProgressProbe.value
                         }
                     }
                 }

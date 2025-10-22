@@ -170,6 +170,7 @@ fun ColumnScope.LocalScannerFrag() {
                 // cancel button
                 if (scannerState > 0) {
                     scannerRequestCancel = true
+                    return@Button
                 }
 
                 // check permission
@@ -626,7 +627,6 @@ fun ColumnScope.LocalScannerExtraFrag() {
         title = { Text(stringResource(R.string.scanner_strict_file_paths_title)) },
         description = stringResource(R.string.scanner_strict_file_paths_description),
         icon = { Icon(Icons.Rounded.MoreHoriz, null) },
-        isEnabled = !strictFilePaths,
         checked = strictFilePaths,
         onCheckedChange = onStrictFilePathsChange,
     )
