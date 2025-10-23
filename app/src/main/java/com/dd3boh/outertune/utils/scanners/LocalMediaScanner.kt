@@ -677,30 +677,26 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         scannerProgressCurrent.value = 0
         scannerProgressProbe.value = 0
 
-        val mediastoreProjection = arrayListOf(
+        val projection = arrayListOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DISPLAY_NAME,
             MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.ARTIST,
-            MediaStore.Audio.Media.ARTIST_ID,
-            MediaStore.Audio.Media.ALBUM,
-            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.DURATION, // 29
+            MediaStore.Audio.Media.ARTIST, // 30
+            MediaStore.Audio.Media.ALBUM, // 30
             MediaStore.Audio.Media.DATE_MODIFIED,
-            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.YEAR, // 30
             MediaStore.Audio.Media.DATA,
-            MediaStore.Audio.Media.RELATIVE_PATH,
-            MediaStore.Audio.Media.VOLUME_NAME,
+            MediaStore.Audio.Media.VOLUME_NAME, // 29
             MediaStore.Audio.Media.MIME_TYPE,
-            MediaStore.Audio.Media.BITRATE,
+            MediaStore.Audio.Media.BITRATE, // 30
             MediaStore.Audio.Media.SIZE,
         ).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                add(MediaStore.Audio.Media.GENRE)
-                add(MediaStore.Audio.Media.GENRE_ID)
-                add(MediaStore.Audio.Media.CD_TRACK_NUMBER)
-                add(MediaStore.Audio.Media.WRITER)
-                add(MediaStore.Audio.Media.DISC_NUMBER)
+                add(MediaStore.Audio.Media.GENRE) // 30
+                add(MediaStore.Audio.Media.CD_TRACK_NUMBER) // 30
+//                add(MediaStore.Audio.Media.WRITER)
+                add(MediaStore.Audio.Media.DISC_NUMBER) // 30
             }
         }
 
@@ -726,7 +722,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         // Query for audio files
         val cursor = contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            mediastoreProjection.toTypedArray(),
+            projection.toTypedArray(),
             selection,
             selectionArgs.toTypedArray(),
             null
@@ -736,9 +732,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
             val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-            val artistIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
             val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumIDColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
             val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
             val dateModifiedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED)
@@ -749,14 +743,12 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             val bitrateColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BITRATE)
 
             var genreColumn: Int? = null
-            var genreIdColumn: Int? = null
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                genreColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.GENRE_ID)
-                genreIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.GENRE)
+                genreColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.GENRE)
             }
             val trackNumberColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.CD_TRACK_NUMBER)
-            val writerColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.WRITER)
+//            val writerColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.WRITER)
             val discNumberColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISC_NUMBER)
 
             while (cursor.moveToNext()) {
@@ -765,8 +757,6 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                 var title = cursor.getString(titleColumn) // song title
                 val duration = cursor.getInt(durationColumn) / 1000
                 val artist = cursor.getString(artistColumn)
-                val artistID = cursor.getString(artistIdColumn)
-                val albumID = cursor.getString(albumIDColumn)
                 val album = cursor.getString(albumColumn)
                 val rawYear = cursor.getString(yearColumn)
                 val rawDateModified = cursor.getString(dateModifiedColumn)
@@ -781,14 +771,11 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
 
                 var genre: String? = null
-
-                var genreId: Long? = null
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     genre = cursor.getString(genreColumn!!)
-                    genreId = cursor.getLong(genreIdColumn!!)
                 }
                 val trackNumber = cursor.getInt(trackNumberColumn)
-                val writer = cursor.getString(writerColumn)
+//                val writer = cursor.getString(writerColumn)
                 val discNumber = cursor.getInt(discNumberColumn)
 
                 if (SCANNER_DEBUG)
@@ -803,8 +790,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
                 try {
                     rawDateModified?.toLongOrNull()?.let {
-                        // TODO: wai r u 1970s
-                        dateModified = LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneOffset.UTC)
+                        dateModified = LocalDateTime.ofInstant(Instant.ofEpochSecond(it), ZoneOffset.UTC)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -821,7 +807,8 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                 genre?.split(ARTIST_SEPARATORS)?.forEach { genreVal ->
                     genresList.add(GenreEntity(GenreEntity.generateGenreId(), genreVal, isLocal = true))
                 }
-                val albumEntity = if (album != null && albumID != null) AlbumEntity(
+                val albumID = AlbumEntity.generateAlbumId()
+                val albumEntity = if (album != null) AlbumEntity(
                     id = albumID,
                     title = album,
                     thumbnailUrl = path,
@@ -843,7 +830,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                                 localPath = path,
                                 trackNumber = trackNumber,
                                 discNumber = discNumber,
-                                albumId = albumID,
+                                albumId = albumID, // this is replaced later anwyays
                                 albumName = album,
                                 year = year,
                                 dateModified = dateModified,

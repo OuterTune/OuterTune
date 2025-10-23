@@ -246,7 +246,7 @@ while also allowing users to translate our app as well. New, specific strings to
 
     <string name="scanner_type_title">Metadata extractor</string>
     <string name="scanner_type_tooltip">The system scanner is faster, but may incorrectly extract some metadata compared to other extractors. Please note that switching scanners won\'t automatically reload the metadata of existing songs.</string>
-    <string name="scanner_type_mediastore">Use MediaStore system scanner and extractors</string>
+    <string name="scanner_type_mediastore" translatable="false">(BETA) Use MediaStore system scanner and extractors</string>
     <string name="scanner_type_taglib">Use integrated TagLib metadata extractor</string>
     <string name="scanner_type_ffmpeg_ext">Use FFmpeg metadata extractor. Please only use the "full" variant of the app. The "core" variant could cause issues with song tracking</string>
 

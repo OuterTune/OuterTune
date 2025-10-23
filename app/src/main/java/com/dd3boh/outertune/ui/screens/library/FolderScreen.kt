@@ -156,7 +156,9 @@ fun FolderScreen(
         if (viewModel.uiInit && !currDir.isSkeleton && viewModel.lastLocalScan != lastLocalScan) {
             viewModel.lastLocalScan = lastLocalScan
             navController.backToMain()
-            viewModel.getLocalSongs()
+            coroutineScope.launch(Dispatchers.IO) {
+                viewModel.getLocalSongs()
+            }
         }
     }
 

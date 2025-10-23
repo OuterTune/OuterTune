@@ -12,6 +12,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -673,7 +674,7 @@ fun ColumnScope.LocalScannerExtraFrag() {
                 ScannerImpl.FFMPEG_EXT -> stringResource(R.string.scanner_type_ffmpeg_ext)
             }
         },
-        disabled = { it == ScannerImpl.FFMPEG_EXT && !ENABLE_FFMETADATAEX },
+        disabled = { it == ScannerImpl.FFMPEG_EXT && !ENABLE_FFMETADATAEX && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R },
         values = ScannerImpl.entries,
     )
     InfoLabel(stringResource(R.string.scanner_type_tooltip))
