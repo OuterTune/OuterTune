@@ -203,6 +203,9 @@ fun ColumnScope.LocalScannerFrag() {
                 playerConnection?.player?.pause()
 
                 coroutineScope.launch(lmScannerCoroutine) {
+                    if (scannerState > 0) {
+                        return@launch
+                    }
                     // full rescan
                     if (fullRescan) {
                         try {
@@ -214,7 +217,8 @@ fun ColumnScope.LocalScannerFrag() {
                                     uriListFromString(excludedScanPaths),
                                     scannerSensitivity,
                                     strictExtensions,
-                                    strictFilePaths
+                                    strictFilePaths,
+                                    true,
                                 )
                             } else {
                                 val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
@@ -255,8 +259,8 @@ fun ColumnScope.LocalScannerFrag() {
                                 duration = SnackbarDuration.Short
                             )
                         } finally {
-                            destroyScanner(SCANNER_OWNER_LM)
                             clearDtCache()
+                            destroyScanner(SCANNER_OWNER_LM)
                         }
                     } else {
                         // quick scan
@@ -270,7 +274,8 @@ fun ColumnScope.LocalScannerFrag() {
                                     uriListFromString(excludedScanPaths),
                                     scannerSensitivity,
                                     strictExtensions,
-                                    strictFilePaths
+                                    strictFilePaths,
+                                    false
                                 )
                             } else {
                                 val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
@@ -314,8 +319,8 @@ fun ColumnScope.LocalScannerFrag() {
                                 duration = SnackbarDuration.Short
                             )
                         } finally {
-                            destroyScanner(SCANNER_OWNER_LM)
                             clearDtCache()
+                            destroyScanner(SCANNER_OWNER_LM)
                         }
                     }
 

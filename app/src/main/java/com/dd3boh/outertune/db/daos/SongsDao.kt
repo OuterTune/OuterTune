@@ -149,6 +149,10 @@ interface SongsDao {
     fun allLocalSongs(): Flow<List<Song>>
 
     @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 1")
+    fun allLocalDbSongs(): Flow<List<Song>>
+
+    @Transaction
     @Query("""
         SELECT * FROM song
         WHERE isLocal = 1 AND localpath LIKE :filter || '%'

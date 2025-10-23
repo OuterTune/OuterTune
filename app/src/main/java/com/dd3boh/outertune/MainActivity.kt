@@ -495,12 +495,12 @@ class MainActivity : ComponentActivity() {
                                 }
                                 reportException(e)
                             } finally {
+                                clearDtCache()
                                 destroyScanner(SCANNER_OWNER_LM)
                             }
 
                             // post scan actions
                             onLastLocalScanChange(timeNow)
-                            clearDtCache()
                             playerConnection?.service?.initQueue()
                             Log.i(MAIN_TAG, "Local media and downloads scan completed")
                         } else if (perms == PackageManager.PERMISSION_DENIED) {
