@@ -119,7 +119,7 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
     fun genreByName(name: String): GenreEntity?
 
     @Query("SELECT * FROM genre WHERE title LIKE '%' || :query || '%' LIMIT :previewSize")
-    fun genreByAproxName(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<GenreEntity>>
+    fun genreByNameFuzzy(query: String, previewSize: Int = Int.MAX_VALUE): List<GenreEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(genre: GenreEntity)

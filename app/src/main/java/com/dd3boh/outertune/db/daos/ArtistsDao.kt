@@ -52,7 +52,7 @@ interface ArtistsDao {
     fun artistByName(name: String): ArtistEntity?
 
     @Query("SELECT * FROM artist WHERE name LIKE '%' || :name || '%'")
-    fun artistLikeName(name: String): Flow<List<ArtistEntity>>
+    fun artistsByNameFuzzy(name: String): List<ArtistEntity>
 
     @Query("""
         SELECT 
@@ -96,13 +96,13 @@ interface ArtistsDao {
     fun searchArtistSongs(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Song>>
 
     @Query("SELECT * FROM artist WHERE name LIKE '%' || :query || '%' LIMIT :previewSize")
-    fun fuzzySearchArtists(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<ArtistEntity>>
+    fun artistsByNameFuzzy(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<ArtistEntity>>
 
     @Query("SELECT * FROM artist WHERE isLocal != 1")
     fun allRemoteArtists(): Flow<List<ArtistEntity>>
 
     @Query("SELECT * FROM artist WHERE isLocal = 1")
-    fun allLocalArtists(): Flow<List<ArtistEntity>>
+    fun allLocalArtists(): List<ArtistEntity>
 
     @Query("""
         SELECT 
@@ -192,7 +192,7 @@ interface ArtistsDao {
         GROUP BY artist.id
         ORDER BY artist.name ASC
     """)
-    fun localArtistsByName(): Flow<List<Artist>>
+    fun localArtistsByName(): List<Artist>
     // endregion
 
     // region Artist Songs Sort

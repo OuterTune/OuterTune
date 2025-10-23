@@ -12,6 +12,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.os.ext.SdkExtensions
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
@@ -61,8 +62,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -71,9 +70,8 @@ import java.io.IOException
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.util.Locale
 
-class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
+class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
     private val TAG = LocalMediaScanner::class.simpleName.toString()
     private var advancedScannerImpl: MetadataScanner = when (scannerImpl) {
         ScannerImpl.TAGLIB -> TagLibScanner()
@@ -240,10 +238,11 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             140
         }
 
-        val allLocalSongs = database.allLocalDbSongs().first()
+        val allLocalSongs = database.allLocalDbSongs()
         // sync
         var runs = 0
         finalSongs.forEach { song ->
+            Log.v(TAG, "s --> ${song.song.song.title}, ${song.song.song.localPath}")
             runs++
             if (SCANNER_DEBUG && runs % mod == 0) {
                 Log.d(TAG, "------------ SYNC: Local Library Sync: $runs/${finalSongs.size} processed ------------")
@@ -260,7 +259,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
             // check if this song is known to the library
             val songMatch = allLocalSongs.filter {
-                return@filter it.song.title.lowercase().contains(song.song.title) &&
+                return@filter it.song.title.contains(song.song.title, true) &&
                         compareSong(it, song.song, matchStrength, strictFileNames, strictFilePaths)
             }
 
@@ -304,26 +303,33 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
                 val artistsToDo = ArrayList<Pair<ArtistEntity?, ArtistEntity>>()
                 val genreToDo = ArrayList<Pair<GenreEntity?, GenreEntity>>()
+                var albumToDo: Pair<AlbumEntity?, AlbumEntity>? = null
 
                 // update artists and genre
-                database.query {
+                database.transaction {
+                    // get any existing matches
                     song.song.artists.forEachIndexed { index, it ->
-                        val dbQuery = runBlocking(Dispatchers.IO) {
-                            artistLikeName(it.name).firstOrNull()?.sortedBy { item -> item.name.length }
-                        }
-                        val dbArtist = dbQuery?.let { item -> closestMatch(it.name, item) }
+                        val dbQuery = this.artistsByNameFuzzy(it.name).sortedBy { item -> item.name.length }
+                        val dbArtist = closestMatch(it.name, dbQuery)
                         artistsToDo.add(Pair(dbArtist, it))
                     }
                     song.song.genre?.forEachIndexed { index, it ->
-                        val dbGenre = runBlocking(Dispatchers.IO) {
-                            genreByAproxName(it.title).firstOrNull()?.firstOrNull()
-                        }
+                        val dbGenre = genreByNameFuzzy(it.title).firstOrNull()
                         genreToDo.add(Pair(dbGenre, it))
                     }
-                }
 
-                database.transaction {
-                    update(songToUpdate)
+                    song.song.album?.let {
+                        val dbQuery = localAlbumsByNameFuzzy(it.title).sortedBy { item -> item.title.length }
+                        albumToDo = Pair(closestAlbumMatch(it.title, dbQuery), it)
+                    }
+
+                    // update song
+                    update(
+                        songToUpdate.copy(
+                            albumId = albumToDo?.first?.id ?: albumToDo?.second?.id,
+                            albumName = albumToDo?.first?.title ?: albumToDo?.second?.title
+                        )
+                    )
                     if (song.format != null) {
                         upsert(song.format.copy(id = songToUpdate.id))
                     }
@@ -331,6 +337,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                     // destroy existing artist links
                     unlinkSongArtists(songToUpdate.id)
                     unlinkSongAlbums(songToUpdate.id)
+                    unlinkSongGenres(songToUpdate.id)
 
                     artistsToDo.forEachIndexed { index, item ->
                         if (item.first == null) {
@@ -353,33 +360,24 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                             insert(SongGenreMap(songToUpdate.id, item.first!!.id, index))
                         }
                     }
-                }
 
-                // locks up the database till the end of time when inside the main transaction. Your guess why is as good as mine.
-                song.song.album?.let {
-                    val dbQuery =
-                        database.localAlbumsByName(it.title).firstOrNull()?.sortedBy { item -> item.title.length }
-                    val dbAlbum = dbQuery?.let { item -> closestAlbumMatch(it.title, item) }
-
-                    database.transaction {
-                        if (dbAlbum == null) {
+                    albumToDo?.let { album ->
+                        if (album.first == null) {
                             // album does not exist in db, add it then link it
-                            insert(it)
-                            insert(SongAlbumMap(songToUpdate.id, it.id, 0))
+                            insert(album.second)
+                            insert(SongAlbumMap(songToUpdate.id, album.second.id, 0))
                         } else {
                             // album does  exist in db, link to it
-                            if ((dbAlbum.thumbnailUrl == null && it.thumbnailUrl != null) ||
-                                (dbAlbum.thumbnailUrl != null && it.thumbnailUrl != null &&
-                                        dbAlbum.thumbnailUrl != it.thumbnailUrl)
-                            ) {
-                                // update the thumbnailUrl if both a new one has been provided and the existing one is null
-                                upsert(dbAlbum.copy(thumbnailUrl = it.thumbnailUrl))
-                            }
-                            insert(SongAlbumMap(songToUpdate.id, dbAlbum.id, dbAlbum.songCount))
+                            update(
+                                album.first!!.copy(
+                                    thumbnailUrl = album.second.thumbnailUrl,
+                                    songCount = album.first!!.songCount + 1
+                                )
+                            )
+                            insert(SongAlbumMap(songToUpdate.id, album.first!!.id, album.first!!.songCount))
                         }
                     }
                 }
-
             } else { // new song
                 if (SCANNER_DEBUG)
                     Log.v(TAG, "NOT found in database, adding song: ${song.song.title}")
@@ -433,7 +431,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
         Log.d(TAG, "Scanning for files...")
         // get list of all songs in db, then get songs unknown to the database
-        val allSongs = database.allLocalSongs().first().fastMapNotNull { it.song.localPath }.toSet()
+        val allSongs = database.allLocalSongs().fastMapNotNull { it.song.localPath }.toSet()
         val converted = newSongs.fastMapNotNull { fileFromUri(context, it)?.absolutePath }
         val delta = converted.minus(allSongs)
         Log.d(TAG, "Songs found: ${delta.size}")
@@ -681,22 +679,24 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DISPLAY_NAME,
             MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.DURATION, // 29
-            MediaStore.Audio.Media.ARTIST, // 30
-            MediaStore.Audio.Media.ALBUM, // 30
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.DATE_MODIFIED,
-            MediaStore.Audio.Media.YEAR, // 30
+            MediaStore.Audio.Media.YEAR,
             MediaStore.Audio.Media.DATA,
-            MediaStore.Audio.Media.VOLUME_NAME, // 29
             MediaStore.Audio.Media.MIME_TYPE,
-            MediaStore.Audio.Media.BITRATE, // 30
             MediaStore.Audio.Media.SIZE,
         ).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                add(MediaStore.Audio.Media.GENRE) // 30
-                add(MediaStore.Audio.Media.CD_TRACK_NUMBER) // 30
+                MediaStore.Audio.Media.BITRATE // TODO: METADATA_KEY_BITRATE no such column on SD 24???
+                if (SdkExtensions.getExtensionVersion(Build.VERSION_CODES.TIRAMISU) >= 15) {
+                    add(MediaStore.Audio.Media.BITS_PER_SAMPLE)
+                }
+                add(MediaStore.Audio.Media.GENRE)
+                add(MediaStore.Audio.Media.CD_TRACK_NUMBER)
 //                add(MediaStore.Audio.Media.WRITER)
-                add(MediaStore.Audio.Media.DISC_NUMBER) // 30
+                add(MediaStore.Audio.Media.DISC_NUMBER)
             }
         }
 
@@ -737,19 +737,23 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
             val dateModifiedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED)
             val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-            val storageVolumeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.VOLUME_NAME)
-
             val mimeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.MIME_TYPE)
-            val bitrateColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BITRATE)
 
+            var bitrateColumn: Int? = null
+            var bitsPerSampleColumn: Int? = null
             var genreColumn: Int? = null
+            var trackNumberColumn: Int? = null
+            var discNumberColumn: Int? = null
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                bitrateColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BITRATE)
+                if (SdkExtensions.getExtensionVersion(Build.VERSION_CODES.TIRAMISU) >= 15) {
+                    bitsPerSampleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BITS_PER_SAMPLE)
+                }
                 genreColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.GENRE)
+                trackNumberColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.CD_TRACK_NUMBER)
+                discNumberColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISC_NUMBER)
             }
-            val trackNumberColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.CD_TRACK_NUMBER)
-//            val writerColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.WRITER)
-            val discNumberColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISC_NUMBER)
 
             while (cursor.moveToNext()) {
                 val id = SongEntity.generateSongId()
@@ -761,25 +765,27 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                 val rawYear = cursor.getString(yearColumn)
                 val rawDateModified = cursor.getString(dateModifiedColumn)
                 val path = cursor.getString(pathColumn)
-                val storageVol = cursor.getString(storageVolumeColumn)
-
+                val mime = cursor.getString(mimeColumn)
                 if (excludedScanPaths.any { path.startsWith(it.path ?: "") }) continue
 
                 // extra stream info
-                val bitrate = cursor.getInt(bitrateColumn)
-                val mime = cursor.getString(mimeColumn)
-
-
+                var bitrate: Int? = null
+                var bitsPerSample: Int? = null
                 var genre: String? = null
+                var trackNumber: Int? = null
+                var discNumber: Int? = null
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    bitrate = cursor.getInt(bitrateColumn!!)
+                    if (SdkExtensions.getExtensionVersion(Build.VERSION_CODES.TIRAMISU) >= 15) {
+                        bitsPerSample = cursor.getInt(bitsPerSampleColumn!!)
+                    }
                     genre = cursor.getString(genreColumn!!)
+                    trackNumber = cursor.getInt(trackNumberColumn!!)
+                    discNumber = cursor.getInt(discNumberColumn!!)
                 }
-                val trackNumber = cursor.getInt(trackNumberColumn)
-//                val writer = cursor.getString(writerColumn)
-                val discNumber = cursor.getInt(discNumberColumn)
 
                 if (SCANNER_DEBUG)
-                    Log.d(TAG, "ID: $id, Name: $name, ARTIST: $artist, PATH: $storageVol --> $path")
+                    Log.d(TAG, "ID: $id, Name: $name, ARTIST: $artist, PATH: $path")
 
                 if (title.isBlank()) { // songs with no title tag
                     title = name.substringBeforeLast('.')
@@ -845,8 +851,8 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                             itag = -1,
                             mimeType = mime,
                             codecs = mime.substringAfter('/'),
-                            bitrate = bitrate,
-                            sampleRate = -1,
+                            bitrate = bitrate ?: -1,
+                            sampleRate = bitsPerSample,
                             contentLength = duration.toLong(),
                             loudnessDb = null,
                         )
@@ -894,23 +900,21 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         val prevScannerState = scannerState.value
         scannerState.value = 5
 
-        val allLocal = database.allLocalArtists().first()
+        val allLocal = database.allLocalArtists()
         scannerProgressTotal.value = allLocal.size
         scannerProgressCurrent.value = 0
         scannerProgressProbe.value = 0
         val mod = if (allLocal.size < 20) {
             2
-        } else if (allLocal.size < 50) {
-            8
         } else {
-            20
+            8
         }
 
         allLocal.forEach { element ->
             val artistVal = element.name.trim()
 
             // check if this artist exists in DB already
-            val databaseArtistMatch = database.fuzzySearchArtists(artistVal).first().filter { artist ->
+            val databaseArtistMatch = database.artistsByNameFuzzy(artistVal).filter { artist ->
                 // only look for remote artists here
                 return@filter artist.name == artistVal && !artist.isLocal
             }
@@ -973,7 +977,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         Log.i(TAG, "Start finalize (disable songs) job. Number of valid songs: ${newSongs.size}")
         // get list of all local songs in db
         database.disableInvalidLocalSongs() // make sure path is existing
-        val allSongs = database.allLocalSongs().first()
+        val allSongs = database.allLocalSongs()
 
         // disable if not in directory anymore
         for (song in allSongs) {
@@ -998,7 +1002,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
         // get list of all local songs in db
         database.disableInvalidLocalSongs() // make sure path is existing
-        val allSongs = database.allLocalSongs().first()
+        val allSongs = database.allLocalSongs()
 
         // disable if not in directory anymore
         for (song in allSongs) {
@@ -1023,7 +1027,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         Log.i(TAG, "Start finalize (database cleanup job)")
 
         // remove duplicates
-        val dupes = database.duplicatedLocalSongs().first().toMutableList()
+        val dupes = database.duplicatedLocalSongs().toMutableList()
         var index = 0
 
         Log.d(TAG, "Start finalize (duplicate removal) job. Number of candidates: ${dupes.size}")
@@ -1032,7 +1036,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             val contenders = ArrayList<Pair<SongEntity, Int>>()
             val localPath = dupes[index].localPath
             while (index < dupes.size && dupes[index].localPath == localPath) {
-                contenders.add(Pair(dupes[index], database.getLifetimePlayCount(dupes[index].id).first()))
+                contenders.add(Pair(dupes[index], database.getLifetimePlayCount(dupes[index].id)))
                 index++
             }
             // yeet the lower play count songs
@@ -1045,7 +1049,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         }
 
         // remove duplicated local artists
-        val dbArtists: MutableList<Artist> = database.localArtistsByName().first().toMutableList()
+        val dbArtists: MutableList<Artist> = database.localArtistsByName().toMutableList()
         while (dbArtists.isNotEmpty()) {
             // gather same artists (precondition: artists are ordered by name
             val tmp = ArrayList<Artist>()
@@ -1064,7 +1068,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
         }
 
         // remove duplicated local albums
-        val dbAlbums: MutableList<AlbumEntity> = database.allLocalAlbumsByName().first().toMutableList()
+        val dbAlbums: MutableList<AlbumEntity> = database.allLocalAlbumsByName().toMutableList()
         while (dbAlbums.isNotEmpty()) {
             // gather same artists (precondition: artists are ordered by name
             val tmp = ArrayList<AlbumEntity>()
@@ -1262,14 +1266,13 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
          * @param filter Raw file path
          */
         suspend fun refreshLocal(
-            context: Context,
             database: MusicDatabase,
             filter: String
         ): DirectoryTree {
             val newDirectoryStructure = DirectoryTree(filter.trimEnd { it == '/' }, CulmSongs(0))
 
             // get songs from db
-            var existingSongs: List<Song> = database.localSongsInDirShallow(filter).first()
+            val existingSongs: List<Song> = database.localSongsInDirShallow(filter)
 
             Log.i(TAG, "------------ SCAN: Starting Quick Directory Rebuild ------------")
 
@@ -1311,7 +1314,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
                 return false
             }
             val matchingArtists = a.filter { artist ->
-                b.any { it.name.lowercase(Locale.getDefault()) == artist.name.lowercase(Locale.getDefault()) }
+                b.any { it.name.equals(artist.name, false) }
             }
 
             return matchingArtists.size == a.size
@@ -1324,9 +1327,10 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
          *  Either null == different albums
          */
         fun compareAlbum(a: AlbumEntity?, b: AlbumEntity?): Boolean {
-            if (a == null && b == null) return false
+            if (a == null && b == null) return true
+            if (a == null || b == null) return false
 
-            return a?.title?.lowercase(Locale.getDefault()) == b?.title?.lowercase(Locale.getDefault())
+            return a.title.equals(b.title, false)
         }
 
         /**
@@ -1364,17 +1368,6 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
             strictFileNames: Boolean = false,
             strictFilePaths: Boolean = false,
         ): Boolean {
-            if (strictFilePaths) {
-                return a.song.localPath == b.song.localPath
-            }
-            // if match file names
-            if (strictFileNames &&
-                (a.song.localPath?.substringAfterLast('/') !=
-                        b.song.localPath?.substringAfterLast('/'))
-            ) {
-                return false
-            }
-
             /**
              * Compare file paths
              *
@@ -1382,6 +1375,16 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
              */
             fun closeEnough(): Boolean {
                 return a.song.localPath == b.song.localPath
+            }
+            if (strictFilePaths) {
+                return closeEnough()
+            }
+            // if match file names
+            if (strictFileNames &&
+                (a.song.localPath?.substringAfterLast('/') !=
+                        b.song.localPath?.substringAfterLast('/'))
+            ) {
+                return false
             }
 
             // compare songs based on scanner strength
@@ -1399,7 +1402,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
          * Search for an artist on YouTube Music.
          */
         suspend fun youtubeSongLookup(query: String, songUrl: String?): List<MediaMetadata> {
-            var ytmResult = ArrayList<MediaMetadata>()
+            val ytmResult = ArrayList<MediaMetadata>()
 
             var exactSong: SongItem? = null
             if (songUrl != null) {
@@ -1449,7 +1452,7 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
 
                 val foundArtist = result.items.filter { it is ArtistItem }.firstOrNull {
                     // TODO: might want to implement smarter matching
-                    it.title.lowercase(Locale.getDefault()) == query.lowercase(Locale.getDefault())
+                    it.title.equals(query, true)
                 } as ArtistItem? ?: throw Exception("Failed to search: Artist not found on YouTube Music")
                 ytmResult = ArtistEntity(
                     foundArtist.id,
@@ -1474,38 +1477,38 @@ class LocalMediaScanner(val context: Context, val scannerImpl: ScannerImpl) {
          * "oooga boooga error in generated code"
          */
         fun swapArtists(old: ArtistEntity, new: ArtistEntity, database: MusicDatabase) {
-            if (database.artistById(old.id) == null) {
-                throw Exception("Attempting to swap with non-existent old artist in database with id: ${old.id}")
-            }
-            if (database.artistById(new.id) == null) {
-                throw Exception("Attempting to swap with non-existent new artist in database with id: ${new.id}")
-            }
-
             database.transaction {
+                if (artistById(old.id) == null) {
+                    throw Exception("Attempting to swap with non-existent old artist in database with id: ${old.id}")
+                }
+                if (artistById(new.id) == null) {
+                    throw Exception("Attempting to swap with non-existent new artist in database with id: ${new.id}")
+                }
+
                 // update participation(s)
-                database.updateSongArtistMap(old.id, new.id)
-                database.updateAlbumArtistMap(old.id, new.id)
+                updateSongArtistMap(old.id, new.id)
+                updateAlbumArtistMap(old.id, new.id)
 
                 // nuke old artist
-                database.safeDeleteArtist(old.id)
+                safeDeleteArtist(old.id)
             }
         }
 
         fun swapAlbums(old: AlbumEntity, new: AlbumEntity, database: MusicDatabase) {
-            if (database.albumById(old.id) == null) {
-                throw Exception("Attempting to swap with non-existent old album in database with id: ${old.id}")
-            }
-            if (database.albumById(new.id) == null) {
-                throw Exception("Attempting to swap with non-existent new album in database with id: ${new.id}")
-            }
-
             database.transaction {
+                if (albumById(old.id) == null) {
+                    throw Exception("Attempting to swap with non-existent old album in database with id: ${old.id}")
+                }
+                if (albumById(new.id) == null) {
+                    throw Exception("Attempting to swap with non-existent new album in database with id: ${new.id}")
+                }
+
                 // update participation(s)
-                database.updateSongAlbumMap(old.id, new.id)
-                database.updateArtistAlbumMap(old.id, new.id)
+                updateSongAlbumMap(old.id, new.id)
+                updateArtistAlbumMap(old.id, new.id)
 
                 // nuke old artist
-                database.safeDeleteAlbum(old.id)
+                safeDeleteAlbum(old.id)
             }
         }
     }

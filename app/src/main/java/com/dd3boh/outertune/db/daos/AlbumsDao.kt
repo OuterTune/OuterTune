@@ -64,7 +64,7 @@ interface AlbumsDao : ArtistsDao {
         WHERE album.isLocal = 1 AND album.title LIKE '%' || :query || '%'
         LIMIT :previewSize
     """)
-    fun localAlbumsByName(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<AlbumEntity>>
+    fun localAlbumsByNameFuzzy(query: String, previewSize: Int = Int.MAX_VALUE): List<AlbumEntity>
 
     @Transaction
     @Query("""
@@ -72,7 +72,7 @@ interface AlbumsDao : ArtistsDao {
         WHERE album.isLocal = 1
         ORDER BY album.title ASC
     LIMIT :previewSize""")
-    fun allLocalAlbumsByName(previewSize: Int = Int.MAX_VALUE): Flow<List<AlbumEntity>>
+    fun allLocalAlbumsByName(previewSize: Int = Int.MAX_VALUE): List<AlbumEntity>
 
     @Transaction
     @Query("UPDATE song_album_map SET albumId = :newId WHERE albumId = :oldId")
@@ -291,6 +291,10 @@ interface AlbumsDao : ArtistsDao {
     @Transaction
     @Query("DELETE FROM song_album_map WHERE songId = :songID")
     fun unlinkSongAlbums(songID: String)
+
+    @Transaction
+    @Query("DELETE FROM song_genre_map WHERE songId = :songID")
+    fun unlinkSongGenres(songID: String)
     // endregion
 
     // region Deletes

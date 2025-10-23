@@ -72,7 +72,7 @@ interface SongsDao {
     fun mostPlayedSongs(fromTimeStamp: Long, limit: Int = 6, offset: Int = 0): Flow<List<Song>>
 
     @Query("SELECT sum(count) from playCount WHERE song = :songId")
-    fun getLifetimePlayCount(songId: String?): Flow<Int>
+    fun getLifetimePlayCount(songId: String?): Int
 
     @Query("SELECT sum(count) from playCount WHERE song = :songId AND year = :year")
     fun getPlayCountByYear(songId: String?, year: Int): Flow<Int>
@@ -146,11 +146,11 @@ interface SongsDao {
 
     @Transaction
     @Query("SELECT * FROM song WHERE isLocal = 1 and inLibrary IS NOT NULL")
-    fun allLocalSongs(): Flow<List<Song>>
+    fun allLocalSongs(): List<Song>
 
     @Transaction
     @Query("SELECT * FROM song WHERE isLocal = 1")
-    fun allLocalDbSongs(): Flow<List<Song>>
+    fun allLocalDbSongs(): List<Song>
 
     @Transaction
     @Query("""
@@ -162,7 +162,7 @@ interface SongsDao {
     /**
      * Does not include unavailable songs
      */
-    fun localSongsInDirShallow(filter: String): Flow<List<Song>> {
+    fun localSongsInDirShallow(filter: String): List<Song> {
         return _localSongsInDirShallow(fixFilePath(filter))
     }
 
@@ -176,15 +176,15 @@ interface SongsDao {
         WHERE isLocal = 1 AND inLibrary IS NOT NULL AND localpath LIKE :filter || '%'
         GROUP BY rtrim(localPath, replace(localPath, '/', ''))
     """)
-    fun _localSongsInDirShallow(filter: String): Flow<List<Song>>
+    fun _localSongsInDirShallow(filter: String): List<Song>
 
-    fun localSongsInDirDeep(filter: String): Flow<List<Song>> {
+    fun localSongsInDirDeep(filter: String): List<Song> {
         return _localSongsInDirDeep(fixFilePath(filter))
     }
 
     @Transaction
     @Query("SELECT * FROM song WHERE isLocal = 1 and inLibrary IS NOT NULL AND localpath LIKE :filter || '%'")
-    fun _localSongsInDirDeep(filter: String): Flow<List<Song>>
+    fun _localSongsInDirDeep(filter: String): List<Song>
 
     @Transaction
     @Query("SELECT count(*) FROM song WHERE isLocal = 1 and inLibrary IS NOT NULL AND localpath LIKE :path || '%'")
@@ -200,7 +200,7 @@ interface SongsDao {
         )
         ORDER BY localPath
     """)
-    fun duplicatedLocalSongs(): Flow<List<SongEntity>>
+    fun duplicatedLocalSongs(): List<SongEntity>
     // endregion
 
     // region Liked Songs Sort

@@ -30,7 +30,6 @@ import com.dd3boh.outertune.constants.ArtistSongSortTypeKey
 import com.dd3boh.outertune.constants.ArtistSortDescendingKey
 import com.dd3boh.outertune.constants.ArtistSortType
 import com.dd3boh.outertune.constants.ArtistSortTypeKey
-import com.dd3boh.outertune.constants.ExcludedScanPathsKey
 import com.dd3boh.outertune.constants.LibrarySortDescendingKey
 import com.dd3boh.outertune.constants.LibrarySortType
 import com.dd3boh.outertune.constants.LibrarySortTypeKey
@@ -39,7 +38,6 @@ import com.dd3boh.outertune.constants.PlaylistFilterKey
 import com.dd3boh.outertune.constants.PlaylistSortDescendingKey
 import com.dd3boh.outertune.constants.PlaylistSortType
 import com.dd3boh.outertune.constants.PlaylistSortTypeKey
-import com.dd3boh.outertune.constants.ScanPathsKey
 import com.dd3boh.outertune.constants.SongFilter
 import com.dd3boh.outertune.constants.SongFilterKey
 import com.dd3boh.outertune.constants.SongSortDescendingKey
@@ -57,7 +55,6 @@ import com.dd3boh.outertune.ui.utils.cacheDirectoryTree
 import com.dd3boh.outertune.ui.utils.getDirectoryTree
 import com.dd3boh.outertune.utils.SyncUtils
 import com.dd3boh.outertune.utils.dataStore
-import com.dd3boh.outertune.utils.get
 import com.dd3boh.outertune.utils.reportException
 import com.dd3boh.outertune.utils.scanners.LocalMediaScanner.Companion.refreshLocal
 import com.zionhuang.innertube.YouTube
@@ -127,8 +124,6 @@ class LibraryFoldersViewModel @Inject constructor(
     val TAG = LibraryFoldersViewModel::class.simpleName.toString()
     val path = savedStateHandle.get<String>("path")?.replace(';', '/') ?: STORAGE_ROOT
 
-    private val scanPaths = context.dataStore[ScanPathsKey] ?: ""
-    private val excludedScanPaths = context.dataStore[ExcludedScanPathsKey] ?: ""
     val localSongDirectoryTree: MutableStateFlow<DirectoryTree> = MutableStateFlow(getDirectoryTree(path))
     val localSongDtSongCount = MutableStateFlow(0)
     val filteredSongs = mutableStateListOf<Song>()
@@ -141,7 +136,7 @@ class LibraryFoldersViewModel @Inject constructor(
      */
     suspend fun getLocalSongs(dir: String? = null) {
         Log.d(TAG, "Loading folders page: ${dir ?: path}")
-        val dt = refreshLocal(context, database, dir ?: path)
+        val dt = refreshLocal(database, dir ?: path)
         dt.isSkeleton = false
         cacheDirectoryTree(dt)
         localSongDirectoryTree.value = dt

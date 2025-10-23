@@ -89,7 +89,7 @@ fun FolderMenu(
     }
 
     suspend fun fetchAllSongsRecursive(onFetch: (() -> Unit)? = null) {
-        val dbSongs = database.localSongsInDirDeep(folder.getFullSquashedDir()).first()
+        val dbSongs = database.localSongsInDirDeep(folder.getFullSquashedDir())
         allFolderSongs.clear()
         allFolderSongs.addAll(dbSongs)
         if (onFetch != null) {
