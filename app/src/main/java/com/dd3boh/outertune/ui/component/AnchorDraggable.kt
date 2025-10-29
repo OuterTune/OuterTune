@@ -157,10 +157,11 @@ fun SwipeActionBox(
     val coroutineScope = rememberCoroutineScope()
 
     val defaultActionSize = 150.dp
+    // determines how close the second action will come in behind the first action. Higher values == closer
     val tightnessFactor = 200f
 
     val swipeOffset = remember { mutableFloatStateOf(0f) }
-    val progress = remember { mutableIntStateOf(0) } // For haptic and visual feedback
+    val progress = remember { mutableIntStateOf(0) } // swipeOffset but to track haptics and opacity
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val firstThreshold = (screenWidth * 0.4f).value
     val secondThreshold = (screenWidth * 0.8f).value
