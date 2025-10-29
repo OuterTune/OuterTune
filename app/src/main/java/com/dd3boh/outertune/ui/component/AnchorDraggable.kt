@@ -33,6 +33,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableFloatState
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -43,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -105,6 +108,34 @@ fun SwipeToQueueBox(
                 job.cancel()
             }
         }),
+        thirdAction = Pair(Icons.AutoMirrored.Rounded.PlaylistAdd, {
+            playerConnection?.enqueuePriority(item, true)
+            coroutineScope.launch {
+                val job = launch {
+                    snackbarHostState?.showSnackbar(
+                        message = "ORCODDI",
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Indefinite
+                    )
+                }
+                delay(SNACKBAR_VERY_SHORT)
+                job.cancel()
+            }
+        }),
+        fourthAction = Pair(Icons.AutoMirrored.Rounded.PlaylistAdd, {
+            playerConnection?.enqueuePriority(item, false)
+            coroutineScope.launch {
+                val job = launch {
+                    snackbarHostState?.showSnackbar(
+                        message = "ORCODDI",
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Indefinite
+                    )
+                }
+                delay(SNACKBAR_VERY_SHORT)
+                job.cancel()
+            }
+        }),
         enabled = swipeEnabled,
         modifier = modifier,
         content = content
@@ -115,8 +146,10 @@ fun SwipeToQueueBox(
 @Composable
 fun SwipeActionBox(
     firstAction: Pair<ImageVector, () -> Unit>,
-    modifier: Modifier = Modifier,
     secondAction: Pair<ImageVector, () -> Unit>? = null,
+    thirdAction: Pair<ImageVector, () -> Unit>? = null,
+    fourthAction: Pair<ImageVector, () -> Unit>? = null,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -124,16 +157,17 @@ fun SwipeActionBox(
     val coroutineScope = rememberCoroutineScope()
 
     val defaultActionSize = 150.dp
-    // determines how close the second action will come in behind the first action. Higher values == closer
     val tightnessFactor = 200f
 
     val swipeOffset = remember { mutableFloatStateOf(0f) }
-    val progress = remember { mutableIntStateOf(0) } // swipeOffset but to track haptics and opacity
+    val progress = remember { mutableIntStateOf(0) } // For haptic and visual feedback
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val firstThreshold = (screenWidth * 0.4f).value
     val secondThreshold = (screenWidth * 0.8f).value
+
     val draggableState = rememberDraggableState { delta ->
-        swipeOffset.floatValue = (swipeOffset.floatValue + delta).coerceIn(0f, screenWidth.value)
+        swipeOffset.floatValue = (swipeOffset.floatValue + delta)
+            .coerceIn(-screenWidth.value, screenWidth.value)
     }
 
     if (!enabled) {
@@ -147,12 +181,9 @@ fun SwipeActionBox(
                     state = draggableState,
                     onDragStopped = {
                         when {
+                            // Swipe right → second or first
                             swipeOffset.floatValue >= secondThreshold -> {
-                                if (secondAction == null) {
-                                    firstAction.second.invoke()
-                                } else {
-                                    secondAction.second.invoke()
-                                }
+                                (secondAction ?: firstAction).second.invoke()
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 resetDrag(coroutineScope, swipeOffset)
                             }
@@ -163,36 +194,33 @@ fun SwipeActionBox(
                                 resetDrag(coroutineScope, swipeOffset)
                             }
 
+                            // Swipe left → third or fourth
+                            swipeOffset.floatValue <= -secondThreshold -> {
+                                (fourthAction ?: thirdAction)?.second?.invoke()
+                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                resetDrag(coroutineScope, swipeOffset)
+                            }
+
+                            swipeOffset.floatValue <= -firstThreshold -> {
+                                thirdAction?.second?.invoke()
+                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                resetDrag(coroutineScope, swipeOffset)
+                            }
+
                             else -> resetDrag(coroutineScope, swipeOffset)
                         }
                     }
                 )
         ) {
-            // Background for the swipe actions
-            if (swipeOffset.floatValue >= firstThreshold) {
-                if (progress.intValue != 1) {
-                    if (swipeOffset.floatValue < secondThreshold) {
-                        haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
-                        progress.intValue = 1
-                    }
-                }
-            }
+            // Background for right swipe
             if (swipeOffset.floatValue > 0f) {
-                if (secondAction != null && swipeOffset.floatValue >= secondThreshold) {
-                    if (progress.intValue < 2) {
-                        haptic.performHapticFeedback(HapticFeedbackType.Reject)
-                    }
-                    progress.intValue = 2
-                }
-                if (swipeOffset.floatValue < firstThreshold) {
-                    progress.intValue = 0
-                }
-
+                handleProgressRight(swipeOffset, firstThreshold, secondThreshold, progress, haptic)
 
                 DragActionIcon(
                     color = MaterialTheme.colorScheme.primary,
                     tint = MaterialTheme.colorScheme.onPrimary,
                     icon = firstAction.first,
+                    contentAlignment = Alignment.CenterEnd,
                     modifier = Modifier
                         .alpha(if (progress.intValue == 1) 1f else 0.6f)
                         .width(defaultActionSize)
@@ -208,6 +236,7 @@ fun SwipeActionBox(
                         color = MaterialTheme.colorScheme.secondary,
                         tint = MaterialTheme.colorScheme.onSecondary,
                         icon = it.first,
+                        contentAlignment = Alignment.CenterEnd,
                         modifier = Modifier
                             .alpha(if (progress.intValue == 2) 1f else 0.6f)
                             .width(defaultActionSize)
@@ -216,11 +245,58 @@ fun SwipeActionBox(
                             .offset {
                                 val x = -screenWidth.value + swipeOffset.floatValue
                                 val size = defaultActionSize.value
-                                // x-\frac{x^{2}}{k}-\left(0.9s\right)
-                                // x = firstAction offset, k = tightnessFactor, s = size
                                 IntOffset(
                                     ((x - (x * x / tightnessFactor)) - (size * 0.9)
                                         .coerceIn(0.0, size.toDouble())).roundToInt(), 0
+                                )
+                            }
+                    )
+                }
+            }
+
+            // Background for left swipe
+            if (swipeOffset.floatValue < 0f) {
+                handleProgressLeft(swipeOffset, firstThreshold, secondThreshold, progress, haptic)
+
+                thirdAction?.let {
+                    DragActionIcon(
+                        color = MaterialTheme.colorScheme.tertiary,
+                        tint = MaterialTheme.colorScheme.onTertiary,
+                        icon = it.first,
+                        contentAlignment = Alignment.CenterStart,
+                        modifier = Modifier
+                            .alpha(if (progress.intValue == -1) 1f else 0.6f)
+                            .width(defaultActionSize)
+                            .fillMaxHeight()
+                            .align(Alignment.CenterEnd)
+                            .offset {
+                                IntOffset(
+                                    (screenWidth.value + swipeOffset.floatValue)
+                                        .roundToInt(),
+                                    0
+                                )
+                            }
+                    )
+                }
+
+                fourthAction?.let {
+                    DragActionIcon(
+                        color = MaterialTheme.colorScheme.error,
+                        tint = MaterialTheme.colorScheme.onError,
+                        icon = it.first,
+                        contentAlignment = Alignment.CenterStart,
+                        modifier = Modifier
+                            .alpha(if (progress.intValue == -2) 1f else 0.6f)
+                            .width(defaultActionSize)
+                            .fillMaxHeight()
+                            .align(Alignment.CenterEnd)
+                            .offset {
+                                val x = screenWidth.value + swipeOffset.floatValue
+                                val size = defaultActionSize.value
+                                IntOffset(
+                                    ((x + (x * x / tightnessFactor)) + (size * 0.9)
+                                        .coerceIn(0.0, size.toDouble())).roundToInt(),
+                                    0
                                 )
                             }
                     )
@@ -236,6 +312,48 @@ fun SwipeActionBox(
                 content = content
             )
         }
+    }
+}
+
+private fun handleProgressRight(
+    swipeOffset: MutableFloatState,
+    firstThreshold: Float,
+    secondThreshold: Float,
+    progress: MutableIntState,
+    haptic: HapticFeedback
+) {
+    if (swipeOffset.floatValue >= firstThreshold && progress.intValue != 1 && swipeOffset.floatValue < secondThreshold) {
+        haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+        progress.intValue = 1
+    } else if (swipeOffset.floatValue >= secondThreshold && progress.intValue != 2) {
+        haptic.performHapticFeedback(HapticFeedbackType.Reject)
+        progress.intValue = 2
+    } else if (swipeOffset.floatValue < firstThreshold) {
+        progress.intValue = 0
+    }
+}
+
+private fun handleProgressLeft(
+    swipeOffset: MutableFloatState,
+    firstThreshold: Float,
+    secondThreshold: Float,
+    progress: MutableIntState,
+    haptic: HapticFeedback
+) {
+    if (swipeOffset.floatValue <= -firstThreshold && progress.intValue != -1 && swipeOffset.floatValue > -secondThreshold) {
+        haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+        progress.intValue = -1
+    } else if (swipeOffset.floatValue <= -secondThreshold && progress.intValue != -2) {
+        haptic.performHapticFeedback(HapticFeedbackType.Reject)
+        progress.intValue = -2
+    } else if (swipeOffset.floatValue > -firstThreshold) {
+        progress.intValue = 0
+    }
+}
+
+private fun resetDrag(scope: CoroutineScope, offset: MutableFloatState) {
+    scope.launch {
+        animate(offset.floatValue, 0f) { value, _ -> offset.floatValue = value }
     }
 }
 
@@ -257,11 +375,12 @@ fun DragActionIcon(
     modifier: Modifier,
     color: Color,
     tint: Color,
-    icon: ImageVector
+    icon: ImageVector,
+    contentAlignment: Alignment
 ) {
     Box(
         modifier = modifier.background(color),
-        contentAlignment = Alignment.CenterEnd
+        contentAlignment = contentAlignment
     ) {
         Column(
             verticalArrangement = Arrangement.Center,

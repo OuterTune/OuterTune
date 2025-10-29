@@ -541,6 +541,30 @@ class MusicService : MediaLibraryService(),
         }
     }
 
+    fun enqueuePriority(items: List<MediaItem>, startEnd: Boolean) {
+        scope.launch {
+            if (!qbInit.value) {
+
+                // when enqueuing next when player isn't active, play as a new song
+                if (items.isNotEmpty()) {
+                    playQueue(
+                        ListQueue(
+                            title = items.first().mediaMetadata.title.toString(),
+                            items = items.mapNotNull { it.metadata }
+                        )
+                    )
+                }
+            } else {
+                val currentQueue = queueBoard.getCurrentQueue()
+                if (startEnd) {
+                    currentQueue?.priorityQueue?.addAll(0,items.mapNotNull { it.metadata?.copy(composeUidWorkaround = Math.random()) })
+                } else {
+                    currentQueue?.priorityQueue?.addAll(items.mapNotNull { it.metadata?.copy(composeUidWorkaround = Math.random()) })
+                }
+            }
+        }
+    }
+
     /**
      * Add items to end of current queue
      */

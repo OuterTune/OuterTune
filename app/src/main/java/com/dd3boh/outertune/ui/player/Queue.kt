@@ -285,6 +285,7 @@ fun BoxScope.QueueContent(
      */
     val mutableSongs = remember { mutableStateListOf<MediaMetadata>() }
     val lazySongsListState = rememberLazyListState()
+    val lazySongsListStatePriority = rememberLazyListState()
 
     // multiselect
     var inSelectMode by remember {
@@ -352,6 +353,22 @@ fun BoxScope.QueueContent(
         }
         mutableSongs.move(from.index, to.index)
     }
+
+    val reorderableStatePriority = rememberReorderableLazyListState(
+        lazyListState = lazySongsListStatePriority,
+        scrollThresholdPadding = WindowInsets.systemBars.add(
+            WindowInsets(top = ListItemHeight, bottom = ListItemHeight)
+        ).asPaddingValues()
+    ) { from, to ->
+        val currentDragInfo = dragInfo
+        dragInfo = if (currentDragInfo == null) {
+            from.index to to.index
+        } else {
+            currentDragInfo.first to to.index
+        }
+        mutableSongs.move(from.index, to.index)
+    }
+
     LaunchedEffect(reorderableState.isAnyItemDragging) {
         if (!reorderableState.isAnyItemDragging) {
             dragInfo?.let { (from, to) ->
@@ -654,6 +671,101 @@ fun BoxScope.QueueContent(
     }
 
     val songList: @Composable ColumnScope.(PaddingValues) -> Unit = { contentPadding ->
+        LazyColumn(
+            state = lazySongsListStatePriority,
+            contentPadding = contentPadding,
+            modifier = if (queueState != null) Modifier.nestedScroll(queueState.preUpPostDownNestedScrollConnection) else Modifier
+        ) {
+            if (qb.getCurrentQueue()?.priorityQueue?.isNotEmpty() == true) {
+                itemsIndexed(
+                    items = qb.getCurrentQueue()!!.priorityQueue,
+                    key = { _, item -> item.hashCode() }
+                ) { index, window ->
+                    ReorderableItem(
+                        state = reorderableStatePriority,
+                        key = window.hashCode()
+                    ) {
+                        MediaMetadataListItem(
+                            mediaMetadata = window,
+                            isActive = false,
+                            isPlaying = false,
+                            trailingContent = {
+                                if (inSelectMode) {
+                                    Checkbox(
+                                        checked = window.hashCode() in selectedItems,
+                                        onCheckedChange = {} // onCheckedChange
+                                    )
+                                } else {
+                                    IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                PlayerMenu(
+                                                    mediaMetadata = window,
+                                                    navController = navController,
+                                                    playerBottomSheetState = playerState,
+                                                    onDismiss = {
+                                                        menuState.dismiss()
+                                                    },
+                                                )
+                                            }
+                                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.MoreVert,
+                                            contentDescription = null
+                                        )
+                                    }
+                                    if (!lockQueue && !detachedHead) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.DragHandle,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .padding(end = 16.dp)
+                                                .draggableHandle()
+                                        )
+                                    }
+                                }
+                            },
+                            isSelected = inSelectMode && window.hashCode() in selectedItems,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .combinedClickable(
+                                    onClick = {
+                                        if (inSelectMode) {
+//                                            onCheckedChange(window.hashCode() !in selectedItems)
+                                        } else {
+                                            coroutineScope.launch(Dispatchers.Main) {
+                                                if (index == currentWindowIndex && !detachedHead) {
+                                                    playerConnection.player.togglePlayPause()
+                                                } else {
+                                                    val index = index // race condition...?
+                                                    if (detachedHead) {
+                                                        detachedQueue?.setCurrentQueuePos(index)
+                                                        qb.setCurrQueue(detachedQueue, false)
+                                                    } else {
+                                                        playerConnection.player.seekToDefaultPosition(index)
+                                                    }
+                                                    playerConnection.player.prepare() // else cannot click to play after auto-skip onError stop
+                                                    playerConnection.player.playWhenReady = true
+                                                    detachedHead = false
+                                                }
+                                            }
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (!inSelectMode) {
+                                            inSelectMode = true
+                                            selectedItems.add(window.hashCode())
+                                        }
+                                    }
+                                )
+                        )
+                    }
+                }
+            }
+
+        }
         LazyColumn(
             state = lazySongsListState,
             contentPadding = contentPadding,

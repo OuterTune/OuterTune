@@ -26,6 +26,7 @@ import com.dd3boh.outertune.extensions.currentMetadata
 import com.dd3boh.outertune.extensions.getCurrentQueueIndex
 import com.dd3boh.outertune.extensions.getQueueWindows
 import com.dd3boh.outertune.extensions.metadata
+import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.playback.queues.Queue
 import com.dd3boh.outertune.utils.reportException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -142,6 +143,15 @@ class PlayerConnection(
         service.enqueueEnd(items)
     }
 
+    fun enqueuePriority(item: MediaItem, startEnd: Boolean) = enqueuePriority(listOf(item), startEnd)
+
+    /**
+     * Add items to queue, right after current playing item
+     */
+    fun enqueuePriority(items: List<MediaItem>, startEnd: Boolean) {
+        service.enqueuePriority(items, startEnd)
+    }
+
     fun toggleLike() {
         service.toggleLike()
     }
@@ -150,9 +160,22 @@ class PlayerConnection(
         service.toggleLibrary()
     }
 
+    fun playNextPrioritySong() {
+        val currentQueue = service.queueBoard.getCurrentQueue()
+        if (currentQueue != null && currentQueue.priorityQueue.isNotEmpty()) {
+            val next = currentQueue.priorityQueue.removeAt(0)
+            player.seekToPreviousMediaItem()
+            player.addMediaItem(player.currentMediaItemIndex + 1, next.toMediaItem())
+            player.seekToNextMediaItem()
+        }
+    }
+
     override fun onPlaybackStateChanged(state: Int) {
         playbackState.value = state
         error.value = player.playerError
+        if (state == STATE_ENDED) {
+            playNextPrioritySong()
+        }
     }
 
     override fun onPlayWhenReadyChanged(newPlayWhenReady: Boolean, reason: Int) {
@@ -164,6 +187,7 @@ class PlayerConnection(
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
+        playNextPrioritySong()
     }
 
     override fun onTimelineChanged(timeline: Timeline, reason: Int) {
