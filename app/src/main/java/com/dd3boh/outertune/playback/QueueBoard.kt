@@ -34,6 +34,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.PriorityQueue
 import kotlin.math.max
 import kotlin.math.min
@@ -53,7 +54,6 @@ class QueueBoard(
     val masterQueues: SnapshotStateList<MultiQueueObject> = mutableStateListOf()
     private var masterIndex = masterQueues.size - 1 // current queue index
     var detachedHead = false
-    var initialized = false
 
     init {
         if (maxQueues < 0) {
@@ -178,6 +178,7 @@ class QueueBoard(
                     match.queuePos = match.queue.indexOf(match.queue.find { it.shuffleIndex == 0 })
                 }
 
+                saveQueueSongs(match)
                 return match
             }
 
@@ -198,6 +199,7 @@ class QueueBoard(
                     match.queuePos = match.queue.indexOf(match.queue.find { it.shuffleIndex == 0 })
                 }
 
+                saveQueue(match)
                 return match
             } else if (delta) {
                 if (QUEUE_DEBUG)
@@ -833,34 +835,34 @@ class QueueBoard(
     /**
      * Execute the most recent save request, with a 5 second delay from function call
      */
-    private fun databaseDispatcher() {
+    private suspend fun databaseDispatcher() {
         Log.d(TAG, "Starting database save task")
         if (jobActive.isLocked) {
             Log.d(TAG, "Database save task is already active, aborting")
             return
         }
 
-        jobActive.tryLock()
-        while (queueEntity.isNotEmpty() || queueSongMap.isNotEmpty()) {
-            runBlocking {
-                delay(5000L)
-            }
-            Log.d(TAG, "Running database save task")
+        jobActive.withLock {
+            while (queueEntity.isNotEmpty() || queueSongMap.isNotEmpty()) {
+                runBlocking {
+                    delay(5000L)
+                }
+                Log.d(TAG, "Running database save task")
 
-            // saving songs nukes the queue entity in the process, about it shouldn't matter since are same queue object
-            if (!queueSongMap.isEmpty()) {
-                queueSongMap.last().job.start()
-                queueSongMap.clear()
-                continue
-            }
+                // saving songs nukes the queue entity in the process, about it shouldn't matter since are same queue object
+                if (!queueSongMap.isEmpty()) {
+                    queueSongMap.last().job.start()
+                    queueSongMap.clear()
+                    continue
+                }
 
-            if (!queueEntity.isEmpty()) {
-                queueEntity.last().job.start()
-                queueEntity.clear()
-                continue
+                if (!queueEntity.isEmpty()) {
+                    queueEntity.last().job.start()
+                    queueEntity.clear()
+                    continue
+                }
             }
         }
-        jobActive.unlock()
         Log.d(TAG, "Exiting database save task")
     }
 
@@ -919,7 +921,6 @@ class QueueBoard(
     }
 
     companion object {
-        val mutex = Mutex()
 
         fun shuffleInPlace(list: List<MediaMetadata>) {
             val rng = (0..(list.size - 1)).shuffled()

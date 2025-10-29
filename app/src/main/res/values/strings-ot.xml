@@ -91,6 +91,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="grp_lyrics_parser">Parser</string>
     <string name="grp_lyrics_source">Lyric sources</string>
     <string name="grp_manual_scanner">Manual scanner</string>
+    <string name="grp_more_settings">More settings</string>
     <string name="grp_proxy">Proxy</string>
     <string name="grp_sync">Sync</string>
 
@@ -190,7 +191,8 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Scanner settings -->
     <string name="auto_scanner_title">Scan automatically</string>
-    <string name="auto_scanner_description">Automatically scan for songs when opening the app. This does not reload metadata of existing songs.</string>
+    <string name="auto_scanner_description">Periodically refresh local media songs and custom downloads folders when opening the app</string>
+    <string name="auto_scanner_tooltip">For local media, automatic scanning does not reload the metadata of existing songs. Use the manual scanner with the rescan checkbox selected if you also wish to refresh metadata.</string>
 
     <string name="scan_paths_title">Configure scan locations…</string>
     <string name="scan_paths_description">Select folders on your local storage to scan for songs</string>
@@ -201,11 +203,14 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="scanner_local_title">Local scanner</string>
     <string name="scanner_manual_btn">Trigger manual sync</string>
     <string name="scanner_rejected_dir">Invalid selection. A scan folder cannot be a subdirectory of the download folder, or the download folder itself</string>
-    <string name="scanner_warning">By default, the scanner will NOT reload any metadata of existing songs unless you specify otherwise above. Depending on the size of your library, it make take a while.</string>
+    <string name="scanner_warning">By default, the scanner will NOT reload any metadata of existing songs unless you specify otherwise above. Depending on the size of your library, it may take a while.</string>
 
 <!-- Scanner progress strings-->
 	<string name="scanner_missing_ffmpeg">FFmpeg extractor not detected</string>
     <string name="scanner_missing_storage_perm">The local media scanner requires storage permissions to function</string>
+
+    <string name="scanner_auto_end">Local media and song downloads refresh complete!</string>
+    <string name="scanner_auto_start">Refreshing local media and song download folders…</string>
 
     <string name="scanner_btn_idle">Scan</string>
     <string name="scanner_progress_complete">Scan complete</string>
@@ -231,6 +236,8 @@ while also allowing users to translate our app as well. New, specific strings to
 <!-- Scanner parameter settings-->
     <string name="scanner_strict_file_name_title">Strict file names</string>
     <string name="scanner_strict_file_name_description">When enabled, file names will NOT be ignored. Ex. "Song.ogg" will be a different song from "Song.flac". Scanner sensitivity preference will still apply</string>
+    <string name="scanner_strict_file_paths_title">Match file paths instead of metadata</string>
+    <string name="scanner_strict_file_paths_description">Disables all smart matching of metadata. This can cause issues if files are moved in your local storage, but allows for the same song in different folders</string>
     <string name="scanner_sensitivity_title">Configure scanner sensitivity</string>
     <string name="scanner_sensitivity_L0">Take first result provided by YouTube when searching on YouTube is enabled, otherwise match title</string>
     <string name="scanner_sensitivity_L1">Match title</string>
@@ -238,6 +245,8 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
 
     <string name="scanner_type_title">Metadata extractor</string>
+    <string name="scanner_type_tooltip">The system scanner is faster, but may incorrectly extract some metadata compared to other extractors. Please note that switching scanners won\'t automatically reload the metadata of existing songs.</string>
+    <string name="scanner_type_mediastore" translatable="false">(BETA) Use MediaStore system scanner and extractors</string>
     <string name="scanner_type_taglib">Use integrated TagLib metadata extractor</string>
     <string name="scanner_type_ffmpeg_ext">Use FFmpeg metadata extractor. Please only use the "full" variant of the app. The "core" variant could cause issues with song tracking</string>
 

@@ -178,9 +178,9 @@ fun SwitchPreference(
     title: @Composable () -> Unit,
     description: String? = null,
     icon: (@Composable () -> Unit)? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
     isEnabled: Boolean = true,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
     PreferenceEntry(
         modifier = modifier,

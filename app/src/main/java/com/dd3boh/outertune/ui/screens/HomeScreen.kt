@@ -217,9 +217,7 @@ fun HomeScreen(
                                         )
                                     )
                                 } else {
-                                    playerConnection.playQueue(
-                                        YouTubeQueue.radio(song),
-                                    )
+                                    playerConnection.playQueue(YouTubeQueue.radio(song), isRadio = true)
                                 }
                             }
                         },
@@ -307,7 +305,8 @@ fun HomeScreen(
                                     item.endpoint ?: WatchEndpoint(
                                         videoId = item.id
                                     ), item.toMediaMetadata()
-                                )
+                                ),
+                                isRadio = true,
                             )
 
                             is AlbumItem -> navController.navigate("album/${item.id}")
@@ -531,7 +530,10 @@ fun HomeScreen(
                             SongListItem(
                                 song = song!!,
                                 onPlay = {
-                                    playerConnection.playQueue(YouTubeQueue.radio(song!!.toMediaMetadata()))
+                                    playerConnection.playQueue(
+                                        YouTubeQueue.radio(song!!.toMediaMetadata()),
+                                        isRadio = true
+                                    )
                                 },
                                 onSelectedChange = {},
                                 inSelectMode = null,
@@ -835,7 +837,11 @@ fun HomeScreen(
                 }
                 if (local) {
                     when (val luckyItem = allLocalItems.random()) {
-                        is Song -> playerConnection.playQueue(YouTubeQueue.radio(luckyItem.toMediaMetadata()))
+                        is Song -> playerConnection.playQueue(
+                            YouTubeQueue.radio(luckyItem.toMediaMetadata()),
+                            isRadio = true
+                        )
+
                         is Album -> {
                             scope.launch(Dispatchers.IO) {
                                 val songs = database.albumSongs(luckyItem.id).first()
@@ -853,8 +859,16 @@ fun HomeScreen(
                     }
                 } else {
                     when (val luckyItem = allYtItems.random()) {
-                        is SongItem -> playerConnection.playQueue(YouTubeQueue.radio(luckyItem.toMediaMetadata()))
-                        is AlbumItem -> playerConnection.playQueue(YouTubeAlbumRadio(luckyItem.playlistId))
+                        is SongItem -> playerConnection.playQueue(
+                            YouTubeQueue.radio(luckyItem.toMediaMetadata()),
+                            isRadio = true
+                        )
+
+                        is AlbumItem -> playerConnection.playQueue(
+                            YouTubeAlbumRadio(luckyItem.playlistId),
+                            isRadio = true
+                        )
+
                         is ArtistItem -> luckyItem.radioEndpoint?.let {
                             playerConnection.playQueue(YouTubeQueue(it), isRadio = true)
                         }

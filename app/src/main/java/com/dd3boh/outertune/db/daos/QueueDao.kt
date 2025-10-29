@@ -12,13 +12,11 @@ import com.dd3boh.outertune.db.entities.QueueSong
 import com.dd3boh.outertune.db.entities.QueueSongMap
 import com.dd3boh.outertune.models.MultiQueueObject
 import com.dd3boh.outertune.models.toMediaMetadata
-import com.dd3boh.outertune.playback.QueueBoard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 
 @Dao
 interface QueueDao {
@@ -58,6 +56,29 @@ interface QueueDao {
 
         return resultQueues
     }
+
+    suspend fun getResumptionQueue(): MultiQueueObject? {
+        val queues = getAllQueues().first()
+        if (queues.isEmpty()) return null
+        val q = queues.last()
+        val shuffledSongs = getQueueSongs(q.id).first()
+        if (shuffledSongs.isEmpty()) return null
+
+        return MultiQueueObject(
+            id = q.id,
+            title = q.title,
+            queue = shuffledSongs.map {
+                val s = it.song.toMediaMetadata()
+                s.shuffleIndex = it.shuffledIndex
+                s
+            }.toMutableList(),
+            shuffled = q.shuffled,
+            queuePos = q.queuePos,
+            lastSongPos = q.lastSongPos,
+            index = q.index,
+            playlistId = q.playlistId
+        )
+    }
     // endregion
 
     // region Inserts
@@ -89,12 +110,11 @@ interface QueueDao {
 
     @Transaction
     fun updateAllQueues(mqs: List<MultiQueueObject>) {
+        val mqs = mqs.toList() // please no more ConcurrentModificationException I beg you
         mqs.forEachIndexed { index, q -> q.index = index }
         CoroutineScope(Dispatchers.IO).launch {
-            QueueBoard.mutex.withLock { // possible ConcurrentModificationException
-                nukeAliens(mqs.map { it.id })
-                mqs.forEach { updateQueue(it) }
-            }
+            nukeAliens(mqs.map { it.id })
+            mqs.forEach { updateQueue(it) }
         }
     }
 

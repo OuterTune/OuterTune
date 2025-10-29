@@ -35,6 +35,17 @@ const val MAX_YTM_CONTENT_JOBS = 16
 /**
  * Constants
  */
+
+/**
+ * The minimum amount of time the automatic scanner in between successful auto scanner runs
+ */
+const val AUTO_SCAN_COOLDOWN = 39600000L // 11 hours
+
+/**
+ * The minimum amount of time the automatic scanner in between auto scanner runs, regardless of failure or success.
+ * This value should always be less than AUTO_SCAN_COOLDOWN
+ */
+const val AUTO_SCAN_SOFT_COOLDOWN = 7200000L // 2 hours
 const val LYRIC_FETCH_TIMEOUT = 60000L
 const val SNACKBAR_VERY_SHORT = 2000L
 
@@ -48,8 +59,19 @@ const val SYNC_CD = 60000 * 30
 
 const val MAX_PLAYER_CONSECUTIVE_ERR = 3
 
+/**
+ * Misc weird constants
+ */
+
 val DEFAULT_PLAYER_BACKGROUND =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PlayerBackgroundStyle.BLUR else PlayerBackgroundStyle.GRADIENT
+
+val scannerWhitelistExts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    listOf("dsf", "dff", "xm", "mod", "tta", "ape", "wv")
+} else {
+    listOf("opus", "dsf", "dff", "xm", "mod", "tta", "ape", "wv")
+}
+
 
 /**
  * Debug

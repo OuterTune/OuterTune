@@ -39,11 +39,13 @@ import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.MediaMetadata
+import com.dd3boh.outertune.playback.DownloadUtil
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
 import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
 import com.dd3boh.outertune.ui.dialog.DefaultDialog
+import com.dd3boh.outertune.utils.getDownloadState
 import java.time.LocalDateTime
 
 /**
@@ -95,20 +97,7 @@ fun SelectionMediaMetadataMenu(
             val selection = selection.filterNot { it.isLocal }
             if (selection.isEmpty()) return@LaunchedEffect
             downloadUtil.downloads.collect { downloads ->
-                val remaining = selection.filterNot { downloads[it.id]?.state == Download.STATE_COMPLETED }
-                downloadState =
-                    if (remaining.filterNot { s -> downloadUtil.customDownloads.value.any { s.id == it.key } }
-                            .isEmpty()) {
-                        Download.STATE_COMPLETED
-                    } else if (selection.all {
-                            downloads[it.id]?.state == Download.STATE_QUEUED
-                                    || downloads[it.id]?.state == Download.STATE_DOWNLOADING
-                                    || downloads[it.id]?.state == Download.STATE_COMPLETED
-                        }) {
-                        Download.STATE_DOWNLOADING
-                    } else {
-                        Download.STATE_STOPPED
-                    }
+                downloadState = getDownloadState(selection.map { downloads[it.id] })
             }
         }
     }

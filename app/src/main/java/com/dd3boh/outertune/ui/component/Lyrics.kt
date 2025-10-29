@@ -171,6 +171,7 @@ fun Lyrics(
     }
 
     val textColor = MaterialTheme.colorScheme.secondary
+    val prevTextColor = MaterialTheme.colorScheme.primary
 
     var currentLineIndex by remember {
         mutableIntStateOf(-1)
@@ -324,7 +325,12 @@ fun Lyrics(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                            .padding(
+                                start = 24.dp,
+                                top = if (item.isTranslated) 0.dp else 8.dp,
+                                end = 24.dp,
+                                bottom = if (item.isTranslated) 16.dp else 8.dp,
+                            )
                             // we allow clicking on blank lyrics, ignore item.isClickable
                             .clickable(enabled = isSynced && lyricsClickable) {
                                 playerConnection.player.seekTo(item.start.toLong())
@@ -381,10 +387,13 @@ fun Lyrics(
 
 
                         } else { // regular
+                            val isConsumed = currentPos.toULong() > (item.end + 100.toULong())
+                            val isHighlighted =
+                                ((index == displayedCurrentLineIndex || (index == displayedCurrentLineIndex + 1 && item.isTranslated)))
                             Text(
                                 text = item.text,
                                 fontSize = lyricFontSizeAdjusted.sp,
-                                color = textColor,
+                                color = if (isConsumed && !isHighlighted) prevTextColor else textColor,
                                 textAlign = when (lyricsTextPosition) {
                                     LyricsPosition.LEFT -> TextAlign.Left
                                     LyricsPosition.CENTER -> TextAlign.Center
@@ -392,8 +401,10 @@ fun Lyrics(
                                 },
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.alpha(
-                                    if (!isSynced || ((index == displayedCurrentLineIndex || (index == displayedCurrentLineIndex + 1 && item.isTranslated)))) {
+                                    if (!isSynced || isHighlighted) {
                                         1f
+                                    } else if (isConsumed) {
+                                        0.6f
                                     } else {
                                         0.5f
                                     }
@@ -571,7 +582,7 @@ fun calculateLineProgress(line: LyricLine, currentPositionMs: Long): Float {
     if (words.isNullOrEmpty()) {
         return when {
             currentPositionMs < startMs -> 0f
-            currentPositionMs > endMs - 200L -> 1f // add buffer so lyric line animation completes
+            currentPositionMs > endMs -> 1f // add buffer so lyric line animation completes
             else -> (currentPositionMs - startMs).toFloat() / (endMs - startMs).toFloat()
         }
     }
@@ -583,7 +594,7 @@ fun calculateLineProgress(line: LyricLine, currentPositionMs: Long): Float {
 
     return when {
         currentPositionMs < startMs -> 0f
-        currentPositionMs > endMs - 200L -> 1f // add buffer so lyric line animation completes
+        currentPositionMs > endMs -> 1f // add buffer so lyric line animation completes
         else -> {
             for (i in words.indices) {
                 val word = words[i]
@@ -604,9 +615,6 @@ fun calculateLineProgress(line: LyricLine, currentPositionMs: Long): Float {
 
             val totalWords = words.size.toFloat()
             var progress = (completedWords + partialProgress) / totalWords
-            if (progress > 0.95f) {
-                progress = 1f
-            }
             progress.coerceIn(0f, 1f)
         }
     }

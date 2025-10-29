@@ -12,7 +12,7 @@ Notes:
 
 ## Gramophone Lyrics parser
 
-Commit: 1e3a7254ef8e9385ba08c717aa4308582f76a538
+Commit: 6d71d69fb036a91decc65ed362cde84a3468c2c6
 
 Source: https://github.com/FoedusProgramme/Gramophone
 

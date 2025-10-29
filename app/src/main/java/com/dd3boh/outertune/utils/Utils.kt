@@ -8,14 +8,19 @@
 
 package com.dd3boh.outertune.utils
 
+import androidx.compose.ui.util.fastAny
+import androidx.media3.exoplayer.offline.Download
 import com.dd3boh.outertune.constants.MAX_COIL_JOBS
 import com.dd3boh.outertune.constants.MAX_DL_JOBS
 import com.dd3boh.outertune.constants.MAX_LM_SCANNER_JOBS
 import com.dd3boh.outertune.constants.MAX_YTM_CONTENT_JOBS
 import com.dd3boh.outertune.constants.MAX_YTM_SYNC_JOBS
+import com.dd3boh.outertune.playback.DownloadUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.newFixedThreadPoolContext
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 
 /**
@@ -41,4 +46,42 @@ val playerCoroutine = newFixedThreadPoolContext(4, "player_service_offload")
 
 fun reportException(throwable: Throwable) {
     throwable.printStackTrace()
+}
+
+/**
+ * Converts LocalDateTime (LDT) used my DownloadUtil to androidx.media3.exoplayer.offline.Download.
+ *
+ * Returns:
+ * Download.STATE_COMPLETED if downloaded
+ * Download.STATE_DOWNLOADING if downloading
+ * Download.STATE_STOPPED otherwise
+ */
+fun getDownloadState(localDateTime: LocalDateTime?): Int {
+    if (localDateTime == null) return Download.STATE_STOPPED
+    if (localDateTime > DownloadUtil.STATE_DOWNLOADING) {
+        return Download.STATE_COMPLETED
+    } else if (localDateTime == DownloadUtil.STATE_DOWNLOADING) {
+        return Download.STATE_DOWNLOADING
+    } else {
+        return Download.STATE_STOPPED // aka not downloaded
+    }
+}
+
+/**
+ * Converts LocalDateTime (LDT) used my DownloadUtil to androidx.media3.exoplayer.offline.Download.
+ *
+ * Returns:
+ * Download.STATE_COMPLETED if ALL elements are downloaded
+ * Download.STATE_DOWNLOADING if ANY elements downloading
+ * Download.STATE_STOPPED otherwise
+ */
+fun getDownloadState(localDateTimes: List<LocalDateTime?>): Int {
+    if (localDateTimes.fastAny { it == null }) return Download.STATE_STOPPED
+    if (localDateTimes.all { it!! > DownloadUtil.STATE_DOWNLOADING }) {
+        return Download.STATE_COMPLETED
+    } else if (localDateTimes.any { it == DownloadUtil.STATE_DOWNLOADING }) {
+        return Download.STATE_DOWNLOADING
+    } else {
+        return Download.STATE_STOPPED
+    }
 }

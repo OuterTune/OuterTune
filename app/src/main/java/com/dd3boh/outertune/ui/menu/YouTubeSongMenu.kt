@@ -154,7 +154,7 @@ fun YouTubeSongMenu(
             icon = Icons.Rounded.Radio,
             title = R.string.start_radio
         ) {
-            playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+            playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()), isRadio = true)
             onDismiss()
         }
         GridMenuItem(
@@ -189,7 +189,7 @@ fun YouTubeSongMenu(
             showChoosePlaylistDialog = true
         }
         DownloadGridMenu(
-            state = if (downloadUtil.getCustomDownload(song.id)) STATE_COMPLETED else download?.state,
+            localDateTime = download,
             onDownload = {
                 database.transaction {
                     insert(song.toMediaMetadata())

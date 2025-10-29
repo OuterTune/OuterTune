@@ -12,6 +12,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material.icons.rounded.WarningAmber
@@ -76,6 +78,7 @@ import com.dd3boh.outertune.constants.ScannerImplKey
 import com.dd3boh.outertune.constants.ScannerMatchCriteria
 import com.dd3boh.outertune.constants.ScannerSensitivityKey
 import com.dd3boh.outertune.constants.ScannerStrictExtKey
+import com.dd3boh.outertune.constants.ScannerStrictFilePathsKey
 import com.dd3boh.outertune.constants.ThumbnailCornerRadius
 import com.dd3boh.outertune.ui.component.EnumListPreference
 import com.dd3boh.outertune.ui.component.PreferenceEntry
@@ -139,6 +142,7 @@ fun ColumnScope.LocalScannerFrag() {
         defaultValue = ScannerImpl.TAGLIB
     )
     val strictExtensions by rememberPreference(ScannerStrictExtKey, defaultValue = false)
+    val strictFilePaths by rememberPreference(ScannerStrictFilePathsKey, defaultValue = false)
     val downloadPath by rememberPreference(DownloadPathKey, "")
     val (scanPaths, onScanPathsChange) = rememberPreference(ScanPathsKey, defaultValue = "")
     val (excludedScanPaths, onExcludedScanPathsChange) = rememberPreference(ExcludedScanPathsKey, defaultValue = "")
@@ -147,10 +151,7 @@ fun ColumnScope.LocalScannerFrag() {
     var fullRescan by remember { mutableStateOf(false) }
     val (lookupYtmArtists, onLookupYtmArtistsChange) = rememberPreference(LookupYtmArtistsKey, defaultValue = false)
 
-    val (lastLocalScan, onLastLocalScanChange) = rememberPreference(
-        LastLocalScanKey,
-        LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
-    )
+    val (lastLocalScan, onLastLocalScanChange) = rememberPreference(LastLocalScanKey, 0L)
 
     LaunchedEffect(scanPaths) {
         if (scanPaths.isBlank()) {
@@ -170,6 +171,7 @@ fun ColumnScope.LocalScannerFrag() {
                 // cancel button
                 if (scannerState > 0) {
                     scannerRequestCancel = true
+                    return@Button
                 }
 
                 // check permission
@@ -202,12 +204,27 @@ fun ColumnScope.LocalScannerFrag() {
                 playerConnection?.player?.pause()
 
                 coroutineScope.launch(lmScannerCoroutine) {
+                    if (scannerState > 0) {
+                        return@launch
+                    }
                     // full rescan
                     if (fullRescan) {
                         try {
                             val scanner = getScanner(context, scannerImpl, SCANNER_OWNER_LM)
-                            val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
-                            scanner.fullSync(database, uris, scannerSensitivity, strictExtensions)
+                            if (scannerImpl == ScannerImpl.MEDIASTORE) {
+                                scanner.fullMediaStoreSync(
+                                    database,
+                                    uriListFromString(scanPaths),
+                                    uriListFromString(excludedScanPaths),
+                                    scannerSensitivity,
+                                    strictExtensions,
+                                    strictFilePaths,
+                                    true,
+                                )
+                            } else {
+                                val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
+                                scanner.fullSync(database, uris, scannerSensitivity, strictExtensions, strictFilePaths)
+                            }
 
                             delay(1000)
                             // start artist linking job
@@ -243,15 +260,31 @@ fun ColumnScope.LocalScannerFrag() {
                                 duration = SnackbarDuration.Short
                             )
                         } finally {
-                            destroyScanner(SCANNER_OWNER_LM)
                             clearDtCache()
+                            destroyScanner(SCANNER_OWNER_LM)
                         }
                     } else {
                         // quick scan
                         try {
                             val scanner = getScanner(context, scannerImpl, SCANNER_OWNER_LM)
-                            val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
-                            scanner.quickSync(database, uris, scannerSensitivity, strictExtensions)
+
+                            if (scannerImpl == ScannerImpl.MEDIASTORE) {
+                                scanner.fullMediaStoreSync(
+                                    database,
+                                    uriListFromString(scanPaths),
+                                    uriListFromString(excludedScanPaths),
+                                    scannerSensitivity,
+                                    strictExtensions,
+                                    strictFilePaths,
+                                    false
+                                )
+                            } else {
+                                val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
+                                scanner.quickSync(
+                                    database, uris, scannerSensitivity, strictExtensions,
+                                    strictFilePaths
+                                )
+                            }
 
                             delay(1000)
                             // start artist linking job
@@ -287,8 +320,8 @@ fun ColumnScope.LocalScannerFrag() {
                                 duration = SnackbarDuration.Short
                             )
                         } finally {
-                            destroyScanner(SCANNER_OWNER_LM)
                             clearDtCache()
+                            destroyScanner(SCANNER_OWNER_LM)
                         }
                     }
 
@@ -593,6 +626,7 @@ fun ColumnScope.LocalScannerExtraFrag() {
         defaultValue = ScannerImpl.TAGLIB
     )
     val (strictExtensions, onStrictExtensionsChange) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
+    val (strictFilePaths, onStrictFilePathsChange) = rememberPreference(ScannerStrictFilePathsKey, defaultValue = false)
 
 
     // scanner sensitivity
@@ -607,31 +641,42 @@ fun ColumnScope.LocalScannerExtraFrag() {
                 ScannerMatchCriteria.LEVEL_2 -> stringResource(R.string.scanner_sensitivity_L2)
                 ScannerMatchCriteria.LEVEL_3 -> stringResource(R.string.scanner_sensitivity_L3)
             }
-        }
+        },
+        isEnabled = !strictFilePaths,
     )
     // strict file ext
     SwitchPreference(
         title = { Text(stringResource(R.string.scanner_strict_file_name_title)) },
         description = stringResource(R.string.scanner_strict_file_name_description),
         icon = { Icon(Icons.Rounded.TextFields, null) },
+        isEnabled = !strictFilePaths,
         checked = strictExtensions,
         onCheckedChange = onStrictExtensionsChange
     )
+    // compare file path only
+    SwitchPreference(
+        title = { Text(stringResource(R.string.scanner_strict_file_paths_title)) },
+        description = stringResource(R.string.scanner_strict_file_paths_description),
+        icon = { Icon(Icons.Rounded.MoreHoriz, null) },
+        checked = strictFilePaths,
+        onCheckedChange = onStrictFilePathsChange,
+    )
     // scanner type
-    if (ENABLE_FFMETADATAEX) {
-        EnumListPreference(
-            title = { Text(stringResource(R.string.scanner_type_title)) },
-            icon = { Icon(Icons.Rounded.Speed, null) },
-            selectedValue = scannerImpl,
-            onValueSelected = onScannerImplChange,
-            valueText = {
-                when (it) {
-                    ScannerImpl.TAGLIB -> stringResource(R.string.scanner_type_taglib)
-                    ScannerImpl.FFMPEG_EXT -> stringResource(R.string.scanner_type_ffmpeg_ext)
-                }
-            },
-            values = ScannerImpl.entries,
-        )
-    }
+    EnumListPreference(
+        title = { Text(stringResource(R.string.scanner_type_title)) },
+        icon = { Icon(Icons.Rounded.Speed, null) },
+        selectedValue = scannerImpl,
+        onValueSelected = onScannerImplChange,
+        valueText = {
+            when (it) {
+                ScannerImpl.MEDIASTORE -> stringResource(R.string.scanner_type_mediastore)
+                ScannerImpl.TAGLIB -> stringResource(R.string.scanner_type_taglib)
+                ScannerImpl.FFMPEG_EXT -> stringResource(R.string.scanner_type_ffmpeg_ext)
+            }
+        },
+        disabled = { it == ScannerImpl.FFMPEG_EXT && !ENABLE_FFMETADATAEX && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R },
+        values = ScannerImpl.entries,
+    )
+    InfoLabel(stringResource(R.string.scanner_type_tooltip))
 }
 

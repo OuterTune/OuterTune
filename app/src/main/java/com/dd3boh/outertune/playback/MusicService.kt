@@ -86,6 +86,7 @@ import com.dd3boh.outertune.constants.PlayerVolumeKey
 import com.dd3boh.outertune.constants.RepeatModeKey
 import com.dd3boh.outertune.constants.SkipOnErrorKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
+import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.constants.minPlaybackDurKey
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.Event
@@ -175,6 +176,7 @@ class MusicService : MediaLibraryService(),
     private val binder = MusicBinder()
     private lateinit var connectivityManager: ConnectivityManager
 
+    val qbInit = MutableStateFlow(false)
     var queueBoard = QueueBoard(this, maxQueues = 1)
     var queuePlaylistId: String? = null
 
@@ -221,6 +223,7 @@ class MusicService : MediaLibraryService(),
     var consecutivePlaybackErr = 0
 
     override fun onCreate() {
+        Log.i(TAG, "Starting MusicService")
         super.onCreate()
 
         player = ExoPlayer.Builder(this)
@@ -295,9 +298,9 @@ class MusicService : MediaLibraryService(),
 
         // lateinit tasks
         offloadScope.launch {
-            initQueue()
-            withContext(Dispatchers.Main) {
-                queueBoard.setCurrQueue()
+            Log.i(TAG, "Launching MusicService offloadScope tasks")
+            if (!qbInit.value) {
+                initQueue()
             }
 
             combine(playerVolume, normalizeFactor) { playerVolume, normalizeFactor ->
@@ -446,7 +449,7 @@ class MusicService : MediaLibraryService(),
         isRadio: Boolean = false,
         title: String? = null
     ) {
-        if (!queueBoard.initialized) {
+        if (!qbInit.value) {
             runBlocking(Dispatchers.IO) {
                 initQueue()
             }
@@ -518,7 +521,7 @@ class MusicService : MediaLibraryService(),
      */
     fun enqueueNext(items: List<MediaItem>) {
         scope.launch {
-            if (!queueBoard.initialized) {
+            if (!qbInit.value) {
 
                 // when enqueuing next when player isn't active, play as a new song
                 if (items.isNotEmpty()) {
@@ -562,31 +565,37 @@ class MusicService : MediaLibraryService(),
     }
 
     suspend fun initQueue() {
+        Log.i(TAG, "+initQueue()")
+        val persistQueue = dataStore.get(PersistentQueueKey, true)
         val maxQueues = dataStore.get(MaxQueuesKey, 19)
-        if (dataStore.get(PersistentQueueKey, true)) {
+        if (persistQueue) {
             queueBoard = QueueBoard(this, database.readQueue().toMutableList(), maxQueues)
         } else {
             queueBoard = QueueBoard(this, maxQueues = maxQueues)
         }
-        queueBoard.initialized = true
+        Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue. Queues loaded = ${queueBoard.masterQueues.size}")
+        qbInit.value = true
+        Log.i(TAG, "-initQueue()")
     }
 
     fun deInitQueue() {
+        Log.i(TAG, "+deInitQueue()")
+        val pos = player.currentPosition
         queueBoard.shutdown()
         if (dataStore.get(PersistentQueueKey, true)) {
-            saveQueueToDisk()
+            runBlocking(Dispatchers.IO) {
+                saveQueueToDisk(pos)
+            }
         }
         // do not replace the object. Can lead to entire queue being deleted even though it is supposed to be saved already
-        queueBoard.initialized = false
+        qbInit.value = false
+        Log.i(TAG, "-deInitQueue()")
     }
 
-    fun saveQueueToDisk() {
-        val pos = player.currentPosition
+    suspend fun saveQueueToDisk(currentPosition: Long) {
         val data = queueBoard.getAllQueues()
-        runBlocking(Dispatchers.IO) {
-            data.last().lastSongPos = pos
-            database.updateAllQueues(data)
-        }
+        data.last().lastSongPos = currentPosition
+        database.updateAllQueues(data)
     }
 
 
@@ -650,7 +659,10 @@ class MusicService : MediaLibraryService(),
             val mediaId = dataSpec.key ?: error("No media id")
             Log.d(TAG, "PLAYING: song id = $mediaId")
 
-            val song = queueBoard.getCurrentQueue()?.findSong(dataSpec.key ?: "")
+            var song = queueBoard.getCurrentQueue()?.findSong(dataSpec.key ?: "")
+            if (song == null) { // in the case of resumption, queueBoard may not be ready yet
+                song = runBlocking { database.song(dataSpec.key).first()?.toMediaMetadata() }
+            }
             // local song
             if (song?.localPath != null) {
                 if (song.isLocal) {
@@ -1060,7 +1072,7 @@ class MusicService : MediaLibraryService(),
         startInForegroundRequired: Boolean,
     ) {
         // FG keep alive
-        if (!(!player.isPlaying && dataStore.get(KeepAliveKey, false))) {
+        if (player.isPlaying || !dataStore.get(KeepAliveKey, false)) {
             super.onUpdateNotification(session, startInForegroundRequired)
         }
     }
@@ -1073,12 +1085,20 @@ class MusicService : MediaLibraryService(),
         mediaSession.release()
         mediaSession.player.release()
         super.onDestroy()
+        Log.i(TAG, "Terminated MusicService.")
     }
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
+        Log.i(TAG, "onTaskRemoved called")
+        if (dataStore.get(StopMusicOnTaskClearKey, true) && !dataStore.get(KeepAliveKey, false)) {
+            Log.i(TAG, "onTaskRemoved kill")
+            pauseAllPlayersAndStopSelf()
+        } else {
+            Log.i(TAG, "onTaskRemoved def")
+            super.onTaskRemoved(rootIntent)
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
@@ -1101,5 +1121,7 @@ class MusicService : MediaLibraryService(),
         const val NOTIFICATION_ID = 888
         const val ERROR_CODE_NO_STREAM = 1000001
         const val CHUNK_LENGTH = 512 * 1024L
+
+        const val COMMAND_GET_BINDER = "GET_BINDER"
     }
 }

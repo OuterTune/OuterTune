@@ -80,7 +80,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastSumBy
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.PlaybackParameters
-import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
@@ -440,7 +439,7 @@ fun PlayerMenu(
         }
         if (!mediaMetadata.isLocal)
             DownloadGridMenu(
-                state = if (downloadUtil.getCustomDownload(mediaMetadata.id)) STATE_COMPLETED else download?.state,
+                localDateTime = download,
                 onDownload = {
                     database.transaction {
                         insert(mediaMetadata)

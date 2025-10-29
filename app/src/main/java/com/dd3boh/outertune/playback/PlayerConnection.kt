@@ -9,6 +9,8 @@
 
 package com.dd3boh.outertune.playback
 
+import android.util.Log
+import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -24,10 +26,8 @@ import com.dd3boh.outertune.extensions.currentMetadata
 import com.dd3boh.outertune.extensions.getCurrentQueueIndex
 import com.dd3boh.outertune.extensions.getQueueWindows
 import com.dd3boh.outertune.extensions.metadata
-import com.dd3boh.outertune.playback.MusicService.MusicBinder
 import com.dd3boh.outertune.playback.queues.Queue
 import com.dd3boh.outertune.utils.reportException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,16 +38,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.akanework.gramophone.logic.utils.SemanticLyrics
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
-    binder: MusicBinder,
+    binder: MediaControllerViewModel,
     val database: MusicDatabase,
-    scope: CoroutineScope,
 ) : Player.Listener {
-    val service = binder.service
+    val TAG = PlayerConnection::class.simpleName.toString()
+
+    val service = binder.getService()!!
     val player = service.player
+    val scope = binder.viewModelScope
 
     val playbackState = MutableStateFlow(player.playbackState)
     private val playWhenReady = MutableStateFlow(player.playWhenReady)
@@ -65,9 +68,6 @@ class PlayerConnection(
         } else {
             return@flatMapLatest flowOf()
         }
-    }
-    val currentFormat = mediaMetadata.flatMapLatest { mediaMetadata ->
-        database.format(mediaMetadata?.id)
     }
 
     private val currentMediaItemIndex = MutableStateFlow(-1)
@@ -90,13 +90,16 @@ class PlayerConnection(
 
         playbackState.value = player.playbackState
         playWhenReady.value = player.playWhenReady
-        mediaMetadata.value = player.currentMetadata
         queuePlaylistId.value = service.queuePlaylistId
         queueWindows.value = player.getQueueWindows()
         currentWindowIndex.value = player.getCurrentQueueIndex()
         currentMediaItemIndex.value = player.currentMediaItemIndex
         shuffleModeEnabled.value = player.shuffleModeEnabled
         repeatMode.value = player.repeatMode
+
+        scope.launch {
+            mediaMetadata.value = player.currentMetadata ?: database.getResumptionQueue()?.getCurrentSong()
+        }
     }
 
     fun playQueue(
@@ -212,5 +215,11 @@ class PlayerConnection(
 
     fun dispose() {
         player.removeListener(this)
+    }
+
+    fun softKillPlayer() {
+        Log.i(TAG, "Stopping player and uninitializing queue")
+        player.clearMediaItems()
+        service.deInitQueue()
     }
 }

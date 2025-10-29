@@ -10,20 +10,19 @@
 package com.dd3boh.outertune
 
 import android.annotation.SuppressLint
-import android.content.ComponentName
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
@@ -128,9 +127,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -143,6 +139,8 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
+import com.dd3boh.outertune.constants.AUTO_SCAN_COOLDOWN
+import com.dd3boh.outertune.constants.AUTO_SCAN_SOFT_COOLDOWN
 import com.dd3boh.outertune.constants.AppBarHeight
 import com.dd3boh.outertune.constants.AutomaticScannerKey
 import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
@@ -153,7 +151,6 @@ import com.dd3boh.outertune.constants.DynamicThemeKey
 import com.dd3boh.outertune.constants.ENABLE_UPDATE_CHECKER
 import com.dd3boh.outertune.constants.EnabledTabsKey
 import com.dd3boh.outertune.constants.ExcludedScanPathsKey
-import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.LastLocalScanKey
 import com.dd3boh.outertune.constants.LastVersionKey
 import com.dd3boh.outertune.constants.LibraryFilterKey
@@ -173,17 +170,17 @@ import com.dd3boh.outertune.constants.ScannerImplKey
 import com.dd3boh.outertune.constants.ScannerMatchCriteria
 import com.dd3boh.outertune.constants.ScannerSensitivityKey
 import com.dd3boh.outertune.constants.ScannerStrictExtKey
+import com.dd3boh.outertune.constants.ScannerStrictFilePathsKey
 import com.dd3boh.outertune.constants.SearchSource
 import com.dd3boh.outertune.constants.SearchSourceKey
 import com.dd3boh.outertune.constants.SlimNavBarKey
-import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.constants.UpdateAvailableKey
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.SearchHistory
 import com.dd3boh.outertune.extensions.tabMode
 import com.dd3boh.outertune.playback.DownloadUtil
+import com.dd3boh.outertune.playback.MediaControllerViewModel
 import com.dd3boh.outertune.playback.MusicService
-import com.dd3boh.outertune.playback.MusicService.MusicBinder
 import com.dd3boh.outertune.playback.PlayerConnection
 import com.dd3boh.outertune.ui.component.SearchBar
 import com.dd3boh.outertune.ui.component.button.IconButton
@@ -294,18 +291,8 @@ class MainActivity : ComponentActivity() {
     lateinit var connectivityObserver: NetworkConnectivityObserver
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            if (service is MusicBinder) {
-                playerConnection = PlayerConnection(service, database, lifecycleScope)
-            }
-        }
 
-        override fun onServiceDisconnected(name: ComponentName?) {
-            playerConnection?.dispose()
-            playerConnection = null
-        }
-    }
+    val controllerViewModel: MediaControllerViewModel by viewModels()
 
     // storage permission helpers
     val permissionLauncher =
@@ -317,37 +304,20 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-    override fun onStart() {
-        super.onStart()
-        startService(Intent(this, MusicService::class.java))
-        bindService(Intent(this, MusicService::class.java), serviceConnection, BIND_AUTO_CREATE)
-    }
-
     override fun onDestroy() {
+        Log.i(MAIN_TAG, "onDestroy() called. isFinishing = $isFinishing")
         try {
             connectivityObserver.unregister()
         } catch (e: UninitializedPropertyAccessException) {
             // lol
         }
-
-        /*
-         * While music is playing:
-         *      StopMusicOnTaskClearKey true: clearing from recent apps will kill service
-         *      StopMusicOnTaskClearKey false: clearing from recent apps will NOT kill service
-         * While music is not playing: 
-         *      Service will never be automatically killed
-         *
-         * Regardless of what happens, queues and last position are saves
-         */
-        unbindService(serviceConnection)
-
-        if (dataStore.get(StopMusicOnTaskClearKey, false) && dataStore.get(KeepAliveKey, false) && isFinishing) {
-//                stopService(Intent(this, MusicService::class.java)) // Believe me, this doesn't actually stop
-            playerConnection?.service?.onDestroy()
-            playerConnection = null
-        } else {
-            playerConnection?.service?.saveQueueToDisk()
+        // https://github.com/androidx/media/issues/805
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.UPSIDE_DOWN_CAKE && (playerConnection?.player?.playWhenReady != true || playerConnection?.player?.mediaItemCount == 0)) {
+            val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            nm.cancel(MusicService.NOTIFICATION_ID)
         }
+        lifecycle.removeObserver(controllerViewModel)
+        playerConnection = null
 
         super.onDestroy()
     }
@@ -356,6 +326,10 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycle.addObserver(controllerViewModel)
+        controllerViewModel.addControllerCallback(lifecycle) { controller, _ ->
+            playerConnection = PlayerConnection(controllerViewModel, database)
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         activityLauncher = ActivityLauncherHelper(this)
@@ -432,15 +406,13 @@ class MainActivity : ComponentActivity() {
                 key = ScannerImplKey,
                 defaultValue = ScannerImpl.TAGLIB
             )
-            val (scanPaths) = rememberPreference(ScanPathsKey, defaultValue = "")
-            val (excludedScanPaths) = rememberPreference(ExcludedScanPathsKey, defaultValue = "")
-            val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
-            val (lookupYtmArtists) = rememberPreference(LookupYtmArtistsKey, defaultValue = false)
-            val (autoScan) = rememberPreference(AutomaticScannerKey, defaultValue = false)
-            val (lastLocalScan, onLastLocalScanChange) = rememberPreference(
-                LastLocalScanKey,
-                LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
-            )
+            val scanPaths by rememberPreference(ScanPathsKey, defaultValue = "")
+            val excludedScanPaths by rememberPreference(ExcludedScanPathsKey, defaultValue = "")
+            val strictExtensions by rememberPreference(ScannerStrictExtKey, defaultValue = false)
+            val strictFilePaths by rememberPreference(ScannerStrictFilePathsKey, defaultValue = false)
+            val lookupYtmArtists by rememberPreference(LookupYtmArtistsKey, defaultValue = false)
+            val autoScan by rememberPreference(AutomaticScannerKey, defaultValue = true)
+            val (lastLocalScan, onLastLocalScanChange) = rememberPreference(LastLocalScanKey, 0L)
 
             // updater
             val (updateAvailable, onUpdateAvailableChange) = rememberPreference(
@@ -450,12 +422,41 @@ class MainActivity : ComponentActivity() {
             val (lastVer, onLastVerChange) = rememberPreference(LastVersionKey, defaultValue = "0.0.0")
 
             LaunchedEffect(Unit) {
-                downloadUtil.resumeDownloadsOnStart()
-
+                // local media & download folders auto scan
                 coroutineScope.launch((lmScannerCoroutine)) {
+                    if (!autoScan || oobeStatus < OOBE_VERSION) {
+                        Log.i(MAIN_TAG, "Automatic scan is disabled, and/or user has not passed OOBE")
+                        return@launch
+                    }
+                    val timeNow = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+                    if (lastLocalScan + AUTO_SCAN_COOLDOWN > timeNow) {
+                        Log.i(MAIN_TAG, "Aborting automatic scan. Not enough time has passed since the last scan")
+                        downloadUtil.resumeDownloadsOnStart()
+                        return@launch
+                    }
+                    Log.i(MAIN_TAG, "Starting local media and downloads auto scan")
+                    onLastLocalScanChange(timeNow - AUTO_SCAN_COOLDOWN + AUTO_SCAN_SOFT_COOLDOWN) // min cooldown to avoid crash loops
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = this@MainActivity.getString(R.string.scanner_auto_start),
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+
+                    // scan download folders
+                    downloadUtil.scanDownloads()
+                    downloadUtil.resumeDownloadsOnStart()
+                    if (!localLibEnable) {
+                        onLastLocalScanChange(timeNow)
+                        playerConnection?.service?.initQueue()
+                        Log.i(MAIN_TAG, "Downloads scan completed. Local media is disabled.")
+                    }
+
+                    // local media scan
                     val perms = checkSelfPermission(MEDIA_PERMISSION_LEVEL)
                     // Check if the permissions for local media access
-                    if (scannerState.value <= 0 && autoScan && oobeStatus >= OOBE_VERSION && localLibEnable) {
+                    if (scannerState.value <= 0 && localLibEnable) {
                         if (perms == PackageManager.PERMISSION_GRANTED) {
                             // equivalent to (quick scan)
                             try {
@@ -466,7 +467,7 @@ class MainActivity : ComponentActivity() {
                                     this@MainActivity, scannerImpl, SCANNER_OWNER_LM
                                 )
                                 val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
-                                scanner.quickSync(database, uris, scannerSensitivity, strictExtensions)
+                                scanner.quickSync(database, uris, scannerSensitivity, strictExtensions, strictFilePaths)
 
                                 // start artist linking job
                                 if (lookupYtmArtists && scannerState.value <= 0) {
@@ -484,7 +485,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
-                            } catch (e: ScannerAbortException) {
+                            } catch (e: Exception) {
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         message = "${this@MainActivity.getString(R.string.scanner_scan_fail)}: ${e.message}",
@@ -492,21 +493,36 @@ class MainActivity : ComponentActivity() {
                                         duration = SnackbarDuration.Short
                                     )
                                 }
+                                reportException(e)
                             } finally {
+                                clearDtCache()
                                 destroyScanner(SCANNER_OWNER_LM)
                             }
 
                             // post scan actions
-                            onLastLocalScanChange(LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli())
-                            clearDtCache()
+                            onLastLocalScanChange(timeNow)
                             playerConnection?.service?.initQueue()
+                            Log.i(MAIN_TAG, "Local media and downloads scan completed")
                         } else if (perms == PackageManager.PERMISSION_DENIED) {
                             // Request the permission using the permission launcher
                             permissionLauncher.launch(MEDIA_PERMISSION_LEVEL)
+                            Log.w(MAIN_TAG, "Not enough permission to perform local media scan")
                         }
+                    } else if (localLibEnable) {
+                        Log.w(MAIN_TAG, "Cannot perform local media scan, scanner is in use")
+                    }
+
+                    Log.i(MAIN_TAG, "Local media and downloads auto scan complete")
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = this@MainActivity.getString(R.string.scanner_auto_end),
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                        )
                     }
                 }
 
+                // update checker
                 coroutineScope.launch(Dispatchers.IO) {
                     if (!ENABLE_UPDATE_CHECKER) return@launch
                     if (compareVersion(lastVer, BuildConfig.VERSION_NAME) <= 0) {
@@ -817,34 +833,6 @@ class MainActivity : ComponentActivity() {
                                 navController.popBackStack()
                                 navController.navigate(Screens.Home.route)
                             }
-                        }
-                    }
-
-                    LaunchedEffect(playerConnection) {
-                        val player = playerConnection?.player ?: return@LaunchedEffect
-                        if (player.currentMediaItem == null) {
-                            if (!playerBottomSheetState.isDismissed) {
-                                playerBottomSheetState.dismiss()
-                            }
-                        } else {
-                            if (playerBottomSheetState.isDismissed) {
-                                playerBottomSheetState.collapseSoft()
-                            }
-                        }
-                    }
-
-                    DisposableEffect(playerConnection, playerBottomSheetState) {
-                        val player = playerConnection?.player ?: return@DisposableEffect onDispose { }
-                        val listener = object : Player.Listener {
-                            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null && playerBottomSheetState.isDismissed) {
-                                    playerBottomSheetState.collapseSoft()
-                                }
-                            }
-                        }
-                        player.addListener(listener)
-                        onDispose {
-                            player.removeListener(listener)
                         }
                     }
 

@@ -32,7 +32,8 @@ object LocalLyricsProvider : LyricsProvider {
         path: String,
         parserOptions: LrcUtils.LrcParserOptions
     ): SemanticLyrics? {
-        return loadAndParseLyricsFile(File(path), parserOptions)
+        // TODO: audiomimetype
+        return loadAndParseLyricsFile(File(path), null, parserOptions)
     }
 
 }

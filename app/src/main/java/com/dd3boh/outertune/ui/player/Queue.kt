@@ -10,6 +10,7 @@
 package com.dd3boh.outertune.ui.player
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -148,6 +149,7 @@ import com.dd3boh.outertune.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -417,6 +419,13 @@ fun BoxScope.QueueContent(
             }
             return@LaunchedEffect
         }
+        val fallBackQueue = qb.getCurrentQueue()
+        if (queueWindows.isEmpty() && fallBackQueue != null) {
+            detachedQueue = fallBackQueue
+            detachedHead = true
+            mqExpand = true
+            return@LaunchedEffect
+        }
 
         mutableSongs.apply {
             clear()
@@ -431,7 +440,7 @@ fun BoxScope.QueueContent(
     }
 
     LaunchedEffect(mqExpand) { // scroll to queue
-        if (mqExpand) {
+        if (mqExpand && playingQueue >= 0) {
             lazyQueuesListState.animateScrollToItem(playingQueue)
             if (currentWindowIndex != -1) {
                 lazySongsListState.scrollToItem(currentWindowIndex)
@@ -440,6 +449,15 @@ fun BoxScope.QueueContent(
     }
 
     LaunchedEffect(Unit) {
+        combine(snapshotFlow { qb.masterQueues.toList() }, playerConnection.service.qbInit) { updatedList, init ->
+            updatedList to init
+        }.collect { (updatedList, init) ->
+            Log.d("Queue.kt", "Trigger loading queue. init = $init")
+            mutableQueues.clear()
+            mutableQueues.addAll(qb.getAllQueues())
+            playingQueue = updatedList.indexOf(qb.getCurrentQueue())
+        }
+
         snapshotFlow { qb.masterQueues.toList() }
             .collect { updatedList ->
                 // Handle the updated list
@@ -885,11 +903,9 @@ fun BoxScope.QueueContent(
                             .border(1.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(12.dp))
                             .padding(2.dp)
                             .weight(1f)
-                            .clickable {
-                                if (!landscape) {
-                                    mqExpand = !mqExpand
-                                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                }
+                            .clickable(enabled = !landscape && !queueWindows.isEmpty()) {
+                                mqExpand = !mqExpand
+                                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                             }
                     ) {
                         Text(
@@ -902,7 +918,7 @@ fun BoxScope.QueueContent(
                         )
                         ResizableIconButton(
                             icon = if (mqExpand) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                            enabled = !landscape,
+                            enabled = !landscape && !queueWindows.isEmpty(),
                             onClick = {
                                 mqExpand = !mqExpand
                                 haptic.performHapticFeedback(HapticFeedbackType.ContextClick)

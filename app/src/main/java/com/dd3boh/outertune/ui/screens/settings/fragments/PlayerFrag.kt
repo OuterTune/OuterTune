@@ -23,6 +23,7 @@ import com.dd3boh.outertune.constants.AudioNormalizationKey
 import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.constants.AudioQualityKey
 import com.dd3boh.outertune.constants.AutoLoadMoreKey
+import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.SeekIncrement
 import com.dd3boh.outertune.constants.SeekIncrementKey
 import com.dd3boh.outertune.constants.SkipOnErrorKey
@@ -118,6 +119,7 @@ fun AudioEffectsFrag() {
 
 @Composable
 fun PlaybackBehaviourFrag() {
+    val keepAlive by rememberPreference(key = KeepAliveKey, defaultValue = false)
     val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
     val (skipOnErrorKey, onSkipOnErrorChange) = rememberPreference(key = SkipOnErrorKey, defaultValue = false)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
@@ -144,8 +146,9 @@ fun PlaybackBehaviourFrag() {
     SwitchPreference(
         title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
         icon = { Icon(Icons.Rounded.ClearAll, null) },
+        isEnabled = !keepAlive,
         checked = stopMusicOnTaskClear,
-        onCheckedChange = onStopMusicOnTaskClearChange
+        onCheckedChange = onStopMusicOnTaskClearChange,
     )
 
     /**

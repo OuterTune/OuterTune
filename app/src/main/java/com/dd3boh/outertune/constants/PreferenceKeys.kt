@@ -119,6 +119,7 @@ val LocalLibraryEnableKey = booleanPreferencesKey("localLibraryEnable")
 val AutomaticScannerKey = booleanPreferencesKey("autoLocalScanner")
 val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
 val ScannerImplKey = stringPreferencesKey("scannerImpl")
+val ScannerStrictFilePathsKey = booleanPreferencesKey("scannerStrictFilePaths")
 val ScannerStrictExtKey = booleanPreferencesKey("scannerStrictExt")
 val LookupYtmArtistsKey = booleanPreferencesKey("lookupYtmArtists")
 

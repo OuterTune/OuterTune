@@ -11,6 +11,7 @@ package com.dd3boh.outertune.ui.player
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
@@ -132,6 +133,7 @@ import com.dd3boh.outertune.extensions.tabMode
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.extensions.toggleRepeatMode
 import com.dd3boh.outertune.models.MediaMetadata
+import com.dd3boh.outertune.playback.MusicService
 import com.dd3boh.outertune.ui.component.BottomSheet
 import com.dd3boh.outertune.ui.component.BottomSheetState
 import com.dd3boh.outertune.ui.component.PlayerSliderTrack
@@ -157,6 +159,8 @@ fun BottomSheetPlayer(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
+    val TAG = "BottomSheetPlayer"
+
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -179,6 +183,7 @@ fun BottomSheetPlayer(
         playerConnection.player.getMediaItemAt(previousIndex).metadata
     } else null
 
+    val qbInit by playerConnection.service.qbInit.collectAsState()
     val nextMediaMetadata = if (swipeToSkip && playerConnection.player.hasNextMediaItem()) {
         val nextIndex = playerConnection.player.nextMediaItemIndex
         playerConnection.player.getMediaItemAt(nextIndex).metadata
@@ -293,6 +298,14 @@ fun BottomSheetPlayer(
         }
     }
 
+    LaunchedEffect(qbInit, playerConnection.service.queueBoard.masterQueues.toList()) {
+      Log.d(TAG, "Queues changed. qbInit = $qbInit")
+        if (qbInit && !playerConnection.service.queueBoard.masterQueues.isEmpty() && state.isDismissed) {
+            Log.d(TAG, "Triggering sheet collapseSoft")
+            state.collapseSoft()
+        }
+    }
+
     // On today's episode of compose horror stories: The queue sheet click to expand on my Pixel with one-notch lower
     // display size and one-notch higher font size. The player sheet is fine, but the queue sheet won't open on click.
     // Solution: collapsedBound = dismissedBound + 2 (or more?) dp for the sheet to work *after* the first manual drag
@@ -372,9 +385,7 @@ fun BottomSheetPlayer(
         },
         collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
         onDismiss = {
-            playerConnection.player.stop()
-            playerConnection.player.clearMediaItems()
-            playerConnection.service.deInitQueue()
+            playerConnection.softKillPlayer()
         },
         collapsedContent = {
             MiniPlayer(
@@ -585,6 +596,7 @@ fun BottomSheetPlayer(
                             .padding(4.dp)
                             .align(Alignment.Center),
                         color = onBackgroundColor,
+                        enabled = playerConnection.player.currentMediaItem != null,
                         onClick = {
                             playerConnection.triggerShuffle()
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
@@ -601,20 +613,24 @@ fun BottomSheetPlayer(
                             .align(Alignment.Center),
                         color = onBackgroundColor,
                         onClick = {
+                            if (playerConnection.player.currentMediaItem == null) {
+                                playerConnection.service.queueBoard.setCurrQueue()
+                            }
                             playerConnection.player.seekToPrevious()
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
                         }
                     )
                 }
 
-                if(seekIncrement != SeekIncrement.OFF) {
+                if (seekIncrement != SeekIncrement.OFF) {
                     Box(modifier = Modifier.weight(1f)) {
-                        ResizableIconButton (
+                        ResizableIconButton(
                             icon = Icons.Rounded.FastRewind,
                             modifier = Modifier
                                 .size(32.dp)
                                 .align(Alignment.Center),
                             color = onBackgroundColor,
+                            enabled = playerConnection.player.currentMediaItem != null,
                             onClick = {
                                 playerConnection.player.seekTo(playerConnection.player.currentPosition - seekIncrement.millisec)
                             }
@@ -631,7 +647,10 @@ fun BottomSheetPlayer(
                         .clip(RoundedCornerShape(playPauseRoundness))
                         .background(MaterialTheme.colorScheme.primary)
                         .clickable {
-                            if (playbackState == STATE_ENDED) {
+                            if (playerConnection.player.currentMediaItem == null) {
+                                playerConnection.service.queueBoard.setCurrQueue()
+                                playerConnection.player.togglePlayPause()
+                            } else if (playbackState == STATE_ENDED) {
                                 playerConnection.player.seekTo(0, 0)
                                 playerConnection.player.playWhenReady = true
                             } else {
@@ -653,7 +672,7 @@ fun BottomSheetPlayer(
 
                 Spacer(Modifier.width(8.dp))
 
-                if(seekIncrement != SeekIncrement.OFF) {
+                if (seekIncrement != SeekIncrement.OFF) {
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton(
                             icon = Icons.Rounded.FastForward,
@@ -661,6 +680,7 @@ fun BottomSheetPlayer(
                                 .size(32.dp)
                                 .align(Alignment.Center),
                             color = onBackgroundColor,
+                            enabled = playerConnection.player.currentMediaItem != null,
                             onClick = {
                                 //ExoPlayer seek increment can only be set in builder
                                 //playerConnection.player.seekForward()
@@ -700,6 +720,7 @@ fun BottomSheetPlayer(
                             .padding(4.dp)
                             .align(Alignment.Center),
                         color = onBackgroundColor,
+                        enabled = playerConnection.player.currentMediaItem != null,
                         onClick = {
                             playerConnection.player.toggleRepeatMode()
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)

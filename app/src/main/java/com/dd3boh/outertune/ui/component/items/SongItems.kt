@@ -20,9 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.OfflinePin
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -32,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +42,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.exoplayer.offline.Download
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.dd3boh.outertune.BuildConfig
@@ -123,15 +121,9 @@ fun SongListItem(
                 } else if (showInLibraryIcon && song.song.inLibrary != null) {
                     Icon.Library()
                 }
-                if (showDownloadIcon) {
-                    val downloadUtil = LocalDownloadUtil.current
-                    if (downloadUtil.getCustomDownload(song.id)) {
-                        Icon.Download(Download.STATE_COMPLETED)
-                    } else {
-                        val download by downloadUtil.getDownload(song.id)
-                            .collectAsState(initial = null)
-                        Icon.Download(download?.state)
-                    }
+                if (showDownloadIcon && !song.song.isLocal) {
+                    val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
+                    Icon.Download(download)
                 }
             },
             thumbnailContent = {
@@ -267,6 +259,7 @@ fun SongFolderItem(
     navController: NavController,
     subtitle: String?,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val database = LocalDatabase.current
     var subDirSongCount by remember {
         mutableIntStateOf(0)
@@ -297,6 +290,7 @@ fun SongFolderItem(
                     menuState.show {
                         FolderMenu(
                             folder = folder,
+                            coroutineScope = coroutineScope,
                             navController = navController,
                             onDismiss = menuState::dismiss
                         )
@@ -343,24 +337,7 @@ fun SongGridItem(
         }
         if (showDownloadIcon) {
             val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
-            when (download?.state) {
-                Download.STATE_COMPLETED -> Icon(
-                    imageVector = Icons.Rounded.OfflinePin,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(18.dp)
-                        .padding(end = 2.dp)
-                )
-
-                Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> CircularProgressIndicator(
-                    strokeWidth = 2.dp,
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(end = 2.dp)
-                )
-
-                else -> {}
-            }
+            Icon.Download(download)
         }
     },
     isActive: Boolean = false,

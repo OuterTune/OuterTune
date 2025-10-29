@@ -38,6 +38,7 @@ import com.dd3boh.outertune.constants.AudioDecoderKey
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
+import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
 import com.dd3boh.outertune.ui.component.ListPreference
@@ -65,7 +66,10 @@ fun PlayerSettings(
     )
     val (keepAlive, onKeepAliveChange) = rememberPreference(key = KeepAliveKey, defaultValue = false)
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
-
+    val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
+        key = StopMusicOnTaskClearKey,
+        defaultValue = true
+    )
 
     ColumnWithContentPadding(
         modifier = Modifier.fillMaxHeight(),
@@ -154,7 +158,12 @@ fun PlayerSettings(
                     description = stringResource(R.string.keep_alive_description),
                     icon = { Icon(Icons.Rounded.NoCell, null) },
                     checked = keepAlive,
-                    onCheckedChange = onKeepAliveChange
+                    onCheckedChange = {
+                        if (it) {
+                            onStopMusicOnTaskClearChange(false)
+                        }
+                        onKeepAliveChange(it)
+                    }
                 )
             }
         }

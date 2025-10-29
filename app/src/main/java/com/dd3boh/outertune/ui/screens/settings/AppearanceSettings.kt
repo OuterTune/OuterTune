@@ -19,6 +19,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Interests
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,6 +35,7 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
+import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.screens.settings.fragments.AppearanceMiscFrag
@@ -74,6 +77,21 @@ fun AppearanceSettings(
             modifier = Modifier.fillMaxWidth()
         ) {
             AppearanceMiscFrag()
+        }
+        Spacer(modifier = Modifier.height(48.dp))
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.more_settings)
+        )
+
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.grp_interface)) },
+                icon = { Icon(Icons.Rounded.Interests, null) },
+                onClick = { navController.navigate("settings/interface") }
+            )
         }
     }
 

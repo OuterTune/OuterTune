@@ -95,7 +95,7 @@
     <string name="token_hidden">Premi per mostrare il token</string>
     <string name="playlist_add_local_to_synced_note">Nota: L\'aggiunta di brani locali alle playlist sincronizzate/remote non è supportata. Qualsiasi altra combinazione è valida</string>
     <string name="audio_offload_description">Utilizza il percorso audio di offload per la riproduzione audio. Abilitare questa opzione può ridurre il consumo energetico, ma può causare problemi con la riproduzione audio o la post-elaborazione. Questa preferenza non ha effetto su codec o dispositivi non supportati</string>
-    <string name="keep_alive_description">Utilizzare un servizio persistente in primo piano per evitare che OuterTune venga chiuso in background.</string>
+    <string name="keep_alive_description">Utilizzare un servizio persistente in primo piano per evitare che OuterTune venga chiuso in background</string>
     <string name="local_player_settings_title">Media locali</string>
     <string name="tab_arrangement_home_required">La scheda Home è obbligatoria.</string>
     <string name="grp_extra_scanner_settings">Impostazioni aggiuntive dello scanner</string>
@@ -222,7 +222,7 @@
     <string name="app_info_title">Informazioni sull\'applicazione</string>
     <string name="device_info_title">Informazioni sul dispositivo</string>
     <string name="help_bug_report_action">Invia una segnalazione di bug (tramite GitHub)</string>
-    <string name="help_contact_email_inquiries">Altre richieste (tocca per copiare l\'email)</string>
+    <string name="help_contact_email_inquiries">Altre richieste (tocca per copiare l\'e-mail)</string>
     <string name="help_support_forum">Aiuto e supporto (tramite GitHub)</string>
     <string name="wiki">Wiki</string>
     <string name="scanner_sensitivity_L0">Prendi il primo risultato fornito da YouTube quando la ricerca su YouTube è abilitata, altrimenti abbina il titolo</string>
@@ -255,4 +255,9 @@
     <string name="audio_decoder_preference">Decodificatore audio</string>
     <string name="audio_decoder_system_only">Solo decoder di sistema</string>
     <string name="audio_decoder_system_with_ffmpeg">Dare priorità ai decoder di sistema</string>
+    <string name="action_logout_tooltip">Per disconnettersi completamente, si prega di uscire dal tuo account YouTube nel portale web, prima di utilizzare questo pulsante di logout</string>
+    <string name="oobe_cache_subtitle">Scegli la dimensione della cache del brano. Questo può aiutare a ridurre i problemi di riproduzione da internet o con API di YouTube</string>
+    <string name="oobe_cache_title">Cache del brano</string>
+    <string name="oobe_welcome_tip">Per la migliore esperienza, ti consigliamo di completare una configurazione rapida per personalizzare le impostazioni chiave come il tema, account YouTube, media locali e downloads.</string>
+    <string name="max_queues_title">Numero massimo di code</string>
 </resources>

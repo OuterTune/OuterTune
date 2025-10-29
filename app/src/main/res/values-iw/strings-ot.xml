@@ -244,7 +244,7 @@
     <plurals name="second">
         <item quantity="one">שנייה אחת</item>
         <item quantity="two">%d שניות</item>
-        <item quantity="other"></item>
+        <item quantity="other"/>
     </plurals>
     <string name="library_filter">מסנן ספרייה</string>
 </resources>

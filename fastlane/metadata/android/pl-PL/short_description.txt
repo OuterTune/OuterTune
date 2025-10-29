@@ -1,1 +1,1 @@
-Odtwarzacz muzyczny Material 3 z obsługą plików lokalnych i YouTube Music
+Lokalny odtwarzacz muzyczny Material 3 oraz klient YouTube Music

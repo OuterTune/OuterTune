@@ -78,7 +78,7 @@ fun formatFileSize(sizeBytes: Long): String {
 fun closestMatch(query: String, stringList: List<ArtistEntity>): ArtistEntity? {
     // Check for exact match first
 
-    val exactMatch = stringList.find { query.lowercase() == it.name.lowercase() }
+    val exactMatch = stringList.find { query.equals(it.name.lowercase(), true) }
     if (exactMatch != null) {
         return exactMatch
     }
@@ -98,7 +98,7 @@ fun closestMatch(query: String, stringList: List<ArtistEntity>): ArtistEntity? {
 fun closestAlbumMatch(query: String, stringList: List<AlbumEntity>): AlbumEntity? {
     // Check for exact match first
 
-    val exactMatch = stringList.find { query.lowercase() == it.title.lowercase() }
+    val exactMatch = stringList.find { query.equals(it.title, true) }
     if (exactMatch != null) {
         return exactMatch
     }

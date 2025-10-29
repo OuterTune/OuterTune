@@ -97,7 +97,7 @@
     <string name="sort_by_play_count">Número de reproduções</string>
     <string name="scan_paths_tooltip">Todas as subpastas também serão afetadas</string>
     <string name="token_adv_login_description">Esse é um método AVANÇADO de conectar à sua conta. Como uma alternativa ao portal web, você pode digitar ou atualizar seu token de login diretamente aqui. Por exemplo, isso pode fazer com que se conectar em vários dispositivos seja mais rápido. Note que qualquer formato de token inválido qual o app não consegue entender não será aceitado</string>
-    <string name="min_playback_duration_description">A duração mínima que uma música deve ser reproduzida antes que seja considerada realmente reproduzida</string>
+    <string name="min_playback_duration_description">A duração mínima que uma música deve ser tocada antes que seja considerada</string>
     <string name="scan_paths_add_folder">Adicionar uma nova pasta</string>
     <string name="scanner_progress_scanning">Buscando…</string>
     <string name="tab_arrangement_disable_tip">--- Arraste abaixo disso para desativar ---</string>
@@ -128,7 +128,7 @@
     <string name="grp_lyrics_source">Fontes das letras</string>
     <string name="tab_arrangement_home_required">A aba Início não pode ser removida.</string>
     <string name="scanner_ytm_link_start">Iniciando o vínculo de artistas do YouTube…</string>
-    <string name="err_play_next_on_error">Um erro ocorreu. Reproduzindo a próxima</string>
+    <string name="err_play_next_on_error">Ocorreu um erro. Tocando a próxima</string>
     <string name="wait_to_reconnect">Aguarde para se reconectar</string>
     <string name="err_stop_on_error">Um erro ocorreu. A reprodução parou</string>
     <string name="err_stop_on_too_many_errors">Ocorreram muitos erros. A reprodução parou</string>
@@ -225,7 +225,7 @@
     <string name="help_contact_email_inquiries">Outras consultas (toque para copiar o e-mail)</string>
     <string name="help_support_forum">Ajuda e suporte (pelo GitHub)</string>
     <string name="wiki">Wiki</string>
-    <string name="err_invalid_ytm_song">Falha ao reproduzir a música. Somente conteúdo acessível pelo YouTube Music pode ser reproduzido</string>
+    <string name="err_invalid_ytm_song">Falha ao tocar a música. Somente conteúdo acessível pelo YouTube Music pode ser tocado</string>
     <string name="err_restore_incompatible_database">Não foi possível restaurar banco de dados incompatível</string>
     <string name="m3u_import_failed">Nenhuma música encontrada. Arquivo M3U inválido, ou nenhuma correspondência das músicas foi encontrada</string>
     <string name="tap_show_more">Toque para mostrar mais informações</string>
@@ -248,7 +248,7 @@
         <item quantity="many">%d de segundos</item>
         <item quantity="other">%d segundos</item>
     </plurals>
-    <string name="seek_increment">Acréscimo de tempo no avançar/retroceder</string>
+    <string name="seek_increment">Pulo do avançar/retroceder</string>
     <string name="library_filter">Filtro da biblioteca</string>
     <string name="toggle_lyrics">Habilitar letra</string>
     <string name="audio_decoder_ffmpeg_only">Priorizar decodificadores do FFmpeg</string>
