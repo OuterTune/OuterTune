@@ -108,12 +108,12 @@ fun SwipeToQueueBox(
                 job.cancel()
             }
         }),
-        thirdAction = Pair(Icons.AutoMirrored.Rounded.PlaylistAdd, {
+        thirdAction = Pair(Icons.AutoMirrored.Rounded.PlaylistPlay, {
             playerConnection?.enqueuePriority(item, true)
             coroutineScope.launch {
                 val job = launch {
                     snackbarHostState?.showSnackbar(
-                        message = "ORCODDI",
+                        message = "${item.mediaMetadata.title} inserted into priority queue", // TODO: add to R.string
                         withDismissAction = true,
                         duration = SnackbarDuration.Indefinite
                     )
@@ -127,7 +127,7 @@ fun SwipeToQueueBox(
             coroutineScope.launch {
                 val job = launch {
                     snackbarHostState?.showSnackbar(
-                        message = "ORCODDI",
+                        message = "${item.mediaMetadata.title} added at the end of priority queue", // TODO: add to R.string
                         withDismissAction = true,
                         duration = SnackbarDuration.Indefinite
                     )
