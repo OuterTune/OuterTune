@@ -15,9 +15,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -51,6 +54,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.dd3boh.outertune.LocalDatabase
@@ -130,149 +134,163 @@ fun ImportM3uDialog(
         icon = { Icon(Icons.AutoMirrored.Rounded.Input, null) },
         title = { Text(stringResource(R.string.import_playlist)) },
     ) {
-        EnumListPreference(
-            title = { Text(stringResource(R.string.scanner_sensitivity_title)) },
-            icon = { Icon(Icons.Rounded.GraphicEq, null) },
-            selectedValue = scannerSensitivity,
-            onValueSelected = { scannerSensitivity = it },
-            valueText = {
-                when (it) {
-                    ScannerM3uMatchCriteria.LEVEL_0 -> stringResource(R.string.scanner_sensitivity_L0)
-                    ScannerM3uMatchCriteria.LEVEL_1 -> stringResource(R.string.scanner_sensitivity_L1)
-                    ScannerM3uMatchCriteria.LEVEL_2 -> stringResource(R.string.scanner_sensitivity_L2)
-                }
-            }
-        )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                checked = remoteLookup,
-                onCheckedChange = { remoteLookup = it }
-            )
-            Text(
-                stringResource(R.string.m3u_ytm_lookup), color = MaterialTheme.colorScheme.secondary,
-                fontSize = 14.sp
-            )
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-            }
+            // Preferences section
+            EnumListPreference(
+                title = { Text(stringResource(R.string.scanner_sensitivity_title)) },
+                icon = { Icon(Icons.Rounded.GraphicEq, null) },
+                selectedValue = scannerSensitivity,
+                onValueSelected = { scannerSensitivity = it },
+                valueText = {
+                    when (it) {
+                        ScannerM3uMatchCriteria.LEVEL_0 -> stringResource(R.string.scanner_sensitivity_L0)
+                        ScannerM3uMatchCriteria.LEVEL_1 -> stringResource(R.string.scanner_sensitivity_L1)
+                        ScannerM3uMatchCriteria.LEVEL_2 -> stringResource(R.string.scanner_sensitivity_L2)
+                    }
+                }
+            )
 
-            Button(
-                onClick = {
-                    importedSongs.clear()
-                    rejectedSongs.clear()
-                    importM3uLauncher.launch(arrayOf("audio/*"))
-                },
-                enabled = !isLoading
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.m3u_import_playlist))
-            }
-        }
-
-        if (importedSongs.isNotEmpty()) {
-            val lazyListState = rememberLazyListState()
-            Text(
-                text = stringResource(R.string.import_success_songs),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Box() {
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier
-                        .heightIn(max = 150.dp)
-                        .padding(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 20.dp)
-                ) {
-                    itemsIndexed(
-                        items = importedSongs.map { it.title },
-                        key = { _, song -> song.hashCode() }
-                    ) { index, item ->
-                        Text(
-                            text = item,
-                            fontSize = 14.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                        )
-                    }
-                }
-                LazyColumnScrollbar(
-                    state = lazyListState,
+                Checkbox(
+                    checked = remoteLookup,
+                    onCheckedChange = { remoteLookup = it }
+                )
+                Text(
+                    text = stringResource(R.string.m3u_ytm_lookup),
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 14.sp
                 )
             }
-        }
 
-        if (rejectedSongs.isNotEmpty()) {
-            val lazyListState = rememberLazyListState()
-            Text(
-                text = stringResource(R.string.import_failed_songs),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Box() {
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier
-                        .heightIn(max = 150.dp)
-                        .padding(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 20.dp)
-                ) {
-                    itemsIndexed(
-                        items = rejectedSongs,
-                        key = { _, song -> song.hashCode() }
-                    ) { index, item ->
-                        Text(
-                            text = item,
-                            fontSize = 14.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                        )
-                    }
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
                 }
-                LazyColumnScrollbar(
-                    state = lazyListState,
+
+                Button(
+                    onClick = {
+                        importedSongs.clear()
+                        rejectedSongs.clear()
+                        importM3uLauncher.launch(arrayOf("audio/*"))
+                    },
+                    enabled = !isLoading
+                ) {
+                    Text(stringResource(R.string.m3u_import_playlist))
+                }
+            }
+
+            if (importedSongs.isNotEmpty()) {
+                val importedListState = rememberLazyListState()
+
+                Text(
+                    text = stringResource(R.string.import_success_songs),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    LazyColumn(
+                        state = importedListState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 80.dp)
+                    ) {
+                        itemsIndexed(
+                            items = importedSongs.map { it.title },
+                            key = { _, song -> song.hashCode() }
+                        ) { _, item ->
+                            Text(
+                                text = item,
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    LazyColumnScrollbar(
+                        state = importedListState,
+                        modifier = Modifier
+                            .heightIn(max = 80.dp)
+                    )
+                }
+            }
+
+            if (rejectedSongs.isNotEmpty()) {
+                val rejectedListState = rememberLazyListState()
+
+                Text(
+                    text = stringResource(R.string.import_failed_songs),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    LazyColumn(
+                        state = rejectedListState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 80.dp)
+                    ) {
+                        itemsIndexed(
+                            items = rejectedSongs,
+                            key = { _, song -> song.hashCode() }
+                        ) { _, item ->
+                            Text(
+                                text = item,
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    LazyColumnScrollbar(
+                        state = rejectedListState,
+                        modifier = Modifier
+                            .heightIn(max = 80.dp)
+                    )
+                }
             }
         }
-
-
+        // Bottom buttons
 
         Row(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            TextButton(
-                onClick = {
-                    onDismiss()
-                }
-            ) {
+            TextButton(onClick = onDismiss) {
                 Text(stringResource(android.R.string.cancel))
             }
 
             TextButton(
-                onClick = {
-                    showChoosePlaylistDialog = true
-                },
+                onClick = { showChoosePlaylistDialog = true },
                 enabled = importedSongs.isNotEmpty()
             ) {
                 Text(stringResource(R.string.add_to_playlist))
@@ -365,7 +383,7 @@ suspend fun loadM3u(
                         // do not search for local songs
                         if (searchOnline && matches.isEmpty() && source?.contains(',') == false) {
                             val onlineResult =
-                                LocalMediaScanner.youtubeSongLookup("$title ${artists.joinToString(" ")}", source)
+                                LocalMediaScanner.youtubeSongLookup(Uri.decode("$title ${artists.joinToString(" ")}"), source)
                             onlineResult.forEach { result ->
                                 val result = Song(
                                     song = result.toSongEntity(),
