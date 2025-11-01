@@ -105,11 +105,11 @@ public final class OtOffloadSupportProvider implements DefaultAudioSink.AudioOff
         if (SDK_INT >= 31) {
             return OtOffloadSupportProvider.Api31.getOffloadedPlaybackSupport(
                     audioFormat,
-                    audioAttributes.getPlatformAudioAttributes(),
+                    audioAttributes.getAudioAttributesV21().audioAttributes,
                     isOffloadVariableRateSupported);
         }
         return OtOffloadSupportProvider.Api29.getOffloadedPlaybackSupport(
-                audioFormat, audioAttributes.getPlatformAudioAttributes(), isOffloadVariableRateSupported);
+                audioFormat, audioAttributes.getAudioAttributesV21().audioAttributes, isOffloadVariableRateSupported);
     }
 
     private boolean isOffloadVariableRateSupported(@Nullable Context context) {
