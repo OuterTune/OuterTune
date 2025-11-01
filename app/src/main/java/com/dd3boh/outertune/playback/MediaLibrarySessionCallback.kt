@@ -61,6 +61,41 @@ class MediaLibrarySessionCallback @Inject constructor(
         controller: MediaSession.ControllerInfo
     ): MediaSession.ConnectionResult {
         val connectionResult = super.onConnect(session, controller)
+
+        // Enable all player commands for Android Auto steering wheel controls
+        val playerCommands = androidx.media3.common.Player.Commands.Builder()
+            .addAll(connectionResult.availablePlayerCommands)
+            .add(androidx.media3.common.Player.COMMAND_PLAY_PAUSE)
+            .add(androidx.media3.common.Player.COMMAND_PREPARE)
+            .add(androidx.media3.common.Player.COMMAND_STOP)
+            .add(androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT)
+            .add(androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+            .add(androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS)
+            .add(androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+            .add(androidx.media3.common.Player.COMMAND_SEEK_BACK)
+            .add(androidx.media3.common.Player.COMMAND_SEEK_FORWARD)
+            .add(androidx.media3.common.Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+            .add(androidx.media3.common.Player.COMMAND_SEEK_TO_DEFAULT_POSITION)
+            .add(androidx.media3.common.Player.COMMAND_SET_SPEED_AND_PITCH)
+            .add(androidx.media3.common.Player.COMMAND_SET_SHUFFLE_MODE)
+            .add(androidx.media3.common.Player.COMMAND_SET_REPEAT_MODE)
+            .add(androidx.media3.common.Player.COMMAND_GET_CURRENT_MEDIA_ITEM)
+            .add(androidx.media3.common.Player.COMMAND_GET_TIMELINE)
+            .add(androidx.media3.common.Player.COMMAND_GET_METADATA)
+            .add(androidx.media3.common.Player.COMMAND_SET_MEDIA_ITEM)
+            .add(androidx.media3.common.Player.COMMAND_CHANGE_MEDIA_ITEMS)
+            .add(androidx.media3.common.Player.COMMAND_GET_AUDIO_ATTRIBUTES)
+            .add(androidx.media3.common.Player.COMMAND_GET_VOLUME)
+            .add(androidx.media3.common.Player.COMMAND_GET_DEVICE_VOLUME)
+            .add(androidx.media3.common.Player.COMMAND_SET_VOLUME)
+            .add(androidx.media3.common.Player.COMMAND_SET_DEVICE_VOLUME)
+            .add(androidx.media3.common.Player.COMMAND_ADJUST_DEVICE_VOLUME)
+            .add(androidx.media3.common.Player.COMMAND_SET_VIDEO_SURFACE)
+            .add(androidx.media3.common.Player.COMMAND_GET_TEXT)
+            .add(androidx.media3.common.Player.COMMAND_SET_TRACK_SELECTION_PARAMETERS)
+            .add(androidx.media3.common.Player.COMMAND_GET_TRACK_INFOS)
+            .build()
+
         return MediaSession.ConnectionResult.accept(
             connectionResult.availableSessionCommands.buildUpon()
                 .add(MediaSessionConstants.CommandToggleLibrary)
@@ -70,7 +105,7 @@ class MediaLibrarySessionCallback @Inject constructor(
                 .add(MediaSessionConstants.CommandToggleRepeatMode)
                 .add(SessionCommand(MusicService.COMMAND_GET_BINDER, Bundle.EMPTY))
                 .build(),
-            connectionResult.availablePlayerCommands
+            playerCommands
         )
     }
 
