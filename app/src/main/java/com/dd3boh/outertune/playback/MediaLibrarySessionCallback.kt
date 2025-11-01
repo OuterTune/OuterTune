@@ -98,9 +98,9 @@ class MediaLibrarySessionCallback @Inject constructor(
 
     override fun onPlaybackResumption(
         mediaSession: MediaSession,
-        controller: MediaSession.ControllerInfo,
-        isForPlayback: Boolean,
+        controller: MediaSession.ControllerInfo
     ): ListenableFuture<MediaItemsWithStartPosition> = scope.future(Dispatchers.IO) {
+        val isForPlayback = true
         // TODO: when this is stable, change to debug
         Log.i(TAG, "onPlaybackResumption() called. isForPlayback = $isForPlayback")
         val q = database.getResumptionQueue()
