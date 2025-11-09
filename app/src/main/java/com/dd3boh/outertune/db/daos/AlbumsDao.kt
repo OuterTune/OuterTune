@@ -277,13 +277,6 @@ interface AlbumsDao : ArtistsDao {
     @Query("UPDATE album_artist_map SET artistId = :newId WHERE artistId = :oldId")
     fun updateAlbumArtistMap(oldId: String, newId: String)
 
-    /**
-     * Set albumId
-     */
-    @Transaction
-    @Query("UPDATE album_artist_map SET albumId = :newId WHERE albumId = :oldId")
-    fun updateArtistAlbumMap(oldId: String, newId: String)
-
     @Transaction
     @Query("DELETE FROM song_artist_map WHERE songId = :songID")
     fun unlinkSongArtists(songID: String)

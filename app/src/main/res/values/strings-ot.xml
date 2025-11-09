@@ -285,7 +285,8 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Backup and restore settings -->
     <string name="err_restore_incompatible_database">Could not restore incompatible database</string>
-    <string name="import_innertune_tooltip">Restoring InnerTune backups are supported, albeit a possibility of anomalies due to technical limitations</string>
+    <string name="import_innertune_tooltip">Restoring InnerTune backups are supported, albeit a possibility of anomalies due to technical limitations. Forks are NOT supported.</string>
+	<string name="restore_lm_tooltip">For fresh installs of the app, custom download and local media scan paths may not work. To resolve this, remove and add them again.</string>
 
 <!-- Experimental settings -->
     <string name="experimental_settings_title">Experimental</string>

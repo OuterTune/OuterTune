@@ -120,6 +120,7 @@ import com.dd3boh.outertune.constants.DefaultOpenTabKey
 import com.dd3boh.outertune.constants.DynamicThemeKey
 import com.dd3boh.outertune.constants.EnabledTabsKey
 import com.dd3boh.outertune.constants.LibraryFilterKey
+import com.dd3boh.outertune.constants.MinMiniPlayerHeight
 import com.dd3boh.outertune.constants.MiniPlayerHeight
 import com.dd3boh.outertune.constants.NavigationBarAnimationSpec
 import com.dd3boh.outertune.constants.NavigationBarHeight
@@ -399,7 +400,7 @@ class MainActivity : ComponentActivity() {
                     Log.v(MAIN_TAG, "RC-2.2")
 
                     fun getNavPadding(): Dp {
-                        return if (!useNavRail) (if (slimNav) 52.dp else 68.dp) else 16.dp
+                        return if (!useNavRail) (if (slimNav) 52.dp else 68.dp) else MinMiniPlayerHeight
                     }
 
                     val playerBottomSheetState = rememberBottomSheetState(
@@ -413,9 +414,10 @@ class MainActivity : ComponentActivity() {
                             bottomInset,
                             playerBottomSheetState.isDismissed,
                         ) {
-                            var bottom = bottomInset
+                            // TODO: Navbar is shown in all screens except for oobe (which doesn't use these insets). Idk what do to tbh
+                            var bottom = bottomInset + if (!useNavRail) NavigationBarHeight else 0.dp
 
-                            if (!playerBottomSheetState.isDismissed) bottom += MiniPlayerHeight + NavigationBarHeight
+                            if (!playerBottomSheetState.isDismissed) bottom += MiniPlayerHeight
                             windowsInsets
                                 .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
                                 .add(cutoutInsets.only(WindowInsetsSides.Horizontal))

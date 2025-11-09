@@ -336,14 +336,14 @@ class DownloadUtil @Inject constructor(
         // get missing files not in custom downloads or in internal downloads, remove them
         val missingFiles =
             localMgr.getMissingFiles(dbDownloads.filterNot { it.song.dateDownload == null }).toMutableList()
-        Log.d(TAG, "Found ${missingFiles.size}/${dbDownloads} songs not in custom download directories")
+        Log.d(TAG, "Found ${missingFiles.size}/${dbDownloads.size} songs not in custom download directories")
         val cursor = downloadManager.downloadIndex.getDownloads()
         while (cursor.moveToNext()) {
             missingFiles.removeIf { it.id == cursor.download.request.id }
         }
         Log.d(
             TAG,
-            "Found ${missingFiles.size}/${dbDownloads} song not in custom download directories + internal cache. Removing these files now"
+            "Found ${missingFiles.size}/${dbDownloads.size} song not in custom download directories + internal cache. Removing these files now"
         )
 
         database.transaction {

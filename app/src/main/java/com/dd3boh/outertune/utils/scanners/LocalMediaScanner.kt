@@ -528,8 +528,8 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
         scannerProgressCurrent.value = scannerProgressProbe.value
         // we handle disabling songs here instead
         scannerState.value = 3
+        disableSongsByPath(converted, database)
         finalize(database)
-        disableSongsByPath(finalSongs.mapNotNull { it.song.song.localPath }, database)
 
         scannerState.value = 0
         Log.i(TAG, "------------ SYNC: Finished Quick (additive delta) Library Sync ------------")
@@ -885,8 +885,8 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
         }
         // we handle disabling songs here instead
         scannerState.value = 3
+        disableSongsByPath(mediaStoreSongs.mapNotNull { it.song.song.localPath }, database)
         finalize(database)
-        disableSongsByPath(finalSongs.mapNotNull { it.song.song.localPath }, database)
         scannerState.value = 0
 
 
@@ -1003,6 +1003,7 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
                 }
             }
         }
+        Log.i(TAG, "Finished (disableSongsByPath) job")
     }
 
     private suspend fun disableSongs(newSongs: List<Song>, database: MusicDatabase) {
@@ -1026,6 +1027,7 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
                 database.disableLocalSong(song.song.id)
             }
         }
+        Log.i(TAG, "Finished (disableSongs) job")
     }
 
     /**
@@ -1102,8 +1104,30 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
             }
         }
 
-        // TODO: Deduplicate genres when genre screen is a thing
-        Log.d(TAG, "Finished finalize (duplicate removal) job")
+        // remove duplicated genres
+        val dbGenres: MutableList<GenreEntity> = database.allLocalGenresByName().toMutableList()
+        while (dbGenres.isNotEmpty()) {
+            // gather same artists (precondition: artists are ordered by name
+            val tmp = ArrayList<GenreEntity>()
+            val oldestGenre: GenreEntity = dbGenres.removeAt(0)
+            tmp.add(oldestGenre)
+            while (dbGenres.isNotEmpty() && dbGenres.first().title == tmp.first().title) {
+                tmp.add(dbGenres.removeAt(0))
+            }
+
+            if (tmp.size > 1) {
+                try {
+                    // merge all duplicate artists into the oldest one
+                    tmp.removeAt(0)
+                    tmp.sortBy { it.bookmarkedAt }
+                    tmp.forEach { swapGenres(it, oldestGenre, database) }
+                } catch (e: Exception) {
+                    reportException(e)
+                }
+            }
+        }
+
+        Log.i(TAG, "Finished finalize (duplicate removal) job")
     }
 
 
@@ -1497,10 +1521,12 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
         fun swapArtists(old: ArtistEntity, new: ArtistEntity, database: MusicDatabase) {
             database.transaction {
                 if (artistById(old.id) == null) {
-                    throw Exception("Attempting to swap with non-existent old artist in database with id: ${old.id}")
+                    reportException(Exception("Attempting to swap with non-existent old artist in database with id: ${old.id}"))
+                    return@transaction
                 }
                 if (artistById(new.id) == null) {
-                    throw Exception("Attempting to swap with non-existent new artist in database with id: ${new.id}")
+                    reportException(Exception("Attempting to swap with non-existent new artist in database with id: ${new.id}"))
+                    return@transaction
                 }
 
                 // update participation(s)
@@ -1515,18 +1541,38 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
         fun swapAlbums(old: AlbumEntity, new: AlbumEntity, database: MusicDatabase) {
             database.transaction {
                 if (albumById(old.id) == null) {
-                    throw Exception("Attempting to swap with non-existent old album in database with id: ${old.id}")
+                    reportException(Exception("Attempting to swap with non-existent old album in database with id: ${old.id}"))
+                    return@transaction
                 }
                 if (albumById(new.id) == null) {
-                    throw Exception("Attempting to swap with non-existent new album in database with id: ${new.id}")
+                    reportException(Exception("Attempting to swap with non-existent new album in database with id: ${new.id}"))
+                    return@transaction
                 }
 
                 // update participation(s)
                 updateSongAlbumMap(old.id, new.id)
-                updateArtistAlbumMap(old.id, new.id)
 
                 // nuke old artist
                 safeDeleteAlbum(old.id)
+            }
+        }
+
+        fun swapGenres(old: GenreEntity, new: GenreEntity, database: MusicDatabase) {
+            database.transaction {
+                if (genreById(old.id) == null) {
+                    reportException(Exception("Attempting to swap with non-existent old album in database with id: ${old.id}"))
+                    return@transaction
+                }
+                if (genreById(new.id) == null) {
+                    reportException(Exception("Attempting to swap with non-existent new album in database with id: ${new.id}"))
+                    return@transaction
+                }
+
+                // update participation(s)
+                updateSongGenreMap(old.id, new.id)
+
+                // nuke old genre
+                safeDeleteGenre(old.id)
             }
         }
     }

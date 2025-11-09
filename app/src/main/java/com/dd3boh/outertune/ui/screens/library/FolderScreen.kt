@@ -112,6 +112,7 @@ import com.dd3boh.outertune.ui.screens.Screens
 import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
 import com.dd3boh.outertune.ui.utils.STORAGE_ROOT
 import com.dd3boh.outertune.ui.utils.backToMain
+import com.dd3boh.outertune.ui.utils.canNavigateUp
 import com.dd3boh.outertune.utils.fixFilePath
 import com.dd3boh.outertune.utils.numberToAlpha
 import com.dd3boh.outertune.utils.rememberEnumPreference
@@ -163,7 +164,14 @@ fun FolderScreen(
     LaunchedEffect(lastLocalScan) {
         if (viewModel.uiInit && !currDir.isSkeleton && viewModel.lastLocalScan != lastLocalScan) {
             viewModel.lastLocalScan = lastLocalScan
-            navController.backToMain()
+            if (navController.canNavigateUp) {
+                navController.backToMain()
+            } else {
+                coroutineScope.launch(Dispatchers.IO) {
+                    viewModel.getLocalSongs()
+                    viewModel.getSongCount()
+                }
+            }
         }
     }
 
@@ -241,15 +249,22 @@ fun FolderScreen(
             }
         }
         // sort folders
-        currDir.subdirs.sortBy { it.currentDir.lowercase() } // only sort by name
+        val newSubdirs: ArrayList<DirectoryTree> = ArrayList()
+        newSubdirs.addAll(currDir.subdirs.sortedBy { it.currentDir.lowercase() }) // only sort by name
 
         if (sortDescending) {
-            currDir.subdirs.reverse()
+            newSubdirs.reverse()
+            currDir.subdirs.apply {
+                clear()
+                addAll(newSubdirs)
+            }
             tempList.reverse()
         }
 
-        mutableSongs.clear()
-        mutableSongs.addAll(tempList.distinctBy { it.id })
+        mutableSongs.apply {
+            clear()
+            mutableSongs.addAll(tempList.distinctBy { it.id })
+        }
     }
 
     Box(

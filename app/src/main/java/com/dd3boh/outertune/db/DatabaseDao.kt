@@ -115,11 +115,38 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
     )
     fun relatedSongs(songId: String): List<Song>
 
+    @Query("""
+        SELECT * FROM genre
+        WHERE genre.isLocal = 1
+        ORDER BY genre.title ASC
+    LIMIT :previewSize""")
+    fun allLocalGenresByName(previewSize: Int = Int.MAX_VALUE): List<GenreEntity>
+
+    @Query("SELECT * FROM genre WHERE id = :id")
+    fun genreById(id: String): GenreEntity?
+
     @Query("SELECT * FROM genre WHERE title = :name")
     fun genreByName(name: String): GenreEntity?
 
     @Query("SELECT * FROM genre WHERE title LIKE '%' || :query || '%' LIMIT :previewSize")
     fun genreByNameFuzzy(query: String, previewSize: Int = Int.MAX_VALUE): List<GenreEntity>
+
+    @Transaction
+    @Query("UPDATE song_genre_map SET genreId = :newId WHERE genreId = :oldId")
+    fun updateSongGenreMap(oldId: String, newId: String)
+
+    @Query(
+        """
+        DELETE FROM genre
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM song_genre_map
+            WHERE song_genre_map.genreId = :genreId
+        )
+        AND id = :genreId
+    """
+    )
+    fun safeDeleteGenre(genreId: String)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(genre: GenreEntity)

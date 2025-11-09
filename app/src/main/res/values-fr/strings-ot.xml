@@ -91,7 +91,7 @@
     <string name="m3u_import_playlist_failed">Échec de l\'importation</string>
     <string name="local_player_settings_title">Médias Locaux</string>
     <string name="flat_subfolders_description">Désactiver pour conserver la structure du fichier telle qu\'elle se trouve sur le disque</string>
-    <string name="import_innertune_tooltip">La restauration des sauvegardes InnerTune est prise en charge, bien qu\'il existe une possibilité d\'anomalies en raison de limitations techniques</string>
+    <string name="import_innertune_tooltip">La restauration des sauvegardes InnerTune est prise en charge, malgré un risque d\'anomalies dues à des limitations techniques. Les forks ne sont PAS pris en charge.</string>
     <string name="action_back">Retour</string>
     <string name="oobe_use_backup">J\'ai une sauvegarde</string>
     <string name="scan_paths_incl">Chemins d\'analyse</string>
@@ -267,4 +267,5 @@
     <string name="scanner_strict_file_paths_title">Faire correspondre les chemins de fichiers au lieu des métadonnées</string>
     <string name="scanner_strict_file_paths_description">Désactive toute correspondance intelligente des métadonnées. Cela peut poser problème si des fichiers sont déplacés de votre stockage local, mais autorise le même titre dans différents dossiers</string>
     <string name="scanner_type_tooltip">L\'analyseur système est plus rapide, mais il peut extraire certaines métadonnées de manière incorrecte par rapport à d\'autres extracteurs. Veuillez noter que le changement d\'analyseur ne recharge pas automatiquement les métadonnées des titres existants.</string>
+    <string name="restore_lm_tooltip">Lors d\'une nouvelle installation de l\'application, il se peut que les chemins de téléchargement personnalisés et d\'analyse des médias locaux ne fonctionnent pas. Pour résoudre ce problème, supprimez-les puis ajoutez-les à nouveau.</string>
 </resources>

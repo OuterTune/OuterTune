@@ -64,7 +64,7 @@
     <string name="lyrics_font_Size">Tamanho da fonte</string>
     <string name="local_library_enable_title">Ativar mídia local</string>
     <string name="local_player_settings_title">Mídia local</string>
-    <string name="import_innertune_tooltip">Restaurar backups do InnerTune é suportado, mas há uma possibilidade de anomalias devido à limitações técnicas</string>
+    <string name="import_innertune_tooltip">Restaurar backups do InnerTune é suportado, mas há uma possibilidade de anomalias devido à limitações técnicas. Forks não são suportados.</string>
     <string name="m3u_import_playlist">Importar uma lista (m3u)</string>
     <string name="m3u_import_playlist_failed">Falha ao importar</string>
     <string name="scanner_local_title">Busca local</string>
@@ -267,4 +267,5 @@
     <string name="scanner_strict_file_paths_title">Corresponder caminhos de arquivo em vez de metadados</string>
     <string name="scanner_strict_file_paths_description">Desativa toda a correspondência inteligente de metadados. Isso pode causar problemas se os arquivos forem movidos no seu armazenamento local, mas permite a mesma música em pastas diferentes</string>
     <string name="scanner_type_tooltip">O busca do sistema é mais rápida, mas pode extrair alguns metadados incorretamente comparado a outros extratores. Observe que ao alterar buscadores, os metadados de músicas existentes não serão recarregados.</string>
+    <string name="restore_lm_tooltip">Em instalações limpas do app, caminhos de busca de mídia local e download podem não funcionar. Para resolver isso, remova-os e adicione-os novamente.</string>
 </resources>

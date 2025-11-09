@@ -499,7 +499,7 @@ class MusicService : MediaLibraryService(),
                         shuffled = queue.startShuffled,
                         startIndex = if (initialStatus.mediaItemIndex > 0) initialStatus.mediaItemIndex else 0,
                         replace = replace || preloadItem != null,
-                        continuationEndpoint = items.takeLast(4).shuffled().first().id // yq?.getContinuationEndpoint()
+                        continuationEndpoint = if (isRadio) items.takeLast(4).shuffled().first().id else null // yq?.getContinuationEndpoint()
                     )
                     queueBoard.setCurrQueue(q, shouldResume)
                 }

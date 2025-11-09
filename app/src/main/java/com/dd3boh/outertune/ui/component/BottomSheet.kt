@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -54,9 +55,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import com.dd3boh.outertune.constants.BottomSheetAnimationSpec
 import com.dd3boh.outertune.constants.BottomSheetSoftAnimationSpec
+import com.dd3boh.outertune.constants.MinMiniPlayerHeight
 import com.dd3boh.outertune.constants.MiniPlayerHeight
 import com.dd3boh.outertune.constants.NavigationBarAnimationSpec
-import com.dd3boh.outertune.ui.utils.fadingEdge
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.pow
@@ -75,6 +76,8 @@ fun BottomSheet(
     collapsedBackgroundColor: Color = Color.Transparent,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val density = LocalDensity.current
+
     Box(
         modifier = modifier
             .graphicsLayer {
@@ -137,21 +140,28 @@ fun BottomSheet(
 
         // collapsed content
         if (!state.isExpanded) {
+            // startY must be < state.collapsedBound
+            val startY = with(density) { (MiniPlayerHeight + MinMiniPlayerHeight - 1.dp).toPx() }
+            val colors = mutableListOf(collapsedBackgroundColor, Color.Transparent)
+            // no visible gradient if no bottom content to hide it
+            if (MiniPlayerHeight + MinMiniPlayerHeight >= state.collapsedBound) {
+                colors[1] = collapsedBackgroundColor
+            }
             Box(
                 modifier = Modifier
                     .graphicsLayer {
                         alpha = 1f - (state.progress * 4).coerceAtMost(1f)
                     }
-                    // yeet to infinity and beyond offscreen so not obscuring top content
-                    .offset(y = if (state.isExpanded) state.expandedBound else 0.dp)
                     .clickable(
                         onClick = state::expandSoft
                     )
                     .fillMaxWidth()
                     .height(state.collapsedBound)
-                    .background(collapsedBackgroundColor)
-                    .fadingEdge(
-                        bottom = min(MiniPlayerHeight, (state.collapsedBound - MiniPlayerHeight).coerceAtLeast(0.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            colors = colors,
+                            startY = startY,
+                        )
                     ),
                 content = collapsedContent
             )

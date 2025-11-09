@@ -61,7 +61,7 @@ class QueueBoard(
             maxQueues = 1
         }
         if (!queues.isEmpty()) {
-            masterQueues.addAll(queues.subList(0, min(queues.size, maxQueues)))
+            masterQueues.addAll(queues.subList((queues.size - maxQueues).coerceAtLeast(0), queues.size))
         }
     }
 
@@ -278,7 +278,7 @@ class QueueBoard(
         } else {
             // add entirely new queue
             // Precondition(s): radio queues never include local songs
-            if (masterQueues.size > maxQueues) {
+            if (masterQueues.size >= maxQueues) {
                 deleteQueue(masterQueues.first())
             }
             val q = ArrayList(mediaList.filterNotNull())

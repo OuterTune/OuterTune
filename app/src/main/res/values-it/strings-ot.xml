@@ -47,7 +47,7 @@
     <string name="local_library_enable_title">Abilitare i media locali</string>
     <string name="local_library_enable_description">Disattivando si nasconderà la libreria locale dall\'app</string>
     <string name="flat_subfolders_title">Appiattire le sottocartelle</string>
-    <string name="import_innertune_tooltip">Il ripristino dei backup di InnerTune è supportato, anche se è possibile che si verifichino anomalie a causa di limitazioni tecniche</string>
+    <string name="import_innertune_tooltip">Il ripristino dei backup di InnerTune è supportato, anche se è possibile che si verifichino anomalie a causa di limitazioni tecniche. I fork nono sono supportati.</string>
     <string name="auto_scanner_description">Esegui automaticamente la scansione dei brani e delle cartelle di download all\'apertura dell\'app</string>
     <string name="scan_paths_title">Configura percorsi di scansione…</string>
     <string name="scan_paths_add_folder">Aggiungi nuova cartella</string>
@@ -267,4 +267,5 @@
     <string name="scanner_strict_file_paths_title">Abbina i percorsi dei file anziché i metadati</string>
     <string name="scanner_strict_file_paths_description">Disabilita tutte le corrispondenze intelligenti dei metadati. Ciò può causare problemi se i file vengono spostati nella memoria locale, ma consente lo stesso brano in cartelle diverse</string>
     <string name="scanner_type_tooltip">Lo scanner di sistema è più veloce, ma potrebbe estrarre in modo errato alcuni metadati rispetto ad altri estrattori. Tieni presente che il cambio di scanner non ricaricherà automaticamente i metadati dei brani esistenti.</string>
+    <string name="restore_lm_tooltip">Per le nuove installazioni dell\'app, i percorsi personalizzati di download e di scansione dei media locali potrebbero non funzionare. Per risolvere il problema, rimuovili e aggiungili nuovamente.</string>
 </resources>
