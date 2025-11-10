@@ -1307,6 +1307,34 @@ class MusicService : MediaLibraryService(),
                     }
                     offset += segLen
                 }
+
+                // Low-priority next track warmup: prefetch the first ~10s (approx 1 MiB) of the next track
+                // so seamless transition is possible at decree boundaries.
+                try {
+                    val nextIndex = player.currentMediaItemIndex + 1
+                    if (nextIndex in 0 until player.mediaItemCount) {
+                        val nextItem = player.getMediaItemAt(nextIndex)
+                        val nextId = nextItem.mediaId
+                        if (!nextId.isNullOrEmpty()) {
+                            val nextUrl = getOrFetchStreamUrl(nextId)
+                            if (nextUrl != null) {
+                                // Prefetch from start: up to ~1 MiB to cover >=10s at typical bitrates
+                                val nextBudget: Long = 1L * 1024 * 1024
+                                var nextOffset = 0L
+                                while (nextOffset < nextBudget) {
+                                    val segLen = kotlin.math.min(CHUNK_LENGTH, nextBudget - nextOffset)
+                                    if (!playerCache.isCached(nextId, nextOffset, segLen)) {
+                                        try {
+                                            prefetchSegmentToPlayerCache(nextUrl, nextId, nextOffset, segLen)
+                                        } catch (_: IOException) { break }
+                                        catch (_: Exception) { break }
+                                    }
+                                    nextOffset += segLen
+                                }
+                            }
+                        }
+                    }
+                } catch (_: Exception) { /* best-effort for next track */ }
             } catch (e: Exception) {
                 // Swallow and retry later; do not crash service
                 Log.d(TAG, "prefetchWorker: ${e.message}")
@@ -1373,6 +1401,18 @@ class MusicService : MediaLibraryService(),
                 prefetchUrlCache[mediaId] = streamUrl to (System.currentTimeMillis() + playbackData.streamExpiresInSeconds * 1000L)
                 streamUrl
             } catch (_: Exception) { null }
+        }
+    }
+
+    // ===== Prefetch status helpers =====
+    /** Returns true if at least [bytes] from the start of [mediaId] is present in either download or player cache. */
+    fun isMediaHeadPrefetched(mediaId: String, bytes: Long = 1L * 1024 * 1024): Boolean {
+        return try {
+            val length = bytes.coerceAtLeast(1L)
+            downloadCache.isCached(mediaId, /* position= */ 0L, /* length= */ length) ||
+                    playerCache.isCached(mediaId, /* position= */ 0L, /* length= */ length)
+        } catch (_: Exception) {
+            false
         }
     }
 }

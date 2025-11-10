@@ -1,0 +1,86 @@
+Based on the current implementation in `PartyViewModel.kt`, here's how the OuterConnect sync process works:
+
+## Overview
+OuterConnect uses a **buffered synchronization** approach with a fixed 1-second client lag behind the master clock. It prioritizes near-term audio data availability over precise timing, using tolerance zones and decisive seeks to eliminate jitter.
+
+## Key Components
+
+### 1. **Authoritative Position Calculation**
+```kotlin
+private fun computeLaggedAuthoritativePosition(party: PartyState): Long {
+    // Follow master clock directly, stay exactly 1s behind
+    val lagged = (party.progressMs - CLIENT_LAG_MS).coerceAtLeast(0L)
+    // Clamp to track duration
+    return if (duration > 0) lagged.coerceAtMost(duration) else lagged
+}
+```
+- **CLIENT_LAG_MS = 1000L** (1 second fixed delay)
+- Clients always lag behind the Firebase RTDB `progressMs` by exactly 1 second
+
+### 2. **Buffered Sync Tolerances**
+```kotlin
+private val NORMAL_ZONE_MS = 100L           // <=100ms -> play at 1.0x
+private val MAX_DRIFT_THRESHOLD_MS = 500L   // >500ms -> decisive seek
+private val MAX_SEEK_INTERVAL_MS = 2000L    // seek no more often than every 2s
+```
+- **Normal zone (≤100ms drift)**: Maintain 1.0x playback speed
+- **Seek zone (>500ms drift)**: Immediate seek to correct position (rate-limited)
+
+### 3. **Playback Gating**
+```kotlin
+private fun canAudiblyPlay(party: PartyState, connection: PlayerConnection): Boolean {
+    return party.isPlaying && hasBufferedAheadMs(connection, 10_000L)
+}
+```
+- Playback only starts when RTDB shows `isPlaying = true` AND player has ≥10 seconds buffered ahead
+- Prevents stalls from insufficient buffering
+
+### 4. **Sync Loop (runs every 100ms)**
+```kotlin
+private fun applySeekSync(party: PartyState, connection: PlayerConnection) {
+    val authoritativePos = computeLaggedAuthoritativePosition(party)
+    val localPos = player.currentPosition
+    val drift = authoritativePos - localPos
+    
+    if (absDrift > MAX_DRIFT_THRESHOLD_MS) {
+        // Decisive seek (rate-limited)
+        player.seekTo(authoritativePos)
+    } else if (absDrift <= NORMAL_ZONE_MS) {
+        // Ensure normal speed
+        player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+    }
+    // No elastic speed adjustment
+}
+```
+
+### 5. **State Synchronization**
+- **New Decree**: When RTDB `lastCommandId` changes (host action)
+  - Update player queue
+  - Seek to lagged authoritative position
+  - Start/stop playback based on `canAudiblyPlay`
+- **Heartbeat**: Reflect play/pause state changes without re-seeking
+
+### 6. **Readiness Evaluation**
+```kotlin
+private fun evaluateReadiness() {
+    // Current track: ready when STATE_READY + ≥10s buffered
+    val currentReady = playerState == Player.STATE_READY && 
+                      currentMediaId == expectedCurrentId &&
+                      hasBufferedAheadMs(connection, 10_000L)
+    
+    // Next track: ready when head prefetched (~1MiB)
+    val nextReady = connection.service.isMediaHeadPrefetched(expectedNextId, 1L * 1024 * 1024)
+}
+```
+- Exposes `isCurrentTrackBuffered` and `isNextTrackBuffered` StateFlows for UI
+
+### 7. **Next Track Prefetch**
+- `handleNextPrefetchWatch` polls MusicService every 500ms for 20 seconds to check if next track's head is cached
+- Sets `isNextTrackBuffered` when ready
+
+## Current Status
+- **Implemented**: Buffered sync with 1s lag, tolerance zones, playback gating, readiness evaluation
+- **Missing**: MusicService prefetch implementation (`prefetchWorker`, `isMediaHeadPrefetched`, `setPartyPrefetchHint`)
+- **UI Integration**: Readiness flows available but not yet wired to disable play button or show buffering indicators
+
+The system ensures smooth playback by prioritizing buffer availability over timing precision, using decisive seeks only when drift exceeds 500ms, and maintaining a consistent 1-second lag to account for network latency and processing delays.

@@ -64,7 +64,14 @@ data class PartyState(
     val nextTrack: PartyTrack? = null,
     val queue: List<PartyTrack> = emptyList(),
     val lastCommandId: String = "",
-    val lastUpdated: Long = 0
+    val lastUpdated: Long = 0,
+    // New sync fields
+    val status: String = "", // IDLE | PREPARING | SCHEDULED | PLAYING | PAUSED | ENDING
+    val startAtServerTime: Long? = null,
+    val initialSeekPos: Long = 0,
+    val readyCount: Long = 0,
+    val totalCount: Long = 0,
+    val serverTimestamp: Long = 0
 )
 
 sealed class PartyEvent {
@@ -99,6 +106,12 @@ class PartyViewModel @Inject constructor(
     private val _events = MutableStateFlow<PartyEvent?>(null)
     val events: StateFlow<PartyEvent?> = _events.asStateFlow()
 
+    // Expose buffering readiness for UI
+    private val _isCurrentTrackBuffered = MutableStateFlow(false)
+    val isCurrentTrackBuffered: StateFlow<Boolean> = _isCurrentTrackBuffered.asStateFlow()
+    private val _isNextTrackBuffered = MutableStateFlow(false)
+    val isNextTrackBuffered: StateFlow<Boolean> = _isNextTrackBuffered.asStateFlow()
+
     // Player connection
     private var playerConnection: PlayerConnection? = null
     private var playerEventListener: Player.Listener? = null
@@ -113,6 +126,7 @@ class PartyViewModel @Inject constructor(
     // Sync jobs
     private var stateSyncJob: Job? = null
     private var periodicSeekSyncJob: Job? = null
+    private var nextPrefetchCheckJob: Job? = null
 
     // Party listener
     private var partyListener: ValueEventListener? = null
@@ -127,33 +141,39 @@ class PartyViewModel @Inject constructor(
     private var serverTimeOffsetMs: Long = 0L
     private var serverTimeOffsetListener: ValueEventListener? = null
 
-    // SEEK-BASED SYNC CONSTANTS (fixed 1s lag behind RTDB for all clients)
-    private val IN_SYNC_TOLERANCE_MS = 80L      // small drift is tolerated to avoid jitter
-    private val HARD_DRIFT_THRESHOLD_MS = 300L  // correct quicker when drift grows beyond this
-    private val HARD_DRIFT_SUSTAIN_MS = 1000L   // require sustained drift > threshold for 1s
-    private val MAX_SEEK_INTERVAL_MS = 3000L    // never correct more than once every 3s
-    // Phase-lock: snap to the authoritative position at each server-time 1s boundary
-    private val PHASE_LOCK_INTERVAL_MS = 1000L
-    private val PHASE_LOCK_TOLERANCE_MS = 60L
+    // Buffered sync tolerances
+    private val NORMAL_ZONE_MS = 40L            // <=40ms -> play at 1.0x (boost ambience zone)
+    private val HARD_SEEK_THRESHOLD_MS = 200L   // >200ms -> decisive seek with fade
+    private val MAX_SEEK_INTERVAL_MS = 2000L    // seek no more often than every 2s
     private val SPEED_NORMAL = 1.0f
-    private val CLIENT_LAG_MS = 1000L          // fixed client lag
+    private val CLIENT_LAG_MS = 1000L           // legacy fixed client lag (fallback)
+    private val NUDGE_SPEED_FAST = 1.05f        // behind -> speed up
+    private val NUDGE_SPEED_SLOW = 0.95f        // ahead  -> slow down
     private var lastSeekCorrectionAtMs: Long = 0L
-    private var driftOverThresholdSinceMs: Long? = null
-    private var lastPhaseLockBoundaryMs: Long = 0L
+    private var lastPhaseLockBoundaryMs: Long = 0L // unused in new algo; kept for future
 
     /**
      * Compute the authoritative target position for now based on the server's lastUpdated
      * timestamp and progressMs, with an intentional client-side lag for stability.
      */
-    private fun computeLaggedAuthoritativePosition(party: PartyState): Long {
-        val base = party.progressMs.coerceAtLeast(0L)
-        // Use Firebase server time offset to neutralize device clock skew
-        val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
-        val ageSinceUpdate = if (party.lastUpdated > 0L && serverNow > party.lastUpdated) (serverNow - party.lastUpdated) else 0L
-        // Project strictly based on server time elapsed since lastUpdated, avoiding per-client smoothing
-        val advanced = if (party.isPlaying) base + ageSinceUpdate else base
-        val lagged = (advanced - CLIENT_LAG_MS).coerceAtLeast(0L)
+    private fun computeAuthoritativePosition(party: PartyState): Long {
         val duration = party.currentTrack?.durationMs ?: 0L
+        val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+        val startAt = party.startAtServerTime
+
+        // Primary: scheduled clock (startAtServerTime + initialSeekPos)
+        if (startAt != null && startAt > 0L) {
+            val elapsed = (serverNow - startAt).coerceAtLeast(0L)
+            val pos = party.initialSeekPos + elapsed
+            return if (duration > 0) pos.coerceIn(0L, duration) else pos.coerceAtLeast(0L)
+        }
+
+        // Fallback: heartbeat progress + age since lastUpdated
+        val age = if (party.lastUpdated > 0L && serverNow > party.lastUpdated) (serverNow - party.lastUpdated) else 0L
+        val base = if (party.isPlaying) (party.progressMs + age) else party.progressMs
+        val clamped = if (duration > 0) base.coerceIn(0L, duration) else base.coerceAtLeast(0L)
+        // Keep historical 1s lag fallback if no schedule is present
+        val lagged = (clamped - CLIENT_LAG_MS).coerceAtLeast(0L)
         return if (duration > 0) lagged.coerceAtMost(duration) else lagged
     }
 
@@ -176,9 +196,9 @@ class PartyViewModel @Inject constructor(
         } catch (_: Exception) { false }
     }
 
-    /** Gate audible start: require 1s RTDB age and >=5s buffered ahead. */
+    /** Gate audible start: require isPlaying and >=10s buffered ahead. */
     private fun canAudiblyPlay(party: PartyState, connection: PlayerConnection): Boolean {
-        return shouldStartPlayback(party) && hasBufferedAheadMs(connection, 5_000L)
+        return party.isPlaying && hasBufferedAheadMs(connection, 10_000L)
     }
 
     init {
@@ -365,6 +385,15 @@ class PartyViewModel @Inject constructor(
                 stopPartyListener()
                 stopServerTimeOffsetListener()
                 stopMusicServiceSync()
+                // Clear readiness marker
+                runCatching {
+                    val db = database
+                    val code = partyCode
+                    val uid = auth?.currentUser?.uid
+                    if (db != null && code != null && uid != null) {
+                        db.reference.child("parties").child(code).child("user_states").child(uid).removeValue()
+                    }
+                }
                 currentPartyCode = null
                 _partyState.value = null
                 _isConnected.value = false
@@ -453,19 +482,8 @@ class PartyViewModel @Inject constructor(
                     val conn = playerConnection ?: return@launch
                     val state = _partyState.value ?: return@launch
 
-                    // Project the base progress for this command
-                    val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
-                    val age = if (state.lastUpdated > 0L && serverNow > state.lastUpdated) (serverNow - state.lastUpdated) else 0L
-                    val baseProgress = when {
-                        position > 0 -> position
-                        isPlaying -> (state.progressMs + age)
-                        else -> state.progressMs
-                    }
-                    val duration = state.currentTrack?.durationMs ?: 0L
-                    val desired = (baseProgress - CLIENT_LAG_MS)
-                        .coerceAtLeast(0L)
-                        .let { if (duration > 0L) it.coerceAtMost(duration) else it }
-
+                    // For scheduled model: host parks at initial seek pos until schedule kicks in
+                    val desired = if (position > 0) position else state.progressMs
                     conn.player.seekTo(desired)
                     conn.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
                     // Do not force immediate play; decree/heartbeat will start after 1s/5s gate
@@ -555,6 +573,24 @@ class PartyViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("PartyVM", "Failed to add tracks", e)
                 _events.value = PartyEvent.Error("Failed to add tracks: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Host prefetch intent: instruct server to enter PREPARING phase and optionally point at a track id.
+     */
+    fun prepareTrack(trackId: String?) {
+        viewModelScope.launch {
+            try {
+                if (!isHost()) {
+                    _events.value = PartyEvent.Error("Only host can prepare playback")
+                    return@launch
+                }
+                issueCommand(action = "prepare", position = null, songId = trackId)
+            } catch (e: Exception) {
+                Log.e("PartyVM", "Failed to issue prepare", e)
+                _events.value = PartyEvent.Error("Failed to prepare: ${e.message}")
             }
         }
     }
@@ -700,7 +736,7 @@ class PartyViewModel @Inject constructor(
             }
         }
 
-        // Periodic seek-based sync loop
+        // Periodic buffered sync loop
         periodicSeekSyncJob = viewModelScope.launch {
             while (true) {
                 try {
@@ -711,12 +747,7 @@ class PartyViewModel @Inject constructor(
                 } catch (e: Exception) {
                     Log.e("PartyVM", "Error in seek sync", e)
                 } finally {
-                    // Align checks with server 1s boundaries to keep all devices snapping together
-                    val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
-                    val untilNext = PHASE_LOCK_INTERVAL_MS - (serverNow % PHASE_LOCK_INTERVAL_MS)
-                    // Keep a minimum cadence in case of timing jitter
-                    val sleep = untilNext.coerceIn(50L, 250L)
-                    delay(sleep)
+                    delay(100)
                 }
             }
         }
@@ -733,7 +764,9 @@ class PartyViewModel @Inject constructor(
             // NEW DECREE - Load and Ready
             lastExecutedCommandId = incomingCommandId
             isCurrentTrackReady = false
+            _isCurrentTrackBuffered.value = false
             isNextTrackReady = false
+            _isNextTrackBuffered.value = false
             // Nothing else; decree seek below will align us to buffered target
 
             Log.d("PartyVM", "New decree detected: $incomingCommandId")
@@ -741,23 +774,34 @@ class PartyViewModel @Inject constructor(
             // Update queue
             updatePlayerQueue(party, connection)
 
-            // Seek FIRST to desired lagged authoritative position
+            // Seek FIRST to the scheduled/authoritative position
             try {
-                val desired = computeLaggedAuthoritativePosition(party)
+                val desired = if (party.status == "SCHEDULED") {
+                    // Before start time, seek to initial position and wait
+                    party.initialSeekPos
+                } else computeAuthoritativePosition(party)
                 connection.player.seekTo(desired)
             } catch (_: Exception) { }
 
-            // Keep normal speed (seek-based sync)
+            // Default to normal speed; periodic loop will nudge if needed
             connection.player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
 
-            // Align play/pause for all clients: wait for 1s RTDB age and >=5s buffer
-            if (party.isPlaying && canAudiblyPlay(party, connection)) connection.player.play() else connection.player.pause()
+            // Align play/pause for all clients based on schedule and buffer readiness
+            val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+            val beforeStart = party.startAtServerTime?.let { serverNow < it } ?: false
+            if (party.isPlaying && !beforeStart && canAudiblyPlay(party, connection)) {
+                connection.player.play()
+            } else {
+                connection.player.pause()
+            }
 
             return
         }
 
-        // HEARTBEAT - Don't re-gate; only reflect play/pause state changes to avoid jitter
-        if (party.isPlaying) {
+        // HEARTBEAT
+        val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+        val beforeStart = party.startAtServerTime?.let { serverNow < it } ?: false
+        if (party.isPlaying && !beforeStart) {
             if (!connection.player.playWhenReady) connection.player.play()
         } else if (connection.player.playWhenReady) {
             connection.player.pause()
@@ -770,61 +814,56 @@ class PartyViewModel @Inject constructor(
      */
     private fun applySeekSync(party: PartyState, connection: PlayerConnection) {
         val player = connection.player
-        // Keep speed at normal at all times
-        if (player.playbackParameters.speed != SPEED_NORMAL) {
-            player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+        // Ensure player is ready
+        if (player.playbackState != Player.STATE_READY) return
+        // Don't race ahead of scheduled start
+        val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
+        if (party.startAtServerTime != null && serverNow < party.startAtServerTime) {
+            // Stay parked exactly at initialSeekPos until start time
+            val driftToStart = (party.initialSeekPos - player.currentPosition)
+            if (kotlin.math.abs(driftToStart) > NORMAL_ZONE_MS) {
+                // discreetly align
+                player.seekTo(party.initialSeekPos)
+                player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+            }
+            return
         }
 
-        // Only correct when player is ready
-        if (player.playbackState != Player.STATE_READY) return
-
-        val authoritativePos = computeLaggedAuthoritativePosition(party)
+        val authoritativePos = computeAuthoritativePosition(party)
         val localPos = player.currentPosition
         val drift = authoritativePos - localPos
-
         val absDrift = kotlin.math.abs(drift)
         val nowLocal = System.currentTimeMillis()
 
-        // 1) Phase-lock snap: once per server-second boundary, snap within a tight tolerance
-        val serverNow = nowLocal + serverTimeOffsetMs
-        val boundary = (serverNow / PHASE_LOCK_INTERVAL_MS) * PHASE_LOCK_INTERVAL_MS
-        if (boundary > lastPhaseLockBoundaryMs && party.isPlaying) {
-            lastPhaseLockBoundaryMs = boundary
-            if (absDrift > PHASE_LOCK_TOLERANCE_MS) {
+        // Major desync -> decisive seek (rate-limited)
+        if (absDrift > HARD_SEEK_THRESHOLD_MS) {
+            val tooSoon = nowLocal - lastSeekCorrectionAtMs < MAX_SEEK_INTERVAL_MS
+            if (!tooSoon) {
                 try {
+                    // Simple audible seek; fade could be added here via volume if needed
                     player.seekTo(authoritativePos)
                     lastSeekCorrectionAtMs = nowLocal
-                    driftOverThresholdSinceMs = null
-                    Log.d("PartyVM", "Phase-lock seek: drift=${drift}ms -> ${authoritativePos}")
+                    player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
+                    Log.d("PartyVM", "Decisive seek: drift=${drift}ms -> ${authoritativePos}")
                 } catch (_: Exception) { }
-                return
-            } else {
-                // Within tight tolerance; consider in-sync
-                driftOverThresholdSinceMs = null
-                return
             }
+            return
         }
 
-        // 2) Hard drift fallback outside boundary: correct only when sustained and rate-limited
-        if (absDrift <= IN_SYNC_TOLERANCE_MS) {
-            driftOverThresholdSinceMs = null
-            return
-        }
-        if (absDrift >= HARD_DRIFT_THRESHOLD_MS) {
-            val startedAt = driftOverThresholdSinceMs ?: nowLocal.also { driftOverThresholdSinceMs = it }
-            val sustained = nowLocal - startedAt >= HARD_DRIFT_SUSTAIN_MS
-            val tooSoon = nowLocal - lastSeekCorrectionAtMs < MAX_SEEK_INTERVAL_MS
-            if (sustained && !tooSoon) {
-                try {
-                    player.seekTo(authoritativePos)
-                    lastSeekCorrectionAtMs = nowLocal
-                    driftOverThresholdSinceMs = null
-                    Log.d("PartyVM", "Seek sync (hard fallback): drift=${drift}ms, seekTo=${authoritativePos}")
-                } catch (_: Exception) { }
+        // In normal zone -> ensure 1.0x
+        if (absDrift <= NORMAL_ZONE_MS) {
+            if (player.playbackParameters.speed != SPEED_NORMAL) {
+                player.playbackParameters = PlaybackParameters(SPEED_NORMAL)
             }
             return
         }
-        // For mid-range drift, defer to the next phase-lock boundary to avoid jitter.
+
+        // Slight drift -> gentle nudge by speed
+        val targetSpeed = if (drift > 0) NUDGE_SPEED_FAST else NUDGE_SPEED_SLOW
+        if (player.playbackParameters.speed != targetSpeed) {
+            player.playbackParameters = PlaybackParameters(targetSpeed)
+            Log.d("PartyVM", "Nudge speed=${targetSpeed} drift=${drift}ms")
+        }
     }
 
 
@@ -883,7 +922,7 @@ class PartyViewModel @Inject constructor(
                 title = "Party Queue",
                 items = items,
                 startIndex = 0,
-                position = computeLaggedAuthoritativePosition(party)
+                position = computeAuthoritativePosition(party)
             )
 
             connection.service.playQueue(
@@ -916,21 +955,27 @@ class PartyViewModel @Inject constructor(
         val expectedCurrentId = party.currentTrack?.id
 
         // Check if current track is ready
-        if (playerState == Player.STATE_READY && currentMediaId == expectedCurrentId) {
-            if (!isCurrentTrackReady) {
-                isCurrentTrackReady = true
-                Log.d("PartyVM", "Current track ready: $currentMediaId")
-            }
-        } else {
-            isCurrentTrackReady = false
-        }
+        val currentReady = playerState == Player.STATE_READY && currentMediaId == expectedCurrentId &&
+                hasBufferedAheadMs(connection, 10_000L)
+        isCurrentTrackReady = currentReady
+        _isCurrentTrackBuffered.value = currentReady
 
         // Check if next track is pre-buffered
         val windows = connection.queueWindows.value
         val nextMediaId = if (windows.size >= 2) windows[1].mediaItem.mediaId else null
         val expectedNextId = party.nextTrack?.id
+        val nextReady = if (expectedNextId != null && nextMediaId == expectedNextId) {
+            try {
+                connection.service.isMediaHeadPrefetched(expectedNextId, 1L * 1024 * 1024)
+            } catch (_: Exception) { false }
+        } else false
+        isNextTrackReady = nextReady
+        _isNextTrackBuffered.value = nextReady
 
-        isNextTrackReady = nextMediaId == expectedNextId && playerState == Player.STATE_READY
+        // Report readiness to RTDB: use current track readiness as the gating signal
+        viewModelScope.launch {
+            reportUserReadiness(isCurrentTrackReady)
+        }
     }
 
     /**
@@ -963,6 +1008,7 @@ class PartyViewModel @Inject constructor(
                     if (snapshot.exists()) {
                         val state = snapshot.toPartyStateFromRoot(partyCode)
                         _partyState.value = state
+                        handleNextPrefetchWatch(state)
                         // Record latency sample for smoothing
                         recordLatencySample(state)
                         // Keep MusicService informed of the current host/user so it can enforce
@@ -1018,6 +1064,32 @@ class PartyViewModel @Inject constructor(
         partyRef.addValueEventListener(partyListener!!)
     }
 
+    private var lastNextTrackId: String? = null
+    private fun handleNextPrefetchWatch(state: PartyState) {
+        val nextId = state.nextTrack?.id
+        if (nextId != lastNextTrackId) {
+            lastNextTrackId = nextId
+            _isNextTrackBuffered.value = false
+            isNextTrackReady = false
+            nextPrefetchCheckJob?.cancel()
+            if (!nextId.isNullOrEmpty()) {
+                val conn = playerConnection ?: return
+                nextPrefetchCheckJob = viewModelScope.launch {
+                    repeat(40) { // up to ~20s (500ms * 40)
+                        val ok = runCatching { conn.service.isMediaHeadPrefetched(nextId, 1L * 1024 * 1024) }
+                            .getOrDefault(false)
+                        if (ok) {
+                            _isNextTrackBuffered.value = true
+                            isNextTrackReady = true
+                            return@launch
+                        }
+                        delay(500)
+                    }
+                }
+            }
+        }
+    }
+
     private fun recordLatencySample(state: PartyState) {
         val serverNow = System.currentTimeMillis() + serverTimeOffsetMs
         val sample = if (state.lastUpdated > 0L && serverNow > state.lastUpdated) (serverNow - state.lastUpdated) else 0L
@@ -1067,10 +1139,23 @@ class PartyViewModel @Inject constructor(
         partyListener = null
     }
 
+    private suspend fun reportUserReadiness(ready: Boolean) {
+        val db = database ?: return
+        val code = currentPartyCode ?: return
+        val uid = auth?.currentUser?.uid ?: return
+        try {
+            db.reference.child("parties").child(code).child("user_states").child(uid)
+                .updateChildren(mapOf(
+                    "isReady" to ready,
+                    "updatedAt" to ServerValue.TIMESTAMP
+                ))
+        } catch (_: Exception) { }
+    }
+
     /**
      * Issue a command to the web service (host only)
      */
-    private suspend fun issueCommand(action: String, position: Long? = null) {
+    private suspend fun issueCommand(action: String, position: Long? = null, songId: String? = null) {
         val db = database ?: return
         val code = currentPartyCode ?: return
 
@@ -1079,6 +1164,7 @@ class PartyViewModel @Inject constructor(
             "commandId" to UUID.randomUUID().toString()
         )
         position?.let { cmd["position"] = it }
+        songId?.let { cmd["song_id"] = it }
 
         db.reference.child("parties").child(code).child("command").setValue(cmd).await()
         Log.d("PartyVM", "Command issued: $action")
@@ -1102,6 +1188,15 @@ class PartyViewModel @Inject constructor(
 
     fun clearEvents() {
         _events.value = null
+    }
+
+    /** Convenience for UI: only allow host to press Play when readiness >= 80% or single member. */
+    fun canHostPressPlay(): Boolean {
+        val party = _partyState.value ?: return false
+        if (!isHost()) return false
+        val total = party.totalCount
+        val ready = party.readyCount
+        return total <= 1 || (total > 0 && ready.toFloat() / total.toFloat() >= 0.8f)
     }
 
     override fun onCleared() {
@@ -1226,7 +1321,13 @@ private fun DataSnapshot.toPartyStateFromRoot(partyCode: String): PartyState {
         nextTrack = nextTrack,
         queue = queue,
         lastCommandId = stateSnap.child("lastCommandId").getValue(String::class.java) ?: "",
-        lastUpdated = stateSnap.child("lastUpdated").getValue(Long::class.java) ?: 0L
+        lastUpdated = stateSnap.child("lastUpdated").getValue(Long::class.java) ?: 0L,
+        status = stateSnap.child("status").getValue(String::class.java) ?: "",
+        startAtServerTime = stateSnap.child("startAtServerTime").getValue(Long::class.java),
+        initialSeekPos = stateSnap.child("initialSeekPos").getValue(Long::class.java) ?: 0L,
+        readyCount = stateSnap.child("readyCount").getValue(Long::class.java) ?: 0L,
+        totalCount = stateSnap.child("totalCount").getValue(Long::class.java) ?: 0L,
+        serverTimestamp = stateSnap.child("serverTimestamp").getValue(Long::class.java) ?: 0L
     )
 }
 
