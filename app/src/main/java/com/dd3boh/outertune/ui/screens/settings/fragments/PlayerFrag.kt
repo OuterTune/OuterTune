@@ -3,6 +3,7 @@ package com.dd3boh.outertune.ui.screens.settings.fragments
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Autorenew
+import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.ClearAll
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.GraphicEq
@@ -23,6 +24,7 @@ import com.dd3boh.outertune.constants.AudioNormalizationKey
 import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.constants.AudioQualityKey
 import com.dd3boh.outertune.constants.AutoLoadMoreKey
+import com.dd3boh.outertune.constants.BluetoothAutoStartKey
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.SeekIncrement
 import com.dd3boh.outertune.constants.SeekIncrementKey
@@ -126,6 +128,10 @@ fun PlaybackBehaviourFrag() {
         key = StopMusicOnTaskClearKey,
         defaultValue = false
     )
+    val (bluetoothAutoStart, onBluetoothAutoStartChange) = rememberPreference(
+        key = BluetoothAutoStartKey,
+        defaultValue = true
+    )
 
     var showMinPlaybackDur by remember {
         mutableStateOf(false)
@@ -142,6 +148,13 @@ fun PlaybackBehaviourFrag() {
         icon = { Icon(Icons.Rounded.SkipNext, null) },
         checked = skipOnErrorKey,
         onCheckedChange = onSkipOnErrorChange
+    )
+    SwitchPreference(
+        title = { Text(stringResource(R.string.bluetooth_auto_start)) },
+        description = stringResource(R.string.bluetooth_auto_start_description),
+        icon = { Icon(Icons.Rounded.Bluetooth, null) },
+        checked = bluetoothAutoStart,
+        onCheckedChange = onBluetoothAutoStartChange
     )
     SwitchPreference(
         title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
