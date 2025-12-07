@@ -80,7 +80,7 @@ desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version =
 
 junit = { group = "junit", name = "junit", version = "4.13.2" }
 
-newpipe-extractor = { group = "com.github.teamnewpipe", name = "NewPipeExtractor", version = "4368f2b9bb7ee5b0340a0bc25375e44fe23ab105" }
+newpipe-extractor = { group = "com.github.teamnewpipe", name = "NewPipeExtractor", version = "afcd495e6f7eb6edef415dcfe95fa61f18638f1f" }
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
