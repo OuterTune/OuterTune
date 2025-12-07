@@ -131,9 +131,9 @@ class MediaLibrarySessionCallback @Inject constructor(
         // TODO: when this is stable, change to debug
         Log.i(TAG, "onPlaybackResumption() called. isForPlayback = $isForPlayback")
 
-        // Check if Bluetooth auto-start is disabled
+        // Check if Bluetooth auto-start is disabled - block ALL resumption attempts
         val bluetoothAutoStart = context.dataStore.get(BluetoothAutoStartKey, true)
-        if (isForPlayback && !bluetoothAutoStart) {
+        if (!bluetoothAutoStart) {
             Log.i(TAG, "Bluetooth auto-start is disabled. Returning empty list.")
             return@future MediaItemsWithStartPosition(emptyList(), C.INDEX_UNSET, C.TIME_UNSET)
         }
