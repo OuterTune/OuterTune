@@ -2,9 +2,11 @@ package com.dd3boh.outertune.playback
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import androidx.annotation.DrawableRes
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -121,6 +123,33 @@ class MediaLibrarySessionCallback @Inject constructor(
             }
         }
         return super.onPlayerCommandRequest(session, controller, playerCommand)
+    }
+
+    override fun onMediaButtonEvent(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        intent: Intent
+    ): Boolean {
+        // Intercept media button events (like PLAY from Bluetooth) when auto-start is disabled
+        val keyEvent = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+        if (keyEvent != null) {
+            val isPlayAction = keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY ||
+                    keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+
+            if (isPlayAction && keyEvent.action == KeyEvent.ACTION_DOWN) {
+                val playerIsIdle = session.player.playbackState == Player.STATE_IDLE ||
+                        session.player.mediaItemCount == 0
+
+                if (playerIsIdle) {
+                    val bluetoothAutoStart = context.dataStore.get(BluetoothAutoStartKey, true)
+                    if (!bluetoothAutoStart) {
+                        Log.i(TAG, "Blocking media button PLAY event - Bluetooth auto-start is disabled")
+                        return true  // Consume the event without handling it
+                    }
+                }
+            }
+        }
+        return super.onMediaButtonEvent(session, controller, intent)
     }
 
     override fun onPlaybackResumption(
