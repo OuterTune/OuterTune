@@ -11,6 +11,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
@@ -97,6 +98,29 @@ class MediaLibrarySessionCallback @Inject constructor(
             )
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+    }
+
+    override fun onPlayerCommandRequest(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        playerCommand: Int
+    ): Int {
+        // Block PLAY commands from external controllers when Bluetooth auto-start is disabled
+        // and the player is idle (not actively being used)
+        if (playerCommand == Player.COMMAND_PLAY_PAUSE) {
+            val isFromOurApp = controller.packageName == context.packageName
+            val playerIsIdle = session.player.playbackState == Player.STATE_IDLE ||
+                    session.player.mediaItemCount == 0
+
+            if (!isFromOurApp && playerIsIdle) {
+                val bluetoothAutoStart = context.dataStore.get(BluetoothAutoStartKey, true)
+                if (!bluetoothAutoStart) {
+                    Log.i(TAG, "Blocking external PLAY command - Bluetooth auto-start is disabled")
+                    return SessionResult.RESULT_ERROR_NOT_SUPPORTED
+                }
+            }
+        }
+        return super.onPlayerCommandRequest(session, controller, playerCommand)
     }
 
     override fun onPlaybackResumption(
