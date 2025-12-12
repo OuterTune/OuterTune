@@ -23,12 +23,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /** Named colors, otherwise known as tokens, or roles, in the Material Design system. */
-// Prevent lint for Function.apply not being available on Android before API level 14 (4.0.1).
-// "AndroidJdkLibsChecker" for Function, "NewApi" for Function.apply().
-// A java_library Bazel rule with an Android constraint cannot skip these warnings without this
-// annotation; another solution would be to create an android_library rule and supply
-// AndroidManifest with an SDK set higher than 14.
-@SuppressWarnings({"AndroidJdkLibsChecker", "NewApi"})
 public final class MaterialDynamicColors {
 
   private static final ColorSpec colorSpec = new ColorSpec2025();

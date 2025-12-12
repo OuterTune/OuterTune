@@ -47,7 +47,7 @@
     <string name="local_library_enable_title">Abilitare i media locali</string>
     <string name="local_library_enable_description">Disattivando si nasconderà la libreria locale dall\'app</string>
     <string name="flat_subfolders_title">Appiattire le sottocartelle</string>
-    <string name="import_innertune_tooltip">Il ripristino dei backup di InnerTune è supportato, anche se è possibile che si verifichino anomalie a causa di limitazioni tecniche. I fork nono sono supportati.</string>
+    <string name="import_innertune_tooltip">Il ripristino dei backup di InnerTune è supportato, anche se è possibile che si verifichino anomalie a causa di limitazioni tecniche. La versioni fork nono sono supportate.</string>
     <string name="auto_scanner_description">Esegui automaticamente la scansione dei brani e delle cartelle di download all\'apertura dell\'app</string>
     <string name="scan_paths_title">Configura percorsi di scansione…</string>
     <string name="scan_paths_add_folder">Aggiungi nuova cartella</string>

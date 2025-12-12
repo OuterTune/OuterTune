@@ -72,8 +72,6 @@ fun MiniPlayer(
     duration: Long,
     modifier: Modifier = Modifier,
 ) {
-    val density = LocalDensity.current
-
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val playbackState by playerConnection.playbackState.collectAsState()

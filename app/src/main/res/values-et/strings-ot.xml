@@ -130,4 +130,20 @@
     <string name="lyrics_font_Size">Kirjatüübi suurus</string>
     <string name="lyrics_karaoke_title">Karaoke-stiilis laulusõnad.</string>
     <string name="local_player_settings_title">Kohalik meedium</string>
+    <string name="grp_more_settings">Täiendavad seadistused</string>
+    <string name="ffmpeg_lgpl">Selles tarkvaras on kasutusel FFmpeg-projektist pärit teegid, mis on litsentseeritud LGPLv2.1 alusel</string>
+    <string name="special_thanks">Eriline tänu</string>
+    <string name="new_interface">Uus kasutajaliidese paigutus</string>
+    <string name="player_background_blur">Hägustatud taust</string>
+    <string name="player_background_default">Järgi kujundust</string>
+    <string name="player_background_gradient">Gradient</string>
+    <string name="player_background_style">Meediaesitaja tausta stiil</string>
+    <string name="lyrics_settings_title">Laulusõnad</string>
+    <string name="scanner_btn_idle">Skaneeri</string>
+    <string name="scanner_progress_scanning">Uurime andmeid…</string>
+    <string name="scanner_progress_syncing">Sünkroniseerin…</string>
+    <string name="experimental_settings_title">Katseline</string>
+    <string name="scanner_progress_discovering">Tuvastan…</string>
+    <string name="scanner_progress_processing">Töötlen…</string>
+    <string name="oobe_ytm_logon_title">Kasutajakonto</string>
 </resources>

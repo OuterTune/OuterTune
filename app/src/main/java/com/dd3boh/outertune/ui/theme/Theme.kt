@@ -8,6 +8,7 @@
  */
 package com.dd3boh.outertune.ui.theme
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -29,20 +30,38 @@ import com.google.material.color.hct.Hct
 import com.google.material.color.scheme.SchemeTonalSpot
 import com.google.material.color.score.Score
 
+// TODO: support for custom accent
 val DefaultThemeColor = Color(0xFFED5564)
 
 @Composable
 fun OuterTuneTheme(
+    context: Context,
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = false,
+    highContrastCompat: Boolean,
     themeColor: Color = DefaultThemeColor,
     content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
     val colorScheme = remember(darkTheme, pureBlack, themeColor) {
-        if (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (darkTheme) dynamicDarkColorScheme(context).pureBlack(pureBlack)
-            else dynamicLightColorScheme(context)
+       if (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val systemTheme = if (darkTheme) {
+                dynamicDarkColorScheme(context).pureBlack(pureBlack)
+            } else {
+                dynamicLightColorScheme(context)
+            }
+
+
+            // when high contrast mode Android collapses all accent colours into (more or less) one shade. We use
+            // secondaryContainer and onSecondaryContainer weirdly in several places in terms of theming so just replace
+            // those with shades that make sense
+            if (highContrastCompat) {
+                systemTheme.copy(
+                    secondaryContainer = systemTheme.surfaceContainerHigh,
+                    onSecondaryContainer = systemTheme.secondary,
+                )
+            } else {
+                systemTheme
+            }
         } else {
             SchemeTonalSpot(Hct.fromInt(themeColor.toArgb()), darkTheme, 0.0)
                 .toColorScheme()

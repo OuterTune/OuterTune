@@ -46,12 +46,6 @@ import java.util.function.Function;
  * flexibility, any desired behavior of a color for any design system, but it usually unnecessary.
  * See the default constructor for more information.
  */
-// Prevent lint for Function.apply not being available on Android before API level 14 (4.0.1).
-// "AndroidJdkLibsChecker" for Function, "NewApi" for Function.apply().
-// A java_library Bazel rule with an Android constraint cannot skip these warnings without this
-// annotation; another solution would be to create an android_library rule and supply
-// AndroidManifest with an SDK set higher than 14.
-@SuppressWarnings({"AndroidJdkLibsChecker", "NewApi"})
 public final class DynamicColor {
   public final String name;
   public final Function<DynamicScheme, TonalPalette> palette;

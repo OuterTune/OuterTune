@@ -119,6 +119,7 @@ import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.DefaultOpenTabKey
 import com.dd3boh.outertune.constants.DynamicThemeKey
 import com.dd3boh.outertune.constants.EnabledTabsKey
+import com.dd3boh.outertune.constants.HighContrastKey
 import com.dd3boh.outertune.constants.LibraryFilterKey
 import com.dd3boh.outertune.constants.MinMiniPlayerHeight
 import com.dd3boh.outertune.constants.MiniPlayerHeight
@@ -266,6 +267,7 @@ class MainActivity : ComponentActivity() {
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+            val highContrastCompat by rememberPreference(HighContrastKey, defaultValue = false)
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
             val isSystemInDarkTheme = isSystemInDarkTheme()
             val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
@@ -356,8 +358,10 @@ class MainActivity : ComponentActivity() {
 
 
             OuterTuneTheme(
+                context = this@MainActivity,
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
+                highContrastCompat = highContrastCompat,
                 themeColor = themeColor
             ) {
                 Log.v(MAIN_TAG, "RC-2.1")

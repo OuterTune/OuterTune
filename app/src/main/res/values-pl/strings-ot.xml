@@ -159,7 +159,7 @@
     <string name="sync_mode_ro">Tylko do odczytu (Przeglądaj zawartość zdalną)</string>
     <string name="sync_mode_rw">Do odczytu i zapisu (Pozwól również na zmiany w zawartości zdalnej)</string>
     <string name="grp_sync">Synchronizacja</string>
-    <string name="disable_lm_confirm">Czy na pewno check wyłączyć funkcję lokalnych mediów? Twoja zawartość biblioteki nie zostanie naruszona.</string>
+    <string name="disable_lm_confirm">Czy na pewno chcesz wyłączyć funkcję lokalnych mediów? Twoja zawartość biblioteki nie zostanie naruszona.</string>
     <string name="scanner_progress_discovering">Odkrywanie…</string>
     <string name="scanner_progress_processing">Procesowanie…</string>
     <string name="oobe_ytm_integration">Integracja z YouTube Music</string>
@@ -263,4 +263,7 @@
         <item quantity="many">%d wiele</item>
         <item quantity="other">%d wiele</item>
     </plurals>
+    <string name="grp_more_settings">Więcej ustawień</string>
+    <string name="auto_scanner_tooltip">Dla utworów w pamięci, skanowanie automatyczne nie wczytuje ponownie metadanych. Użyj skanowania manualnego z włączoną funkcją skanowania jeśli chcesz odświeżyć metadane.</string>
+    <string name="scanner_auto_end">Media lokalne i pobrane piosenki wczytanie pomyślnie!</string>
 </resources>

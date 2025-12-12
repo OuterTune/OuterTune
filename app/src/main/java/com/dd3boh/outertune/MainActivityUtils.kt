@@ -11,7 +11,6 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.constants.AUTO_SCAN_COOLDOWN
 import com.dd3boh.outertune.constants.AUTO_SCAN_SOFT_COOLDOWN
 import com.dd3boh.outertune.constants.AutomaticScannerKey
-import com.dd3boh.outertune.constants.ENABLE_UPDATE_CHECKER
 import com.dd3boh.outertune.constants.ExcludedScanPathsKey
 import com.dd3boh.outertune.constants.LastLocalScanKey
 import com.dd3boh.outertune.constants.LastVersionKey
@@ -34,7 +33,6 @@ import com.dd3boh.outertune.playback.DownloadUtil
 import com.dd3boh.outertune.playback.PlayerConnection
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
-import com.dd3boh.outertune.ui.utils.Updater
 import com.dd3boh.outertune.ui.utils.clearDtCache
 import com.dd3boh.outertune.utils.compareVersion
 import com.dd3boh.outertune.utils.dataStore
@@ -270,28 +268,4 @@ suspend fun scanInit(
         )
     }
 
-
-// update checker
-    coroutineScope.launch(Dispatchers.IO) {
-        if (!ENABLE_UPDATE_CHECKER) return@launch
-        if (compareVersion(lastVer, BuildConfig.VERSION_NAME) <= 0) {
-            context.dataStore.edit { settings ->
-                settings[LastVersionKey] = BuildConfig.VERSION_NAME
-                settings[UpdateAvailableKey] = false
-            }
-            Log.d(MAIN_TAG, "App version is >= latest. Tracking current version")
-        }
-
-        Updater.tryCheckUpdate(context)?.let {
-            if (compareVersion(lastVer, it) < 0) {
-                context.dataStore.edit { settings ->
-                    settings[LastVersionKey] = BuildConfig.VERSION_NAME
-                    settings[UpdateAvailableKey] = true
-                }
-                Log.d(MAIN_TAG, "Update available. UpdateAvailable set to true")
-            } else {
-                Log.d(MAIN_TAG, "No new updates available")
-            }
-        }
-    }
 }

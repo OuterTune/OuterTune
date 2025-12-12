@@ -58,7 +58,6 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.BuildConfig
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
-import com.dd3boh.outertune.constants.ENABLE_UPDATE_CHECKER
 import com.dd3boh.outertune.constants.LYRIC_FETCH_TIMEOUT
 import com.dd3boh.outertune.constants.LastUpdateCheckKey
 import com.dd3boh.outertune.constants.LastVersionKey
@@ -228,7 +227,6 @@ fun AboutScreen(
             ) {
                 SettingsClickToReveal(stringResource(R.string.app_info_title)) {
                     val info = mutableListOf<String>(
-                        "Update checker: $ENABLE_UPDATE_CHECKER",
                         "FFMetadataEx: $ENABLE_FFMETADATAEX",
                         "LM scanner concurrency: $MAX_LM_SCANNER_JOBS",
                         "LYRIC_FETCH_TIMEOUT: $LYRIC_FETCH_TIMEOUT",
@@ -236,14 +234,6 @@ fun AboutScreen(
                         "LYRIC_FETCH_TIMEOUT: $LYRIC_FETCH_TIMEOUT",
                         "SNACKBAR_VERY_SHORT: $SNACKBAR_VERY_SHORT"
                     )
-                    if (ENABLE_UPDATE_CHECKER) {
-                        val lastVer by rememberPreference(LastVersionKey, defaultValue = "0.0.0")
-                        val lastUpdateCheck by rememberPreference(LastUpdateCheckKey, defaultValue = -1L)
-                        info.add("Last known version: $lastVer")
-                        info.add(
-                            "Last update check: ${getDateTimeInstance().format(Date(lastUpdateCheck))}"
-                        )
-                    }
                     if (ENABLE_FFMETADATAEX) {
                         info.add("FFMetadataEx version: ${FFmpegScanner.VERSION_STRING}")
                         info.add("FFmpeg version: ${FfmpegLibrary.getVersion()}")

@@ -55,7 +55,6 @@ import com.dd3boh.outertune.LocalPlayerAwareWindowInsets
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
-import com.dd3boh.outertune.constants.ENABLE_UPDATE_CHECKER
 import com.dd3boh.outertune.constants.EnabledTabsKey
 import com.dd3boh.outertune.constants.PauseSearchHistoryKey
 import com.dd3boh.outertune.constants.SearchSource
@@ -233,18 +232,10 @@ fun SearchBarContainer(
                                 navController.navigate("settings")
                             }
                     ) {
-                        BadgedBox(
-                            badge = {
-                                if (ENABLE_UPDATE_CHECKER && updateAvailable) {
-                                    Badge()
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Settings,
-                                contentDescription = null
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Rounded.Settings,
+                            contentDescription = null
+                        )
                     }
                 }
             },

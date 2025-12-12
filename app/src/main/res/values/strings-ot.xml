@@ -121,6 +121,8 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Appearance settings -->
     <string name="new_interface">New interface layout</string>
+    <string name="high_contrast" translatable="false">High contrast mode compatibility</string>
+    <string name="high_contrast_description" translatable="false">Enable to fix some visual issues when Android\'s high contrast mode is enabled</string>
     <string name="player_background_blur">Blur</string>
     <string name="player_background_default">Follow theme</string>
     <string name="player_background_gradient">Gradient</string>

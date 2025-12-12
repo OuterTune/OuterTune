@@ -141,7 +141,7 @@ public class DynamicScheme {
     this.isDark = isDark;
     this.contrastLevel = contrastLevel;
     this.platform = platform;
-    this.specVersion = specVersion;
+    this.specVersion = maybeFallbackSpecVersion(specVersion, variant);
 
     this.primaryPalette = primaryPalette;
     this.secondaryPalette = secondaryPalette;
@@ -169,6 +169,17 @@ public class DynamicScheme {
         other.neutralPalette,
         other.neutralVariantPalette,
         Optional.of(other.errorPalette));
+  }
+
+  /**
+   * Returns the spec version to use for the given variant. If the variant is not supported by the
+   * given spec version, the fallback spec version is returned.
+   */
+  private static SpecVersion maybeFallbackSpecVersion(SpecVersion specVersion, Variant variant) {
+    return switch (variant) {
+      case EXPRESSIVE, VIBRANT, TONAL_SPOT, NEUTRAL -> specVersion;
+      default -> SpecVersion.SPEC_2021;
+    };
   }
 
   /**

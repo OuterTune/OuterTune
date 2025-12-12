@@ -1,1 +1,5 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
+contact_links:
+  - name: Help and support
+    url: https://github.com/OuterTune/OuterTune/discussions/categories/help-and-support
+    about: Questions and technical support is offered in the discussion forum.

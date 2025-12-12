@@ -43,4 +43,16 @@
     <string name="oobe_complete_title">Tot a punt!</string>
     <string name="oobe_downloads_subtitle">Escull la carpeta en la que es guardaran les cançons descareegades.</string>
     <string name="oobe_downloads_title">Cançons descarregades</string>
+    <string name="library_filter">Filtre de biblioteca</string>
+    <string name="bits_per_sample">Bits per mostra</string>
+    <string name="create_sync_playlist">Sincronitza la llista de reproducció</string>
+    <string name="create_sync_playlist_description">Nota: Això permet la sincronització amb YouTube Music. Això NO es pot canviar més tard. No pots afegir cançons locals a les llistes de reproducció sincronitzades.</string>
+    <string name="disc_number">Número de disc</string>
+    <string name="extra_details">Detalls addicionals</string>
+    <string name="file_path">Ruta del fitxer</string>
+    <string name="track_number">Número de pista</string>
+    <string name="err_invalid_ytm_song">No s\'ha pogut reproduir la cançó. Només es pot reproduir el contingut accessible a YouTube Music.</string>
+    <string name="err_play_next_on_error">S\'ha produït un error. Reproduïnt la següent cançó</string>
+    <string name="err_stop_on_error">S\'ha produït un error i s\'ha aturat la reproducció.</string>
+    <string name="err_stop_on_too_many_errors">S\'han produït massa errors i s\'ha aturat la reproducció</string>
 </resources>
