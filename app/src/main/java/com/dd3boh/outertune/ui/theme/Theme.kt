@@ -8,6 +8,7 @@
  */
 package com.dd3boh.outertune.ui.theme
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -34,6 +35,7 @@ val DefaultThemeColor = Color(0xFFED5564)
 
 @Composable
 fun OuterTuneTheme(
+    context: Context,
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = false,
     highContrastCompat: Boolean,

@@ -358,6 +358,7 @@ class MainActivity : ComponentActivity() {
 
 
             OuterTuneTheme(
+                context = this@MainActivity,
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 highContrastCompat = highContrastCompat,
