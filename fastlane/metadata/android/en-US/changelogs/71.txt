@@ -1,0 +1,7 @@
+Version 0.10.1
+
+=== Changes and improvements ===
+• Added compatibility for theme in Android high contrast mode
+• Miscellaneous changes
+
+Full changelog: https://github.com/OuterTune/OuterTune/releases/tag/v0.10.1
