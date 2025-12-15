@@ -153,6 +153,8 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="wifi_only">Wi-Fi only</string>
 
 <!-- Player settings -->
+    <string name="bluetooth_auto_start">Auto-start on Bluetooth connect</string>
+    <string name="bluetooth_auto_start_description">Automatically resume playback when connecting to a Bluetooth device</string>
     <string name="audio_decoder_ffmpeg_only">Prioritize FFmpeg decoders</string>
     <string name="audio_decoder_preference">Audio decoder</string>
     <string name="audio_decoder_system_only">System decoders only</string>

@@ -2,15 +2,18 @@ package com.dd3boh.outertune.playback
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import androidx.annotation.DrawableRes
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
@@ -21,8 +24,11 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.BluetoothAutoStartKey
 import com.dd3boh.outertune.constants.MediaSessionConstants
 import com.dd3boh.outertune.constants.SongSortType
+import com.dd3boh.outertune.utils.dataStore
+import com.dd3boh.outertune.utils.get
 import com.dd3boh.outertune.db.MusicDatabase
 import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.Song
@@ -96,6 +102,56 @@ class MediaLibrarySessionCallback @Inject constructor(
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }
 
+    override fun onPlayerCommandRequest(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        playerCommand: Int
+    ): Int {
+        // Block PLAY commands from external controllers when Bluetooth auto-start is disabled
+        // and the player is idle (not actively being used)
+        if (playerCommand == Player.COMMAND_PLAY_PAUSE) {
+            val isFromOurApp = controller.packageName == context.packageName
+            val playerIsIdle = session.player.playbackState == Player.STATE_IDLE ||
+                    session.player.mediaItemCount == 0
+
+            if (!isFromOurApp && playerIsIdle) {
+                val bluetoothAutoStart = context.dataStore.get(BluetoothAutoStartKey, true)
+                if (!bluetoothAutoStart) {
+                    Log.i(TAG, "Blocking external PLAY command - Bluetooth auto-start is disabled")
+                    return SessionResult.RESULT_ERROR_NOT_SUPPORTED
+                }
+            }
+        }
+        return super.onPlayerCommandRequest(session, controller, playerCommand)
+    }
+
+    override fun onMediaButtonEvent(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        intent: Intent
+    ): Boolean {
+        // Intercept media button events (like PLAY from Bluetooth) when auto-start is disabled
+        val keyEvent = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+        if (keyEvent != null) {
+            val isPlayAction = keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY ||
+                    keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+
+            if (isPlayAction && keyEvent.action == KeyEvent.ACTION_DOWN) {
+                val playerIsIdle = session.player.playbackState == Player.STATE_IDLE ||
+                        session.player.mediaItemCount == 0
+
+                if (playerIsIdle) {
+                    val bluetoothAutoStart = context.dataStore.get(BluetoothAutoStartKey, true)
+                    if (!bluetoothAutoStart) {
+                        Log.i(TAG, "Blocking media button PLAY event - Bluetooth auto-start is disabled")
+                        return true  // Consume the event without handling it
+                    }
+                }
+            }
+        }
+        return super.onMediaButtonEvent(session, controller, intent)
+    }
+
     override fun onPlaybackResumption(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo,
@@ -103,6 +159,14 @@ class MediaLibrarySessionCallback @Inject constructor(
     ): ListenableFuture<MediaItemsWithStartPosition> = scope.future(Dispatchers.IO) {
         // TODO: when this is stable, change to debug
         Log.i(TAG, "onPlaybackResumption() called. isForPlayback = $isForPlayback")
+
+        // Check if Bluetooth auto-start is disabled - block ALL resumption attempts
+        val bluetoothAutoStart = context.dataStore.get(BluetoothAutoStartKey, true)
+        if (!bluetoothAutoStart) {
+            Log.i(TAG, "Bluetooth auto-start is disabled. Returning empty list.")
+            return@future MediaItemsWithStartPosition(emptyList(), C.INDEX_UNSET, C.TIME_UNSET)
+        }
+
         val q = database.getResumptionQueue()
         if (q == null) {
             Log.w(TAG, "No resumption queue data. Loading empty list")
