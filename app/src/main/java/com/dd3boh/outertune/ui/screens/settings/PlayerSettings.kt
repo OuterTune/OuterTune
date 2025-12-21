@@ -182,7 +182,7 @@ fun PlayerSettings(
             ) {
                 val (audioNormalizationTarget, onAudioNormalizationTargetChange) = rememberPreference(
                     key = AudioNormalizationTargetKey,
-                    defaultValue = -7
+                    defaultValue = 0
                 )
                 var showAudioNormalizationTargetDialog by remember {
                     mutableStateOf(false)
