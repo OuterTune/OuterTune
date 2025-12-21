@@ -335,7 +335,7 @@ class MusicService : MediaLibraryService(),
                     .map { it[AudioNormalizationKey] ?: true }
                     .distinctUntilChanged(),
                 dataStore.data
-                    .map { it[AudioNormalizationTargetKey] ?: -7 }
+                    .map { it[AudioNormalizationTargetKey] ?: 0 }
                     .distinctUntilChanged(),
                 dataStore.data
                     .map { it[InvertNormalizeKey] ?: false }
