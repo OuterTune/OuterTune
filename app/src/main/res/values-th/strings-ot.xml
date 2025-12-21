@@ -120,7 +120,7 @@
     <string name="keep_alive_title">ป้องกันระบบปิดแอป</string>
     <string name="keep_alive_description">ใช้บริการ foreground แบบถาวรเพื่อป้องกัน OuterTune ถูกปิดในพื้นหลัง</string>
     <string name="audio_normalization_target">เป้าหมายการปรับความดัง</string>
-    <string name="audio_normalization_target_desc">ระดับความดังเป้าหมายเป็นหน่วย LUFS แทร็กจะถูกปรับให้เข้าใกล้เป้าหมายนี้</string>
+    <string name="audio_normalization_target_desc">ระดับความดังเป้าหมายในหน่วย LUFS ความดังจะถูกปรับให้เข้าใกล้เป้าหมายนี้</string>
     <string name="persistent_queue_desc_ot">เรียกคืนคิวที่เปิดไว้ก่อนหน้านี้เมื่อเริ่มแอป</string>
     <string name="min_playback_duration">ระยะเวลาเล่นขั้นต่ำ</string>
     <string name="min_playback_duration_description">ระยะเวลาขั้นต่ำที่ต้องเล่นเพลงก่อนจะถือว่าเป็น \"เล่น\" แล้ว</string>
@@ -153,7 +153,7 @@
     <string name="scan_paths_add_folder">เพิ่มโฟลเดอร์ใหม่</string>
     <string name="scan_paths_incl">เส้นทางการสแกน</string>
     <string name="scan_paths_excl">เส้นทางที่ยกเว้น</string>
-    <string name="scanner_local_title">ตัวสแกนในเครื่อง</string>
+    <string name="scanner_local_title">สื่อในเครื่อง</string>
     <string name="scanner_manual_btn">เริ่มการซิงค์ด้วยตนเอง</string>
     <string name="scanner_rejected_dir">การเลือกไม่ถูกต้อง โฟลเดอร์สแกนไม่สามารถเป็นโฟลเดอร์ย่อยของโฟลเดอร์ดาวน์โหลด หรือเป็นโฟลเดอร์ดาวน์โหลดเอง</string>
     <string name="scanner_warning">โดยค่าเริ่มต้น ตัวสแกนจะไม่โหลดข้อมูลเมตาของเพลงที่มีอยู่ใหม่ เว้นแต่คุณจะระบุไว้ข้างต้น ขึ้นอยู่กับขนาดของไลบรารี อาจใช้เวลานาน</string>
@@ -179,7 +179,7 @@
         <item quantity="one">%d เพลงถูกพบ</item>
         <item quantity="other">%d เพลงถูกพบ</item>
     </plurals>
-    <string name="scanner_strict_file_name_title">ชื่ไฟล์แบบเข้มงวด</string>
+    <string name="scanner_strict_file_name_title">ชื่อไฟล์แบบเข้มงวด</string>
     <string name="scanner_strict_file_name_description">เมื่อเปิดใช้งาน ชื่อไฟล์จะไม่ถูกละเลย เช่น \"Song.ogg\" จะถือเป็นเพลงคนละเพลงกับ \"Song.flac\" ค่าความไวของตัวสแกนจะยังคงใช้</string>
     <string name="scanner_strict_file_paths_title">จับคู่เส้นทางไฟล์แทนข้อมูลเมตา</string>
     <string name="scanner_strict_file_paths_description">ปิดการจับคู่ metadata อัจฉริยะทั้งหมด ซึ่งอาจทำให้เกิดปัญหาเมื่อย้ายไฟล์ แต่ช่วยให้เพลงเดียวกันในโฟลเดอร์ต่างกันยังคงแยกกันได้</string>
