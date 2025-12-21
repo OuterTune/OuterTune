@@ -281,7 +281,7 @@ We recycle translations from upstream, they are pulled periodically. -->
     <string name="skip_silence">Skip silence</string>
     <string name="audio_normalization">Audio normalization</string>
     <string name="audio_normalization_target">Normalization target</string>
-    <string name="audio_normalization_target_desc">Target loudness in LUFS. Tracks will be adjusted towards this target.</string>
+    <string name="audio_normalization_target_desc">Target loudness in LUFS. Tracks will be adjusted towards this target</string>
     <string name="invert_audio_normalization">Invert normalization</string>
     <string name="invert_audio_normalization_desc">Tracks will be amplified instead of reducing</string>
     <string name="auto_skip_next_on_error">Auto skip to next song when error occurs</string>
