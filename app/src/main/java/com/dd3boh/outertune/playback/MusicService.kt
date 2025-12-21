@@ -67,6 +67,8 @@ import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AudioDecoderKey
 import com.dd3boh.outertune.constants.AudioGaplessOffloadKey
 import com.dd3boh.outertune.constants.AudioNormalizationKey
+import com.dd3boh.outertune.constants.AudioNormalizationTargetKey
+import com.dd3boh.outertune.constants.InvertNormalizeKey
 import com.dd3boh.outertune.constants.AudioOffloadKey
 import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.constants.AudioQualityKey
@@ -113,6 +115,7 @@ import com.dd3boh.outertune.utils.CoilBitmapLoader
 import com.dd3boh.outertune.utils.NetworkConnectivityObserver
 import com.dd3boh.outertune.utils.SyncUtils
 import com.dd3boh.outertune.utils.YTPlayerUtils
+import com.dd3boh.outertune.utils.computeNormalizeFactor
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.enumPreference
 import com.dd3boh.outertune.utils.get
@@ -330,12 +333,19 @@ class MusicService : MediaLibraryService(),
                 currentFormat,
                 dataStore.data
                     .map { it[AudioNormalizationKey] ?: true }
+                    .distinctUntilChanged(),
+                dataStore.data
+                    .map { it[AudioNormalizationTargetKey] ?: -7 }
+                    .distinctUntilChanged(),
+                dataStore.data
+                    .map { it[InvertNormalizeKey] ?: false }
                     .distinctUntilChanged()
-            ) { format, normalizeAudio ->
-                format to normalizeAudio
-            }.collectLatest(scope) { (format, normalizeAudio) ->
+            ) { format, normalizeAudio, normalizeTarget, invertNormalize ->
+                format to Triple(normalizeAudio, normalizeTarget, invertNormalize)
+            }.collectLatest(scope) { (format, triple) ->
+                val (normalizeAudio, normalizeTarget, invertNormalize) = triple
                 normalizeFactor.value = if (normalizeAudio && format?.loudnessDb != null) {
-                    min(10f.pow(-format.loudnessDb.toFloat() / 20), 1f)
+                    computeNormalizeFactor(format.loudnessDb.toFloat(), normalizeTarget, invertNormalize)
                 } else {
                     1f
                 }
