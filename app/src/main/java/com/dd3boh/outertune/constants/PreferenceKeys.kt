@@ -64,6 +64,7 @@ val SeekIncrementKey = stringPreferencesKey("seekIncrement")
 val SkipSilenceKey = booleanPreferencesKey("skipSilence")
 val SkipOnErrorKey = booleanPreferencesKey("skipOnError")
 val AudioNormalizationKey = booleanPreferencesKey("audioNormalization")
+val AudioNormalizationTargetKey = intPreferencesKey("audioNormalizationTarget")
 val AutoLoadMoreKey = booleanPreferencesKey("autoLoadMore")
 val KeepAliveKey = booleanPreferencesKey("keepAlive")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
@@ -132,6 +133,7 @@ val LastLocalScanKey = longPreferencesKey("lastLocalScan")
  * Experimental settings
  */
 val DevSettingsKey = booleanPreferencesKey("devSettings")
+val InvertNormalizeKey = booleanPreferencesKey("invertNormalize")
 val OobeStatusKey = intPreferencesKey("oobeStatus")
 val SwipeToSkipKey = booleanPreferencesKey("swipeToSkip")
 
