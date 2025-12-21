@@ -2,6 +2,7 @@
 
 <!-- These strings are the upstream InnerTune strings. Do not add strings from OuterTune features here. InnerTune wording is replaced with OuterTune.
 We recycle translations from upstream, they are pulled periodically. -->
+
 <resources>
     <!-- Bottom navigation -->
     <string name="home">Home</string>
