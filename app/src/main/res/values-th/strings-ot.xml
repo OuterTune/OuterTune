@@ -126,7 +126,7 @@
     <string name="min_playback_duration_description">ระยะเวลาขั้นต่ำที่ต้องเล่นเพลงก่อนจะถือว่าเป็น \"เล่น\" แล้ว</string>
     <string name="swipe2Queue">ปัดเพื่อเพิ่มลงในคิว</string>
     <string name="swipe2Queue_description">ปัดที่เพลงเพื่อเพิ่มเป็น \"เล่นถัดไป\" โดยจะเล่นถัดจากเพลงที่กำลังเล่นอยู่</string>
-    <string name="seek_increment">ช่วงการค้นหา</string>
+    <string name="seek_increment">การเลื่อนตำแหน่ง</string>
     <string name="lyrics_font_Size">ขนาดตัวอักษร</string>
     <string name="lyrics_karaoke_title">เนื้อเพลงแบบคาราโอเกะ</string>
     <string name="lyrics_karaoke_description">เปิดใช้งานการซิงค์เนื้อเพลงแบบคำต่อคำ ต้องการการรองรับรูปแบบเนื้อเพลง</string>
