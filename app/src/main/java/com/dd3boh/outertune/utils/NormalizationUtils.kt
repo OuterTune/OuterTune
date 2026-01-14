@@ -9,8 +9,11 @@ import kotlin.math.pow
  *
  * loudnessDb  - measured integrated loudness of the track (LUFS, typically negative).
  * targetLufs  - desired target loudness (e.g. -14).
- * invert      - if true: only amplify quieter tracks (increase-only),
- *               otherwise only reduce louder tracks (reduce-only).
+ * invert      - controls whether the normalization is amplify-only or reduce-only:
+ *               - if true: apply amplification only (gain is clamped to >= 1.0), so quieter
+ *                 tracks may be turned up but louder tracks are never turned down;
+ *               - if false: apply attenuation only (gain is clamped to <= 1.0), so louder
+ *                 tracks may be turned down but quieter tracks are never turned up.
  *
  * Returns a linear gain factor to multiply the player volume by.
  */
