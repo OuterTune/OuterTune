@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.AudioFile
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.NoCell
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +40,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.navigation.NavController
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AudioDecoderKey
+import com.dd3boh.outertune.constants.AudioNormalizationTargetKey
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
@@ -51,10 +53,8 @@ import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SettingsClickToReveal
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.component.button.IconButton
-import com.dd3boh.outertune.ui.dialog.InfoLabel
 import com.dd3boh.outertune.ui.dialog.CounterDialog
-import com.dd3boh.outertune.constants.AudioNormalizationTargetKey
-import androidx.compose.material.icons.rounded.GraphicEq
+import com.dd3boh.outertune.ui.dialog.InfoLabel
 import com.dd3boh.outertune.ui.screens.settings.fragments.AudioEffectsFrag
 import com.dd3boh.outertune.ui.screens.settings.fragments.AudioQualityFrag
 import com.dd3boh.outertune.ui.screens.settings.fragments.PlaybackBehaviourFrag
