@@ -202,7 +202,7 @@ fun PlayerSettings(
                         description = stringResource(R.string.audio_normalization_target_desc),
                         initialValue = audioNormalizationTarget,
                         upperBound = 0,
-                        lowerBound = -30,
+                        lowerBound = -40,
                         unitDisplay = "LUFS",
                         onDismiss = { showAudioNormalizationTargetDialog = false },
                         onConfirm = {
