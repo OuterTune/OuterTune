@@ -174,16 +174,17 @@ object YTPlayerUtils {
                     streamUrl += "&pot=$webStreamingPot";
                 }
 
-                if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1) {
-                    /** skip [validateStatus] for last client */
-                    break
-                }
                 if (validateStatus(streamUrl)) {
                     // working stream found
                     Log.i(TAG, "[$videoId] [${client.clientName}] found working stream")
                     break
                 } else {
                     Log.w(TAG, "[$videoId] [${client.clientName}] got bad http status code")
+                    // Don't use invalid streams - continue to next client or fail
+                    if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1) {
+                        // Last client also failed validation - clear the URL so we throw an error
+                        streamUrl = null
+                    }
                 }
             }
         }
@@ -202,10 +203,18 @@ object YTPlayerUtils {
             throw Exception("Missing stream expire time")
         }
         if (format == null) {
-            throw Exception("Could not find format")
+            throw PlaybackException(
+                "Could not find audio format",
+                null,
+                PlaybackException.ERROR_CODE_REMOTE_ERROR
+            )
         }
         if (streamUrl == null) {
-            throw Exception("Could not find stream url")
+            throw PlaybackException(
+                "Could not find working stream URL - all clients failed validation",
+                null,
+                PlaybackException.ERROR_CODE_REMOTE_ERROR
+            )
         }
 
         Log.d(TAG, "[$videoId] stream url: $streamUrl")
