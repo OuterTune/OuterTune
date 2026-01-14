@@ -295,7 +295,7 @@ while also allowing users to translate our app as well. New, specific strings to
 <!-- Experimental settings -->
     <string name="experimental_settings_title">Experimental</string>
     <string name="invert_audio_normalization">Invert normalization</string>
-    <string name="invert_audio_normalization_desc">Tracks will be amplified instead of reducing</string>
+    <string name="invert_audio_normalization_desc">Tracks will be amplified instead of reduced</string>
     <string name="dev_settings_title">Enable developer settings</string>
     <string name="dev_settings_description">Reveals additional advanced settings intended for development use</string>
 
