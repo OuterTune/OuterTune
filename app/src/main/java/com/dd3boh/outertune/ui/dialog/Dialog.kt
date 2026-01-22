@@ -543,8 +543,7 @@ fun DetailsDialog(
                         stringResource(R.string.codecs) to currentFormat?.codecs,
                         stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
                         stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
-                        stringResource(R.string.bits_per_sample) to (currentFormat?.bitsPerSample?.toString()
-                            ?: stringResource(R.string.unknown)),
+                        stringResource(R.string.bits_per_sample) to currentFormat?.bitsPerSample?.toString(),
                     )
                 )
 
@@ -575,19 +574,19 @@ fun DetailsDialog(
                 }
 
                 details.forEach { (label, text) ->
-                    val displayText = text ?: stringResource(R.string.unknown)
+                    if (text == null) return@forEach
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        text = displayText,
+                        text = text,
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                             onClick = {
-                                val clipData = ClipData.newPlainText(label, AnnotatedString(displayText))
+                                val clipData = ClipData.newPlainText(label, AnnotatedString(text))
                                 clipboardManager.nativeClipboard.setPrimaryClip(clipData)
 
                                 coroutineScope.launch {
