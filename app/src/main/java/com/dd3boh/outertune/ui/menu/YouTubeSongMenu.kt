@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Album
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Radio
@@ -30,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -56,6 +58,7 @@ import com.dd3boh.outertune.ui.component.items.ListItem
 import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
 import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
 import com.dd3boh.outertune.ui.dialog.ArtistDialog
+import com.dd3boh.outertune.ui.dialog.DetailsDialog
 import com.dd3boh.outertune.utils.joinByBullet
 import com.dd3boh.outertune.utils.makeTimeString
 import com.dd3boh.outertune.utils.syncCoroutine
@@ -75,6 +78,7 @@ fun YouTubeSongMenu(
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val syncUtils = LocalSyncUtils.current
+    val clipboardManager = LocalClipboard.current
 
     val librarySong by database.song(song.id).collectAsState(initial = null)
     val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
@@ -95,7 +99,9 @@ fun YouTubeSongMenu(
     var showSelectArtistDialog by rememberSaveable {
         mutableStateOf(false)
     }
-
+    var showDetailsDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     ListItem(
         title = song.title,
@@ -239,6 +245,12 @@ fun YouTubeSongMenu(
             context.startActivity(Intent.createChooser(intent, null))
             onDismiss()
         }
+        GridMenuItem(
+            icon = Icons.Rounded.Info,
+            title = R.string.details
+        ) {
+            showDetailsDialog = true
+        }
     }
 
     /**
@@ -290,6 +302,16 @@ fun YouTubeSongMenu(
             navController = navController,
             artists = artists,
             onDismiss = { showSelectArtistDialog = false }
+        )
+    }
+
+    if (showDetailsDialog) {
+        DetailsDialog(
+            mediaMetadata = song.toMediaMetadata(),
+            currentFormat = null,
+            currentPlayCount = 0,
+            clipboardManager = clipboardManager,
+            setVisibility = { showDetailsDialog = it }
         )
     }
 }
