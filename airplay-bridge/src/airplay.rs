@@ -42,6 +42,8 @@ pub struct AirPlaySession {
     device: AirPlayDevice,
     /// TCP connection to device
     connection: TcpStream,
+    /// Our local IP address (for SDP)
+    local_address: String,
     /// RTSP CSeq counter
     cseq: AtomicU32,
     /// RTP sequence number
@@ -99,7 +101,11 @@ impl AirPlaySession {
                 anyhow!("Connection failed: {}", e)
             })?;
 
-        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "TCP connection established");
+        // Get our local IP from the connection
+        let local_addr = connection.local_addr()
+            .map(|a| a.ip().to_string())
+            .unwrap_or_else(|_| "0.0.0.0".to_string());
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("TCP connected, local IP: {}", local_addr));
 
         // Generate random SSRC for this session
         let ssrc: u32 = rand::random();
@@ -108,6 +114,7 @@ impl AirPlaySession {
         Ok(Self {
             device,
             connection,
+            local_address: local_addr,
             cseq: AtomicU32::new(0),
             rtp_seq: AtomicU16::new(0),
             rtp_timestamp: AtomicU32::new(0),
@@ -287,7 +294,20 @@ Client-Instance: {}\r\n\
         self.send_rtsp(&request).await?;
 
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Waiting for OPTIONS response...");
-        let response = self.recv_rtsp_response().await?;
+        let response = match tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            self.recv_rtsp_response()
+        ).await {
+            Ok(Ok(r)) => r,
+            Ok(Err(e)) => {
+                send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("OPTIONS read error: {}", e));
+                return Err(anyhow!("OPTIONS read error: {}", e));
+            }
+            Err(_) => {
+                send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, "OPTIONS timeout (5s) - speaker not responding");
+                return Err(anyhow!("OPTIONS timeout"));
+            }
+        };
 
         if !response.status_line.contains("200") {
             send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("OPTIONS failed: {}", response.status_line));
@@ -393,6 +413,7 @@ Client-Instance: {}\r\n\
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Local ports - audio:{}, ctrl:{}, timing:{}", audio_port, control_port, timing_port));
 
         // ANNOUNCE the audio format (AirPlay 1 style - ALAC)
+        // Use OUR local IP in the SDP (not the device's IP)
         // fmtp params: frameLength maxBitRate bitDepth sampleRate ...
         let sdp = format!(
             "v=0\r\n\
@@ -403,8 +424,8 @@ t=0 0\r\n\
 m=audio 0 RTP/AVP 96\r\n\
 a=rtpmap:96 AppleLossless\r\n\
 a=fmtp:96 352 0 16 40 10 14 2 255 0 0 44100\r\n",
-            device_address,
-            device_address
+            self.local_address,
+            self.local_address
         );
 
         let cseq = self.next_cseq();
@@ -517,7 +538,24 @@ Client-Instance: {}\r\n\
         audio_socket.connect(format!("{}:{}", device_address, self.server_audio_port)).await?;
         self.audio_socket = Some(audio_socket);
 
-        // Store control and timing sockets (used by some devices for sync)
+        // Parse server timing port from Transport header and start timing sync handler
+        let server_timing_port = self.parse_timing_port(&response.headers);
+        if let Some(timing_port) = server_timing_port {
+            send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Server timing port: {}", timing_port));
+            // Spawn timing sync handler
+            let timing_socket_clone = timing_socket.try_clone().await.ok();
+            if let Some(ts) = timing_socket_clone {
+                let device_addr = device_address.clone();
+                tokio::spawn(async move {
+                    Self::run_timing_handler(ts, device_addr, timing_port).await;
+                });
+                send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Timing sync handler started");
+            }
+        } else {
+            send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, "No server timing port - timing sync disabled");
+        }
+
+        // Store control and timing sockets
         self.control_socket = Some(control_socket);
         self.timing_socket = Some(timing_socket);
 
@@ -610,6 +648,100 @@ Session: {}\r\n\
             }
         }
         None
+    }
+
+    /// Parse timing_port from Transport header
+    fn parse_timing_port(&self, headers: &str) -> Option<u16> {
+        for line in headers.lines() {
+            let lower = line.to_lowercase();
+            if lower.starts_with("transport:") {
+                // Look for timing_port=XXXX
+                for part in line.split(';') {
+                    let part = part.trim();
+                    if let Some(port_str) = part.strip_prefix("timing_port=")
+                        .or_else(|| part.strip_prefix("Timing_port="))
+                    {
+                        return port_str.trim().parse().ok();
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    /// Handle timing sync requests from AirPlay receiver
+    /// The receiver sends timing queries to synchronize clocks (NTP-like protocol)
+    async fn run_timing_handler(socket: tokio::net::UdpSocket, device_addr: String, device_port: u16) {
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Timing handler listening for {}:{}", device_addr, device_port));
+
+        let mut buf = [0u8; 32];
+
+        loop {
+            match tokio::time::timeout(
+                std::time::Duration::from_secs(30),
+                socket.recv_from(&mut buf)
+            ).await {
+                Ok(Ok((len, src))) => {
+                    if len >= 8 {
+                        // Check if this is a timing request (payload type 0xD2 = 210 = 82 | 0x80)
+                        if buf[1] == 0xD2 || buf[1] == 0x52 {
+                            // Build timing response
+                            let now = Self::get_ntp_time();
+
+                            let mut response = [0u8; 32];
+                            response[0] = 0x80; // RTP v2
+                            response[1] = 0xD3; // Timing response (83 | 0x80)
+                            response[2] = buf[2]; // Copy sequence number
+                            response[3] = buf[3];
+                            response[4..8].copy_from_slice(&[0, 0, 0, 0]); // Padding
+
+                            // Reference time (copy from request bytes 24-31)
+                            if len >= 32 {
+                                response[8..16].copy_from_slice(&buf[24..32]);
+                            }
+
+                            // Receive time (when we got the request)
+                            response[16..24].copy_from_slice(&now);
+
+                            // Send time (now, same as receive for simplicity)
+                            response[24..32].copy_from_slice(&now);
+
+                            if let Err(e) = socket.send_to(&response, src).await {
+                                log::warn!("Failed to send timing response: {}", e);
+                            }
+                        }
+                    }
+                }
+                Ok(Err(e)) => {
+                    log::debug!("Timing socket error: {}", e);
+                }
+                Err(_) => {
+                    // Timeout - continue waiting
+                    log::debug!("Timing handler idle");
+                }
+            }
+        }
+    }
+
+    /// Get current time as NTP timestamp (8 bytes: 4 bytes seconds + 4 bytes fraction)
+    fn get_ntp_time() -> [u8; 8] {
+        use std::time::{SystemTime, UNIX_EPOCH};
+
+        // NTP epoch is 1900-01-01, Unix epoch is 1970-01-01
+        // Difference is 70 years = 2208988800 seconds
+        const NTP_UNIX_OFFSET: u64 = 2208988800;
+
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default();
+
+        let secs = now.as_secs() + NTP_UNIX_OFFSET;
+        let frac = ((now.subsec_nanos() as u64) << 32) / 1_000_000_000;
+
+        let mut result = [0u8; 8];
+        result[0..4].copy_from_slice(&(secs as u32).to_be_bytes());
+        result[4..8].copy_from_slice(&(frac as u32).to_be_bytes());
+        result
     }
 
     /// Send RTSP TEARDOWN
