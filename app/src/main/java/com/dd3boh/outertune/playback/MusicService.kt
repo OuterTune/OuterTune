@@ -24,6 +24,7 @@ import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -49,6 +50,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.analytics.PlaybackStats
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
+import androidx.media3.exoplayer.audio.AudioOffloadSupport
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioOffloadSupportProvider
 import androidx.media3.exoplayer.audio.DefaultAudioSink
@@ -180,7 +182,7 @@ class MusicService : MediaLibraryService(),
     private lateinit var connectivityManager: ConnectivityManager
 
     val qbInit = MutableStateFlow(false)
-    var queueBoard = QueueBoard(this, maxQueues = 1)
+    var queueBoard = MutableStateFlow(QueueBoard(this, maxQueues = 1))
     var queuePlaylistId: String? = null
 
     @Inject
@@ -474,14 +476,14 @@ class MusicService : MediaLibraryService(),
             Log.d(TAG, "playQueue: Resolving additional queue data...")
             try {
                 if (preloadItem != null) {
-                    q = queueBoard.addQueue(
+                    q = queueBoard.value.addQueue(
                         queueTitle ?: "Radio\u2060temp",
                         listOf(preloadItem),
                         shuffled = queue.startShuffled,
                         replace = replace,
                         continuationEndpoint = null // fulfilled later on after initial status
                     )
-                    queueBoard.setCurrQueue(q, true)
+                    queueBoard.value.setCurrQueue(q, true)
                 }
 
                 val initialStatus = withContext(Dispatchers.IO) { queue.getInitialStatus() }
@@ -490,7 +492,7 @@ class MusicService : MediaLibraryService(),
                     queueTitle = initialStatus.title
 
                     if (preloadItem != null && q != null) {
-                        queueBoard.renameQueue(q!!, queueTitle)
+                        queueBoard.value.renameQueue(q!!, queueTitle)
                     }
                 }
 
@@ -503,7 +505,7 @@ class MusicService : MediaLibraryService(),
                     } else {
                         items.addAll(initialStatus.items)
                     }
-                    val q = queueBoard.addQueue(
+                    val q = queueBoard.value.addQueue(
                         queueTitle ?: getString(R.string.queue),
                         items,
                         shuffled = queue.startShuffled,
@@ -511,7 +513,7 @@ class MusicService : MediaLibraryService(),
                         replace = replace || preloadItem != null,
                         continuationEndpoint = if (isRadio) items.takeLast(4).shuffled().first().id else null // yq?.getContinuationEndpoint()
                     )
-                    queueBoard.setCurrQueue(q, shouldResume)
+                    queueBoard.value.setCurrQueue(q, shouldResume)
                 }
 
                 player.prepare()
@@ -544,8 +546,8 @@ class MusicService : MediaLibraryService(),
                 }
             } else {
                 // enqueue next
-                queueBoard.getCurrentQueue()?.let {
-                    queueBoard.addSongsToQueue(it, player.currentMediaItemIndex + 1, items.mapNotNull { it.metadata })
+                queueBoard.value.getCurrentQueue()?.let {
+                    queueBoard.value.addSongsToQueue(it, player.currentMediaItemIndex + 1, items.mapNotNull { it.metadata })
                 }
             }
         }
@@ -555,21 +557,21 @@ class MusicService : MediaLibraryService(),
      * Add items to end of current queue
      */
     fun enqueueEnd(items: List<MediaItem>) {
-        queueBoard.enqueueEnd(items.mapNotNull { it.metadata })
+        queueBoard.value.enqueueEnd(items.mapNotNull { it.metadata })
     }
 
     fun triggerShuffle() {
         val oldIndex = player.currentMediaItemIndex
-        queueBoard.setCurrQueuePosIndex(oldIndex)
-        val currentQueue = queueBoard.getCurrentQueue() ?: return
+        queueBoard.value.setCurrQueuePosIndex(oldIndex)
+        val currentQueue = queueBoard.value.getCurrentQueue() ?: return
 
         // shuffle and update player playlist
         if (!currentQueue.shuffled) {
-            queueBoard.shuffleCurrent()
+            queueBoard.value.shuffleCurrent()
         } else {
-            queueBoard.unShuffleCurrent()
+            queueBoard.value.unShuffleCurrent()
         }
-        queueBoard.setCurrQueue()
+        queueBoard.value.setCurrQueue()
 
         updateNotification()
     }
@@ -579,11 +581,11 @@ class MusicService : MediaLibraryService(),
         val persistQueue = dataStore.get(PersistentQueueKey, true)
         val maxQueues = dataStore.get(MaxQueuesKey, 19)
         if (persistQueue) {
-            queueBoard = QueueBoard(this, queueBoard.masterQueues, database.readQueue().toMutableList(), maxQueues)
+            queueBoard.value = QueueBoard(this, queueBoard.value.masterQueues, database.readQueue().toMutableList(), maxQueues)
         } else {
-            queueBoard = QueueBoard(this, queueBoard.masterQueues, maxQueues = maxQueues)
+            queueBoard.value = QueueBoard(this, queueBoard.value.masterQueues, maxQueues = maxQueues)
         }
-        Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue. Queues loaded = ${queueBoard.masterQueues.size}")
+        Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue. Queues loaded = ${queueBoard.value.masterQueues.size}")
         qbInit.value = true
         Log.i(TAG, "-initQueue()")
     }
@@ -591,7 +593,7 @@ class MusicService : MediaLibraryService(),
     fun deInitQueue() {
         Log.i(TAG, "+deInitQueue()")
         val pos = player.currentPosition
-        queueBoard.shutdown()
+        queueBoard.value.shutdown()
         if (dataStore.get(PersistentQueueKey, true)) {
             runBlocking(Dispatchers.IO) {
                 saveQueueToDisk(pos)
@@ -603,7 +605,7 @@ class MusicService : MediaLibraryService(),
     }
 
     suspend fun saveQueueToDisk(currentPosition: Long) {
-        val data = queueBoard.getAllQueues()
+        val data = queueBoard.value.getAllQueues()
         data.last().lastSongPos = currentPosition
         database.updateAllQueues(data)
     }
@@ -652,7 +654,7 @@ class MusicService : MediaLibraryService(),
                     )
                     .setCacheWriteDataSinkFactory(
                         HybridCacheDataSinkFactory(playerCache) { dataSpec ->
-                            val isLocal = queueBoard.getCurrentQueue()?.findSong(dataSpec.key ?: "")?.isLocal == true
+                            val isLocal = queueBoard.value.getCurrentQueue()?.findSong(dataSpec.key ?: "")?.isLocal == true
                             Log.d(TAG, "SONG CACHE: ${!isLocal}")
                             !isLocal
                         }
@@ -669,7 +671,7 @@ class MusicService : MediaLibraryService(),
             val mediaId = dataSpec.key ?: error("No media id")
             Log.d(TAG, "PLAYING: song id = $mediaId")
 
-            var song = queueBoard.getCurrentQueue()?.findSong(dataSpec.key ?: "")
+            var song = queueBoard.value.getCurrentQueue()?.findSong(dataSpec.key ?: "")
             if (song == null) { // in the case of resumption, queueBoard may not be ready yet
                 song = runBlocking { database.song(dataSpec.key).first()?.toMediaMetadata() }
             }
@@ -793,7 +795,12 @@ class MusicService : MediaLibraryService(),
                                 SonicAudioProcessor()
                             )
                         )
-                        .setAudioOffloadSupportProvider(if (!gaplessOffloadAllowed) OtOffloadSupportProvider(context) else DefaultAudioOffloadSupportProvider(context))
+                        .setAudioOffloadSupportProvider(
+                            MyAudioOffloadSupportProvider(
+                                DefaultAudioOffloadSupportProvider(context),
+                                !gaplessOffloadAllowed
+                            )
+                        )
                         .build()
                 }
             }
@@ -817,7 +824,12 @@ class MusicService : MediaLibraryService(),
                                 SonicAudioProcessor()
                             )
                         )
-                        .setAudioOffloadSupportProvider(if (!gaplessOffloadAllowed) OtOffloadSupportProvider(context) else DefaultAudioOffloadSupportProvider(context))
+                        .setAudioOffloadSupportProvider(
+                            MyAudioOffloadSupportProvider(
+                                DefaultAudioOffloadSupportProvider(context),
+                                !gaplessOffloadAllowed
+                            )
+                        )
                         .build()
                 }
             }
@@ -831,7 +843,7 @@ class MusicService : MediaLibraryService(),
         mediaSession.setCustomLayout(
             listOf(
                 CommandButton.Builder(ICON_UNDEFINED)
-                    .setDisplayName(getString(if (queueBoard.getCurrentQueue()?.shuffled == true) R.string.action_shuffle_off else R.string.action_shuffle_on))
+                    .setDisplayName(getString(if (queueBoard.value.getCurrentQueue()?.shuffled == true) R.string.action_shuffle_off else R.string.action_shuffle_on))
                     .setSessionCommand(CommandToggleShuffle)
                     .setCustomIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle_off)
                     .build(),
@@ -934,7 +946,7 @@ class MusicService : MediaLibraryService(),
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         if (!isPlaying) {
             val pos = player.currentPosition
-            val q = queueBoard.getCurrentQueue()
+            val q = queueBoard.value.getCurrentQueue()
             q?.lastSongPos = pos
         }
         super.onIsPlayingChanged(isPlaying)
@@ -953,7 +965,7 @@ class MusicService : MediaLibraryService(),
         }
 
         // Auto load more songs
-        val q = queueBoard.getCurrentQueue()
+        val q = queueBoard.value.getCurrentQueue()
         val songCount = q?.getSize() ?: -1
         val playlistId = q?.playlistId
         if (dataStore.get(AutoLoadMoreKey, true) &&
@@ -970,12 +982,12 @@ class MusicService : MediaLibraryService(),
                 q.playlistId = mediaItems.takeLast(4).shuffled().first().id // yq.getContinuationEndpoint()
                 Log.d(TAG, "onMediaItemTransition: Got ${mediaItems.size} songs from radio")
                 if (player.playbackState != STATE_IDLE && songCount > 1) { // initial radio loading is handled by playQueue()
-                    queueBoard.enqueueEnd(mediaItems.drop(1))
+                    queueBoard.value.enqueueEnd(mediaItems.drop(1))
                 }
             }
         }
 
-        queueBoard.setCurrQueuePosIndex(player.currentMediaItemIndex)
+        queueBoard.value.setCurrQueuePosIndex(player.currentMediaItemIndex)
 
         // reshuffle queue when shuffle AND repeat all are enabled
         // no, when repeat mode is on, player does not "STATE_ENDED"
@@ -986,8 +998,8 @@ class MusicService : MediaLibraryService(),
             scope.launch(SilentHandler) {
                 // or else race condition: Assertions.checkArgument(eventTime.realtimeMs >= currentPlaybackStateStartTimeMs) fails in updatePlaybackState()
                 delay(200)
-                queueBoard.shuffleCurrent(player.mediaItemCount > 2)
-                queueBoard.setCurrQueue()
+                queueBoard.value.shuffleCurrent(player.mediaItemCount > 2)
+                queueBoard.value.setCurrQueue()
             }
         }
 
@@ -1075,7 +1087,7 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        val q = queueBoard.getCurrentQueue()
+        val q = queueBoard.value.getCurrentQueue()
         player.setShuffleOrder(ShuffleOrder.UnshuffledShuffleOrder(player.mediaItemCount))
         if (q == null || q.shuffled == shuffleModeEnabled) return
         triggerShuffle()
@@ -1138,5 +1150,23 @@ class MusicService : MediaLibraryService(),
         const val CHUNK_LENGTH = 512 * 1024L
 
         const val COMMAND_GET_BINDER = "GET_BINDER"
+    }
+}
+
+class MyAudioOffloadSupportProvider(
+    private val default: DefaultAudioOffloadSupportProvider,
+    private val disableGaplessOffload: Boolean
+) : DefaultAudioSink.AudioOffloadSupportProvider by default {
+    override fun getAudioOffloadSupport(
+        format: Format,
+        audioAttributes: AudioAttributes
+    ): AudioOffloadSupport {
+        val defaultResult = default.getAudioOffloadSupport(format, audioAttributes)
+        val audioOffloadSupport = AudioOffloadSupport.Builder()
+        return audioOffloadSupport
+            .setIsFormatSupported(defaultResult.isFormatSupported)
+            .setIsGaplessSupported(defaultResult.isGaplessSupported && !disableGaplessOffload)
+            .setIsSpeedChangeSupported(defaultResult.isSpeedChangeSupported)
+            .build()
     }
 }

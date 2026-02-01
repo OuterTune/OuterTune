@@ -9,7 +9,6 @@
 
 package com.dd3boh.outertune.ui.screens.settings
 
-import android.util.Log
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,14 +27,10 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Storage
-import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.WarningAmber
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -58,13 +53,8 @@ import com.dd3boh.outertune.constants.UpdateAvailableKey
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.button.IconButton
-import com.dd3boh.outertune.ui.utils.Updater
 import com.dd3boh.outertune.ui.utils.backToMain
-import com.dd3boh.outertune.utils.compareVersion
 import com.dd3boh.outertune.utils.rememberPreference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 val SETTINGS_TAG = "Settings"
 

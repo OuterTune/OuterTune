@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,6 @@ import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.extensions.toMediaItem
 import com.dd3boh.outertune.models.MediaMetadata
-import com.dd3boh.outertune.playback.DownloadUtil
 import com.dd3boh.outertune.playback.ExoDownloadService
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
@@ -63,6 +63,7 @@ fun SelectionMediaMetadataMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val queueBoard by playerConnection.queueBoard.collectAsState()
     val syncUtils = LocalSyncUtils.current
 
     val allInLibrary by remember(selection) { // exclude local songs
@@ -249,14 +250,14 @@ fun SelectionMediaMetadataMenu(
     if (showChooseQueueDialog) {
         AddToQueueDialog(
             onAdd = { queueName ->
-                val q = playerConnection.service.queueBoard.addQueue(
+                val q = queueBoard.addQueue(
                     queueName,
                     selection,
                     forceInsert = true,
                     delta = false
                 )
                 q?.let {
-                    playerConnection.service.queueBoard.setCurrQueue(it)
+                    queueBoard.setCurrQueue(it)
                 }
             },
             onDismiss = {

@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
-import com.dd3boh.outertune.LocalDatabase
 import com.dd3boh.outertune.LocalDownloadUtil
 import com.dd3boh.outertune.LocalPlayerConnection
 import com.dd3boh.outertune.R
@@ -375,7 +374,9 @@ fun ColumnScope.DownloadsFrag() {
                 // download path cannot a scan path, or a subdir of a scan path
                 tempFilePath.toString().length <= it.toString().length && tempFilePath.toString()
                     .contains(it.toString())
-            }
+            },
+            modifier = Modifier
+                .verticalScroll(rememberScrollState()),
         ) {
 
             val dirPickerLauncher = rememberLauncherForActivityResult(
@@ -496,11 +497,7 @@ fun ColumnScope.DownloadsFrag() {
         DefaultDialog(
             onDismiss = { showDlInfoDialog = false },
             content = {
-                Column(
-                    modifier = Modifier
-                        .weight(1f, false)
-                        .verticalScroll(rememberScrollState())
-                ) {
+                Column() {
                     Text(
                         text = stringResource(R.string.dl_storage_tooltip),
                         style = MaterialTheme.typography.bodyLarge,
@@ -563,7 +560,9 @@ fun ColumnScope.DownloadsFrag() {
             isInputValid = uriListFromString(scanPaths).toList().none { scanPath ->
                 // scan path cannot be contain any dl extras path
                 tempScanPaths.toList().any { it.toString().contains(scanPath.toString()) }
-            }
+            },
+            modifier = Modifier
+                .verticalScroll(rememberScrollState()),
         ) {
             val dirPickerLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.OpenDocumentTree()

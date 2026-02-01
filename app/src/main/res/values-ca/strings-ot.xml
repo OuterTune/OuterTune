@@ -51,8 +51,8 @@
     <string name="extra_details">Detalls addicionals</string>
     <string name="file_path">Ruta del fitxer</string>
     <string name="track_number">Número de pista</string>
-    <string name="err_invalid_ytm_song">No s\'ha pogut reproduir la cançó. Només es pot reproduir el contingut accessible a YouTube Music.</string>
-    <string name="err_play_next_on_error">S\'ha produït un error. Reproduïnt la següent cançó</string>
-    <string name="err_stop_on_error">S\'ha produït un error i s\'ha aturat la reproducció.</string>
+    <string name="err_invalid_ytm_song">No s\'ha pogut reproduir la cançó. Només es pot reproduir el contingut accessible a YouTube Music</string>
+    <string name="err_play_next_on_error">S\'ha produït un error. Reproduint la següent cançó</string>
+    <string name="err_stop_on_error">S\'ha produït un error i s\'ha aturat la reproducció</string>
     <string name="err_stop_on_too_many_errors">S\'han produït massa errors i s\'ha aturat la reproducció</string>
 </resources>

@@ -19,6 +19,8 @@ A Material 3 YouTube Music client & local music player for Android
 > [!WARNING]
 > OuterTune is only available on the platforms listed here. This app is not listed on the Play Store or any other fake website that claim to be us. We recommend you to immediately delete any fake versions or clones for your safety.
 
+> [!NOTE]
+> We are looking for maintainers! For more information and the state of OuterTune: https://github.com/OuterTune/OuterTune/discussions/1116
 
 ## Features
 

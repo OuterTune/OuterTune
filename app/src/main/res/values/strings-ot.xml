@@ -134,7 +134,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="tab_arrangement_disable_tip">--- Drag below here to disable ---</string>
     <string name="tab_arrangement_home_required">The Home tab is required.</string>
     <string name="tablet_ui_title">Force tablet UI</string>
-    <string name="tablet_ui_title_description">Enable a landscape interface that is optimized for larger screens regardless of the current screen size</string>
+    <string name="tablet_ui_title_description">Force a split interface optimized for large screens. This setting has no effect if minimum width requirements are not met</string>
     <string name="filter_arrangement">Arrange filters</string>
 
 <!-- Content settings -->

@@ -57,8 +57,8 @@
     <string name="token_shown">再次点击以复制或编辑</string>
     <string name="ytm_sync">自动与您的 YouTube Music 帐户同步</string>
     <string name="wifi_only">仅限 Wi-Fi</string>
-    <string name="audio_offload">启用卸载</string>
-    <string name="audio_offload_description">使用卸载的音频路径进行音频播放。禁用此选项可能会增加功耗，但在遇到音频播放或后处理问题时可能很有用</string>
+    <string name="audio_offload">启用音频分流</string>
+    <string name="audio_offload_description">使用分流音频路径进行音频播放。启用此功能可能会降低功耗，但可能会导致音频播放或后期处理出现问题。此偏好设置对不支持的编解码器或设备无效</string>
     <string name="keep_alive_title">防止系统终止应用程序</string>
     <string name="keep_alive_description">使用常驻前台服务来防止 OuterTune 在后台关闭。</string>
     <string name="persistent_queue_desc_ot">应用程序启动时恢复以前打开的队列</string>
@@ -76,7 +76,7 @@
     <string name="local_player_settings_title">本地媒体</string>
     <string name="flat_subfolders_title">合并子文件夹</string>
     <string name="flat_subfolders_description">禁用以保留磁盘上的文件结构</string>
-    <string name="import_innertune_tooltip">支持恢复 InnerTune 备份，但由于技术限制可能会出现异常</string>
+    <string name="import_innertune_tooltip">支持恢复 InnerTune 备份，但由于技术限制可能会出现异常。不支持 fork 版本。</string>
     <string name="m3u_import_playlist">导入播放列表 （m3u）</string>
     <string name="m3u_import_playlist_failed">导入失败</string>
     <string name="auto_scanner_title">自动扫描</string>
@@ -261,4 +261,5 @@
     <string name="oobe_welcome_tip">为了获得最佳体验，我们建议您立即完成快速设置，以便对主题、YouTube 帐户、本地媒体和下载等关键功能进行个性化配置。</string>
     <string name="oobe_cache_title">歌曲缓存</string>
     <string name="oobe_cache_subtitle">设置歌曲缓存容量。此操作有助于解决网络或 YouTube API 播放时出现的问题</string>
+    <string name="restore_lm_tooltip">对于全新安装的应用，自定义下载路径和本地媒体扫描路径可能无法正常工作。要解决此问题，请先移除这些路径，然后重新添加。</string>
 </resources>

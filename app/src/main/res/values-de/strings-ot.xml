@@ -256,4 +256,5 @@
     <string name="toggle_lyrics">Liedtext -ein/ausschalten</string>
     <string name="oobe_welcome_tip">Für ein optimales Erlebnis empfehlen wir Ihnen, eine schnelle Einrichtung durchzuführen, um wichtige Einstellungen wie Design, YouTube-Konto, lokale Medien und Downloads anzupassen.</string>
     <string name="oobe_cache_subtitle">Wählen Sie eine Song-Cache-Größe. Dies kann dazu beitragen, Probleme bei der Wiedergabe über das Internet oder die YouTube-API zu reduzieren.</string>
+    <string name="library_filter">Bibliotheksfilter</string>
 </resources>

@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
@@ -140,7 +138,6 @@ fun LyricsMenu(
 
     if (showSearchDialog) {
         DefaultDialog(
-            modifier = Modifier.verticalScroll(rememberScrollState()),
             onDismiss = { showSearchDialog = false },
             icon = { Icon(imageVector = Icons.Rounded.Search, contentDescription = null) },
             title = { Text(stringResource(R.string.search_lyrics)) },
@@ -359,11 +356,7 @@ fun LyricsMenu(
         DefaultDialog(
             onDismiss = { showSettings = false },
             content = {
-                Column(
-                    modifier = Modifier
-                        .weight(1f, false)
-                        .verticalScroll(rememberScrollState())
-                ) {
+                Column() {
                     Text(
                         text = stringResource(R.string.settings),
                         style = MaterialTheme.typography.bodyLarge,

@@ -100,7 +100,7 @@
     <string name="like_autodownload">Automatycznie pobierz twoje polubione utwory</string>
     <string name="auto_scanner_title">Skanuj automatycznie</string>
     <string name="wifi_only">Wyłącznie Wi-Fi</string>
-    <string name="import_innertune_tooltip">Odzyskiwanie kopii zapasowych InnerTune jest wspierane mimo szansy natrafienia na anomalie wynikające z ograniczeń technicznych</string>
+    <string name="import_innertune_tooltip">Odzyskiwanie kopii zapasowych InnerTune jest wspierane mimo szansy natrafienia na anomalie wynikające z ograniczeń technicznych. Forki nie są wspierane.</string>
     <string name="token_shown">Kliknij ponownie aby skopiować lub edytować</string>
     <string name="ytm_sync">Automatycznie synchronizuj swoje konto YouTube Music</string>
     <string name="audio_offload">Włącz offload</string>
@@ -130,7 +130,7 @@
         <item quantity="other">%d piosenek odnalezionych</item>
     </plurals>
     <string name="flat_subfolders_description">Wyłącz tę opcję aby zachować strukturę plików jak na dysku</string>
-    <string name="auto_scanner_description">Automatycznie skanuj w poszukiwaniu utworów po otwarciu aplikacji. Nie ładuje ponownie metadanych istniejących utworów.</string>
+    <string name="auto_scanner_description">Automatycznie skanuj w poszukiwaniu utworów po otwarciu aplikacji. Nie ładuje ponownie metadanych istniejących utworów</string>
     <string name="scanner_sensitivity_L2">Dopasuj tytuł i artystów</string>
     <string name="scanner_warning">Skaner NIE ZAŁADUJE domyślnie żadnych metadanych istniejących utworów o ile nie określisz tego wyżej. W zależności od rozmiarów twojej biblioteki ta czynność może zająć chwilę.</string>
     <string name="scanner_scan_fail">Skanowanie nieudane</string>
@@ -266,4 +266,9 @@
     <string name="grp_more_settings">Więcej ustawień</string>
     <string name="auto_scanner_tooltip">Dla utworów w pamięci, skanowanie automatyczne nie wczytuje ponownie metadanych. Użyj skanowania manualnego z włączoną funkcją skanowania jeśli chcesz odświeżyć metadane.</string>
     <string name="scanner_auto_end">Media lokalne i pobrane piosenki wczytanie pomyślnie!</string>
+    <string name="scanner_auto_start">Odświeżanie folderów lokalnych mediów oraz pobranych piosenek…</string>
+    <string name="scanner_strict_file_paths_title">Dopasuj ścieżki plików zamiast metadanych</string>
+    <string name="scanner_strict_file_paths_description">­Wyłącza wszystkie mądre dopasowania metadanych. Może to spowodować problemy jeśli pliki są przeniesione w pamięci lokalnej, ale pozwala jednej piosence by była w różnych folderach</string>
+    <string name="scanner_type_tooltip">Systemowy skaner jest szybszy, ale może nieprawidłowo wypakowywać metadane w porównaniu z innym ekstraktorami. Zmienianie skanera nie przeładuje automatycznie metadanych istniejących piosenek.</string>
+    <string name="restore_lm_tooltip">Dla świeżej instalacji aplikacji, niestandardowe pobrania oraz lokalne media mogą nie działa. By rozwiązać ten problem dodaj je z powrotem.</string>
 </resources>

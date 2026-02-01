@@ -1,31 +1,31 @@
 [versions]
 aboutLibraries = "12.2.4"
 adaptive = "1.2.0"
-androidGradlePlugin = "8.13.0"
+androidGradlePlugin = "8.13.2"
 annotation = "1.9.1"
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 coil = "3.3.0"
-compose = "1.9.4"
+compose = "1.10.2"
 lazycolumnscrollbar = "2.2.0"
-lifecycle = "2.9.4"
+lifecycle = "2.10.0"
 material3 = "1.4.0"
 media3 = "1.8.0"
-room = "2.8.3"
+room = "2.8.4"
 hilt = "2.57.2"
-ktor = "3.3.1"
-ksp = "2.3.1"
+ktor = "3.4.0"
+ksp = "2.3.4"
 
 [libraries]
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
-error-prone-core = { module = "com.google.errorprone:error_prone_core", version = "2.42.0" }
+error-prone-core = { module = "com.google.errorprone:error_prone_core", version = "2.46.0" }
 guava = { group = "com.google.guava", name = "guava", version = "33.5.0-android" }
 coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version = "1.10.2" }
 concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.3.0" }
 
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
-activity = { group = "androidx.activity", name = "activity-compose", version = "1.11.0" }
+activity = { group = "androidx.activity", name = "activity-compose", version = "1.12.3" }
 hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.3.0" }
-datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.7" }
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.2.0" }
 
 # compose
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
@@ -61,7 +61,7 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
-apache-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.19.0" }
+apache-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.20.0" }
 
 hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
@@ -80,7 +80,7 @@ desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version =
 
 junit = { group = "junit", name = "junit", version = "4.13.2" }
 
-newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "4368f2b9bb7ee5b0340a0bc25375e44fe23ab105" }
+newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "v0.25.1" }
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }

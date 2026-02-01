@@ -25,7 +25,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.ConfirmationNumber
 import androidx.compose.material.icons.rounded.Coronavirus
@@ -70,8 +69,6 @@ import com.dd3boh.outertune.constants.AudioOffloadKey
 import com.dd3boh.outertune.constants.DevSettingsKey
 import com.dd3boh.outertune.constants.MaxQueuesKey
 import com.dd3boh.outertune.constants.OobeStatusKey
-import com.dd3boh.outertune.constants.SCANNER_OWNER_LM
-import com.dd3boh.outertune.constants.ScannerImpl
 import com.dd3boh.outertune.constants.TabletUiKey
 import com.dd3boh.outertune.constants.InvertNormalizeKey
 import com.dd3boh.outertune.constants.TopBarInsets
@@ -84,9 +81,7 @@ import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.dialog.CounterDialog
 import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.dataStore
-import com.dd3boh.outertune.utils.lmScannerCoroutine
 import com.dd3boh.outertune.utils.rememberPreference
-import com.dd3boh.outertune.utils.scanners.LocalMediaScanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -136,7 +131,7 @@ fun ExperimentalSettings(
         )
         SwitchPreference(
             title = { Text(stringResource(R.string.tablet_ui_title)) },
-            description = stringResource(R.string.tablet_ui_title),
+            description = stringResource(R.string.tablet_ui_title_description),
             icon = { Icon(Icons.Rounded.Devices, null) },
             checked = tabletUi,
             onCheckedChange = onTabletUiChange
@@ -234,25 +229,6 @@ fun ExperimentalSettings(
                         context.dataStore.edit { settings ->
                             settings.remove(VisitorDataKey)
                         }
-                    }
-                }
-            )
-
-            PreferenceEntry(
-                title = { Text("DEBUG: Force local to remote artist migration NOW") },
-                icon = { Icon(Icons.Rounded.Backup, null) },
-                onClick = {
-                    Toast.makeText(context, context.getString(R.string.scanner_ytm_link_start), Toast.LENGTH_SHORT)
-                        .show()
-                    coroutineScope.launch(lmScannerCoroutine) {
-                        val scanner = LocalMediaScanner.getScanner(context, ScannerImpl.TAGLIB, SCANNER_OWNER_LM)
-                        Log.i(SETTINGS_TAG, "Force Migrating local artists to YTM (MANUAL TRIGGERED)")
-                        scanner.localToRemoteArtist(database)
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.scanner_ytm_link_success),
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 }
             )

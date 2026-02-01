@@ -9,6 +9,7 @@
 
 package com.dd3boh.outertune.ui.component
 
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
@@ -46,13 +47,12 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.input.pointer.util.addPointerInputChange
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
-import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import com.dd3boh.outertune.constants.BottomSheetAnimationSpec
 import com.dd3boh.outertune.constants.BottomSheetSoftAnimationSpec
 import com.dd3boh.outertune.constants.MinMiniPlayerHeight
@@ -144,7 +144,7 @@ fun BottomSheet(
             val startY = with(density) { (MiniPlayerHeight + MinMiniPlayerHeight - 1.dp).toPx() }
             val colors = mutableListOf(collapsedBackgroundColor, Color.Transparent)
             // no visible gradient if no bottom content to hide it
-            if (MiniPlayerHeight + MinMiniPlayerHeight >= state.collapsedBound) {
+            if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE || MiniPlayerHeight + MinMiniPlayerHeight >= state.collapsedBound) {
                 colors[1] = collapsedBackgroundColor
             }
             Box(
@@ -190,7 +190,7 @@ class BottomSheetState(
     }
 
     val isCollapsed by derivedStateOf {
-        value == collapsedBound
+        value <= collapsedBound
     }
 
     val isExpanded by derivedStateOf {

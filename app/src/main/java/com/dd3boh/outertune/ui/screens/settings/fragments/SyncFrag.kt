@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material.icons.rounded.SyncLock
@@ -41,7 +40,6 @@ import com.dd3boh.outertune.LocalSnackbarHostState
 import com.dd3boh.outertune.LocalSyncUtils
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.InnerTubeCookieKey
-import com.dd3boh.outertune.constants.LikedAutodownloadMode
 import com.dd3boh.outertune.constants.PauseListenHistoryKey
 import com.dd3boh.outertune.constants.PauseRemoteListenHistoryKey
 import com.dd3boh.outertune.constants.SyncConflictResolution
@@ -54,7 +52,6 @@ import com.dd3boh.outertune.constants.YtmSyncModeKey
 import com.dd3boh.outertune.constants.decodeSyncString
 import com.dd3boh.outertune.constants.encodeSyncString
 import com.dd3boh.outertune.ui.component.EnumListPreference
-import com.dd3boh.outertune.ui.component.ListPreference
 import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.utils.SyncUtils

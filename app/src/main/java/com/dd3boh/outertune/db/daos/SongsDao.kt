@@ -415,7 +415,7 @@ interface SongsDao {
     /**
      * DON'T USE THIS DIRECTLY, USE updateLocalSongPath(...) instead!
      */
-    @Query("UPDATE song SET inLibrary = :inLibrary, localPath = :localPath WHERE id = :songId")
+    @Query("UPDATE song SET inLibrary = :inLibrary, localPath = :localPath, thumbnailUrl = :localPath WHERE id = :songId")
     fun _updateLSP(songId: String, inLibrary: LocalDateTime?, localPath: String)
     // endregion
 

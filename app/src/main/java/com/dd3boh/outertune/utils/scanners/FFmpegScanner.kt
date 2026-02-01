@@ -231,8 +231,8 @@ class FFmpegScanner() : MetadataScanner {
                 // user error at this point. I am not parsing all the weird ways the string can come in
             }
 
-            artistList = artistList.filterNot { it.name.isBlank() }.distinctBy { it.name }.toMutableList()
-            genresList = genresList.filterNot { it.title.isBlank() }.distinctBy { it.title }.toMutableList()
+            artistList = artistList.filterNot { it.name.isBlank() }.distinctBy { it.name.lowercase() }.toMutableList()
+            genresList = genresList.filterNot { it.title.isBlank() }.distinctBy { it.title.lowercase() }.toMutableList()
 
             return SongTempData(
                 Song(

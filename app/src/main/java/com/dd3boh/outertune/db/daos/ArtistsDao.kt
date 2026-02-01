@@ -51,8 +51,8 @@ interface ArtistsDao {
     @Query("SELECT * FROM artist WHERE name = :name")
     fun artistByName(name: String): ArtistEntity?
 
-    @Query("SELECT * FROM artist WHERE name LIKE '%' || :name || '%'")
-    fun artistsByNameFuzzy(name: String): List<ArtistEntity>
+    @Query("SELECT * FROM artist WHERE isLocal = 1 AND name LIKE '%' || :name || '%'")
+    fun localArtistsByNameFuzzy(name: String): List<ArtistEntity>
 
     @Query("""
         SELECT 

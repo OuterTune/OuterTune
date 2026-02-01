@@ -34,4 +34,12 @@
     <string name="create_sync_playlist_description">หมายเหตุ: วิธีนี้ช่วยให้สามารถซิงค์กับ YouTube Music ได้ แต่คุณไม่สามารถเพิ่มเพลงในเครื่องลงในเพลย์ลิสต์ที่ซิงค์นี้ได้</string>
     <string name="disc_number">เพลงที่</string>
     <string name="extra_details">รายละเอียดเพิ่มเติม</string>
+    <string name="queue_local_history">ประวัติคิว (บนเครื่อง)</string>
+    <string name="queue_remote_history">ประวัติคิว (ออนไลน์)</string>
+    <string name="remote_history">ออนไลน์</string>
+    <string name="bits_per_sample">Bits per sample</string>
+    <string name="file_path">เส้นทางไฟล์</string>
+    <string name="track_number">หมายเลขแทร็ก</string>
+    <string name="play_count">จำนวนครั้งการเล่น</string>
+    <string name="playlist_add_local_to_synced_note">หมายเหตุ: การเพิ่มเพลงในเครื่องลงในเพลย์ลิสต์ที่ซิงค์/ระยะไกลไม่ได้รับการสนับสนุน การผสมผสานแบบอื่น ๆ สามารถใช้งานได้</string>
 </resources>

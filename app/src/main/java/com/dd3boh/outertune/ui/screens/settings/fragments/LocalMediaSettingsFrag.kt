@@ -27,7 +27,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.GraphicEq
@@ -70,7 +72,6 @@ import com.dd3boh.outertune.constants.DownloadPathKey
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
 import com.dd3boh.outertune.constants.ExcludedScanPathsKey
 import com.dd3boh.outertune.constants.LastLocalScanKey
-import com.dd3boh.outertune.constants.LookupYtmArtistsKey
 import com.dd3boh.outertune.constants.SCANNER_OWNER_LM
 import com.dd3boh.outertune.constants.ScanPathsKey
 import com.dd3boh.outertune.constants.ScannerImpl
@@ -149,7 +150,6 @@ fun ColumnScope.LocalScannerFrag() {
     val dlPathExtra by rememberPreference(DownloadExtraPathKey, "")
 
     var fullRescan by remember { mutableStateOf(false) }
-    val (lookupYtmArtists, onLookupYtmArtistsChange) = rememberPreference(LookupYtmArtistsKey, defaultValue = false)
 
     val (lastLocalScan, onLastLocalScanChange) = rememberPreference(LastLocalScanKey, 0L)
 
@@ -227,30 +227,6 @@ fun ColumnScope.LocalScannerFrag() {
                             }
 
                             delay(1000)
-                            // start artist linking job
-                            if (lookupYtmArtists && scannerState <= 0) {
-                                coroutineScope.launch(lmScannerCoroutine) {
-                                    try {
-                                        snackbarHostState.showSnackbar(
-                                            message = context.getString(R.string.scanner_ytm_link_start),
-                                            withDismissAction = true,
-                                            duration = SnackbarDuration.Short
-                                        )
-                                        scanner.localToRemoteArtist(database)
-                                        snackbarHostState.showSnackbar(
-                                            message = context.getString(R.string.scanner_ytm_link_success),
-                                            withDismissAction = true,
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    } catch (e: ScannerAbortException) {
-                                        snackbarHostState.showSnackbar(
-                                            message = "${context.getString(R.string.scanner_ytm_link_success)}: ${e.message}",
-                                            withDismissAction = true,
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    }
-                                }
-                            }
                         } catch (e: ScannerAbortException) {
                             scannerFailure = true
 
@@ -287,30 +263,6 @@ fun ColumnScope.LocalScannerFrag() {
                             }
 
                             delay(1000)
-                            // start artist linking job
-                            if (lookupYtmArtists && scannerState <= 0) {
-                                coroutineScope.launch(lmScannerCoroutine) {
-                                    try {
-                                        snackbarHostState.showSnackbar(
-                                            message = context.getString(R.string.scanner_ytm_link_start),
-                                            withDismissAction = true,
-                                            duration = SnackbarDuration.Short
-                                        )
-                                        scanner.localToRemoteArtist(database)
-                                        snackbarHostState.showSnackbar(
-                                            message = context.getString(R.string.scanner_ytm_link_success),
-                                            withDismissAction = true,
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    } catch (e: ScannerAbortException) {
-                                        snackbarHostState.showSnackbar(
-                                            message = "${context.getString(R.string.scanner_ytm_link_fail)}: ${e.message}",
-                                            withDismissAction = true,
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    }
-                                }
-                            }
                         } catch (e: ScannerAbortException) {
                             scannerFailure = true
 
@@ -415,19 +367,6 @@ fun ColumnScope.LocalScannerFrag() {
                 fontSize = 14.sp
             )
         }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                checked = lookupYtmArtists,
-                onCheckedChange = onLookupYtmArtistsChange,
-            )
-            Text(
-                stringResource(R.string.scanner_online_artist_linking), color = MaterialTheme.colorScheme.secondary,
-                fontSize = 14.sp
-            )
-        }
     }
 
     // file path selector
@@ -526,7 +465,9 @@ fun ColumnScope.LocalScannerFrag() {
                 // scan path cannot be the download directory or subdir of download directory
                 !it.toString().contains(uriListFromString(downloadPath).firstOrNull().toString())
                         && uriListFromString(dlPathExtra).none { f -> it.toString().contains(f.toString()) }
-            } || tempScanPaths.isEmpty()
+            } || tempScanPaths.isEmpty(),
+            modifier = Modifier
+                .verticalScroll(rememberScrollState()),
         ) {
             val dirPickerLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.OpenDocumentTree()

@@ -17,6 +17,7 @@ import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -59,6 +60,7 @@ fun FolderMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val queueBoard by playerConnection.queueBoard.collectAsState()
 
     val allFolderSongs = remember { mutableStateListOf<Song>() }
     var subDirSongCount by remember {
@@ -214,12 +216,12 @@ fun FolderMenu(
         AddToQueueDialog(
             onAdd = { queueName ->
                 if (allFolderSongs.isEmpty()) return@AddToQueueDialog
-                val q = playerConnection.service.queueBoard.addQueue(
+                val q = queueBoard.addQueue(
                     queueName, allFolderSongs.map { it.toMediaMetadata() },
                     forceInsert = true, delta = false
                 )
                 q?.let {
-                    playerConnection.service.queueBoard.setCurrQueue(it)
+                    queueBoard.setCurrQueue(it)
                 }
             },
             onDismiss = {

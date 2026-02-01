@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -132,6 +131,7 @@ import com.dd3boh.outertune.constants.SeekIncrementKey
 import com.dd3boh.outertune.extensions.metadata
 import com.dd3boh.outertune.extensions.move
 import com.dd3boh.outertune.extensions.supportsWideScreen
+import com.dd3boh.outertune.extensions.tabMode
 import com.dd3boh.outertune.extensions.togglePlayPause
 import com.dd3boh.outertune.extensions.toggleRepeatMode
 import com.dd3boh.outertune.models.MediaMetadata
@@ -164,7 +164,6 @@ fun QueueSheet(
     state: BottomSheetState,
     onTerminate: () -> Unit,
     playerBottomSheetState: BottomSheetState,
-    onBackgroundColor: Color,
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
@@ -198,7 +197,7 @@ fun QueueSheet(
                 }) {
                     Icon(
                         imageVector = Icons.Rounded.ExpandLess,
-                        tint = onBackgroundColor,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         contentDescription = null,
                     )
                 }
@@ -252,7 +251,7 @@ fun BoxScope.QueueContent(
     val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val qb = playerConnection.service.queueBoard
+    val qb by playerConnection.queueBoard.collectAsState()
 
     // preferences
     var lockQueue by rememberPreference(LockQueueKey, defaultValue = false)
@@ -273,9 +272,35 @@ fun BoxScope.QueueContent(
     )
 
     // ui
+    val tabMode = context.tabMode()
     val wideScreen = context.supportsWideScreen()
     val landscape =
-        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && wideScreen
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && wideScreen && !tabMode
+
+    val insets = LocalPlayerAwareWindowInsets.current
+    val insetsSTE = if (!tabMode) {
+        InsetsSafeSTE
+    } else {
+        insets
+            .only(WindowInsetsSides.Start + WindowInsetsSides.End)
+            .add(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
+    }
+    val insetsSE = if (!tabMode) {
+        InsetsSafeSE
+    } else {
+        insets.only(WindowInsetsSides.Start + WindowInsetsSides.End)
+    }
+    val insetsS = if (!tabMode) {
+        InsetsSafeS
+    } else {
+        insets.only(WindowInsetsSides.Start)
+    }
+    val insetsE = if (!tabMode) {
+        InsetsSafeE
+    } else {
+        insets.only(WindowInsetsSides.End)
+    }
+
 
     val queueWindows by playerConnection.queueWindows.collectAsState()
 
@@ -1113,8 +1138,8 @@ fun BoxScope.QueueContent(
             Column(
                 modifier = Modifier.fillMaxWidth(0.5f)
             ) {
-                songHeader(Modifier.windowInsetsPadding(InsetsSafeSTE))
-                songList(InsetsSafeS.asPaddingValues())
+                songHeader(Modifier.windowInsetsPadding(insetsSTE))
+                songList(insetsS.asPaddingValues())
             }
 
             Spacer(Modifier.width(8.dp))
@@ -1151,8 +1176,8 @@ fun BoxScope.QueueContent(
                             }
                         }
                     } else {
-                        queueHeader(Modifier.windowInsetsPadding(InsetsSafeSTE))
-                        queueList(InsetsSafeE.asPaddingValues())
+                        queueHeader(Modifier.windowInsetsPadding(insetsSTE))
+                        queueList(insetsE.asPaddingValues())
                     }
                 }
 
@@ -1211,18 +1236,18 @@ fun BoxScope.QueueContent(
                             modifier = Modifier
                                 .fillMaxHeight(0.4f)
                         ) {
-                            queueHeader(Modifier.windowInsetsPadding(InsetsSafeSTE))
-                            queueList(InsetsSafeSE.asPaddingValues())
+                            queueHeader(Modifier.windowInsetsPadding(insetsSTE))
+                            queueList(insetsSE.asPaddingValues())
                         }
                         Spacer(Modifier.height(12.dp))
-                        songHeader(Modifier.windowInsetsPadding(InsetsSafeSE)) // song header
+                        songHeader(Modifier.windowInsetsPadding(insetsSE)) // song header
                     }
                 }
 
                 val songListInsets = if (mqExpand) {
-                    InsetsSafeSE
+                    insetsSE
                 } else {
-                    InsetsSafeSTE
+                    insetsSTE
                 }
                 songList(songListInsets.asPaddingValues()) // song list
             }

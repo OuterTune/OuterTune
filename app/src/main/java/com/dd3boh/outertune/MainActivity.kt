@@ -29,15 +29,14 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +44,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
@@ -77,7 +77,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -108,10 +107,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.window.core.layout.WindowWidthSizeClass
-import coil3.imageLoader
-import coil3.request.ImageRequest
-import coil3.request.allowHardware
-import coil3.toBitmap
 import com.dd3boh.outertune.constants.AppBarHeight
 import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
 import com.dd3boh.outertune.constants.DarkMode
@@ -130,6 +125,7 @@ import com.dd3boh.outertune.constants.OobeStatusKey
 import com.dd3boh.outertune.constants.PureBlackKey
 import com.dd3boh.outertune.constants.SlimNavBarKey
 import com.dd3boh.outertune.db.MusicDatabase
+import com.dd3boh.outertune.extensions.tabMode
 import com.dd3boh.outertune.playback.DownloadUtil
 import com.dd3boh.outertune.playback.MediaControllerViewModel
 import com.dd3boh.outertune.playback.MusicService
@@ -146,6 +142,7 @@ import com.dd3boh.outertune.ui.screens.HistoryScreen
 import com.dd3boh.outertune.ui.screens.HomeScreen
 import com.dd3boh.outertune.ui.screens.LoginScreen
 import com.dd3boh.outertune.ui.screens.MoodAndGenresScreen
+import com.dd3boh.outertune.ui.screens.PlayerScreen
 import com.dd3boh.outertune.ui.screens.Screens
 import com.dd3boh.outertune.ui.screens.SetupWizard
 import com.dd3boh.outertune.ui.screens.StatsScreen
@@ -180,22 +177,16 @@ import com.dd3boh.outertune.ui.screens.settings.LyricsSettings
 import com.dd3boh.outertune.ui.screens.settings.PlayerSettings
 import com.dd3boh.outertune.ui.screens.settings.SettingsScreen
 import com.dd3boh.outertune.ui.screens.settings.StorageSettings
-import com.dd3boh.outertune.ui.theme.ColorSaver
-import com.dd3boh.outertune.ui.theme.DefaultThemeColor
 import com.dd3boh.outertune.ui.theme.OuterTuneTheme
-import com.dd3boh.outertune.ui.theme.extractThemeColor
 import com.dd3boh.outertune.ui.utils.appBarScrollBehavior
 import com.dd3boh.outertune.utils.ActivityLauncherHelper
-import com.dd3boh.outertune.utils.LocalArtworkPath
 import com.dd3boh.outertune.utils.NetworkConnectivityObserver
 import com.dd3boh.outertune.utils.SyncUtils
-import com.dd3boh.outertune.utils.coilCoroutine
 import com.dd3boh.outertune.utils.lmScannerCoroutine
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -275,10 +266,10 @@ class MainActivity : ComponentActivity() {
             }
 
             val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
-//            val tabMode = this@MainActivity.tabMode()
+            val tabMode = this@MainActivity.tabMode()
             val useNavRail by remember {
                 derivedStateOf {
-                    windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
+                    windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED && !tabMode
                 }
             }
 
@@ -288,7 +279,9 @@ class MainActivity : ComponentActivity() {
             var filter by rememberEnumPreference(LibraryFilterKey, Screens.LibraryFilter.ALL)
             val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
             val (enabledTabs) = rememberPreference(EnabledTabsKey, defaultValue = DEFAULT_ENABLED_TABS)
-            val navigationItems = Screens.getScreens(enabledTabs)
+            val navigationItems = remember {
+                Screens.getScreens(enabledTabs)
+            }
             val (defaultOpenTab, onDefaultOpenTabChange) = rememberPreference(
                 DefaultOpenTabKey,
                 defaultValue = Screens.Home.route
@@ -311,10 +304,6 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(useDarkTheme) {
                 setSystemBarAppearance(useDarkTheme)
             }
-            var themeColor by rememberSaveable(stateSaver = ColorSaver) {
-                mutableStateOf(DefaultThemeColor)
-            }
-
             try {
                 connectivityObserver.unregister()
             } catch (e: UninitializedPropertyAccessException) {
@@ -323,45 +312,15 @@ class MainActivity : ComponentActivity() {
             connectivityObserver = NetworkConnectivityObserver(this@MainActivity)
             val isNetworkConnected by connectivityObserver.networkStatus.collectAsState(true)
 
-            LaunchedEffect(playerConnection, enableDynamicTheme, isSystemInDarkTheme) {
-                val playerConnection = playerConnection
-                if (!enableDynamicTheme || playerConnection == null) {
-                    themeColor = DefaultThemeColor
-                    return@LaunchedEffect
-                }
-                playerConnection.service.currentMediaMetadata.collectLatest { song ->
-                    coroutineScope.launch(coilCoroutine) {
-                        var ret = DefaultThemeColor
-                        if (song != null) {
-                            val uri = (if (song.isLocal) song.localPath else song.thumbnailUrl)?.toUri()
-                            if (uri != null) {
-                                val model = if (uri.toString().startsWith("/storage/")) {
-                                    LocalArtworkPath(uri.toString(), 100, 100)
-                                } else {
-                                    uri
-                                }
-
-                                val result = applicationContext.imageLoader.execute(
-                                    ImageRequest.Builder(applicationContext)
-                                        .data(model)
-                                        .allowHardware(false)
-                                        .build()
-                                )
-
-                                ret = result.image?.toBitmap()?.extractThemeColor() ?: DefaultThemeColor
-                            }
-                        }
-                        themeColor = ret
-                    }
-                }
-            }
-
 
             OuterTuneTheme(
+                context = this@MainActivity,
+                playerConnection = playerConnection,
+                enableDynamicTheme = enableDynamicTheme,
+                isSystemInDarkTheme = isSystemInDarkTheme,
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 highContrastCompat = highContrastCompat,
-                themeColor = themeColor
             ) {
                 Log.v(MAIN_TAG, "RC-2.1")
                 val density = LocalDensity.current
@@ -400,6 +359,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
+                    val maxW = maxWidth
                     Log.v(MAIN_TAG, "RC-2.2")
 
                     fun getNavPadding(): Dp {
@@ -421,16 +381,22 @@ class MainActivity : ComponentActivity() {
                             var bottom = bottomInset + if (!useNavRail) NavigationBarHeight else 0.dp
 
                             if (!playerBottomSheetState.isDismissed) bottom += MiniPlayerHeight
-                            windowsInsets
-                                .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                                .add(cutoutInsets.only(WindowInsetsSides.Horizontal))
-                                .add(
-                                    WindowInsets(
-                                        left = if (!useNavRail) 0.dp else NavigationBarHeight,
-                                        top = AppBarHeight,
-                                        bottom = bottom
+                            if (!tabMode) {
+                                windowsInsets
+                                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                                    .add(cutoutInsets.only(WindowInsetsSides.Horizontal))
+                                    .add(
+                                        WindowInsets(
+                                            left = if (!useNavRail) 0.dp else NavigationBarHeight,
+                                            top = AppBarHeight,
+                                            bottom = bottom
+                                        )
                                     )
-                                )
+                            } else {
+                                windowsInsets
+                                    .only(WindowInsetsSides.Top)
+                                    .add(WindowInsets(top = AppBarHeight, bottom = bottom))
+                            }
                         }
 
                     val scrollBehavior = appBarScrollBehavior(
@@ -507,9 +473,9 @@ class MainActivity : ComponentActivity() {
                                         }
 
                                         if (targetRouteIndex == -1 || targetRouteIndex > currentRouteIndex)
-                                            slideOutHorizontally { -it / 8 } + fadeOut(tween(200))
+                                            slideOutHorizontally { -it / 8 } + fadeOut(tween(100))
                                         else
-                                            slideOutHorizontally { it / 8 } + fadeOut(tween(200))
+                                            slideOutHorizontally { it / 8 } + fadeOut(tween(100))
                                     },
                                     popEnterTransition = {
                                         val currentRouteIndex = navigationItems.indexOfFirst {
@@ -533,9 +499,9 @@ class MainActivity : ComponentActivity() {
                                         }
 
                                         if (currentRouteIndex != -1 && currentRouteIndex < targetRouteIndex)
-                                            slideOutHorizontally { -it / 8 } + fadeOut(tween(200))
+                                            slideOutHorizontally { -it / 8 } + fadeOut(tween(100))
                                         else
-                                            slideOutHorizontally { it / 8 } + fadeOut(tween(200))
+                                            slideOutHorizontally { it / 8 } + fadeOut(tween(100))
                                     },
                                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
                                 )
@@ -570,6 +536,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                     composable(Screens.Library.route) {
                                         LibraryScreen(navController, scrollBehavior)
+                                    }
+                                    composable(Screens.Player.route) {
+                                        PlayerScreen(navController, bottomPadding = getNavPadding())
                                     }
                                     composable("history") {
                                         HistoryScreen(navController)
@@ -959,30 +928,74 @@ class MainActivity : ComponentActivity() {
                             }
 
                             // phone
-                            navHost()
+                            if (!tabMode) {
+                                navHost()
 
-                            SearchBarContainer(navController, scrollBehavior)
+                                SearchBarContainer(navController, scrollBehavior)
 
-                            if (oobeStatus >= OOBE_VERSION) {
-                                BottomSheetPlayer(
-                                    state = playerBottomSheetState,
-                                    navController = navController
-                                )
+                                if (oobeStatus >= OOBE_VERSION) {
+                                    if (!navigationItems.contains(Screens.Player)) {
+                                        BottomSheetPlayer(
+                                            state = playerBottomSheetState,
+                                            navController = navController
+                                        )
+                                    }
 
-                                if (!useNavRail) {
-                                    navbar()
-                                } else {
-                                    navRail(if (LocalLayoutDirection.current == LayoutDirection.Rtl) Alignment.BottomEnd else Alignment.BottomStart)
+                                    if (!useNavRail) {
+                                        navbar()
+                                    } else {
+                                        navRail(if (LocalLayoutDirection.current == LayoutDirection.Rtl) Alignment.BottomEnd else Alignment.BottomStart)
+                                    }
                                 }
-                            }
-                            bottomSheetMenu()
+                                bottomSheetMenu()
 
-                            SnackbarHost(
-                                hostState = snackbarHostState,
-                                modifier = Modifier
-                                    .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-                                    .align(Alignment.BottomCenter)
-                            )
+                                SnackbarHost(
+                                    hostState = snackbarHostState,
+                                    modifier = Modifier
+                                        .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                                        .align(Alignment.BottomCenter)
+                                )
+                            } else {
+                                // tabmode only enables >= 600dp (unless it's forced on). For those who wish to try down
+                                // to the widescreen limit, 320dp player is the minimum acceptable size for the player
+                                val playerW = (maxW.value * 0.4).coerceIn(320.0, 500.0)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .width(playerW.dp)
+                                    ) {
+                                        if (oobeStatus >= OOBE_VERSION && !navigationItems.contains(Screens.Player)) {
+                                            PlayerScreen(navController)
+                                        }
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                    ) {
+                                        navHost()
+
+                                        SearchBarContainer(navController, scrollBehavior)
+
+                                        if (oobeStatus >= OOBE_VERSION) {
+                                            navbar()
+                                        }
+                                        bottomSheetMenu()
+
+                                        SnackbarHost(
+                                            hostState = snackbarHostState,
+                                            modifier = Modifier
+                                                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                                                .align(Alignment.BottomCenter)
+                                        )
+                                    }
+                                }
+
+                            }
 
                             // Setup wizard
                             LaunchedEffect(Unit) {

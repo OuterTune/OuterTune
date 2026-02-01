@@ -18,6 +18,7 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,7 +45,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
@@ -120,121 +120,123 @@ fun SwipeActionBox(
     enabled: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val haptic = LocalHapticFeedback.current
-    val coroutineScope = rememberCoroutineScope()
-
-    val defaultActionSize = 150.dp
-    // determines how close the second action will come in behind the first action. Higher values == closer
-    val tightnessFactor = 200f
-
-    val swipeOffset = remember { mutableFloatStateOf(0f) }
-    val progress = remember { mutableIntStateOf(0) } // swipeOffset but to track haptics and opacity
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val firstThreshold = (screenWidth * 0.4f).value
-    val secondThreshold = (screenWidth * 0.8f).value
-    val draggableState = rememberDraggableState { delta ->
-        swipeOffset.floatValue = (swipeOffset.floatValue + delta).coerceIn(0f, screenWidth.value)
-    }
-
     if (!enabled) {
         Box { content() }
     } else {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .draggable(
-                    orientation = Orientation.Horizontal,
-                    state = draggableState,
-                    onDragStopped = {
-                        when {
-                            swipeOffset.floatValue >= secondThreshold -> {
-                                if (secondAction == null) {
-                                    firstAction.second.invoke()
-                                } else {
-                                    secondAction.second.invoke()
-                                }
-                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                                resetDrag(coroutineScope, swipeOffset)
-                            }
+        BoxWithConstraints() {
+            val haptic = LocalHapticFeedback.current
+            val coroutineScope = rememberCoroutineScope()
 
-                            swipeOffset.floatValue >= firstThreshold -> {
-                                firstAction.second.invoke()
-                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                                resetDrag(coroutineScope, swipeOffset)
-                            }
+            val defaultActionSize = 150.dp
+            // determines how close the second action will come in behind the first action. Higher values == closer
+            val tightnessFactor = 200f
 
-                            else -> resetDrag(coroutineScope, swipeOffset)
-                        }
-                    }
-                )
-        ) {
-            // Background for the swipe actions
-            if (swipeOffset.floatValue >= firstThreshold) {
-                if (progress.intValue != 1) {
-                    if (swipeOffset.floatValue < secondThreshold) {
-                        haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
-                        progress.intValue = 1
-                    }
-                }
+            val swipeOffset = remember { mutableFloatStateOf(0f) }
+            val progress = remember { mutableIntStateOf(0) } // swipeOffset but to track haptics and opacity
+            val screenWidth = maxWidth
+            val firstThreshold = (screenWidth * 0.4f).value
+            val secondThreshold = (screenWidth * 0.8f).value
+            val draggableState = rememberDraggableState { delta ->
+                swipeOffset.floatValue = (swipeOffset.floatValue + delta).coerceIn(0f, screenWidth.value)
             }
-            if (swipeOffset.floatValue > 0f) {
-                if (secondAction != null && swipeOffset.floatValue >= secondThreshold) {
-                    if (progress.intValue < 2) {
-                        haptic.performHapticFeedback(HapticFeedbackType.Reject)
-                    }
-                    progress.intValue = 2
-                }
-                if (swipeOffset.floatValue < firstThreshold) {
-                    progress.intValue = 0
-                }
 
+            Box(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .draggable(
+                        orientation = Orientation.Horizontal,
+                        state = draggableState,
+                        onDragStopped = {
+                            when {
+                                swipeOffset.floatValue >= secondThreshold -> {
+                                    if (secondAction == null) {
+                                        firstAction.second.invoke()
+                                    } else {
+                                        secondAction.second.invoke()
+                                    }
+                                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    resetDrag(coroutineScope, swipeOffset)
+                                }
 
-                DragActionIcon(
-                    color = MaterialTheme.colorScheme.primary,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    icon = firstAction.first,
-                    modifier = Modifier
-                        .alpha(if (progress.intValue == 1) 1f else 0.6f)
-                        .width(defaultActionSize)
-                        .fillMaxHeight()
-                        .align(Alignment.CenterStart)
-                        .offset {
-                            IntOffset((-screenWidth.value + swipeOffset.floatValue).roundToInt(), 0)
+                                swipeOffset.floatValue >= firstThreshold -> {
+                                    firstAction.second.invoke()
+                                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    resetDrag(coroutineScope, swipeOffset)
+                                }
+
+                                else -> resetDrag(coroutineScope, swipeOffset)
+                            }
                         }
-                )
+                    )
+            ) {
+                // Background for the swipe actions
+                if (swipeOffset.floatValue >= firstThreshold) {
+                    if (progress.intValue != 1) {
+                        if (swipeOffset.floatValue < secondThreshold) {
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+                            progress.intValue = 1
+                        }
+                    }
+                }
+                if (swipeOffset.floatValue > 0f) {
+                    if (secondAction != null && swipeOffset.floatValue >= secondThreshold) {
+                        if (progress.intValue < 2) {
+                            haptic.performHapticFeedback(HapticFeedbackType.Reject)
+                        }
+                        progress.intValue = 2
+                    }
+                    if (swipeOffset.floatValue < firstThreshold) {
+                        progress.intValue = 0
+                    }
 
-                secondAction?.let {
+
                     DragActionIcon(
-                        color = MaterialTheme.colorScheme.secondary,
-                        tint = MaterialTheme.colorScheme.onSecondary,
-                        icon = it.first,
+                        color = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        icon = firstAction.first,
                         modifier = Modifier
-                            .alpha(if (progress.intValue == 2) 1f else 0.6f)
+                            .alpha(if (progress.intValue == 1) 1f else 0.6f) // TODO: wai alpha change cause hidden edge to become un-hidden
                             .width(defaultActionSize)
                             .fillMaxHeight()
                             .align(Alignment.CenterStart)
                             .offset {
-                                val x = -screenWidth.value + swipeOffset.floatValue
-                                val size = defaultActionSize.value
-                                // x-\frac{x^{2}}{k}-\left(0.9s\right)
-                                // x = firstAction offset, k = tightnessFactor, s = size
-                                IntOffset(
-                                    ((x - (x * x / tightnessFactor)) - (size * 0.9)
-                                        .coerceIn(0.0, size.toDouble())).roundToInt(), 0
-                                )
+                                IntOffset((-screenWidth.value + swipeOffset.floatValue).roundToInt(), 0)
                             }
                     )
-                }
-            }
 
-            // Foreground draggable content
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(swipeOffset.floatValue.roundToInt(), 0) }
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface),
-                content = content
-            )
+                    secondAction?.let {
+                        DragActionIcon(
+                            color = MaterialTheme.colorScheme.secondary,
+                            tint = MaterialTheme.colorScheme.onSecondary,
+                            icon = it.first,
+                            modifier = Modifier
+                                .alpha(if (progress.intValue == 2) 1f else 0.6f)
+                                .width(defaultActionSize)
+                                .fillMaxHeight()
+                                .align(Alignment.CenterStart)
+                                .offset {
+                                    val x = -screenWidth.value + swipeOffset.floatValue
+                                    val size = defaultActionSize.value
+                                    // x-\frac{x^{2}}{k}-\left(0.9s\right)
+                                    // x = firstAction offset, k = tightnessFactor, s = size
+                                    IntOffset(
+                                        ((x - (x * x / tightnessFactor)) - (size * 0.9)
+                                            .coerceIn(0.0, size.toDouble())).roundToInt(), 0
+                                    )
+                                }
+                        )
+                    }
+                }
+
+                // Foreground draggable content
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset(swipeOffset.floatValue.roundToInt(), 0) }
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface),
+                    content = content
+                )
+            }
         }
     }
 }
