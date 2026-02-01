@@ -54,8 +54,8 @@ object AirPlayBridge {
     private val _connectingDeviceIds = MutableStateFlow<Set<String>>(emptySet())
     val connectingDeviceIds: StateFlow<Set<String>> = _connectingDeviceIds.asStateFlow()
 
-    // Track when connection started for timeout
-    private val connectionStartTimes = mutableMapOf<String, Long>()
+    // Track when connection started for timeout (thread-safe)
+    private val connectionStartTimes = java.util.concurrent.ConcurrentHashMap<String, Long>()
     private const val CONNECTION_TIMEOUT_MS = 10000L // 10 seconds timeout
 
     // Track failed connections

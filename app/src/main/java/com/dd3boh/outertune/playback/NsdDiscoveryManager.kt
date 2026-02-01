@@ -60,8 +60,8 @@ class NsdDiscoveryManager(private val context: Context) {
         // Acquire multicast lock
         acquireMulticastLock()
 
-        // Clear existing devices
-        _devices.value = emptyMap()
+        // Don't clear existing devices - they'll be updated as services are found/lost
+        // Only clear pending resolutions to allow re-resolution
         pendingResolutions.clear()
 
         discoveryListener = object : NsdManager.DiscoveryListener {

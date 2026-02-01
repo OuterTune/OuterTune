@@ -196,9 +196,10 @@ impl AirPlaySession {
         let cseq = self.next_cseq();
         let request = format!(
             "OPTIONS * RTSP/1.0\r\n\
-             CSeq: {}\r\n\
-             User-Agent: OuterTune/1.0\r\n\
-             \r\n",
+CSeq: {}\r\n\
+User-Agent: iTunes/12.0 (Macintosh)\r\n\
+Session: 1\r\n\
+\r\n",
             cseq
         );
 
@@ -248,10 +249,12 @@ impl AirPlaySession {
 
         let request = format!(
             "OPTIONS * RTSP/1.0\r\n\
-             CSeq: {}\r\n\
-             User-Agent: OuterTune/1.0\r\n\
-             \r\n",
-            cseq
+CSeq: {}\r\n\
+User-Agent: iTunes/12.0 (Macintosh)\r\n\
+Client-Instance: {}\r\n\
+\r\n",
+            cseq,
+            format!("{:016X}", self.ssrc as u64)
         );
 
         self.send_rtsp(&request).await?;
@@ -540,12 +543,14 @@ Session: 1\r\n\
         let device_port = self.device.port;
 
         let request = format!(
-            "TEARDOWN rtsp://{}:{}/audio RTSP/1.0\r\n\
-             CSeq: {}\r\n\
-             User-Agent: OuterTune/1.0\r\n\
-             \r\n",
+            "TEARDOWN rtsp://{}:{}/{} RTSP/1.0\r\n\
+CSeq: {}\r\n\
+User-Agent: iTunes/12.0 (Macintosh)\r\n\
+Session: 1\r\n\
+\r\n",
             device_address,
             device_port,
+            self.ssrc,
             cseq
         );
 
