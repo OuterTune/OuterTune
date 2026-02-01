@@ -1,0 +1,56 @@
+[package]
+name = "airplay_bridge"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0"
+description = "AirPlay 2 bridge for OuterTune Android app"
+
+[lib]
+name = "airplay_bridge"
+crate-type = ["cdylib"]
+
+[dependencies]
+# JNI bindings for Android
+jni = { version = "0.21", default-features = false }
+
+# Async runtime
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "net", "io-util"] }
+
+# mDNS for device discovery
+mdns-sd = "0.11"
+
+# Logging
+log = "0.4"
+android_logger = "0.14"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Crypto for AirPlay authentication
+ed25519-dalek = "2"
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+chacha20poly1305 = "0.10"
+sha2 = "0.10"
+hkdf = "0.12"
+srp = "0.6"
+
+# Audio encoding
+alac-encoder = "0.3"
+
+# Networking
+bytes = "1"
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+[profile.release]
+lto = true
+opt-level = "z"
+strip = true
+panic = "abort"
+codegen-units = 1
+
+[target.'cfg(target_os = "android")'.dependencies]
+ndk-context = "0.1"
