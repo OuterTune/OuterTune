@@ -112,21 +112,24 @@ impl AirPlaySession {
         // Perform RTSP handshake
         self.rtsp_options().await?;
 
-        // For AirPlay 2, we need to do HomeKit pairing
+        // For AirPlay 2 devices, try HomeKit pairing (but don't fail if it doesn't work)
+        // Third-party speakers like Ubiquiti don't require this
         if self.device.supports_airplay2 {
             match self.homekit_pair().await {
                 Ok(_) => log::info!("HomeKit pairing successful"),
                 Err(e) => {
-                    log::warn!("HomeKit pairing failed: {}. Trying without encryption.", e);
-                    // Continue without encryption for devices that allow it
+                    log::info!("HomeKit pairing not required or failed: {}. Continuing without encryption.", e);
+                    // This is fine for third-party AirPlay speakers
                 }
             }
+        } else {
+            log::info!("AirPlay 1 device - skipping HomeKit pairing");
         }
 
         // Setup audio streaming
         self.rtsp_setup().await?;
 
-        log::info!("AirPlay session established");
+        log::info!("AirPlay session established successfully");
         Ok(())
     }
 
@@ -343,16 +346,29 @@ impl AirPlaySession {
         let device_address = self.device.address.clone();
         let device_port = self.device.port;
 
-        // ANNOUNCE the audio format
+        // Bind UDP sockets first to get our local ports
+        let audio_socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
+        let audio_port = audio_socket.local_addr()?.port();
+
+        let control_socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
+        let control_port = control_socket.local_addr()?.port();
+
+        let timing_socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
+        let timing_port = timing_socket.local_addr()?.port();
+
+        log::info!("Local ports - audio: {}, control: {}, timing: {}", audio_port, control_port, timing_port);
+
+        // ANNOUNCE the audio format (AirPlay 1 style - ALAC)
+        // fmtp params: frameLength maxBitRate bitDepth sampleRate ...
         let sdp = format!(
             "v=0\r\n\
-             o=OuterTune 1 1 IN IP4 {}\r\n\
-             s=OuterTune\r\n\
-             c=IN IP4 {}\r\n\
-             t=0 0\r\n\
-             m=audio 0 RTP/AVP 96\r\n\
-             a=rtpmap:96 AppleLossless\r\n\
-             a=fmtp:96 352 0 16 40 10 14 2 255 0 0 44100\r\n",
+o=iTunes 1 1 IN IP4 {}\r\n\
+s=iTunes\r\n\
+c=IN IP4 {}\r\n\
+t=0 0\r\n\
+m=audio 0 RTP/AVP 96\r\n\
+a=rtpmap:96 AppleLossless\r\n\
+a=fmtp:96 352 0 16 40 10 14 2 255 0 0 44100\r\n",
             device_address,
             device_address
         );
@@ -360,51 +376,78 @@ impl AirPlaySession {
         let cseq = self.next_cseq();
 
         let request = format!(
-            "ANNOUNCE rtsp://{}:{}/audio RTSP/1.0\r\n\
-             CSeq: {}\r\n\
-             User-Agent: OuterTune/1.0\r\n\
-             Content-Type: application/sdp\r\n\
-             Content-Length: {}\r\n\
-             \r\n\
-             {}",
+            "ANNOUNCE rtsp://{}:{}/{} RTSP/1.0\r\n\
+CSeq: {}\r\n\
+Content-Type: application/sdp\r\n\
+Content-Length: {}\r\n\
+User-Agent: iTunes/12.0 (Macintosh)\r\n\
+Client-Instance: {}\r\n\
+\r\n\
+{}",
             device_address,
             device_port,
+            self.ssrc,
             cseq,
             sdp.len(),
+            format!("{:016X}", self.ssrc as u64),
             sdp
         );
 
+        log::debug!("Sending ANNOUNCE:\n{}", request);
         self.send_rtsp(&request).await?;
-        let response = self.recv_rtsp_response().await?;
+
+        let response = match tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            self.recv_rtsp_response()
+        ).await {
+            Ok(Ok(r)) => r,
+            Ok(Err(e)) => return Err(anyhow!("ANNOUNCE read error: {}", e)),
+            Err(_) => return Err(anyhow!("ANNOUNCE timeout")),
+        };
+
+        log::info!("ANNOUNCE response: {}", response.status_line);
+
+        if response.status_line.contains("401") || response.status_line.contains("403") {
+            return Err(anyhow!("Device requires authentication ({})", response.status_line));
+        }
 
         if !response.status_line.contains("200") {
-            log::warn!("ANNOUNCE response: {}", response.status_line);
-            // Continue anyway, some devices don't require ANNOUNCE
+            log::warn!("ANNOUNCE returned {}, trying SETUP anyway", response.status_line);
         }
 
         // SETUP the audio transport
         let cseq = self.next_cseq();
 
-        // Bind a local UDP socket first to get the client port
-        let client_socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
-        let client_port = client_socket.local_addr()?.port();
-
         let request = format!(
-            "SETUP rtsp://{}:{}/audio RTSP/1.0\r\n\
-             CSeq: {}\r\n\
-             User-Agent: OuterTune/1.0\r\n\
-             Transport: RTP/AVP/UDP;unicast;mode=record;client_port={};control_port={};timing_port={}\r\n\
-             \r\n",
+            "SETUP rtsp://{}:{}/{} RTSP/1.0\r\n\
+CSeq: {}\r\n\
+Transport: RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port={};timing_port={}\r\n\
+User-Agent: iTunes/12.0 (Macintosh)\r\n\
+Client-Instance: {}\r\n\
+\r\n",
             device_address,
             device_port,
+            self.ssrc,
             cseq,
-            client_port,
-            client_port + 1,
-            client_port + 2
+            control_port,
+            timing_port,
+            format!("{:016X}", self.ssrc as u64)
         );
 
+        log::debug!("Sending SETUP:\n{}", request);
         self.send_rtsp(&request).await?;
-        let response = self.recv_rtsp_response().await?;
+
+        let response = match tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            self.recv_rtsp_response()
+        ).await {
+            Ok(Ok(r)) => r,
+            Ok(Err(e)) => return Err(anyhow!("SETUP read error: {}", e)),
+            Err(_) => return Err(anyhow!("SETUP timeout")),
+        };
+
+        log::info!("SETUP response: {}", response.status_line);
+        log::debug!("SETUP headers:\n{}", response.headers);
 
         if !response.status_line.contains("200") {
             return Err(anyhow!("SETUP failed: {}", response.status_line));
@@ -415,29 +458,54 @@ impl AirPlaySession {
         log::info!("Server audio port: {}", self.server_audio_port);
 
         // Connect UDP socket to server
-        client_socket.connect(format!("{}:{}", device_address, self.server_audio_port)).await?;
-        self.audio_socket = Some(client_socket);
+        audio_socket.connect(format!("{}:{}", device_address, self.server_audio_port)).await?;
+        self.audio_socket = Some(audio_socket);
 
         // Start playback with RECORD
         let cseq = self.next_cseq();
+        let seq = self.rtp_seq.load(Ordering::SeqCst);
+        let rtptime = self.rtp_timestamp.load(Ordering::SeqCst);
 
         let request = format!(
-            "RECORD rtsp://{}:{}/audio RTSP/1.0\r\n\
-             CSeq: {}\r\n\
-             User-Agent: OuterTune/1.0\r\n\
-             Range: npt=0-\r\n\
-             RTP-Info: seq=0;rtptime=0\r\n\
-             \r\n",
+            "RECORD rtsp://{}:{}/{} RTSP/1.0\r\n\
+CSeq: {}\r\n\
+Range: npt=0-\r\n\
+RTP-Info: seq={};rtptime={}\r\n\
+User-Agent: iTunes/12.0 (Macintosh)\r\n\
+Session: 1\r\n\
+\r\n",
             device_address,
             device_port,
-            cseq
+            self.ssrc,
+            cseq,
+            seq,
+            rtptime
         );
 
+        log::debug!("Sending RECORD:\n{}", request);
         self.send_rtsp(&request).await?;
-        let response = self.recv_rtsp_response().await?;
+
+        let response = match tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            self.recv_rtsp_response()
+        ).await {
+            Ok(Ok(r)) => r,
+            Ok(Err(e)) => {
+                log::warn!("RECORD read error (may be OK): {}", e);
+                // Some devices don't respond to RECORD, which is fine
+                return Ok(());
+            }
+            Err(_) => {
+                log::warn!("RECORD timeout (may be OK)");
+                // Timeout is OK for some devices
+                return Ok(());
+            }
+        };
+
+        log::info!("RECORD response: {}", response.status_line);
 
         if !response.status_line.contains("200") {
-            log::warn!("RECORD response: {}", response.status_line);
+            log::warn!("RECORD returned: {} (continuing anyway)", response.status_line);
         }
 
         log::info!("Audio streaming setup complete");
