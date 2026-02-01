@@ -6,6 +6,8 @@
 
 package com.dd3boh.outertune.playback
 
+import android.content.Context
+import android.net.wifi.WifiManager
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,10 @@ object AirPlayBridge {
 
     // Native library loaded state
     private var nativeLibLoaded = false
+
+    // Multicast lock for mDNS discovery (Android filters multicast by default)
+    private var multicastLock: WifiManager.MulticastLock? = null
+    private var wifiManager: WifiManager? = null
 
     // Connection state
     private val _isConnected = MutableStateFlow(false)
@@ -59,6 +65,52 @@ object AirPlayBridge {
     fun isAvailable(): Boolean = nativeLibLoaded
 
     /**
+     * Initialize the AirPlay bridge with application context.
+     * Must be called before starting discovery to enable multicast reception.
+     */
+    fun initialize(context: Context) {
+        try {
+            wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            Log.i(TAG, "AirPlayBridge initialized with context")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get WifiManager: ${e.message}")
+        }
+    }
+
+    /**
+     * Acquire multicast lock to receive mDNS packets.
+     * Android filters out multicast by default to save battery.
+     */
+    private fun acquireMulticastLock() {
+        if (multicastLock?.isHeld == true) return
+
+        try {
+            multicastLock = wifiManager?.createMulticastLock("AirPlayDiscovery")?.apply {
+                setReferenceCounted(true)
+                acquire()
+            }
+            Log.i(TAG, "Multicast lock acquired")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to acquire multicast lock: ${e.message}")
+        }
+    }
+
+    /**
+     * Release multicast lock when discovery stops.
+     */
+    private fun releaseMulticastLock() {
+        try {
+            if (multicastLock?.isHeld == true) {
+                multicastLock?.release()
+                Log.i(TAG, "Multicast lock released")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to release multicast lock: ${e.message}")
+        }
+        multicastLock = null
+    }
+
+    /**
      * Start discovering AirPlay devices on the network
      */
     suspend fun startDiscovery() {
@@ -68,6 +120,8 @@ object AirPlayBridge {
         }
 
         withContext(Dispatchers.IO) {
+            // Acquire multicast lock before discovery
+            acquireMulticastLock()
             _isDiscovering.value = true
             nativeStartDiscovery()
         }
@@ -81,6 +135,7 @@ object AirPlayBridge {
 
         _isDiscovering.value = false
         nativeStopDiscovery()
+        releaseMulticastLock()
     }
 
     /**
@@ -164,6 +219,7 @@ object AirPlayBridge {
 
         stopDiscovery()
         disconnect()
+        releaseMulticastLock()
         nativeDestroy()
     }
 

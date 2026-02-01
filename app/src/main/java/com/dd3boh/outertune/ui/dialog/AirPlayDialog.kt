@@ -35,6 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,6 +51,7 @@ import kotlinx.coroutines.launch
 fun AirPlayDialog(
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val devices by AirPlayBridge.devices.collectAsState()
     val isDiscovering by AirPlayBridge.isDiscovering.collectAsState()
@@ -58,6 +60,8 @@ fun AirPlayDialog(
 
     // Start discovery when dialog opens
     LaunchedEffect(Unit) {
+        // Initialize with context to enable multicast lock for mDNS
+        AirPlayBridge.initialize(context)
         AirPlayBridge.startDiscovery()
         // Periodically refresh devices list
         while (true) {
