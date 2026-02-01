@@ -51,8 +51,14 @@ pub struct AirPlaySession {
     audio_encoder: AudioEncoder,
     /// Audio data socket
     audio_socket: Option<tokio::net::UdpSocket>,
+    /// Control socket (for timing sync)
+    control_socket: Option<tokio::net::UdpSocket>,
+    /// Timing socket (for NTP-like sync)
+    timing_socket: Option<tokio::net::UdpSocket>,
     /// Server audio port (parsed from SETUP response)
     server_audio_port: u16,
+    /// Session ID from SETUP response
+    session_id: String,
     /// Current volume (0.0 - 1.0)
     volume: f32,
     /// Whether encryption is enabled
@@ -97,7 +103,10 @@ impl AirPlaySession {
             ssrc,
             audio_encoder: AudioEncoder::new(),
             audio_socket: None,
+            control_socket: None,
+            timing_socket: None,
             server_audio_port: 6000,
+            session_id: String::from("1"),
             volume: 1.0,
             encryption_enabled: false,
             encryption_key: None,
@@ -198,9 +207,10 @@ impl AirPlaySession {
             "OPTIONS * RTSP/1.0\r\n\
 CSeq: {}\r\n\
 User-Agent: iTunes/12.0 (Macintosh)\r\n\
-Session: 1\r\n\
+Session: {}\r\n\
 \r\n",
-            cseq
+            cseq,
+            self.session_id
         );
 
         self.send_rtsp(&request).await?;
@@ -460,9 +470,19 @@ Client-Instance: {}\r\n\
         self.server_audio_port = self.parse_server_port(&response.headers).unwrap_or(6000);
         log::info!("Server audio port: {}", self.server_audio_port);
 
+        // Parse Session ID from response (for subsequent requests)
+        if let Some(session_id) = self.parse_session_id(&response.headers) {
+            log::info!("Session ID: {}", session_id);
+            self.session_id = session_id;
+        }
+
         // Connect UDP socket to server
         audio_socket.connect(format!("{}:{}", device_address, self.server_audio_port)).await?;
         self.audio_socket = Some(audio_socket);
+
+        // Store control and timing sockets (used by some devices for sync)
+        self.control_socket = Some(control_socket);
+        self.timing_socket = Some(timing_socket);
 
         // Start playback with RECORD
         let cseq = self.next_cseq();
@@ -475,14 +495,15 @@ CSeq: {}\r\n\
 Range: npt=0-\r\n\
 RTP-Info: seq={};rtptime={}\r\n\
 User-Agent: iTunes/12.0 (Macintosh)\r\n\
-Session: 1\r\n\
+Session: {}\r\n\
 \r\n",
             device_address,
             device_port,
             self.ssrc,
             cseq,
             seq,
-            rtptime
+            rtptime,
+            self.session_id
         );
 
         log::debug!("Sending RECORD:\n{}", request);
@@ -536,6 +557,23 @@ Session: 1\r\n\
         None
     }
 
+    /// Parse Session ID from SETUP response header
+    fn parse_session_id(&self, headers: &str) -> Option<String> {
+        for line in headers.lines() {
+            let lower = line.to_lowercase();
+            if lower.starts_with("session:") {
+                // Session header format: "Session: <id>[;timeout=<seconds>]"
+                let value = line.split(':').nth(1)?.trim();
+                // Extract just the ID part (before semicolon if present)
+                let id = value.split(';').next()?.trim();
+                if !id.is_empty() {
+                    return Some(id.to_string());
+                }
+            }
+        }
+        None
+    }
+
     /// Send RTSP TEARDOWN
     async fn rtsp_teardown(&mut self) -> Result<()> {
         let cseq = self.next_cseq();
@@ -546,12 +584,13 @@ Session: 1\r\n\
             "TEARDOWN rtsp://{}:{}/{} RTSP/1.0\r\n\
 CSeq: {}\r\n\
 User-Agent: iTunes/12.0 (Macintosh)\r\n\
-Session: 1\r\n\
+Session: {}\r\n\
 \r\n",
             device_address,
             device_port,
             self.ssrc,
-            cseq
+            cseq,
+            self.session_id
         );
 
         let _ = self.send_rtsp(&request).await;

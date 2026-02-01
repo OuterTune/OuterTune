@@ -62,6 +62,9 @@ object AirPlayBridge {
     private val _failedDeviceIds = MutableStateFlow<Set<String>>(emptySet())
     val failedDeviceIds: StateFlow<Set<String>> = _failedDeviceIds.asStateFlow()
 
+    // Job for polling loop (to allow cancellation)
+    private var pollingJob: kotlinx.coroutines.Job? = null
+
     private val json = Json { ignoreUnknownKeys = true }
 
     init {
@@ -105,8 +108,8 @@ object AirPlayBridge {
             }
 
             // Periodically poll connected devices from native
-            scope.launch {
-                while (true) {
+            pollingJob = scope.launch {
+                while (kotlinx.coroutines.isActive) {
                     delay(500)
                     refreshConnectedDevices()
                 }
@@ -300,6 +303,10 @@ object AirPlayBridge {
      * Cleanup resources
      */
     fun destroy() {
+        // Cancel polling job first
+        pollingJob?.cancel()
+        pollingJob = null
+
         stopDiscovery()
         nsdDiscoveryManager?.destroy()
         nsdDiscoveryManager = null
@@ -344,7 +351,17 @@ data class AirPlayDevice(
     val flags: String? = null
 ) {
     fun displayName(): String {
-        return name.removeSuffix("._airplay._tcp.local.")
+        // Clean up common mDNS/Bonjour suffixes that may appear in service names
+        return name
+            .removeSuffix("._airplay._tcp.local.")
+            .removeSuffix("._airplay._tcp.local")
+            .removeSuffix("._airplay._tcp.")
+            .removeSuffix("._airplay._tcp")
+            .removeSuffix(".local.")
+            .removeSuffix(".local")
+            .removeSuffix("._raop._tcp.local.")
+            .removeSuffix("._raop._tcp")
+            .replace(Regex("\\s*\\([0-9]+\\)$"), "") // Remove duplicate suffixes like " (2)"
             .trim()
             .ifEmpty { address }
     }

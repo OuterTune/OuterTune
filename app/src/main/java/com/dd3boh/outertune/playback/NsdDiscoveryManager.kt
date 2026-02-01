@@ -187,9 +187,6 @@ class NsdDiscoveryManager(private val context: Context) {
         val address = host.hostAddress ?: return
         val port = serviceInfo.port
 
-        // Generate a unique ID from the name
-        val id = name.hashCode().toString(16)
-
         // Try to extract attributes (available on API 34+)
         val attributes = try {
             serviceInfo.attributes
@@ -200,7 +197,11 @@ class NsdDiscoveryManager(private val context: Context) {
         val model = attributes["model"]?.decodeToString()
         val features = attributes["features"]?.decodeToString()
         val flags = attributes["flags"]?.decodeToString()
-        val deviceId = attributes["deviceid"]?.decodeToString() ?: id
+
+        // Generate a unique ID - prefer deviceid from attributes,
+        // otherwise combine name+address to avoid hash collisions
+        val deviceId = attributes["deviceid"]?.decodeToString()
+            ?: "${name}_${address}".replace(Regex("[^a-zA-Z0-9_]"), "_")
 
         // Check for AirPlay 2 support
         val supportsAirplay2 = features?.let { feat ->
