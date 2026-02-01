@@ -69,6 +69,7 @@ fun AirPlayDialog(
     val isConnected by AirPlayBridge.isConnected.collectAsState()
     val connectedDeviceIds by AirPlayBridge.connectedDeviceIds.collectAsState()
     val connectingDeviceIds by AirPlayBridge.connectingDeviceIds.collectAsState()
+    val failedDeviceIds by AirPlayBridge.failedDeviceIds.collectAsState()
 
     // Start discovery when dialog opens
     LaunchedEffect(Unit) {
@@ -228,11 +229,13 @@ fun AirPlayDialog(
                 items(devices) { device ->
                     val isDeviceConnected = connectedDeviceIds.contains(device.id)
                     val isDeviceConnecting = connectingDeviceIds.contains(device.id)
+                    val isDeviceFailed = failedDeviceIds.contains(device.id)
 
                     AirPlayDeviceItem(
                         device = device,
                         isConnected = isDeviceConnected,
                         isConnecting = isDeviceConnecting,
+                        isFailed = isDeviceFailed,
                         onClick = {
                             coroutineScope.launch {
                                 AirPlayBridge.toggleDevice(device)
@@ -250,13 +253,15 @@ private fun AirPlayDeviceItem(
     device: AirPlayDevice,
     isConnected: Boolean,
     isConnecting: Boolean,
+    isFailed: Boolean,
     onClick: () -> Unit
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (isConnected)
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        else
-            MaterialTheme.colorScheme.surface,
+        targetValue = when {
+            isConnected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            isFailed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+            else -> MaterialTheme.colorScheme.surface
+        },
         label = "backgroundColor"
     )
 
@@ -331,6 +336,7 @@ private fun AirPlayDeviceItem(
                 text = when {
                     isConnecting -> stringResource(R.string.airplay_connecting)
                     isConnected -> stringResource(R.string.airplay_playing)
+                    isFailed -> stringResource(R.string.airplay_failed)
                     device.supports_airplay2 -> stringResource(R.string.airplay_2_device)
                     else -> stringResource(R.string.airplay_device)
                 },
@@ -338,6 +344,7 @@ private fun AirPlayDeviceItem(
                 color = when {
                     isConnecting -> MaterialTheme.colorScheme.tertiary
                     isConnected -> MaterialTheme.colorScheme.primary
+                    isFailed -> MaterialTheme.colorScheme.error
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                 }
             )

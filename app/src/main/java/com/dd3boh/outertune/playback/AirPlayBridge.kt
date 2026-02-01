@@ -50,9 +50,17 @@ object AirPlayBridge {
     private val _isDiscovering = MutableStateFlow(false)
     val isDiscovering: StateFlow<Boolean> = _isDiscovering.asStateFlow()
 
-    // Connecting state per device
+    // Connecting state per device (with timestamp for timeout)
     private val _connectingDeviceIds = MutableStateFlow<Set<String>>(emptySet())
     val connectingDeviceIds: StateFlow<Set<String>> = _connectingDeviceIds.asStateFlow()
+
+    // Track when connection started for timeout
+    private val connectionStartTimes = mutableMapOf<String, Long>()
+    private const val CONNECTION_TIMEOUT_MS = 10000L // 10 seconds timeout
+
+    // Track failed connections
+    private val _failedDeviceIds = MutableStateFlow<Set<String>>(emptySet())
+    val failedDeviceIds: StateFlow<Set<String>> = _failedDeviceIds.asStateFlow()
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -142,9 +150,32 @@ object AirPlayBridge {
         try {
             val connectedJson = nativeGetConnectedDevices()
             val connectedIds = json.decodeFromString<List<String>>(connectedJson).toSet()
+            val currentTime = System.currentTimeMillis()
 
-            // Remove any "connecting" status for devices that are now connected
-            val stillConnecting = _connectingDeviceIds.value - connectedIds
+            // Check for connection timeouts
+            val timedOutDevices = mutableSetOf<String>()
+            connectionStartTimes.entries.removeAll { (deviceId, startTime) ->
+                val elapsed = currentTime - startTime
+                if (elapsed > CONNECTION_TIMEOUT_MS && !connectedIds.contains(deviceId)) {
+                    Log.w(TAG, "Connection timeout for device: $deviceId")
+                    timedOutDevices.add(deviceId)
+                    true
+                } else if (connectedIds.contains(deviceId)) {
+                    // Successfully connected, remove from tracking and clear any failed state
+                    _failedDeviceIds.value = _failedDeviceIds.value - deviceId
+                    true
+                } else {
+                    false
+                }
+            }
+
+            // Mark timed out devices as failed
+            if (timedOutDevices.isNotEmpty()) {
+                _failedDeviceIds.value = _failedDeviceIds.value + timedOutDevices
+            }
+
+            // Remove timed out and connected devices from connecting state
+            val stillConnecting = _connectingDeviceIds.value - connectedIds - timedOutDevices
             _connectingDeviceIds.value = stillConnecting
 
             _connectedDeviceIds.value = connectedIds
@@ -175,8 +206,10 @@ object AirPlayBridge {
             return false
         }
 
-        // Mark as connecting
+        // Clear any previous failed status and mark as connecting
+        _failedDeviceIds.value = _failedDeviceIds.value - device.id
         _connectingDeviceIds.value = _connectingDeviceIds.value + device.id
+        connectionStartTimes[device.id] = System.currentTimeMillis()
 
         return withContext(Dispatchers.IO) {
             val success = nativeConnectWithInfo(
@@ -192,6 +225,7 @@ object AirPlayBridge {
             } else {
                 Log.e(TAG, "Failed to initiate connection to ${device.name}")
                 _connectingDeviceIds.value = _connectingDeviceIds.value - device.id
+                connectionStartTimes.remove(device.id)
             }
             success
         }
