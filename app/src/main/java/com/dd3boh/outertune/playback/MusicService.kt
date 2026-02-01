@@ -778,7 +778,7 @@ class MusicService : MediaLibraryService(),
                         .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
                         .setAudioProcessorChain(
                             DefaultAudioSink.DefaultAudioProcessorChain(
-                                emptyArray(),
+                                arrayOf(AirPlayAudioProcessor()),
                                 SilenceSkippingAudioProcessor(),
                                 SonicAudioProcessor()
                             )
@@ -802,7 +802,7 @@ class MusicService : MediaLibraryService(),
                         .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
                         .setAudioProcessorChain(
                             DefaultAudioSink.DefaultAudioProcessorChain(
-                                emptyArray(),
+                                arrayOf(AirPlayAudioProcessor()),
                                 SilenceSkippingAudioProcessor(),
                                 SonicAudioProcessor()
                             )
