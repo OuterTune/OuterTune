@@ -345,6 +345,16 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="m3u_import_playlist_failed">Failed to import</string>
     <string name="m3u_ytm_lookup">Search on YouTube Music for songs not found in the app database</string>
 
+<!-- AirPlay -->
+    <string name="airplay_title">AirPlay</string>
+    <string name="airplay_searching">Searching for AirPlay devices…</string>
+    <string name="airplay_refresh">Refresh</string>
+    <string name="airplay_disconnect">Disconnect</string>
+    <string name="airplay_not_available">AirPlay is not available. Native library not loaded.</string>
+    <string name="airplay_device">AirPlay</string>
+    <string name="airplay_2_device">AirPlay 2</string>
+    <string name="airplay_connected">Connected to %s</string>
+
 <!-- Misc -->
     <string name="action_back">Back</string>
     <string name="action_next">Next</string>

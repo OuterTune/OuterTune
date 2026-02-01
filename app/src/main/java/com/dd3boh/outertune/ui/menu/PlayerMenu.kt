@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.Equalizer
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LibraryAdd
@@ -95,6 +96,7 @@ import com.dd3boh.outertune.ui.component.BottomSheetState
 import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.dialog.AddToPlaylistDialog
 import com.dd3boh.outertune.ui.dialog.AddToQueueDialog
+import com.dd3boh.outertune.ui.dialog.AirPlayDialog
 import com.dd3boh.outertune.ui.dialog.ArtistDialog
 import com.dd3boh.outertune.ui.dialog.DetailsDialog
 import com.dd3boh.outertune.utils.rememberPreference
@@ -154,6 +156,9 @@ fun PlayerMenu(
 
 
     var showPitchTempoDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showAirPlayDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -546,6 +551,12 @@ fun PlayerMenu(
             onDismiss()
         }
         GridMenuItem(
+            icon = Icons.Rounded.Cast,
+            title = R.string.airplay_title
+        ) {
+            showAirPlayDialog = true
+        }
+        GridMenuItem(
             icon = Icons.Rounded.Tune,
             title = R.string.advanced
         ) {
@@ -605,6 +616,14 @@ fun PlayerMenu(
             onDismiss = {
                 playerBottomSheetState.collapseSoft()
                 showSelectArtistDialog = false
+            }
+        )
+    }
+
+    if (showAirPlayDialog) {
+        AirPlayDialog(
+            onDismiss = {
+                showAirPlayDialog = false
             }
         )
     }
