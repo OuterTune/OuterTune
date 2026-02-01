@@ -4,6 +4,7 @@
 //! for AirPlay 2 devices.
 
 use anyhow::{anyhow, Result};
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use chacha20poly1305::{
     aead::{Aead, KeyInit},
     ChaCha20Poly1305, Nonce,
@@ -13,7 +14,7 @@ use sha2::Sha256;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU16, AtomicU32, AtomicU64, Ordering};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
-use tokio::net::TcpStream;
+use tokio::net::{TcpStream, UdpSocket};
 use tokio::sync::mpsc;
 use x25519_dalek::{EphemeralSecret, PublicKey};
 
@@ -52,14 +53,14 @@ pub struct AirPlaySession {
     rtp_timestamp: AtomicU32,
     /// RTP SSRC (randomly generated per session)
     ssrc: u32,
+    /// Client instance ID (for Apple-Challenge)
+    client_instance: String,
     /// Audio encoder
     audio_encoder: AudioEncoder,
     /// Audio data socket
-    audio_socket: Option<tokio::net::UdpSocket>,
-    /// Control socket (for timing sync)
-    control_socket: Option<tokio::net::UdpSocket>,
-    /// Timing socket (for NTP-like sync)
-    timing_socket: Option<tokio::net::UdpSocket>,
+    audio_socket: Option<UdpSocket>,
+    /// Control socket (for retransmit requests)
+    control_socket: Option<UdpSocket>,
     /// Server audio port (parsed from SETUP response)
     server_audio_port: u16,
     /// Session ID from SETUP response
@@ -107,9 +108,10 @@ impl AirPlaySession {
             .unwrap_or_else(|_| "0.0.0.0".to_string());
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("TCP connected, local IP: {}", local_addr));
 
-        // Generate random SSRC for this session
+        // Generate random SSRC and client instance for this session
         let ssrc: u32 = rand::random();
-        log::debug!("Generated SSRC: {:#010x}", ssrc);
+        let client_instance = format!("{:016X}", rand::random::<u64>());
+        log::debug!("Generated SSRC: {:#010x}, Client-Instance: {}", ssrc, client_instance);
 
         Ok(Self {
             device,
@@ -119,10 +121,10 @@ impl AirPlaySession {
             rtp_seq: AtomicU16::new(0),
             rtp_timestamp: AtomicU32::new(0),
             ssrc,
+            client_instance,
             audio_encoder: AudioEncoder::new(),
             audio_socket: None,
             control_socket: None,
-            timing_socket: None,
             server_audio_port: 6000,
             session_id: String::from("1"),
             volume: 1.0,
@@ -275,20 +277,30 @@ Session: {}\r\n\
         self.rtp_timestamp.fetch_add(samples, Ordering::SeqCst);
     }
 
-    /// Send RTSP OPTIONS request
+    /// Send RTSP OPTIONS request with Apple-Challenge for authentication
     async fn rtsp_options(&mut self) -> Result<()> {
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Sending OPTIONS request...");
 
         let cseq = self.next_cseq();
+
+        // Generate Apple-Challenge (16 random bytes, base64 encoded)
+        let challenge_bytes: [u8; 16] = rand::random();
+        let apple_challenge = BASE64.encode(challenge_bytes);
 
         let request = format!(
             "OPTIONS * RTSP/1.0\r\n\
 CSeq: {}\r\n\
 User-Agent: iTunes/12.0 (Macintosh)\r\n\
 Client-Instance: {}\r\n\
+DACP-ID: {}\r\n\
+Active-Remote: {}\r\n\
+Apple-Challenge: {}\r\n\
 \r\n",
             cseq,
-            format!("{:016X}", self.ssrc as u64)
+            self.client_instance,
+            self.client_instance,
+            self.ssrc,
+            apple_challenge
         );
 
         self.send_rtsp(&request).await?;
@@ -444,7 +456,7 @@ Client-Instance: {}\r\n\
             self.ssrc,
             cseq,
             sdp.len(),
-            format!("{:016X}", self.ssrc as u64),
+            self.client_instance,
             sdp
         );
 
@@ -494,7 +506,7 @@ Client-Instance: {}\r\n\
             cseq,
             control_port,
             timing_port,
-            format!("{:016X}", self.ssrc as u64)
+            self.client_instance
         );
 
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Sending SETUP (transport config)...");
@@ -540,24 +552,25 @@ Client-Instance: {}\r\n\
 
         // Parse server timing port from Transport header and start timing sync handler
         let server_timing_port = self.parse_timing_port(&response.headers);
-        if let Some(timing_port) = server_timing_port {
-            send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Server timing port: {}", timing_port));
-            // Spawn timing sync handler
-            let timing_socket_clone = timing_socket.try_clone().await.ok();
-            if let Some(ts) = timing_socket_clone {
-                let device_addr = device_address.clone();
-                tokio::spawn(async move {
-                    Self::run_timing_handler(ts, device_addr, timing_port).await;
-                });
-                send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Timing sync handler started");
-            }
+
+        // Wrap timing socket in Arc for sharing with timing handler
+        let timing_socket = Arc::new(timing_socket);
+
+        if let Some(tp) = server_timing_port {
+            send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Server timing port: {}", tp));
+            // Spawn timing sync handler with shared socket reference
+            let timing_socket_clone = Arc::clone(&timing_socket);
+            let device_addr = device_address.clone();
+            tokio::spawn(async move {
+                Self::run_timing_handler(timing_socket_clone, device_addr, tp).await;
+            });
+            send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Timing sync handler started");
         } else {
             send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, "No server timing port - timing sync disabled");
         }
 
-        // Store control and timing sockets
+        // Store control socket (timing socket is managed by the handler now)
         self.control_socket = Some(control_socket);
-        self.timing_socket = Some(timing_socket);
 
         // Start playback with RECORD
         let cseq = self.next_cseq();
@@ -671,14 +684,15 @@ Session: {}\r\n\
 
     /// Handle timing sync requests from AirPlay receiver
     /// The receiver sends timing queries to synchronize clocks (NTP-like protocol)
-    async fn run_timing_handler(socket: tokio::net::UdpSocket, device_addr: String, device_port: u16) {
+    async fn run_timing_handler(socket: Arc<UdpSocket>, device_addr: String, device_port: u16) {
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Timing handler listening for {}:{}", device_addr, device_port));
 
         let mut buf = [0u8; 32];
+        let mut timing_requests_handled = 0u64;
 
         loop {
             match tokio::time::timeout(
-                std::time::Duration::from_secs(30),
+                std::time::Duration::from_secs(60),
                 socket.recv_from(&mut buf)
             ).await {
                 Ok(Ok((len, src))) => {
@@ -708,16 +722,21 @@ Session: {}\r\n\
 
                             if let Err(e) = socket.send_to(&response, src).await {
                                 log::warn!("Failed to send timing response: {}", e);
+                            } else {
+                                timing_requests_handled += 1;
+                                if timing_requests_handled == 1 || timing_requests_handled % 100 == 0 {
+                                    send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG,
+                                        &format!("Timing sync #{} for {}", timing_requests_handled, device_addr));
+                                }
                             }
                         }
                     }
                 }
                 Ok(Err(e)) => {
-                    log::debug!("Timing socket error: {}", e);
+                    send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, &format!("Timing socket error: {}", e));
                 }
                 Err(_) => {
-                    // Timeout - continue waiting
-                    log::debug!("Timing handler idle");
+                    // Timeout - continue waiting (this is normal when no audio is playing)
                 }
             }
         }
