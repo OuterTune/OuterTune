@@ -72,6 +72,16 @@ object AirPlayBridge {
             System.loadLibrary("airplay_bridge")
             nativeLibLoaded = true
             nativeInit()
+            // Register log callback so Rust can send logs to our debug viewer
+            nativeSetLogCallback { level, tag, message ->
+                when (level) {
+                    0 -> AirPlayDebugLog.debug(tag, message)
+                    1 -> AirPlayDebugLog.info(tag, message)
+                    2 -> AirPlayDebugLog.warn(tag, message)
+                    3 -> AirPlayDebugLog.error(tag, message)
+                    else -> AirPlayDebugLog.info(tag, message)
+                }
+            }
             Log.i(TAG, "AirPlay native library loaded successfully")
             AirPlayDebugLog.info(TAG, "Native library loaded successfully")
         } catch (e: UnsatisfiedLinkError) {
@@ -340,6 +350,7 @@ object AirPlayBridge {
 
     // Native methods
     private external fun nativeInit(): Boolean
+    private external fun nativeSetLogCallback(callback: LogCallback)
     private external fun nativeConnectWithInfo(
         deviceId: String,
         deviceName: String,
@@ -355,6 +366,13 @@ object AirPlayBridge {
     private external fun nativeSendAudio(audioData: ByteArray, sampleRate: Int, channels: Int): Boolean
     private external fun nativeSetVolume(volume: Int): Boolean
     private external fun nativeDestroy()
+}
+
+/**
+ * Callback interface for receiving logs from native code
+ */
+fun interface LogCallback {
+    fun onLog(level: Int, tag: String, message: String)
 }
 
 /**

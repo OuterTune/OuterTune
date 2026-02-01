@@ -4,9 +4,10 @@
 //! Supports multi-device streaming to multiple AirPlay speakers simultaneously.
 
 use jni::JNIEnv;
-use jni::objects::{JClass, JString, JByteArray};
+use jni::objects::{JClass, JString, JByteArray, JObject, GlobalRef};
 use jni::sys::{jboolean, jint, JNI_TRUE, JNI_FALSE};
-use std::sync::{Arc, RwLock, OnceLock};
+use jni::JavaVM;
+use std::sync::{Arc, RwLock, OnceLock, Mutex};
 use std::collections::HashMap;
 use tokio::sync::mpsc;
 
@@ -16,6 +17,79 @@ mod audio;
 
 pub use discovery::AirPlayDevice;
 use airplay::AudioCommand;
+
+/// Global JVM reference for callbacks from async contexts
+static JAVA_VM: OnceLock<JavaVM> = OnceLock::new();
+
+/// Global log callback reference
+static LOG_CALLBACK: OnceLock<Mutex<Option<GlobalRef>>> = OnceLock::new();
+
+/// Log levels matching Kotlin LogCallback
+pub const LOG_LEVEL_DEBUG: i32 = 0;
+pub const LOG_LEVEL_INFO: i32 = 1;
+pub const LOG_LEVEL_WARN: i32 = 2;
+pub const LOG_LEVEL_ERROR: i32 = 3;
+
+/// Send a log message to the Kotlin callback (safe to call from any thread)
+pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
+    // Also log to Android logcat
+    match level {
+        LOG_LEVEL_DEBUG => log::debug!("[{}] {}", tag, message),
+        LOG_LEVEL_INFO => log::info!("[{}] {}", tag, message),
+        LOG_LEVEL_WARN => log::warn!("[{}] {}", tag, message),
+        LOG_LEVEL_ERROR => log::error!("[{}] {}", tag, message),
+        _ => log::info!("[{}] {}", tag, message),
+    }
+
+    let jvm = match JAVA_VM.get() {
+        Some(vm) => vm,
+        None => return,
+    };
+
+    let callback_lock = match LOG_CALLBACK.get() {
+        Some(lock) => lock,
+        None => return,
+    };
+
+    let callback = match callback_lock.lock() {
+        Ok(guard) => match guard.as_ref() {
+            Some(cb) => cb.clone(),
+            None => return,
+        },
+        Err(_) => return,
+    };
+
+    // Attach to JVM (needed for calling from non-JNI threads)
+    let mut env = match jvm.attach_current_thread() {
+        Ok(env) => env,
+        Err(e) => {
+            log::error!("Failed to attach to JVM: {}", e);
+            return;
+        }
+    };
+
+    // Create Java strings
+    let j_tag = match env.new_string(tag) {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+    let j_message = match env.new_string(message) {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+
+    // Call the callback: onLog(level, tag, message)
+    let _ = env.call_method(
+        callback.as_obj(),
+        "onLog",
+        "(ILjava/lang/String;Ljava/lang/String;)V",
+        &[
+            jni::objects::JValue::Int(level),
+            jni::objects::JValue::Object(&j_tag),
+            jni::objects::JValue::Object(&j_message),
+        ],
+    );
+}
 
 /// Global state for the AirPlay bridge
 static BRIDGE: OnceLock<Arc<AirPlayBridge>> = OnceLock::new();
@@ -74,7 +148,7 @@ impl AirPlayBridge {
 /// Initialize the AirPlay bridge (called from Android)
 #[no_mangle]
 pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeInit(
-    _env: JNIEnv,
+    env: JNIEnv,
     _class: JClass,
 ) -> jboolean {
     // Initialize Android logger
@@ -85,12 +159,48 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeIn
             .with_tag("AirPlayBridge"),
     );
 
+    // Store JVM reference for callbacks
+    if JAVA_VM.get().is_none() {
+        if let Ok(jvm) = env.get_java_vm() {
+            let _ = JAVA_VM.set(jvm);
+            log::info!("JVM reference stored for callbacks");
+        }
+    }
+
+    // Initialize log callback storage
+    let _ = LOG_CALLBACK.get_or_init(|| Mutex::new(None));
+
     log::info!("Initializing AirPlay Bridge (multi-device support)");
 
     // Initialize the bridge
     let _ = AirPlayBridge::get();
 
     JNI_TRUE
+}
+
+/// Set the log callback for receiving logs from native code
+#[no_mangle]
+pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSetLogCallback(
+    env: JNIEnv,
+    _class: JClass,
+    callback: JObject,
+) {
+    // Create a global reference to the callback so it survives across JNI calls
+    let global_ref = match env.new_global_ref(callback) {
+        Ok(r) => r,
+        Err(e) => {
+            log::error!("Failed to create global ref for log callback: {}", e);
+            return;
+        }
+    };
+
+    // Store the callback
+    if let Some(lock) = LOG_CALLBACK.get() {
+        if let Ok(mut guard) = lock.lock() {
+            *guard = Some(global_ref);
+            log::info!("Log callback registered");
+        }
+    }
 }
 
 /// Connect to an AirPlay device with device info passed from Kotlin

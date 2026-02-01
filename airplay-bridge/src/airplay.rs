@@ -20,6 +20,9 @@ use x25519_dalek::{EphemeralSecret, PublicKey};
 use crate::audio::{AudioEncoder, ensure_44100, AIRPLAY_SAMPLE_RATE};
 use crate::discovery::AirPlayDevice;
 use crate::AirPlayBridge;
+use crate::{send_log_to_kotlin, LOG_LEVEL_INFO, LOG_LEVEL_WARN, LOG_LEVEL_ERROR};
+
+const RTSP_TAG: &str = "RTSP";
 
 /// Commands that can be sent to the audio session
 #[derive(Debug)]
@@ -76,19 +79,27 @@ pub struct AirPlaySession {
 impl AirPlaySession {
     /// Create a new AirPlay session
     pub async fn new(device: AirPlayDevice) -> Result<Self> {
-        log::info!("Connecting to {} at {}:{}",
-            device.name, device.address, device.port);
+        let msg = format!("Connecting to {} at {}:{}", device.name, device.address, device.port);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &msg);
 
         // Establish TCP connection with timeout
         let addr = format!("{}:{}", device.address, device.port);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Opening TCP connection to {}", addr));
+
         let connection = tokio::time::timeout(
             std::time::Duration::from_secs(10),
             TcpStream::connect(&addr)
         ).await
-            .map_err(|_| anyhow!("Connection timeout"))?
-            .map_err(|e| anyhow!("Connection failed: {}", e))?;
+            .map_err(|_| {
+                send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, "TCP connection timeout (10s)");
+                anyhow!("Connection timeout")
+            })?
+            .map_err(|e| {
+                send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("TCP connection failed: {}", e));
+                anyhow!("Connection failed: {}", e)
+            })?;
 
-        log::info!("TCP connection established");
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "TCP connection established");
 
         // Generate random SSRC for this session
         let ssrc: u32 = rand::random();
@@ -118,6 +129,8 @@ impl AirPlaySession {
 
     /// Perform the initial handshake and setup
     pub async fn setup(&mut self) -> Result<()> {
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Starting RTSP handshake...");
+
         // Perform RTSP handshake
         self.rtsp_options().await?;
 
@@ -125,20 +138,22 @@ impl AirPlaySession {
         // Third-party speakers like Ubiquiti don't require this
         if self.device.supports_airplay2 {
             match self.homekit_pair().await {
-                Ok(_) => log::info!("HomeKit pairing successful"),
+                Ok(_) => {
+                    send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "HomeKit pairing successful");
+                }
                 Err(e) => {
-                    log::info!("HomeKit pairing not required or failed: {}. Continuing without encryption.", e);
+                    send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, &format!("HomeKit pairing skipped: {}", e));
                     // This is fine for third-party AirPlay speakers
                 }
             }
         } else {
-            log::info!("AirPlay 1 device - skipping HomeKit pairing");
+            send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "AirPlay 1 device - skipping HomeKit pairing");
         }
 
         // Setup audio streaming
         self.rtsp_setup().await?;
 
-        log::info!("AirPlay session established successfully");
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Session established successfully!");
         Ok(())
     }
 
@@ -255,6 +270,8 @@ Session: {}\r\n\
 
     /// Send RTSP OPTIONS request
     async fn rtsp_options(&mut self) -> Result<()> {
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Sending OPTIONS request...");
+
         let cseq = self.next_cseq();
 
         let request = format!(
@@ -268,13 +285,16 @@ Client-Instance: {}\r\n\
         );
 
         self.send_rtsp(&request).await?;
+
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Waiting for OPTIONS response...");
         let response = self.recv_rtsp_response().await?;
 
         if !response.status_line.contains("200") {
+            send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("OPTIONS failed: {}", response.status_line));
             return Err(anyhow!("OPTIONS failed: {}", response.status_line));
         }
 
-        log::debug!("OPTIONS successful");
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "OPTIONS successful");
         Ok(())
     }
 
@@ -354,12 +374,13 @@ Client-Instance: {}\r\n\
 
     /// Setup audio streaming via RTSP SETUP
     async fn rtsp_setup(&mut self) -> Result<()> {
-        log::info!("Setting up audio stream");
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Setting up audio stream...");
 
         let device_address = self.device.address.clone();
         let device_port = self.device.port;
 
         // Bind UDP sockets first to get our local ports
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Binding UDP sockets...");
         let audio_socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
         let audio_port = audio_socket.local_addr()?.port();
 
@@ -369,7 +390,7 @@ Client-Instance: {}\r\n\
         let timing_socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
         let timing_port = timing_socket.local_addr()?.port();
 
-        log::info!("Local ports - audio: {}, control: {}, timing: {}", audio_port, control_port, timing_port);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Local ports - audio:{}, ctrl:{}, timing:{}", audio_port, control_port, timing_port));
 
         // ANNOUNCE the audio format (AirPlay 1 style - ALAC)
         // fmtp params: frameLength maxBitRate bitDepth sampleRate ...
@@ -406,26 +427,34 @@ Client-Instance: {}\r\n\
             sdp
         );
 
-        log::debug!("Sending ANNOUNCE:\n{}", request);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Sending ANNOUNCE (SDP audio format)...");
         self.send_rtsp(&request).await?;
 
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Waiting for ANNOUNCE response...");
         let response = match tokio::time::timeout(
             std::time::Duration::from_secs(5),
             self.recv_rtsp_response()
         ).await {
             Ok(Ok(r)) => r,
-            Ok(Err(e)) => return Err(anyhow!("ANNOUNCE read error: {}", e)),
-            Err(_) => return Err(anyhow!("ANNOUNCE timeout")),
+            Ok(Err(e)) => {
+                send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("ANNOUNCE read error: {}", e));
+                return Err(anyhow!("ANNOUNCE read error: {}", e));
+            }
+            Err(_) => {
+                send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, "ANNOUNCE timeout (5s)");
+                return Err(anyhow!("ANNOUNCE timeout"));
+            }
         };
 
-        log::info!("ANNOUNCE response: {}", response.status_line);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("ANNOUNCE response: {}", response.status_line));
 
         if response.status_line.contains("401") || response.status_line.contains("403") {
+            send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("Auth required: {}", response.status_line));
             return Err(anyhow!("Device requires authentication ({})", response.status_line));
         }
 
         if !response.status_line.contains("200") {
-            log::warn!("ANNOUNCE returned {}, trying SETUP anyway", response.status_line);
+            send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, &format!("ANNOUNCE returned {}, trying SETUP anyway", response.status_line));
         }
 
         // SETUP the audio transport
@@ -447,36 +476,44 @@ Client-Instance: {}\r\n\
             format!("{:016X}", self.ssrc as u64)
         );
 
-        log::debug!("Sending SETUP:\n{}", request);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Sending SETUP (transport config)...");
         self.send_rtsp(&request).await?;
 
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Waiting for SETUP response...");
         let response = match tokio::time::timeout(
             std::time::Duration::from_secs(5),
             self.recv_rtsp_response()
         ).await {
             Ok(Ok(r)) => r,
-            Ok(Err(e)) => return Err(anyhow!("SETUP read error: {}", e)),
-            Err(_) => return Err(anyhow!("SETUP timeout")),
+            Ok(Err(e)) => {
+                send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("SETUP read error: {}", e));
+                return Err(anyhow!("SETUP read error: {}", e));
+            }
+            Err(_) => {
+                send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, "SETUP timeout (5s)");
+                return Err(anyhow!("SETUP timeout"));
+            }
         };
 
-        log::info!("SETUP response: {}", response.status_line);
-        log::debug!("SETUP headers:\n{}", response.headers);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("SETUP response: {}", response.status_line));
 
         if !response.status_line.contains("200") {
+            send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("SETUP failed: {}", response.status_line));
             return Err(anyhow!("SETUP failed: {}", response.status_line));
         }
 
         // Parse server port from response
         self.server_audio_port = self.parse_server_port(&response.headers).unwrap_or(6000);
-        log::info!("Server audio port: {}", self.server_audio_port);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Server audio port: {}", self.server_audio_port));
 
         // Parse Session ID from response (for subsequent requests)
         if let Some(session_id) = self.parse_session_id(&response.headers) {
-            log::info!("Session ID: {}", session_id);
+            send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Session ID: {}", session_id));
             self.session_id = session_id;
         }
 
         // Connect UDP socket to server
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Connecting UDP to {}:{}", device_address, self.server_audio_port));
         audio_socket.connect(format!("{}:{}", device_address, self.server_audio_port)).await?;
         self.audio_socket = Some(audio_socket);
 
@@ -506,33 +543,34 @@ Session: {}\r\n\
             self.session_id
         );
 
-        log::debug!("Sending RECORD:\n{}", request);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Sending RECORD (start playback)...");
         self.send_rtsp(&request).await?;
 
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Waiting for RECORD response...");
         let response = match tokio::time::timeout(
             std::time::Duration::from_secs(5),
             self.recv_rtsp_response()
         ).await {
             Ok(Ok(r)) => r,
             Ok(Err(e)) => {
-                log::warn!("RECORD read error (may be OK): {}", e);
+                send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, &format!("RECORD read error (may be OK): {}", e));
                 // Some devices don't respond to RECORD, which is fine
                 return Ok(());
             }
             Err(_) => {
-                log::warn!("RECORD timeout (may be OK)");
+                send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, "RECORD timeout (may be OK for some devices)");
                 // Timeout is OK for some devices
                 return Ok(());
             }
         };
 
-        log::info!("RECORD response: {}", response.status_line);
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("RECORD response: {}", response.status_line));
 
         if !response.status_line.contains("200") {
-            log::warn!("RECORD returned: {} (continuing anyway)", response.status_line);
+            send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, &format!("RECORD returned: {} (continuing)", response.status_line));
         }
 
-        log::info!("Audio streaming setup complete");
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Audio streaming setup complete!");
         Ok(())
     }
 
@@ -841,20 +879,37 @@ pub async fn start_session(
     bridge: Arc<AirPlayBridge>,
 ) -> Result<()> {
     let device_id = device.id.clone();
-    let mut session = AirPlaySession::new(device).await?;
-    session.setup().await?;
+    let device_name = device.name.clone();
+
+    send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Starting session for {}", device_name));
+
+    let mut session = match AirPlaySession::new(device).await {
+        Ok(s) => s,
+        Err(e) => {
+            send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("Session create failed: {}", e));
+            return Err(e);
+        }
+    };
+
+    if let Err(e) = session.setup().await {
+        send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("Session setup failed: {}", e));
+        return Err(e);
+    }
+
+    send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Session ready for {}", device_name));
 
     // Spawn the session runner
     let bridge_clone = bridge.clone();
+    let device_name_clone = device_name.clone();
     tokio::spawn(async move {
         if let Err(e) = session.run(cmd_rx).await {
-            log::error!("Session error: {}", e);
+            send_log_to_kotlin(LOG_LEVEL_ERROR, RTSP_TAG, &format!("Session error for {}: {}", device_name_clone, e));
         }
 
         // Remove session from sessions map when done
         if let Ok(mut sessions) = bridge_clone.sessions.write() {
             sessions.remove(&device_id);
-            log::info!("Session ended and removed for device: {}", device_id);
+            send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Session ended for {}", device_name_clone));
         }
     });
 
