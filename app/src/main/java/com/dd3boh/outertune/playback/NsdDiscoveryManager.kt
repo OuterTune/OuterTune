@@ -67,16 +67,19 @@ class NsdDiscoveryManager(private val context: Context) {
         discoveryListener = object : NsdManager.DiscoveryListener {
             override fun onDiscoveryStarted(serviceType: String) {
                 Log.i(TAG, "Discovery started for $serviceType")
+                AirPlayDebugLog.info(TAG, "Discovery started")
                 _isDiscovering.value = true
             }
 
             override fun onDiscoveryStopped(serviceType: String) {
                 Log.i(TAG, "Discovery stopped for $serviceType")
+                AirPlayDebugLog.info(TAG, "Discovery stopped")
                 _isDiscovering.value = false
             }
 
             override fun onServiceFound(serviceInfo: NsdServiceInfo) {
                 Log.i(TAG, "Service found: ${serviceInfo.serviceName}")
+                AirPlayDebugLog.info(TAG, "Found: ${serviceInfo.serviceName}")
 
                 // Avoid duplicate resolutions
                 val key = serviceInfo.serviceName
@@ -94,11 +97,13 @@ class NsdDiscoveryManager(private val context: Context) {
 
             override fun onServiceLost(serviceInfo: NsdServiceInfo) {
                 Log.i(TAG, "Service lost: ${serviceInfo.serviceName}")
+                AirPlayDebugLog.info(TAG, "Lost: ${serviceInfo.serviceName}")
                 removeDevice(serviceInfo.serviceName)
             }
 
             override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
                 Log.e(TAG, "Discovery start failed: $errorCode")
+                AirPlayDebugLog.error(TAG, "Discovery start failed: error $errorCode")
                 _isDiscovering.value = false
                 releaseMulticastLock()
             }
@@ -148,6 +153,7 @@ class NsdDiscoveryManager(private val context: Context) {
         val resolveListener = object : NsdManager.ResolveListener {
             override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
                 Log.w(TAG, "Resolve failed for ${serviceInfo.serviceName}: error $errorCode")
+                AirPlayDebugLog.warn(TAG, "Resolve failed: ${serviceInfo.serviceName} (error $errorCode)")
                 synchronized(pendingResolutions) {
                     pendingResolutions.remove(serviceInfo.serviceName)
                 }
@@ -155,6 +161,7 @@ class NsdDiscoveryManager(private val context: Context) {
 
             override fun onServiceResolved(resolvedInfo: NsdServiceInfo) {
                 Log.i(TAG, "Service resolved: ${resolvedInfo.serviceName} at ${resolvedInfo.host}:${resolvedInfo.port}")
+                AirPlayDebugLog.info(TAG, "Resolved: ${resolvedInfo.serviceName} at ${resolvedInfo.host}:${resolvedInfo.port}")
 
                 synchronized(pendingResolutions) {
                     pendingResolutions.remove(resolvedInfo.serviceName)
@@ -165,6 +172,7 @@ class NsdDiscoveryManager(private val context: Context) {
                     addDevice(resolvedInfo, host)
                 } else {
                     Log.w(TAG, "Resolved service has no host: ${resolvedInfo.serviceName}")
+                    AirPlayDebugLog.warn(TAG, "No host for: ${resolvedInfo.serviceName}")
                 }
             }
         }
@@ -230,6 +238,7 @@ class NsdDiscoveryManager(private val context: Context) {
         )
 
         Log.i(TAG, "Adding device: $name at $address:$port (AirPlay 2: $supportsAirplay2)")
+        AirPlayDebugLog.info(TAG, "Added: $name ($address:$port) AirPlay2=$supportsAirplay2")
 
         _devices.value = _devices.value + (deviceId to device)
     }

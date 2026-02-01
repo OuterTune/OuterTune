@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -42,7 +43,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,6 +74,16 @@ fun AirPlayDialog(
     val connectedDeviceIds by AirPlayBridge.connectedDeviceIds.collectAsState()
     val connectingDeviceIds by AirPlayBridge.connectingDeviceIds.collectAsState()
     val failedDeviceIds by AirPlayBridge.failedDeviceIds.collectAsState()
+
+    // State for debug dialog
+    var showDebugDialog by remember { mutableStateOf(false) }
+
+    // Show debug dialog if requested
+    if (showDebugDialog) {
+        AirPlayDebugDialog(
+            onDismiss = { showDebugDialog = false }
+        )
+    }
 
     // Start discovery when dialog opens
     LaunchedEffect(Unit) {
@@ -152,6 +166,19 @@ fun AirPlayDialog(
                 ) {
                     Text(text = stringResource(R.string.airplay_disconnect))
                 }
+            }
+
+            // Debug log button
+            IconButton(
+                onClick = { showDebugDialog = true },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.BugReport,
+                    contentDescription = "Debug Log",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             TextButton(onClick = onDismiss) {

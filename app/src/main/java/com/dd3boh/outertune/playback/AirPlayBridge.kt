@@ -73,8 +73,10 @@ object AirPlayBridge {
             nativeLibLoaded = true
             nativeInit()
             Log.i(TAG, "AirPlay native library loaded successfully")
+            AirPlayDebugLog.info(TAG, "Native library loaded successfully")
         } catch (e: UnsatisfiedLinkError) {
             Log.e(TAG, "Failed to load AirPlay native library: ${e.message}")
+            AirPlayDebugLog.error(TAG, "Failed to load native library: ${e.message}")
             nativeLibLoaded = false
         }
     }
@@ -163,10 +165,12 @@ object AirPlayBridge {
                 val elapsed = currentTime - startTime
                 if (elapsed > CONNECTION_TIMEOUT_MS && !connectedIds.contains(deviceId)) {
                     Log.w(TAG, "Connection timeout for device: $deviceId")
+                    AirPlayDebugLog.error(TAG, "Connection timeout for $deviceId after ${elapsed}ms")
                     timedOutDevices.add(deviceId)
                     true
                 } else if (connectedIds.contains(deviceId)) {
                     // Successfully connected, remove from tracking and clear any failed state
+                    AirPlayDebugLog.info(TAG, "Device $deviceId connected successfully!")
                     _failedDeviceIds.value = _failedDeviceIds.value - deviceId
                     true
                 } else {
@@ -208,8 +212,11 @@ object AirPlayBridge {
     suspend fun connectDevice(device: AirPlayDevice): Boolean {
         if (!nativeLibLoaded) {
             Log.w(TAG, "Native library not loaded")
+            AirPlayDebugLog.warn(TAG, "Cannot connect - native library not loaded")
             return false
         }
+
+        AirPlayDebugLog.info(TAG, "Connecting to ${device.name} at ${device.address}:${device.port}")
 
         // Clear any previous failed status and mark as connecting
         _failedDeviceIds.value = _failedDeviceIds.value - device.id
@@ -226,9 +233,10 @@ object AirPlayBridge {
             )
             if (success) {
                 Log.i(TAG, "Connection initiated to ${device.name}")
-                // Will be confirmed via refreshConnectedDevices
+                AirPlayDebugLog.info(TAG, "Connection initiated to ${device.name} (waiting for RTSP handshake)")
             } else {
                 Log.e(TAG, "Failed to initiate connection to ${device.name}")
+                AirPlayDebugLog.error(TAG, "Failed to initiate connection to ${device.name}")
                 _connectingDeviceIds.value = _connectingDeviceIds.value - device.id
                 connectionStartTimes.remove(device.id)
             }
@@ -241,6 +249,7 @@ object AirPlayBridge {
      */
     fun disconnectDevice(deviceId: String) {
         if (!nativeLibLoaded) return
+        AirPlayDebugLog.info(TAG, "Disconnecting from device: $deviceId")
         nativeDisconnectDevice(deviceId)
         _connectedDeviceIds.value = _connectedDeviceIds.value - deviceId
         _connectingDeviceIds.value = _connectingDeviceIds.value - deviceId
@@ -285,11 +294,21 @@ object AirPlayBridge {
         return _connectingDeviceIds.value.contains(deviceId)
     }
 
+    // Counter for periodic audio logging
+    private var audioSendCounter = 0L
+
     /**
      * Send audio data to all connected AirPlay devices
      */
     fun sendAudio(audioData: ByteArray, sampleRate: Int, channels: Int): Boolean {
         if (!nativeLibLoaded || !_isConnected.value) return false
+
+        // Log first frame and every 500th frame (~4 seconds of audio)
+        if (audioSendCounter == 0L || audioSendCounter % 500 == 0L) {
+            AirPlayDebugLog.debug(TAG, "Audio frame #$audioSendCounter, ${audioData.size} bytes, rate=$sampleRate")
+        }
+        audioSendCounter++
+
         return nativeSendAudio(audioData, sampleRate, channels)
     }
 
