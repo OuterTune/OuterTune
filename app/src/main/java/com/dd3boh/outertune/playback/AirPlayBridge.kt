@@ -109,7 +109,7 @@ object AirPlayBridge {
 
             // Periodically poll connected devices from native
             pollingJob = scope.launch {
-                while (kotlinx.coroutines.isActive) {
+                while (isActive) {
                     delay(500)
                     refreshConnectedDevices()
                 }
