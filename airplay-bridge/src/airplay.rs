@@ -600,7 +600,15 @@ Session: {}\r\n\
     /// Send audio data to the AirPlay device
     async fn send_audio_internal(&mut self, pcm_data: &[u8], sample_rate: u32, channels: u32) -> Result<()> {
         if self.audio_socket.is_none() {
+            log::warn!("Audio socket not initialized for device: {}", self.device.name);
             return Err(anyhow!("Audio socket not initialized"));
+        }
+
+        // Log first packet and then every 100th packet
+        let seq = self.rtp_seq.load(Ordering::SeqCst);
+        if seq == 0 || seq % 100 == 0 {
+            log::info!("Sending audio to {} - seq: {}, pcm_len: {}, rate: {}",
+                self.device.name, seq, pcm_data.len(), sample_rate);
         }
 
         // Resample to 44100 Hz if needed
@@ -644,6 +652,12 @@ Session: {}\r\n\
             // Send via UDP
             let socket = self.audio_socket.as_ref().unwrap();
             socket.send(&rtp_packet).await?;
+
+            // Log first packet sent
+            if self.first_packet {
+                log::info!("First audio packet sent to {} (port {}), rtp_len: {}",
+                    self.device.name, self.server_audio_port, rtp_packet.len());
+            }
 
             // After first packet, clear first_packet flag
             self.first_packet = false;

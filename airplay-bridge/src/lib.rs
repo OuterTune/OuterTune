@@ -148,39 +148,37 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeCo
     // Create channel for audio commands
     let (audio_tx, audio_rx) = mpsc::channel::<AudioCommand>(100);
 
-    // Store session info immediately
-    {
-        match bridge.sessions.write() {
-            Ok(mut sessions) => {
-                sessions.insert(device_id.clone(), SessionInfo {
-                    device_id: device.id.clone(),
-                    device_name: device.name.clone(),
-                    audio_tx,
-                });
-            }
-            Err(e) => {
-                log::error!("Failed to acquire sessions lock: {}", e);
-                return JNI_FALSE;
-            }
-        }
-    }
-
     // Start session in background (non-blocking)
+    // IMPORTANT: Session is only added to map AFTER setup succeeds
+    // This prevents audio from being sent before the connection is ready
     let device_clone = device.clone();
     let bridge_clone = bridge.clone();
     let device_id_clone = device_id.clone();
+    let device_name_clone = device_name.clone();
 
     bridge.runtime.spawn(async move {
         match airplay::start_session(device_clone, audio_rx, bridge_clone.clone()).await {
             Ok(_) => {
-                log::info!("Session started for device: {}", device_id_clone);
+                log::info!("Session setup complete for device: {}", device_id_clone);
+
+                // NOW add to sessions map - connection is ready for audio
+                match bridge_clone.sessions.write() {
+                    Ok(mut sessions) => {
+                        sessions.insert(device_id_clone.clone(), SessionInfo {
+                            device_id: device_id_clone.clone(),
+                            device_name: device_name_clone,
+                            audio_tx,
+                        });
+                        log::info!("Session registered and ready for audio: {}", device_id_clone);
+                    }
+                    Err(e) => {
+                        log::error!("Failed to register session: {}", e);
+                    }
+                }
             }
             Err(e) => {
                 log::error!("Failed to start session for {}: {}", device_id_clone, e);
-                // Remove from sessions on failure
-                if let Ok(mut sessions) = bridge_clone.sessions.write() {
-                    sessions.remove(&device_id_clone);
-                }
+                // No need to remove from sessions - it was never added
             }
         }
     });
@@ -281,6 +279,9 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeIs
     JNI_FALSE
 }
 
+/// Counter for logging audio sends periodically
+static AUDIO_SEND_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 /// Send audio data to ALL connected AirPlay devices
 /// audio_data: PCM audio samples (16-bit signed, stereo)
 #[no_mangle]
@@ -314,6 +315,13 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSe
         return JNI_FALSE;
     }
 
+    // Log periodically to show audio is flowing
+    let count = AUDIO_SEND_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    if count == 0 || count % 500 == 0 {
+        log::info!("nativeSendAudio: frame #{}, {} sessions, {} bytes",
+            count, sessions.len(), data.len());
+    }
+
     let mut sent_any = false;
     for (device_id, info) in sessions.iter() {
         let cmd = AudioCommand::SendAudio {
@@ -327,7 +335,8 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSe
                 sent_any = true;
             }
             Err(e) => {
-                log::warn!("Failed to send audio to {}: {}", device_id, e);
+                // Log channel full errors - indicates audio is being sent faster than processed
+                log::warn!("Failed to queue audio for {}: {} (channel may be full)", device_id, e);
             }
         }
     }
