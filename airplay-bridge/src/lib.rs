@@ -151,32 +151,45 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeGe
     env.new_string(&json).unwrap()
 }
 
-/// Connect to an AirPlay device
+/// Connect to an AirPlay device with device info passed from Kotlin
+/// (Discovery is handled by Android NSD, so we receive device info directly)
 #[no_mangle]
-pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeConnect(
+pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeConnectWithInfo(
     mut env: JNIEnv,
     _class: JClass,
     device_id: JString,
+    device_name: JString,
+    address: JString,
+    port: jint,
+    supports_airplay2: jboolean,
 ) -> jboolean {
     let device_id: String = match env.get_string(&device_id) {
         Ok(s) => s.into(),
         Err(_) => return JNI_FALSE,
     };
+    let device_name: String = match env.get_string(&device_name) {
+        Ok(s) => s.into(),
+        Err(_) => return JNI_FALSE,
+    };
+    let address: String = match env.get_string(&address) {
+        Ok(s) => s.into(),
+        Err(_) => return JNI_FALSE,
+    };
 
-    log::info!("Connecting to AirPlay device: {}", device_id);
+    log::info!("Connecting to AirPlay device: {} at {}:{}", device_name, address, port);
 
     let bridge = AirPlayBridge::get();
 
-    // Get device info
-    let device = {
-        let devices = bridge.devices.read().unwrap();
-        match devices.get(&device_id) {
-            Some(d) => d.clone(),
-            None => {
-                log::error!("Device not found: {}", device_id);
-                return JNI_FALSE;
-            }
-        }
+    // Create device from passed parameters
+    let device = discovery::AirPlayDevice {
+        id: device_id.clone(),
+        name: device_name.clone(),
+        address,
+        port: port as u16,
+        model: None,
+        features: None,
+        supports_airplay2: supports_airplay2 == JNI_TRUE,
+        flags: None,
     };
 
     // Create channel for audio commands
@@ -184,12 +197,19 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeCo
 
     // Store session info
     {
-        let mut session_info = bridge.session_info.write().unwrap();
-        *session_info = Some(SessionInfo {
-            device_id: device.id.clone(),
-            device_name: device.name.clone(),
-            audio_tx,
-        });
+        match bridge.session_info.write() {
+            Ok(mut session_info) => {
+                *session_info = Some(SessionInfo {
+                    device_id: device.id.clone(),
+                    device_name: device.name.clone(),
+                    audio_tx,
+                });
+            }
+            Err(e) => {
+                log::error!("Failed to acquire session lock: {}", e);
+                return JNI_FALSE;
+            }
+        }
     }
 
     // Start session in background

@@ -7,19 +7,20 @@
 package com.dd3boh.outertune.playback
 
 import android.content.Context
-import android.net.wifi.WifiManager
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 /**
  * Bridge to the native AirPlay 2 library.
- * Provides device discovery, connection management, and audio streaming to AirPlay devices.
+ * Provides device discovery (via Android NSD), connection management, and audio streaming to AirPlay devices.
  */
 object AirPlayBridge {
     private const val TAG = "AirPlayBridge"
@@ -27,9 +28,9 @@ object AirPlayBridge {
     // Native library loaded state
     private var nativeLibLoaded = false
 
-    // Multicast lock for mDNS discovery (Android filters multicast by default)
-    private var multicastLock: WifiManager.MulticastLock? = null
-    private var wifiManager: WifiManager? = null
+    // Android NSD-based discovery manager (more reliable on Android than native mDNS)
+    private var nsdDiscoveryManager: NsdDiscoveryManager? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     // Connection state
     private val _isConnected = MutableStateFlow(false)
@@ -66,64 +67,41 @@ object AirPlayBridge {
 
     /**
      * Initialize the AirPlay bridge with application context.
-     * Must be called before starting discovery to enable multicast reception.
+     * Must be called before starting discovery.
      */
     fun initialize(context: Context) {
-        try {
-            wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-            Log.i(TAG, "AirPlayBridge initialized with context")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get WifiManager: ${e.message}")
-        }
-    }
+        if (nsdDiscoveryManager == null) {
+            nsdDiscoveryManager = NsdDiscoveryManager(context)
+            Log.i(TAG, "AirPlayBridge initialized with NSD discovery manager")
 
-    /**
-     * Acquire multicast lock to receive mDNS packets.
-     * Android filters out multicast by default to save battery.
-     */
-    private fun acquireMulticastLock() {
-        if (multicastLock?.isHeld == true) return
-
-        try {
-            multicastLock = wifiManager?.createMulticastLock("AirPlayDiscovery")?.apply {
-                setReferenceCounted(true)
-                acquire()
+            // Observe NSD discovery state
+            scope.launch {
+                nsdDiscoveryManager?.isDiscovering?.collect { discovering ->
+                    _isDiscovering.value = discovering
+                }
             }
-            Log.i(TAG, "Multicast lock acquired")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to acquire multicast lock: ${e.message}")
-        }
-    }
 
-    /**
-     * Release multicast lock when discovery stops.
-     */
-    private fun releaseMulticastLock() {
-        try {
-            if (multicastLock?.isHeld == true) {
-                multicastLock?.release()
-                Log.i(TAG, "Multicast lock released")
+            // Observe discovered devices from NSD
+            scope.launch {
+                nsdDiscoveryManager?.devices?.collect { deviceMap ->
+                    _devices.value = deviceMap.values.toList()
+                    Log.d(TAG, "Devices updated: ${deviceMap.size} found")
+                }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to release multicast lock: ${e.message}")
         }
-        multicastLock = null
     }
 
     /**
-     * Start discovering AirPlay devices on the network
+     * Start discovering AirPlay devices on the network using Android NSD
      */
     suspend fun startDiscovery() {
-        if (!nativeLibLoaded) {
-            Log.w(TAG, "Native library not loaded, cannot start discovery")
+        if (nsdDiscoveryManager == null) {
+            Log.w(TAG, "NSD discovery manager not initialized. Call initialize() first.")
             return
         }
 
-        withContext(Dispatchers.IO) {
-            // Acquire multicast lock before discovery
-            acquireMulticastLock()
-            _isDiscovering.value = true
-            nativeStartDiscovery()
+        withContext(Dispatchers.Main) {
+            nsdDiscoveryManager?.startDiscovery()
         }
     }
 
@@ -131,28 +109,16 @@ object AirPlayBridge {
      * Stop device discovery
      */
     fun stopDiscovery() {
-        if (!nativeLibLoaded) return
-
-        _isDiscovering.value = false
-        nativeStopDiscovery()
-        releaseMulticastLock()
+        nsdDiscoveryManager?.stopDiscovery()
     }
 
     /**
-     * Refresh the list of discovered devices
+     * Refresh the list of discovered devices (no-op for NSD, devices are updated automatically)
      */
     suspend fun refreshDevices() {
-        if (!nativeLibLoaded) return
-
-        withContext(Dispatchers.IO) {
-            val devicesJson = nativeGetDevices()
-            try {
-                val deviceList = Json.decodeFromString<List<AirPlayDevice>>(devicesJson)
-                _devices.value = deviceList
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to parse devices JSON: ${e.message}")
-            }
-        }
+        // NSD automatically updates devices via flow, no manual refresh needed
+        // But we can log the current state for debugging
+        Log.d(TAG, "Current devices: ${_devices.value.size}")
     }
 
     /**
@@ -165,7 +131,14 @@ object AirPlayBridge {
         }
 
         return withContext(Dispatchers.IO) {
-            val success = nativeConnect(device.id)
+            // Pass device info to native layer for connection
+            val success = nativeConnectWithInfo(
+                device.id,
+                device.name,
+                device.address,
+                device.port,
+                device.supports_airplay2
+            )
             if (success) {
                 _isConnected.value = true
                 _connectedDevice.value = device
@@ -215,20 +188,25 @@ object AirPlayBridge {
      * Cleanup resources
      */
     fun destroy() {
-        if (!nativeLibLoaded) return
-
         stopDiscovery()
-        disconnect()
-        releaseMulticastLock()
-        nativeDestroy()
+        nsdDiscoveryManager?.destroy()
+        nsdDiscoveryManager = null
+
+        if (nativeLibLoaded) {
+            disconnect()
+            nativeDestroy()
+        }
     }
 
-    // Native methods
+    // Native methods - discovery is handled by Android NSD, native is only for connection/streaming
     private external fun nativeInit(): Boolean
-    private external fun nativeStartDiscovery(): Boolean
-    private external fun nativeStopDiscovery()
-    private external fun nativeGetDevices(): String
-    private external fun nativeConnect(deviceId: String): Boolean
+    private external fun nativeConnectWithInfo(
+        deviceId: String,
+        deviceName: String,
+        address: String,
+        port: Int,
+        supportsAirplay2: Boolean
+    ): Boolean
     private external fun nativeDisconnect()
     private external fun nativeIsConnected(): Boolean
     private external fun nativeSendAudio(audioData: ByteArray, sampleRate: Int, channels: Int): Boolean
