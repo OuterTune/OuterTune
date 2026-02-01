@@ -45,6 +45,8 @@ pub struct AirPlaySession {
     rtp_seq: AtomicU16,
     /// RTP timestamp
     rtp_timestamp: AtomicU32,
+    /// RTP SSRC (randomly generated per session)
+    ssrc: u32,
     /// Audio encoder
     audio_encoder: AudioEncoder,
     /// Audio data socket
@@ -61,6 +63,8 @@ pub struct AirPlaySession {
     nonce_counter: AtomicU64,
     /// Whether this is the first RTP packet (for marker bit)
     first_packet: bool,
+    /// Last time we sent a keepalive
+    last_keepalive: std::time::Instant,
 }
 
 impl AirPlaySession {
@@ -80,12 +84,17 @@ impl AirPlaySession {
 
         log::info!("TCP connection established");
 
+        // Generate random SSRC for this session
+        let ssrc: u32 = rand::random();
+        log::debug!("Generated SSRC: {:#010x}", ssrc);
+
         Ok(Self {
             device,
             connection,
             cseq: AtomicU32::new(0),
             rtp_seq: AtomicU16::new(0),
             rtp_timestamp: AtomicU32::new(0),
+            ssrc,
             audio_encoder: AudioEncoder::new(),
             audio_socket: None,
             server_audio_port: 6000,
@@ -94,6 +103,7 @@ impl AirPlaySession {
             encryption_key: None,
             nonce_counter: AtomicU64::new(0),
             first_packet: true,
+            last_keepalive: std::time::Instant::now(),
         })
     }
 
@@ -124,21 +134,47 @@ impl AirPlaySession {
     pub async fn run(&mut self, mut cmd_rx: mpsc::Receiver<AudioCommand>) -> Result<()> {
         log::info!("Session running, waiting for commands");
 
-        while let Some(cmd) = cmd_rx.recv().await {
-            match cmd {
-                AudioCommand::SendAudio { data, sample_rate, channels } => {
-                    if let Err(e) = self.send_audio_internal(&data, sample_rate, channels).await {
-                        log::warn!("Failed to send audio: {}", e);
+        // Keepalive interval (15 seconds)
+        const KEEPALIVE_INTERVAL: std::time::Duration = std::time::Duration::from_secs(15);
+
+        loop {
+            // Use timeout to allow periodic keepalive checks
+            match tokio::time::timeout(std::time::Duration::from_secs(1), cmd_rx.recv()).await {
+                Ok(Some(cmd)) => {
+                    match cmd {
+                        AudioCommand::SendAudio { data, sample_rate, channels } => {
+                            if let Err(e) = self.send_audio_internal(&data, sample_rate, channels).await {
+                                log::warn!("Failed to send audio: {}", e);
+                            }
+                            // Reset keepalive timer on audio activity
+                            self.last_keepalive = std::time::Instant::now();
+                        }
+                        AudioCommand::SetVolume(vol) => {
+                            if let Err(e) = self.set_volume_internal(vol).await {
+                                log::warn!("Failed to set volume: {}", e);
+                            }
+                            self.last_keepalive = std::time::Instant::now();
+                        }
+                        AudioCommand::Disconnect => {
+                            log::info!("Disconnect command received");
+                            break;
+                        }
                     }
                 }
-                AudioCommand::SetVolume(vol) => {
-                    if let Err(e) = self.set_volume_internal(vol).await {
-                        log::warn!("Failed to set volume: {}", e);
-                    }
-                }
-                AudioCommand::Disconnect => {
-                    log::info!("Disconnect command received");
+                Ok(None) => {
+                    // Channel closed
+                    log::info!("Command channel closed");
                     break;
+                }
+                Err(_) => {
+                    // Timeout - check if we need to send keepalive
+                    if self.last_keepalive.elapsed() >= KEEPALIVE_INTERVAL {
+                        if let Err(e) = self.send_keepalive().await {
+                            log::warn!("Keepalive failed: {}", e);
+                            // Don't break on keepalive failure, connection might recover
+                        }
+                        self.last_keepalive = std::time::Instant::now();
+                    }
                 }
             }
         }
@@ -147,6 +183,44 @@ impl AirPlaySession {
         let _ = self.rtsp_teardown().await;
 
         log::info!("Session ended");
+        Ok(())
+    }
+
+    /// Send a keepalive OPTIONS request to maintain the connection
+    async fn send_keepalive(&mut self) -> Result<()> {
+        log::debug!("Sending keepalive");
+
+        let cseq = self.next_cseq();
+        let request = format!(
+            "OPTIONS * RTSP/1.0\r\n\
+             CSeq: {}\r\n\
+             User-Agent: OuterTune/1.0\r\n\
+             \r\n",
+            cseq
+        );
+
+        self.send_rtsp(&request).await?;
+
+        // Try to read response with timeout
+        match tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            self.recv_rtsp_response()
+        ).await {
+            Ok(Ok(response)) => {
+                if response.status_line.contains("200") {
+                    log::debug!("Keepalive successful");
+                } else {
+                    log::warn!("Keepalive response: {}", response.status_line);
+                }
+            }
+            Ok(Err(e)) => {
+                log::warn!("Keepalive read error: {}", e);
+            }
+            Err(_) => {
+                log::warn!("Keepalive response timeout");
+            }
+        }
+
         Ok(())
     }
 
@@ -555,8 +629,11 @@ impl AirPlaySession {
         packet.push((timestamp >> 8) as u8);
         packet.push((timestamp & 0xFF) as u8);
 
-        // SSRC (32 bits) - use a fixed value
-        packet.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
+        // SSRC (32 bits, big-endian) - randomly generated per session
+        packet.push((self.ssrc >> 24) as u8);
+        packet.push((self.ssrc >> 16) as u8);
+        packet.push((self.ssrc >> 8) as u8);
+        packet.push((self.ssrc & 0xFF) as u8);
 
         // Payload
         packet.extend_from_slice(payload);

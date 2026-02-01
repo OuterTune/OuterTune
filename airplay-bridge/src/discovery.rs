@@ -127,42 +127,76 @@ pub async fn discover_devices(bridge: Arc<AirPlayBridge>) {
 
     log::info!("Browsing for {} services", AIRPLAY_SERVICE_TYPE);
 
-    // Process events in a loop
+    // Create a channel to receive events from the blocking thread
+    let (event_tx, mut event_rx) = tokio::sync::mpsc::channel::<ServiceEvent>(32);
+    let bridge_for_thread = bridge.clone();
+
+    // Spawn a dedicated thread for mDNS event reception (more efficient than spawn_blocking per event)
+    let receiver_handle = std::thread::spawn(move || {
+        loop {
+            // Check if we should stop
+            let should_stop = match bridge_for_thread.discovery_running.read() {
+                Ok(r) => !*r,
+                Err(_) => true,
+            };
+            if should_stop {
+                break;
+            }
+
+            // Receive with timeout
+            match receiver.recv_timeout(Duration::from_millis(500)) {
+                Ok(event) => {
+                    if event_tx.blocking_send(event).is_err() {
+                        // Channel closed, stop
+                        break;
+                    }
+                }
+                Err(RecvTimeoutError::Timeout) => {
+                    // Continue
+                }
+                Err(e) => {
+                    log::warn!("mDNS receive error: {}", e);
+                    break;
+                }
+            }
+        }
+    });
+
+    // Process events asynchronously
     loop {
         // Check if we should stop
         {
-            let running = bridge.discovery_running.read().unwrap();
-            if !*running {
+            let running = match bridge.discovery_running.read() {
+                Ok(r) => *r,
+                Err(e) => {
+                    log::warn!("Discovery lock poisoned, stopping: {}", e);
+                    false
+                }
+            };
+            if !running {
                 log::info!("Discovery stopped by user");
                 break;
             }
         }
 
-        // Use tokio's spawn_blocking for the synchronous recv with timeout
-        let recv_result = tokio::task::spawn_blocking({
-            let receiver = receiver.clone();
-            move || {
-                receiver.recv_timeout(Duration::from_millis(500))
-            }
-        }).await;
-
-        match recv_result {
-            Ok(Ok(event)) => {
+        // Receive events with timeout
+        match tokio::time::timeout(Duration::from_millis(500), event_rx.recv()).await {
+            Ok(Some(event)) => {
                 handle_service_event(&bridge, event);
             }
-            Ok(Err(RecvTimeoutError::Timeout)) => {
-                // Timeout, continue loop
-            }
-            Ok(Err(e)) => {
-                log::warn!("Error receiving mDNS event: {}", e);
+            Ok(None) => {
+                // Channel closed
                 break;
             }
-            Err(e) => {
-                log::error!("Task join error: {}", e);
-                break;
+            Err(_) => {
+                // Timeout, continue
             }
         }
     }
+
+    // Signal the receiver thread to stop (it checks discovery_running)
+    // and wait for it to finish
+    let _ = receiver_handle.join();
 
     // Stop browsing
     if let Err(e) = mdns.stop_browse(AIRPLAY_SERVICE_TYPE) {
