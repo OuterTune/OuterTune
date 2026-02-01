@@ -35,6 +35,7 @@ chacha20poly1305 = "0.10"
 sha2 = "0.10"
 hkdf = "0.12"
 srp = "0.6"
+rand = "0.8"
 
 # Audio encoding
 alac-encoder = "0.3"

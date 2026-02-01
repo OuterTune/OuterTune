@@ -264,8 +264,15 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSe
 
     let bridge = AirPlayBridge::get();
 
-    // Get the audio sender channel
-    let session_info = bridge.session_info.read().unwrap();
+    // Get the audio sender channel with proper error handling
+    let session_info = match bridge.session_info.read() {
+        Ok(info) => info,
+        Err(e) => {
+            log::error!("Failed to read session info: {}", e);
+            return JNI_FALSE;
+        }
+    };
+
     if let Some(ref info) = *session_info {
         let cmd = AudioCommand::SendAudio {
             data,
@@ -298,8 +305,15 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSe
 
     let bridge = AirPlayBridge::get();
 
-    // Get the audio sender channel
-    let session_info = bridge.session_info.read().unwrap();
+    // Get the audio sender channel with proper error handling
+    let session_info = match bridge.session_info.read() {
+        Ok(info) => info,
+        Err(e) => {
+            log::error!("Failed to read session info: {}", e);
+            return JNI_FALSE;
+        }
+    };
+
     if let Some(ref info) = *session_info {
         let cmd = AudioCommand::SetVolume(volume_float);
 

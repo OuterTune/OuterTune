@@ -211,9 +211,18 @@ fn handle_service_event(bridge: &Arc<AirPlayBridge>, event: ServiceEvent) {
         ServiceEvent::ServiceRemoved(_, fullname) => {
             log::info!("AirPlay device removed: {}", fullname);
 
-            // Remove from device list
+            // Remove from device list - compare by name (fullname from mDNS)
             if let Ok(mut devices) = bridge.devices.write() {
-                devices.retain(|_, d| d.name != fullname);
+                // Find and remove the device with matching name
+                let key_to_remove: Option<String> = devices
+                    .iter()
+                    .find(|(_, d)| d.name == fullname)
+                    .map(|(k, _)| k.clone());
+
+                if let Some(key) = key_to_remove {
+                    devices.remove(&key);
+                    log::info!("Removed device with id: {}", key);
+                }
             }
         }
         ServiceEvent::SearchStarted(_) => {

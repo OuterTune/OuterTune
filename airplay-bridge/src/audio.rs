@@ -10,6 +10,9 @@ use std::sync::Mutex;
 /// Standard AirPlay frame size (352 samples)
 pub const SAMPLES_PER_FRAME: usize = 352;
 
+/// Standard AirPlay sample rate
+pub const AIRPLAY_SAMPLE_RATE: u32 = 44100;
+
 /// Audio encoder for AirPlay streaming using ALAC
 pub struct AudioEncoder {
     /// Sample rate (default 44100)
@@ -22,8 +25,8 @@ pub struct AudioEncoder {
     frame_count: u64,
     /// ALAC encoder instance (wrapped in Mutex for interior mutability)
     alac: Mutex<AlacEncoder>,
-    /// Format description for encoding
-    format: FormatDescription,
+    /// PCM input format description (for encode() calls)
+    pcm_format: FormatDescription,
     /// Output buffer for encoded data
     output_buffer: Vec<u8>,
 }
@@ -36,10 +39,19 @@ impl AudioEncoder {
 
     /// Create a new audio encoder with specified configuration
     pub fn with_config(sample_rate: u32, channels: u32, bits_per_sample: u32) -> Self {
-        // Create format description for ALAC encoder
-        // pcm::<i16> creates a format for 16-bit signed PCM
-        let format = FormatDescription::pcm::<i16>(sample_rate as f64, channels as u32);
-        let alac = AlacEncoder::new(&format);
+        // Create ALAC output format description for the encoder
+        // AlacEncoder::new() expects the OUTPUT format (AppleLossless)
+        // alac(sample_rate, frames_per_packet, channels)
+        let alac_format = FormatDescription::alac(
+            sample_rate as f64,
+            SAMPLES_PER_FRAME as u32,
+            channels,
+        );
+
+        // Create PCM input format description for encode() calls
+        let pcm_format = FormatDescription::pcm::<i16>(sample_rate as f64, channels);
+
+        let alac = AlacEncoder::new(&alac_format);
 
         Self {
             sample_rate,
@@ -47,7 +59,7 @@ impl AudioEncoder {
             bits_per_sample,
             frame_count: 0,
             alac: Mutex::new(alac),
-            format,
+            pcm_format,
             output_buffer: Vec::with_capacity(SAMPLES_PER_FRAME * channels as usize * 2 + 64),
         }
     }
@@ -56,7 +68,7 @@ impl AudioEncoder {
     ///
     /// # Arguments
     /// * `pcm_data` - Raw PCM audio data (16-bit signed, little-endian, interleaved stereo)
-    /// * `sample_rate` - Sample rate in Hz
+    /// * `_sample_rate` - Sample rate in Hz (should match encoder config)
     /// * `channels` - Number of audio channels
     ///
     /// # Returns
@@ -84,7 +96,7 @@ impl AudioEncoder {
         self.output_buffer.clear();
         self.output_buffer.resize(bytes_per_frame + 64, 0);
 
-        let encoded_len = alac.encode(&self.format, frame_data, &mut self.output_buffer);
+        let encoded_len = alac.encode(&self.pcm_format, frame_data, &mut self.output_buffer);
         self.output_buffer.truncate(encoded_len);
 
         Ok(self.output_buffer.clone())
@@ -212,7 +224,7 @@ pub fn resample_pcm(
 
 /// Resample audio to 44100 Hz if needed (standard AirPlay sample rate)
 pub fn ensure_44100(input: &[u8], input_rate: u32, channels: u32) -> Vec<u8> {
-    resample_pcm(input, input_rate, 44100, channels)
+    resample_pcm(input, input_rate, AIRPLAY_SAMPLE_RATE, channels)
 }
 
 #[cfg(test)]
