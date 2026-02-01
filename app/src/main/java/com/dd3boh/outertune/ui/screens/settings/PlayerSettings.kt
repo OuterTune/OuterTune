@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.AudioFile
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.NoCell
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,6 +29,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -35,6 +40,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.navigation.NavController
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AudioDecoderKey
+import com.dd3boh.outertune.constants.AudioNormalizationTargetKey
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
@@ -42,10 +48,12 @@ import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
 import com.dd3boh.outertune.ui.component.ListPreference
+import com.dd3boh.outertune.ui.component.PreferenceEntry
 import com.dd3boh.outertune.ui.component.PreferenceGroupTitle
 import com.dd3boh.outertune.ui.component.SettingsClickToReveal
 import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.component.button.IconButton
+import com.dd3boh.outertune.ui.dialog.CounterDialog
 import com.dd3boh.outertune.ui.dialog.InfoLabel
 import com.dd3boh.outertune.ui.screens.settings.fragments.AudioEffectsFrag
 import com.dd3boh.outertune.ui.screens.settings.fragments.AudioQualityFrag
@@ -166,6 +174,48 @@ fun PlayerSettings(
                     }
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                val (audioNormalizationTarget, onAudioNormalizationTargetChange) = rememberPreference(
+                    key = AudioNormalizationTargetKey,
+                    defaultValue = 0
+                )
+                var showAudioNormalizationTargetDialog by remember {
+                    mutableStateOf(false)
+                }
+
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.audio_normalization_target)) },
+                    description = stringResource(R.string.audio_normalization_target_desc),
+                    icon = { Icon(Icons.Rounded.GraphicEq, null) },
+                    trailingContent = { Text("${audioNormalizationTarget} LUFS") },
+                    onClick = { showAudioNormalizationTargetDialog = true }
+                )
+
+                if (showAudioNormalizationTargetDialog) {
+                    CounterDialog(
+                        title = stringResource(R.string.audio_normalization_target),
+                        description = stringResource(R.string.audio_normalization_target_desc),
+                        initialValue = audioNormalizationTarget,
+                        upperBound = 0,
+                        lowerBound = -40,
+                        unitDisplay = "LUFS",
+                        onDismiss = { showAudioNormalizationTargetDialog = false },
+                        onConfirm = {
+                            showAudioNormalizationTargetDialog = false
+                            onAudioNormalizationTargetChange(it)
+                        },
+                        onCancel = {
+                            showAudioNormalizationTargetDialog = false
+                        }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
         Spacer(Modifier.height(96.dp))
     }

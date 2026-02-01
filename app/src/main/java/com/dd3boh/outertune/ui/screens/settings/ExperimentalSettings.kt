@@ -70,6 +70,7 @@ import com.dd3boh.outertune.constants.DevSettingsKey
 import com.dd3boh.outertune.constants.MaxQueuesKey
 import com.dd3boh.outertune.constants.OobeStatusKey
 import com.dd3boh.outertune.constants.TabletUiKey
+import com.dd3boh.outertune.constants.InvertNormalizeKey
 import com.dd3boh.outertune.constants.TopBarInsets
 import com.dd3boh.outertune.constants.VisitorDataKey
 import com.dd3boh.outertune.ui.component.ColumnWithContentPadding
@@ -107,6 +108,7 @@ fun ExperimentalSettings(
     val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffloadKey, defaultValue = false)
     val (maxQueues, onMaxQueuesChange) = rememberPreference(MaxQueuesKey, defaultValue = 19)
     val (tabletUi, onTabletUiChange) = rememberPreference(TabletUiKey, defaultValue = false)
+    val (invertNormalize, onInvertNormalizeChange) = rememberPreference(key = InvertNormalizeKey, defaultValue = false)
 
     val (devSettings, onDevSettingsChange) = rememberPreference(DevSettingsKey, defaultValue = false)
     val (oobeStatus, onOobeStatusChange) = rememberPreference(OobeStatusKey, defaultValue = 0)
@@ -134,6 +136,15 @@ fun ExperimentalSettings(
             checked = tabletUi,
             onCheckedChange = onTabletUiChange
         )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.invert_audio_normalization)) },
+            description = stringResource(R.string.invert_audio_normalization_desc),
+            icon = { Icon(Icons.Rounded.Bolt, null) },
+            checked = invertNormalize,
+            onCheckedChange = onInvertNormalizeChange
+        )
+
         PreferenceEntry(
             title = { Text(stringResource(R.string.max_queues_title)) },
             icon = { Icon(Icons.Rounded.Queue, null) },
