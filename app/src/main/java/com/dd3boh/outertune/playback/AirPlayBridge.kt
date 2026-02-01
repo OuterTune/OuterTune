@@ -108,8 +108,10 @@ object AirPlayBridge {
             }
 
             // Periodically poll connected devices from native
+            // Note: delay() is a cancellation point, so when pollingJob.cancel() is called,
+            // the coroutine will exit naturally via CancellationException
             pollingJob = scope.launch {
-                while (isActive) {
+                while (true) {
                     delay(500)
                     refreshConnectedDevices()
                 }
