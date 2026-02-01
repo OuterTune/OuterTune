@@ -1,7 +1,7 @@
 //! AirPlay 2 Bridge for OuterTune
 //!
 //! This library provides JNI bindings for AirPlay 2 audio streaming functionality.
-//! It handles device discovery via mDNS, HomeKit pairing, and audio streaming.
+//! Supports multi-device streaming to multiple AirPlay speakers simultaneously.
 
 use jni::JNIEnv;
 use jni::objects::{JClass, JString, JByteArray};
@@ -14,7 +14,7 @@ mod discovery;
 mod airplay;
 mod audio;
 
-use discovery::AirPlayDevice;
+pub use discovery::AirPlayDevice;
 use airplay::AudioCommand;
 
 /// Global state for the AirPlay bridge
@@ -24,15 +24,15 @@ static BRIDGE: OnceLock<Arc<AirPlayBridge>> = OnceLock::new();
 pub struct AirPlayBridge {
     /// Discovered AirPlay devices
     pub devices: RwLock<HashMap<String, AirPlayDevice>>,
-    /// Active session info
-    pub session_info: RwLock<Option<SessionInfo>>,
+    /// Active sessions (device_id -> session info) - supports multiple concurrent connections
+    pub sessions: RwLock<HashMap<String, SessionInfo>>,
     /// Tokio runtime for async operations
     pub runtime: tokio::runtime::Runtime,
     /// Flag indicating if discovery is running
     pub discovery_running: RwLock<bool>,
 }
 
-/// Info about the active session
+/// Info about an active session
 pub struct SessionInfo {
     pub device_id: String,
     pub device_name: String,
@@ -43,14 +43,14 @@ pub struct SessionInfo {
 impl AirPlayBridge {
     fn new() -> Self {
         let runtime = tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(2)
+            .worker_threads(4)
             .enable_all()
             .build()
             .expect("Failed to create Tokio runtime");
 
         Self {
             devices: RwLock::new(HashMap::new()),
-            session_info: RwLock::new(None),
+            sessions: RwLock::new(HashMap::new()),
             runtime,
             discovery_running: RwLock::new(false),
         }
@@ -61,7 +61,13 @@ impl AirPlayBridge {
     }
 
     pub fn is_connected(&self) -> bool {
-        self.session_info.read().map(|s| s.is_some()).unwrap_or(false)
+        self.sessions.read().map(|s| !s.is_empty()).unwrap_or(false)
+    }
+
+    pub fn connected_device_ids(&self) -> Vec<String> {
+        self.sessions.read()
+            .map(|s| s.keys().cloned().collect())
+            .unwrap_or_default()
     }
 }
 
@@ -79,7 +85,7 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeIn
             .with_tag("AirPlayBridge"),
     );
 
-    log::info!("Initializing AirPlay Bridge");
+    log::info!("Initializing AirPlay Bridge (multi-device support)");
 
     // Initialize the bridge
     let _ = AirPlayBridge::get();
@@ -87,72 +93,9 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeIn
     JNI_TRUE
 }
 
-/// Start device discovery
-#[no_mangle]
-pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeStartDiscovery(
-    _env: JNIEnv,
-    _class: JClass,
-) -> jboolean {
-    log::info!("Starting AirPlay device discovery");
-
-    let bridge = AirPlayBridge::get();
-
-    // Check if already running
-    {
-        let running = bridge.discovery_running.read().unwrap();
-        if *running {
-            log::warn!("Discovery already running");
-            return JNI_TRUE;
-        }
-    }
-
-    // Set running flag
-    {
-        let mut running = bridge.discovery_running.write().unwrap();
-        *running = true;
-    }
-
-    let bridge_clone = bridge.clone();
-    bridge.runtime.spawn(async move {
-        discovery::discover_devices(bridge_clone).await;
-    });
-
-    JNI_TRUE
-}
-
-/// Stop device discovery
-#[no_mangle]
-pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeStopDiscovery(
-    _env: JNIEnv,
-    _class: JClass,
-) {
-    log::info!("Stopping AirPlay device discovery");
-
-    let bridge = AirPlayBridge::get();
-    if let Ok(mut running) = bridge.discovery_running.write() {
-        *running = false;
-    };
-}
-
-/// Get discovered devices as JSON array
-#[no_mangle]
-pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeGetDevices<'a>(
-    env: JNIEnv<'a>,
-    _class: JClass,
-) -> JString<'a> {
-    let bridge = AirPlayBridge::get();
-
-    let json = {
-        let devices = bridge.devices.read().unwrap();
-        let device_list: Vec<&AirPlayDevice> = devices.values().collect();
-        serde_json::to_string(&device_list).unwrap_or_else(|_| "[]".to_string())
-    };
-
-    env.new_string(&json).unwrap()
-}
-
 /// Connect to an AirPlay device with device info passed from Kotlin
 /// (Discovery is handled by Android NSD, so we receive device info directly)
+/// Returns immediately and connects in background
 #[no_mangle]
 pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeConnectWithInfo(
     mut env: JNIEnv,
@@ -180,8 +123,18 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeCo
 
     let bridge = AirPlayBridge::get();
 
+    // Check if already connected to this device
+    {
+        if let Ok(sessions) = bridge.sessions.read() {
+            if sessions.contains_key(&device_id) {
+                log::warn!("Already connected to device: {}", device_id);
+                return JNI_TRUE;
+            }
+        }
+    }
+
     // Create device from passed parameters
-    let device = discovery::AirPlayDevice {
+    let device = AirPlayDevice {
         id: device_id.clone(),
         name: device_name.clone(),
         address,
@@ -195,66 +148,107 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeCo
     // Create channel for audio commands
     let (audio_tx, audio_rx) = mpsc::channel::<AudioCommand>(100);
 
-    // Store session info
+    // Store session info immediately
     {
-        match bridge.session_info.write() {
-            Ok(mut session_info) => {
-                *session_info = Some(SessionInfo {
+        match bridge.sessions.write() {
+            Ok(mut sessions) => {
+                sessions.insert(device_id.clone(), SessionInfo {
                     device_id: device.id.clone(),
                     device_name: device.name.clone(),
                     audio_tx,
                 });
             }
             Err(e) => {
-                log::error!("Failed to acquire session lock: {}", e);
+                log::error!("Failed to acquire sessions lock: {}", e);
                 return JNI_FALSE;
             }
         }
     }
 
-    // Start session in background
+    // Start session in background (non-blocking)
     let device_clone = device.clone();
     let bridge_clone = bridge.clone();
+    let device_id_clone = device_id.clone();
 
-    let result = bridge.runtime.block_on(async {
-        airplay::start_session(device_clone, audio_rx, bridge_clone).await
+    bridge.runtime.spawn(async move {
+        match airplay::start_session(device_clone, audio_rx, bridge_clone.clone()).await {
+            Ok(_) => {
+                log::info!("Session started for device: {}", device_id_clone);
+            }
+            Err(e) => {
+                log::error!("Failed to start session for {}: {}", device_id_clone, e);
+                // Remove from sessions on failure
+                if let Ok(mut sessions) = bridge_clone.sessions.write() {
+                    sessions.remove(&device_id_clone);
+                }
+            }
+        }
     });
 
-    match result {
-        Ok(_) => {
-            log::info!("Connected to {}", device.name);
-            JNI_TRUE
-        }
-        Err(e) => {
-            log::error!("Failed to connect: {}", e);
-            // Clear session info on failure
-            if let Ok(mut session_info) = bridge.session_info.write() {
-                *session_info = None;
-            }
-            JNI_FALSE
-        }
-    }
+    JNI_TRUE
 }
 
-/// Disconnect from current AirPlay device
+/// Disconnect from a specific AirPlay device
+#[no_mangle]
+pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeDisconnectDevice(
+    mut env: JNIEnv,
+    _class: JClass,
+    device_id: JString,
+) {
+    let device_id: String = match env.get_string(&device_id) {
+        Ok(s) => s.into(),
+        Err(_) => return,
+    };
+
+    log::info!("Disconnecting from AirPlay device: {}", device_id);
+
+    let bridge = AirPlayBridge::get();
+
+    // Remove session and send disconnect
+    if let Ok(mut sessions) = bridge.sessions.write() {
+        if let Some(info) = sessions.remove(&device_id) {
+            let _ = info.audio_tx.try_send(AudioCommand::Disconnect);
+            log::info!("Disconnected from: {}", device_id);
+        }
+    };
+}
+
+/// Disconnect from all AirPlay devices
 #[no_mangle]
 pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeDisconnect(
     _env: JNIEnv,
     _class: JClass,
 ) {
-    log::info!("Disconnecting from AirPlay device");
+    log::info!("Disconnecting from all AirPlay devices");
 
     let bridge = AirPlayBridge::get();
 
-    // Send disconnect command and clear session
-    if let Ok(mut session_info) = bridge.session_info.write() {
-        if let Some(info) = session_info.take() {
+    // Remove all sessions and send disconnect
+    if let Ok(mut sessions) = bridge.sessions.write() {
+        for (device_id, info) in sessions.drain() {
             let _ = info.audio_tx.try_send(AudioCommand::Disconnect);
+            log::info!("Disconnected from: {}", device_id);
         }
     };
 }
 
-/// Check if connected to an AirPlay device
+/// Get list of connected device IDs as JSON array
+#[no_mangle]
+pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeGetConnectedDevices<'a>(
+    env: JNIEnv<'a>,
+    _class: JClass,
+) -> JString<'a> {
+    let bridge = AirPlayBridge::get();
+
+    let json = {
+        let device_ids = bridge.connected_device_ids();
+        serde_json::to_string(&device_ids).unwrap_or_else(|_| "[]".to_string())
+    };
+
+    env.new_string(&json).unwrap()
+}
+
+/// Check if connected to any AirPlay device
 #[no_mangle]
 pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeIsConnected(
     _env: JNIEnv,
@@ -264,7 +258,30 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeIs
     if bridge.is_connected() { JNI_TRUE } else { JNI_FALSE }
 }
 
-/// Send audio data to AirPlay device
+/// Check if connected to a specific device
+#[no_mangle]
+pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeIsDeviceConnected(
+    mut env: JNIEnv,
+    _class: JClass,
+    device_id: JString,
+) -> jboolean {
+    let device_id: String = match env.get_string(&device_id) {
+        Ok(s) => s.into(),
+        Err(_) => return JNI_FALSE,
+    };
+
+    let bridge = AirPlayBridge::get();
+
+    if let Ok(sessions) = bridge.sessions.read() {
+        if sessions.contains_key(&device_id) {
+            return JNI_TRUE;
+        }
+    }
+
+    JNI_FALSE
+}
+
+/// Send audio data to ALL connected AirPlay devices
 /// audio_data: PCM audio samples (16-bit signed, stereo)
 #[no_mangle]
 pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSendAudio(
@@ -284,36 +301,41 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSe
 
     let bridge = AirPlayBridge::get();
 
-    // Get the audio sender channel with proper error handling
-    let session_info = match bridge.session_info.read() {
-        Ok(info) => info,
+    // Send audio to all connected sessions
+    let sessions = match bridge.sessions.read() {
+        Ok(s) => s,
         Err(e) => {
-            log::error!("Failed to read session info: {}", e);
+            log::error!("Failed to read sessions: {}", e);
             return JNI_FALSE;
         }
     };
 
-    if let Some(ref info) = *session_info {
+    if sessions.is_empty() {
+        return JNI_FALSE;
+    }
+
+    let mut sent_any = false;
+    for (device_id, info) in sessions.iter() {
         let cmd = AudioCommand::SendAudio {
-            data,
+            data: data.clone(),
             sample_rate: sample_rate as u32,
             channels: channels as u32,
         };
 
         match info.audio_tx.try_send(cmd) {
-            Ok(_) => JNI_TRUE,
+            Ok(_) => {
+                sent_any = true;
+            }
             Err(e) => {
-                log::warn!("Failed to send audio command: {}", e);
-                JNI_FALSE
+                log::warn!("Failed to send audio to {}: {}", device_id, e);
             }
         }
-    } else {
-        log::warn!("No active session for audio");
-        JNI_FALSE
     }
+
+    if sent_any { JNI_TRUE } else { JNI_FALSE }
 }
 
-/// Set volume on AirPlay device (0-100)
+/// Set volume on ALL connected AirPlay devices (0-100)
 #[no_mangle]
 pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSetVolume(
     _env: JNIEnv,
@@ -321,33 +343,37 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeSe
     volume: jint,
 ) -> jboolean {
     let volume_float = (volume as f32) / 100.0;
-    log::debug!("Setting AirPlay volume to {}", volume_float);
+    log::debug!("Setting AirPlay volume to {} on all devices", volume_float);
 
     let bridge = AirPlayBridge::get();
 
-    // Get the audio sender channel with proper error handling
-    let session_info = match bridge.session_info.read() {
-        Ok(info) => info,
+    let sessions = match bridge.sessions.read() {
+        Ok(s) => s,
         Err(e) => {
-            log::error!("Failed to read session info: {}", e);
+            log::error!("Failed to read sessions: {}", e);
             return JNI_FALSE;
         }
     };
 
-    if let Some(ref info) = *session_info {
+    if sessions.is_empty() {
+        return JNI_FALSE;
+    }
+
+    let mut sent_any = false;
+    for (device_id, info) in sessions.iter() {
         let cmd = AudioCommand::SetVolume(volume_float);
 
         match info.audio_tx.try_send(cmd) {
-            Ok(_) => JNI_TRUE,
+            Ok(_) => {
+                sent_any = true;
+            }
             Err(e) => {
-                log::warn!("Failed to send volume command: {}", e);
-                JNI_FALSE
+                log::warn!("Failed to set volume on {}: {}", device_id, e);
             }
         }
-    } else {
-        log::warn!("No active session for volume");
-        JNI_FALSE
     }
+
+    if sent_any { JNI_TRUE } else { JNI_FALSE }
 }
 
 /// Cleanup and release resources
@@ -365,10 +391,11 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeDe
         *running = false;
     };
 
-    // Disconnect session
-    if let Ok(mut session_info) = bridge.session_info.write() {
-        if let Some(info) = session_info.take() {
+    // Disconnect all sessions
+    if let Ok(mut sessions) = bridge.sessions.write() {
+        for (device_id, info) in sessions.drain() {
             let _ = info.audio_tx.try_send(AudioCommand::Disconnect);
+            log::info!("Cleaned up session for: {}", device_id);
         }
     };
 }

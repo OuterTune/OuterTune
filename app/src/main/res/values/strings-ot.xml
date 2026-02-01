@@ -354,6 +354,12 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="airplay_device">AirPlay</string>
     <string name="airplay_2_device">AirPlay 2</string>
     <string name="airplay_connected">Connected to %s</string>
+    <string name="airplay_connecting">Connecting…</string>
+    <string name="airplay_playing">Playing</string>
+    <string name="airplay_playing_on">Playing on %d device(s)</string>
+    <string name="airplay_select_all">Select All</string>
+    <string name="airplay_deselect_all">Deselect All</string>
+    <string name="done">Done</string>
 
 <!-- Misc -->
     <string name="action_back">Back</string>

@@ -714,6 +714,7 @@ pub async fn start_session(
     cmd_rx: mpsc::Receiver<AudioCommand>,
     bridge: Arc<AirPlayBridge>,
 ) -> Result<()> {
+    let device_id = device.id.clone();
     let mut session = AirPlaySession::new(device).await?;
     session.setup().await?;
 
@@ -724,9 +725,10 @@ pub async fn start_session(
             log::error!("Session error: {}", e);
         }
 
-        // Clear session info when done
-        if let Ok(mut session_info) = bridge_clone.session_info.write() {
-            *session_info = None;
+        // Remove session from sessions map when done
+        if let Ok(mut sessions) = bridge_clone.sessions.write() {
+            sessions.remove(&device_id);
+            log::info!("Session ended and removed for device: {}", device_id);
         }
     });
 
