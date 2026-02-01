@@ -7,8 +7,9 @@ use mdns_sd::{ServiceDaemon, ServiceEvent};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::net::IpAddr;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
+use flume::RecvTimeoutError;
 
 use crate::AirPlayBridge;
 
@@ -53,7 +54,7 @@ impl AirPlayDevice {
             .cloned()
             .unwrap_or_else(|| {
                 // Generate ID from name hash
-                format!("{:x}", md5_hash(&name))
+                format!("{:x}", simple_hash(&name))
             });
 
         let model = properties.get("model").cloned();
@@ -72,7 +73,10 @@ impl AirPlayDevice {
                         .map(|v| (v & 0x1000000000000) != 0)
                         .unwrap_or(false)
                 } else {
-                    false
+                    // Try parsing as decimal
+                    f.parse::<u64>()
+                        .map(|v| (v & 0x1000000000000) != 0)
+                        .unwrap_or(false)
                 }
             })
             .unwrap_or(false);
@@ -90,8 +94,8 @@ impl AirPlayDevice {
     }
 }
 
-/// Simple MD5-like hash for generating device IDs
-fn md5_hash(input: &str) -> u64 {
+/// Simple hash for generating device IDs
+fn simple_hash(input: &str) -> u64 {
     let mut hash: u64 = 0;
     for byte in input.bytes() {
         hash = hash.wrapping_mul(31).wrapping_add(byte as u64);
@@ -100,7 +104,7 @@ fn md5_hash(input: &str) -> u64 {
 }
 
 /// Discover AirPlay devices on the network
-pub async fn discover_devices(bridge: Arc<Mutex<AirPlayBridge>>) {
+pub async fn discover_devices(bridge: Arc<AirPlayBridge>) {
     log::info!("Starting mDNS discovery for AirPlay devices");
 
     // Create mDNS daemon
@@ -123,34 +127,39 @@ pub async fn discover_devices(bridge: Arc<Mutex<AirPlayBridge>>) {
 
     log::info!("Browsing for {} services", AIRPLAY_SERVICE_TYPE);
 
-    // Process events
+    // Process events in a loop
     loop {
         // Check if we should stop
         {
-            let guard = match bridge.lock() {
-                Ok(g) => g,
-                Err(_) => break,
-            };
-            if !guard.discovery_running {
+            let running = bridge.discovery_running.read().unwrap();
+            if !*running {
                 log::info!("Discovery stopped by user");
                 break;
             }
         }
 
-        // Wait for service events with timeout
-        match tokio::time::timeout(Duration::from_millis(500), async {
-            receiver.recv()
-        })
-        .await
-        {
+        // Use tokio's spawn_blocking for the synchronous recv with timeout
+        let recv_result = tokio::task::spawn_blocking({
+            let receiver = receiver.clone();
+            move || {
+                receiver.recv_timeout(Duration::from_millis(500))
+            }
+        }).await;
+
+        match recv_result {
             Ok(Ok(event)) => {
                 handle_service_event(&bridge, event);
             }
+            Ok(Err(RecvTimeoutError::Timeout)) => {
+                // Timeout, continue loop
+            }
             Ok(Err(e)) => {
                 log::warn!("Error receiving mDNS event: {}", e);
+                break;
             }
-            Err(_) => {
-                // Timeout, continue loop
+            Err(e) => {
+                log::error!("Task join error: {}", e);
+                break;
             }
         }
     }
@@ -164,7 +173,7 @@ pub async fn discover_devices(bridge: Arc<Mutex<AirPlayBridge>>) {
 }
 
 /// Handle mDNS service events
-fn handle_service_event(bridge: &Arc<Mutex<AirPlayBridge>>, event: ServiceEvent) {
+fn handle_service_event(bridge: &Arc<AirPlayBridge>, event: ServiceEvent) {
     match event {
         ServiceEvent::ServiceResolved(info) => {
             log::info!("Discovered AirPlay device: {}", info.get_fullname());
@@ -194,8 +203,8 @@ fn handle_service_event(bridge: &Arc<Mutex<AirPlayBridge>>, event: ServiceEvent)
                 );
 
                 // Add to device list
-                if let Ok(mut guard) = bridge.lock() {
-                    guard.devices.insert(device.id.clone(), device);
+                if let Ok(mut devices) = bridge.devices.write() {
+                    devices.insert(device.id.clone(), device);
                 }
             }
         }
@@ -203,8 +212,8 @@ fn handle_service_event(bridge: &Arc<Mutex<AirPlayBridge>>, event: ServiceEvent)
             log::info!("AirPlay device removed: {}", fullname);
 
             // Remove from device list
-            if let Ok(mut guard) = bridge.lock() {
-                guard.devices.retain(|_, d| d.name != fullname);
+            if let Ok(mut devices) = bridge.devices.write() {
+                devices.retain(|_, d| d.name != fullname);
             }
         }
         ServiceEvent::SearchStarted(_) => {

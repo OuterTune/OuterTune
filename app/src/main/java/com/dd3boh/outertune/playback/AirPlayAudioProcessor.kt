@@ -25,6 +25,12 @@ class AirPlayAudioProcessor : AudioProcessor {
         // Standard AirPlay audio format
         private const val AIRPLAY_SAMPLE_RATE = 44100
         private const val AIRPLAY_CHANNEL_COUNT = 2
+
+        // AirPlay frame size: 352 samples * 2 channels * 2 bytes per sample
+        private const val FRAME_SIZE = 352 * 2 * 2
+
+        // Buffer capacity: enough for multiple frames to handle variable input sizes
+        private const val BUFFER_CAPACITY = FRAME_SIZE * 8
     }
 
     private var inputAudioFormat = AudioFormat.NOT_SET
@@ -34,9 +40,9 @@ class AirPlayAudioProcessor : AudioProcessor {
     private var outputBuffer = AudioProcessor.EMPTY_BUFFER
     private var inputEnded = false
 
-    // Buffer for accumulating audio data before sending to AirPlay
-    private var accumulatedData = ByteArray(0)
-    private val frameSize = 352 * 2 * 2 // 352 samples * 2 channels * 2 bytes per sample
+    // Efficient ring buffer for accumulating audio data
+    private val accumulationBuffer = ByteArray(BUFFER_CAPACITY)
+    private var writePosition = 0
 
     // Whether to mute local playback when streaming to AirPlay
     var muteLocalWhenStreaming = false
@@ -75,25 +81,36 @@ class AirPlayAudioProcessor : AudioProcessor {
         if (isAirPlayConnected) {
             // Copy data for AirPlay streaming
             val remaining = inputBuffer.remaining()
-            val data = ByteArray(remaining)
             val position = inputBuffer.position()
-            inputBuffer.get(data)
-            inputBuffer.position(position) // Reset position for local playback
 
-            // Accumulate data until we have enough for a frame
-            accumulatedData = accumulatedData + data
+            // Read data directly into our buffer
+            val bytesToCopy = minOf(remaining, BUFFER_CAPACITY - writePosition)
+            if (bytesToCopy > 0) {
+                inputBuffer.get(accumulationBuffer, writePosition, bytesToCopy)
+                writePosition += bytesToCopy
+            }
+
+            // Reset position for local playback
+            inputBuffer.position(position)
 
             // Send complete frames to AirPlay
-            while (accumulatedData.size >= frameSize) {
-                val frameData = accumulatedData.copyOfRange(0, frameSize)
-                accumulatedData = accumulatedData.copyOfRange(frameSize, accumulatedData.size)
-
-                // Send to AirPlay bridge
+            while (writePosition >= FRAME_SIZE) {
+                // Send the frame
                 AirPlayBridge.sendAudio(
-                    frameData,
+                    accumulationBuffer.copyOfRange(0, FRAME_SIZE),
                     inputAudioFormat.sampleRate,
                     inputAudioFormat.channelCount
                 )
+
+                // Shift remaining data to the front of the buffer
+                if (writePosition > FRAME_SIZE) {
+                    System.arraycopy(
+                        accumulationBuffer, FRAME_SIZE,
+                        accumulationBuffer, 0,
+                        writePosition - FRAME_SIZE
+                    )
+                }
+                writePosition -= FRAME_SIZE
             }
 
             // If muting local playback, zero out the buffer
@@ -113,13 +130,23 @@ class AirPlayAudioProcessor : AudioProcessor {
     override fun queueEndOfStream() {
         inputEnded = true
         // Flush any remaining accumulated data
-        if (accumulatedData.isNotEmpty() && AirPlayBridge.isConnected.value) {
+        if (writePosition > 0 && AirPlayBridge.isConnected.value) {
+            // Pad the remaining data to make a complete frame if needed
+            val frameData = if (writePosition >= FRAME_SIZE) {
+                accumulationBuffer.copyOfRange(0, FRAME_SIZE)
+            } else {
+                // Pad with silence for the last partial frame
+                ByteArray(FRAME_SIZE).also {
+                    System.arraycopy(accumulationBuffer, 0, it, 0, writePosition)
+                }
+            }
+
             AirPlayBridge.sendAudio(
-                accumulatedData,
+                frameData,
                 inputAudioFormat.sampleRate,
                 inputAudioFormat.channelCount
             )
-            accumulatedData = ByteArray(0)
+            writePosition = 0
         }
     }
 
@@ -142,7 +169,7 @@ class AirPlayAudioProcessor : AudioProcessor {
         inputBuffer = AudioProcessor.EMPTY_BUFFER
         outputBuffer = AudioProcessor.EMPTY_BUFFER
         inputEnded = false
-        accumulatedData = ByteArray(0)
+        writePosition = 0
     }
 
     override fun reset() {
