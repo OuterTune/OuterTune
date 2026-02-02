@@ -505,10 +505,12 @@ Client-Instance: {}\r\n\
         // Generate DACP-ID (required by some speakers)
         let dacp_id = format!("{:016X}", self.ssrc as u64 | ((self.ssrc as u64) << 32));
 
+        // Use exact AirPlay 1 Transport format that iTunes uses
+        // Note: interleaved=0-1 is required by Airport Express even for UDP mode
         let request = format!(
             "SETUP rtsp://{}:{}/{} RTSP/1.0\r\n\
 CSeq: {}\r\n\
-Transport: RTP/AVP/UDP;unicast;mode=record;client_port={};control_port={};timing_port={}\r\n\
+Transport: RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port={};timing_port={}\r\n\
 User-Agent: iTunes/12.0 (Macintosh)\r\n\
 Client-Instance: {}\r\n\
 DACP-ID: {}\r\n\
@@ -518,7 +520,6 @@ Active-Remote: {}\r\n\
             device_port,
             self.ssrc,
             cseq,
-            audio_port,
             control_port,
             timing_port,
             self.client_instance,
@@ -526,7 +527,7 @@ Active-Remote: {}\r\n\
             self.ssrc
         );
 
-        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Sending SETUP - Transport: client_port={};control_port={};timing_port={}", audio_port, control_port, timing_port));
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Sending SETUP - control_port={};timing_port={}", control_port, timing_port));
         self.send_rtsp(&request).await?;
 
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Waiting for SETUP response...");
