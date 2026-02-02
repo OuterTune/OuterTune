@@ -502,12 +502,17 @@ Client-Instance: {}\r\n\
         // SETUP the audio transport
         let cseq = self.next_cseq();
 
+        // Generate DACP-ID (required by some speakers)
+        let dacp_id = format!("{:016X}", self.ssrc as u64 | ((self.ssrc as u64) << 32));
+
         let request = format!(
             "SETUP rtsp://{}:{}/{} RTSP/1.0\r\n\
 CSeq: {}\r\n\
 Transport: RTP/AVP/UDP;unicast;mode=record;client_port={};control_port={};timing_port={}\r\n\
 User-Agent: iTunes/12.0 (Macintosh)\r\n\
 Client-Instance: {}\r\n\
+DACP-ID: {}\r\n\
+Active-Remote: {}\r\n\
 \r\n",
             device_address,
             device_port,
@@ -516,10 +521,12 @@ Client-Instance: {}\r\n\
             audio_port,
             control_port,
             timing_port,
-            self.client_instance
+            self.client_instance,
+            dacp_id,
+            self.ssrc
         );
 
-        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Sending SETUP (transport config)...");
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Sending SETUP - Transport: client_port={};control_port={};timing_port={}", audio_port, control_port, timing_port));
         self.send_rtsp(&request).await?;
 
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Waiting for SETUP response...");
