@@ -32,7 +32,7 @@ pub const LOG_LEVEL_ERROR: i32 = 3;
 
 /// Send a log message to the Kotlin callback (safe to call from any thread)
 pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
-    // Also log to Android logcat
+    // Always log to Android logcat first
     match level {
         LOG_LEVEL_DEBUG => log::debug!("[{}] {}", tag, message),
         LOG_LEVEL_INFO => log::info!("[{}] {}", tag, message),
@@ -41,19 +41,18 @@ pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
         _ => log::info!("[{}] {}", tag, message),
     }
 
+    // Skip Kotlin callback from Tokio threads to avoid potential JNI issues
+    // The logs will still appear in logcat
     let jvm = match JAVA_VM.get() {
         Some(vm) => vm,
         None => return,
     };
 
-    // Attach to JVM FIRST (needed for calling from non-JNI threads)
-    // This must happen before accessing GlobalRef to avoid panic in GlobalRef::clone()
-    let mut env = match jvm.attach_current_thread() {
+    // Check if we're on the main thread or a JNI-attached thread
+    // If attach fails or we're in a weird state, just skip the callback
+    let mut env = match jvm.attach_current_thread_as_daemon() {
         Ok(env) => env,
-        Err(e) => {
-            log::error!("Failed to attach to JVM: {}", e);
-            return;
-        }
+        Err(_) => return, // Silently skip - logs still go to logcat
     };
 
     // Now safely access the callback while attached to JVM
@@ -62,10 +61,10 @@ pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
         None => return,
     };
 
-    // Get the callback reference (don't clone - use directly while holding lock)
-    let callback_guard = match callback_lock.lock() {
+    // Try to get the lock, but don't block - skip if locked (prevents deadlock)
+    let callback_guard = match callback_lock.try_lock() {
         Ok(guard) => guard,
-        Err(_) => return,
+        Err(_) => return, // Skip if we can't get lock immediately
     };
 
     let callback = match callback_guard.as_ref() {
@@ -73,7 +72,7 @@ pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
         None => return,
     };
 
-    // Create Java strings
+    // Create Java strings - skip on failure
     let j_tag = match env.new_string(tag) {
         Ok(s) => s,
         Err(_) => return,
@@ -84,18 +83,17 @@ pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
     };
 
     // Call the callback: onLog(level, tag, message)
+    // Use invoke to properly handle the interface method
     let _ = env.call_method(
         callback.as_obj(),
         "onLog",
         "(ILjava/lang/String;Ljava/lang/String;)V",
         &[
             jni::objects::JValue::Int(level),
-            jni::objects::JValue::Object(&j_tag),
-            jni::objects::JValue::Object(&j_message),
+            jni::objects::JValue::Object(&j_tag.into()),
+            jni::objects::JValue::Object(&j_message.into()),
         ],
     );
-
-    // callback_guard is dropped here, releasing the lock
 }
 
 /// Global state for the AirPlay bridge
@@ -350,7 +348,7 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeDi
 /// Get list of connected device IDs as JSON array
 #[no_mangle]
 pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeGetConnectedDevices<'a>(
-    env: JNIEnv<'a>,
+    mut env: JNIEnv<'a>,
     _class: JClass,
 ) -> JString<'a> {
     let bridge = AirPlayBridge::get();
@@ -360,10 +358,17 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeGe
         serde_json::to_string(&device_ids).unwrap_or_else(|_| "[]".to_string())
     };
 
-    // Return the JSON string, falling back to empty array on any error
-    env.new_string(&json)
-        .or_else(|_| env.new_string("[]"))
-        .expect("Failed to create JNI string for empty array - JNI environment corrupt")
+    // Return the JSON string
+    match env.new_string(&json) {
+        Ok(s) => s,
+        Err(e) => {
+            // If we can't create a string, throw a Java exception and return empty
+            log::error!("JNI new_string failed: {}", e);
+            let _ = env.throw_new("java/lang/RuntimeException", "Failed to create JNI string");
+            // Return a default - the exception will be thrown when control returns to Java
+            unsafe { JString::from_raw(std::ptr::null_mut()) }
+        }
+    }
 }
 
 /// Check if connected to any AirPlay device

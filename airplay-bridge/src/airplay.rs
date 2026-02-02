@@ -865,7 +865,10 @@ Session: {}\r\n\
             self.advance_rtp_timestamp(352);
 
             // Send via UDP
-            let socket = self.audio_socket.as_ref().unwrap();
+            let socket = match self.audio_socket.as_ref() {
+                Some(s) => s,
+                None => return Err(anyhow!("Audio socket not initialized")),
+            };
             socket.send(&rtp_packet).await?;
 
             // Log first packet sent
