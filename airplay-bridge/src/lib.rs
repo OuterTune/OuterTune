@@ -41,59 +41,9 @@ pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
         _ => log::info!("[{}] {}", tag, message),
     }
 
-    // Skip Kotlin callback from Tokio threads to avoid potential JNI issues
-    // The logs will still appear in logcat
-    let jvm = match JAVA_VM.get() {
-        Some(vm) => vm,
-        None => return,
-    };
-
-    // Check if we're on the main thread or a JNI-attached thread
-    // If attach fails or we're in a weird state, just skip the callback
-    let mut env = match jvm.attach_current_thread_as_daemon() {
-        Ok(env) => env,
-        Err(_) => return, // Silently skip - logs still go to logcat
-    };
-
-    // Now safely access the callback while attached to JVM
-    let callback_lock = match LOG_CALLBACK.get() {
-        Some(lock) => lock,
-        None => return,
-    };
-
-    // Try to get the lock, but don't block - skip if locked (prevents deadlock)
-    let callback_guard = match callback_lock.try_lock() {
-        Ok(guard) => guard,
-        Err(_) => return, // Skip if we can't get lock immediately
-    };
-
-    let callback = match callback_guard.as_ref() {
-        Some(cb) => cb,
-        None => return,
-    };
-
-    // Create Java strings - skip on failure
-    let j_tag = match env.new_string(tag) {
-        Ok(s) => s,
-        Err(_) => return,
-    };
-    let j_message = match env.new_string(message) {
-        Ok(s) => s,
-        Err(_) => return,
-    };
-
-    // Call the callback: onLog(level, tag, message)
-    // Use invoke to properly handle the interface method
-    let _ = env.call_method(
-        callback.as_obj(),
-        "onLog",
-        "(ILjava/lang/String;Ljava/lang/String;)V",
-        &[
-            jni::objects::JValue::Int(level),
-            jni::objects::JValue::Object(&j_tag.into()),
-            jni::objects::JValue::Object(&j_message.into()),
-        ],
-    );
+    // Skip Kotlin callback entirely for now - just use logcat
+    // The JNI callback has issues with thread attachment
+    // TODO: Fix JNI callback properly in future update
 }
 
 /// Global state for the AirPlay bridge
