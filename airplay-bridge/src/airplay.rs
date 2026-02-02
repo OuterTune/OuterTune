@@ -12,7 +12,7 @@ use chacha20poly1305::{
 use hkdf::Hkdf;
 use sha2::Sha256;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU16, AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU16, AtomicU32, AtomicU64, Ordering};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{TcpStream, UdpSocket};
 use tokio::sync::mpsc;
@@ -77,6 +77,8 @@ pub struct AirPlaySession {
     first_packet: bool,
     /// Last time we sent a keepalive
     last_keepalive: std::time::Instant,
+    /// Flag to signal timing handler to stop
+    timing_stop_flag: Option<Arc<AtomicBool>>,
 }
 
 impl AirPlaySession {
@@ -133,6 +135,7 @@ impl AirPlaySession {
             nonce_counter: AtomicU64::new(0),
             first_packet: true,
             last_keepalive: std::time::Instant::now(),
+            timing_stop_flag: None,
         })
     }
 
@@ -213,6 +216,12 @@ impl AirPlaySession {
                     }
                 }
             }
+        }
+
+        // Signal timing handler to stop
+        if let Some(ref stop_flag) = self.timing_stop_flag {
+            stop_flag.store(true, Ordering::Relaxed);
+            send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Signaling timing handler to stop");
         }
 
         // Send TEARDOWN
@@ -558,11 +567,15 @@ Client-Instance: {}\r\n\
 
         if let Some(tp) = server_timing_port {
             send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Server timing port: {}", tp));
+            // Create stop flag for timing handler
+            let stop_flag = Arc::new(AtomicBool::new(false));
+            self.timing_stop_flag = Some(Arc::clone(&stop_flag));
+
             // Spawn timing sync handler with shared socket reference
             let timing_socket_clone = Arc::clone(&timing_socket);
             let device_addr = device_address.clone();
             tokio::spawn(async move {
-                Self::run_timing_handler(timing_socket_clone, device_addr, tp).await;
+                Self::run_timing_handler(timing_socket_clone, device_addr, tp, stop_flag).await;
             });
             send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, "Timing sync handler started");
         } else {
@@ -577,11 +590,12 @@ Client-Instance: {}\r\n\
         let seq = self.rtp_seq.load(Ordering::SeqCst);
         let rtptime = self.rtp_timestamp.load(Ordering::SeqCst);
 
+        // RTP-Info header should include URL for some receivers
         let request = format!(
             "RECORD rtsp://{}:{}/{} RTSP/1.0\r\n\
 CSeq: {}\r\n\
 Range: npt=0-\r\n\
-RTP-Info: seq={};rtptime={}\r\n\
+RTP-Info: url=rtsp://{}:{}/{};seq={};rtptime={}\r\n\
 User-Agent: iTunes/12.0 (Macintosh)\r\n\
 Session: {}\r\n\
 \r\n",
@@ -589,6 +603,9 @@ Session: {}\r\n\
             device_port,
             self.ssrc,
             cseq,
+            device_address,
+            device_port,
+            self.ssrc,
             seq,
             rtptime,
             self.session_id
@@ -684,15 +701,21 @@ Session: {}\r\n\
 
     /// Handle timing sync requests from AirPlay receiver
     /// The receiver sends timing queries to synchronize clocks (NTP-like protocol)
-    async fn run_timing_handler(socket: Arc<UdpSocket>, device_addr: String, device_port: u16) {
+    async fn run_timing_handler(socket: Arc<UdpSocket>, device_addr: String, device_port: u16, stop_flag: Arc<AtomicBool>) {
         send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Timing handler listening for {}:{}", device_addr, device_port));
 
         let mut buf = [0u8; 32];
         let mut timing_requests_handled = 0u64;
 
         loop {
+            // Check if we should stop
+            if stop_flag.load(Ordering::Relaxed) {
+                send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Timing handler stopping for {}", device_addr));
+                break;
+            }
+
             match tokio::time::timeout(
-                std::time::Duration::from_secs(60),
+                std::time::Duration::from_secs(5),  // Shorter timeout to check stop flag more often
                 socket.recv_from(&mut buf)
             ).await {
                 Ok(Ok((len, src))) => {
@@ -734,12 +757,15 @@ Session: {}\r\n\
                 }
                 Ok(Err(e)) => {
                     send_log_to_kotlin(LOG_LEVEL_WARN, RTSP_TAG, &format!("Timing socket error: {}", e));
+                    // Don't break on error - continue trying
                 }
                 Err(_) => {
-                    // Timeout - continue waiting (this is normal when no audio is playing)
+                    // Timeout - continue to check stop flag
                 }
             }
         }
+
+        send_log_to_kotlin(LOG_LEVEL_INFO, RTSP_TAG, &format!("Timing handler exited for {}", device_addr));
     }
 
     /// Get current time as NTP timestamp (8 bytes: 4 bytes seconds + 4 bytes fraction)
