@@ -505,7 +505,7 @@ Client-Instance: {}\r\n\
         let request = format!(
             "SETUP rtsp://{}:{}/{} RTSP/1.0\r\n\
 CSeq: {}\r\n\
-Transport: RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port={};timing_port={}\r\n\
+Transport: RTP/AVP/UDP;unicast;mode=record;client_port={};control_port={};timing_port={}\r\n\
 User-Agent: iTunes/12.0 (Macintosh)\r\n\
 Client-Instance: {}\r\n\
 \r\n",
@@ -513,6 +513,7 @@ Client-Instance: {}\r\n\
             device_port,
             self.ssrc,
             cseq,
+            audio_port,
             control_port,
             timing_port,
             self.client_instance
