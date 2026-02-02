@@ -46,26 +46,31 @@ pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
         None => return,
     };
 
-    let callback_lock = match LOG_CALLBACK.get() {
-        Some(lock) => lock,
-        None => return,
-    };
-
-    let callback = match callback_lock.lock() {
-        Ok(guard) => match guard.as_ref() {
-            Some(cb) => cb.clone(),
-            None => return,
-        },
-        Err(_) => return,
-    };
-
-    // Attach to JVM (needed for calling from non-JNI threads)
+    // Attach to JVM FIRST (needed for calling from non-JNI threads)
+    // This must happen before accessing GlobalRef to avoid panic in GlobalRef::clone()
     let mut env = match jvm.attach_current_thread() {
         Ok(env) => env,
         Err(e) => {
             log::error!("Failed to attach to JVM: {}", e);
             return;
         }
+    };
+
+    // Now safely access the callback while attached to JVM
+    let callback_lock = match LOG_CALLBACK.get() {
+        Some(lock) => lock,
+        None => return,
+    };
+
+    // Get the callback reference (don't clone - use directly while holding lock)
+    let callback_guard = match callback_lock.lock() {
+        Ok(guard) => guard,
+        Err(_) => return,
+    };
+
+    let callback = match callback_guard.as_ref() {
+        Some(cb) => cb,
+        None => return,
     };
 
     // Create Java strings
@@ -89,6 +94,8 @@ pub fn send_log_to_kotlin(level: i32, tag: &str, message: &str) {
             jni::objects::JValue::Object(&j_message),
         ],
     );
+
+    // callback_guard is dropped here, releasing the lock
 }
 
 /// Global state for the AirPlay bridge
@@ -353,7 +360,10 @@ pub extern "system" fn Java_com_dd3boh_outertune_playback_AirPlayBridge_nativeGe
         serde_json::to_string(&device_ids).unwrap_or_else(|_| "[]".to_string())
     };
 
-    env.new_string(&json).unwrap()
+    // Return the JSON string, falling back to empty array on any error
+    env.new_string(&json)
+        .or_else(|_| env.new_string("[]"))
+        .expect("Failed to create JNI string for empty array - JNI environment corrupt")
 }
 
 /// Check if connected to any AirPlay device
