@@ -39,10 +39,10 @@ jobs:
         run: ./gradlew assembleCoreRelease
 
       - name: Resolve ffMetadatEx
-        run: git clone https://github.com/OuterTune/ffMetadataEx -b vibebur-128 ../ffMetadataEx
+        run: git clone https://github.com/OuterTune/ffMetadataEx -b vibebur-128 ffMetadataEx
 
       - name: Resolve ffmpeg libs
-        run: git clone https://github.com/mikooomich/ffmpeg-android-maker-prebuilt/ -b audio ../ffMetadataEx/ffmpeg-android-maker
+        run: git clone https://github.com/mikooomich/ffmpeg-android-maker-prebuilt/ -b audio ffMetadataEx/ffmpeg-android-maker
 
       - name: Build full release APK
         run: ./gradlew assembleFullRelease
