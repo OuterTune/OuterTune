@@ -218,4 +218,8 @@
     <string name="dl_size_used_cache">داخليًا: %s مستخدم</string>
     <string name="dl_size_used_main">خارجيًا: %s مستخدم</string>
     <string name="dl_size_used_extra">الواردات الإضافية: %s المستخدمة</string>
+    <string name="grp_more_settings">إعدادات إضافية</string>
+    <string name="ffmpeg_lgpl">هدا التطبيق يستعمل مكاتب من FFmpeg project تحت حقوق LGPLv2.1</string>
+    <string name="action_logout_tooltip">"لتسجيل خروج تام،المرجوا تسجيل الخروج من حساب YouTube  الخاص بك في the web portal  قبل استعمال زر تسجيل الخروج"</string>
+    <string name="audio_decoder_ffmpeg_only">إعدادات المشغل</string>
 </resources>

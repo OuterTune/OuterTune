@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
  * Appearance
  */
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
+val HighContrastKey = booleanPreferencesKey("highContrast")
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
@@ -121,7 +122,7 @@ val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
 val ScannerImplKey = stringPreferencesKey("scannerImpl")
 val ScannerStrictFilePathsKey = booleanPreferencesKey("scannerStrictFilePaths")
 val ScannerStrictExtKey = booleanPreferencesKey("scannerStrictExt")
-val LookupYtmArtistsKey = booleanPreferencesKey("lookupYtmArtists")
+//val LookupYtmArtistsKey = booleanPreferencesKey("lookupYtmArtists") // removed key
 
 val ScanPathsKey = stringPreferencesKey("inclScanPaths") // previously "scanPaths"
 val ExcludedScanPathsKey = stringPreferencesKey("exclScanPaths") // previously "excludedScanPaths"

@@ -116,10 +116,12 @@ fun ColumnScope.TabArrangementFrag() {
             clear()
 
             val enabled = Screens.getScreens(enabledTabs)
-            addAll(enabled.map { it to true })
-            addAll(
+            val temp = ArrayList<Pair<Screens, Boolean>>()
+            temp.addAll(enabled.map { it to true })
+            temp.addAll(
                 Screens.getAllScreens().filterNot { it in enabled }.map { it to false }
             )
+            addAll(temp.distinctBy { it.first })
         }
     }
 

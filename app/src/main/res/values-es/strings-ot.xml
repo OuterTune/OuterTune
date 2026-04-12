@@ -66,7 +66,7 @@
     <string name="local_player_settings_title">Medios locales</string>
     <string name="flat_subfolders_title">Aplanar subcarpetas</string>
     <string name="flat_subfolders_description">Desactivar para conservar la estructura de archivos tal y como está en el disco</string>
-    <string name="import_innertune_tooltip">Se admite la restauración de copias de seguridad de InnerTune, aunque existe la posibilidad de anomalías debido a limitaciones técnicas</string>
+    <string name="import_innertune_tooltip">Se admite la restauración de copias de seguridad de InnerTune, aunque es posible ver anomalías debido a limitaciones técnicas. Las bifurcaciones no están soportadas.</string>
     <string name="m3u_import_playlist">Importar una playlist (m3u)</string>
     <string name="m3u_import_playlist_failed">No se pudo importar la playlist</string>
     <string name="auto_scanner_description">Actualiza periódicamente las canciones de los medios locales y las carpetas de descargas personalizadas al abrir la aplicación</string>
@@ -96,7 +96,7 @@
     <string name="scanner_type_taglib">Usar extractor de metadatos TagLib integrado</string>
     <string name="scanner_variant_rescan">Reescanear la biblioteca entera y recargar todos los metadatos de las canciones</string>
     <string name="pause_remote_listen_history">Compartir historial de escucha con YouTube Music</string>
-    <string name="import_failed_songs">No se pudo importar:</string>
+    <string name="import_failed_songs">No se pudo importar</string>
     <string name="dev_settings_title">Habilitar ajustes de desarrollador</string>
     <string name="oobe_welcome_message">Bienvenido a OuterTune</string>
     <string name="oobe_use_backup">Tengo una copia de seguridad</string>
@@ -111,7 +111,7 @@
     <string name="queues_empty">Sin colas</string>
     <string name="err_stop_on_error">Ha ocurrido un error. Reproducción detenida</string>
     <string name="scanner_strict_file_name_title">Nombres de archivo estrictos</string>
-    <string name="scanner_type_ffmpeg_ext">Utilice el extractor de metadatos de FFmpeg. Utilice únicamente la versión completa de la aplicación. La versión básica podría causar problemas con el seguimiento de canciones.</string>
+    <string name="scanner_type_ffmpeg_ext">Utilice el extractor de metadatos de FFmpeg. Utilice únicamente la versión completa de la aplicación. La versión básica podría causar problemas con el seguimiento de canciones</string>
     <string name="auto_scanner_title">Escanear automáticamente</string>
     <string name="scanner_warning">Por defecto, el escáner NO recargará los metadatos de las canciones existentes a menos que especifiques lo contrario más arriba. Dependiendo del tamaño de tu biblioteca, puede llevar un tiempo.</string>
     <string name="scanner_ytm_link_start">Iniciando vinculación de artistas de YouTube…</string>
@@ -227,7 +227,7 @@
     <string name="wiki">Wiki</string>
     <string name="scanner_sensitivity_L0">Tomar el primer resultado proporcionado por YouTube cuando la búsqueda en YouTube esté habilitada, de lo contrario coincidirá con el título</string>
     <string name="err_restore_incompatible_database">No se pudo restaurar la base de datos incompatible</string>
-    <string name="m3u_import_failed">No se encontraron canciones. El archivo M3U no es válido o no se encontraron canciones coincidentes.</string>
+    <string name="m3u_import_failed">No se encontraron canciones. El archivo M3U no es válido o no se encontraron canciones coincidentes</string>
     <string name="tap_show_more">Toque para mostrar más información</string>
     <string name="all_contributors">Mostrar todos los colaboradores</string>
     <string name="att_contributor">Colaborador</string>
@@ -255,7 +255,7 @@
     <string name="audio_decoder_preference">Decodificador de audio</string>
     <string name="audio_decoder_system_only">Sólo decodificadores del sistema</string>
     <string name="audio_decoder_system_with_ffmpeg">Priorizar los decodificadores del sistema</string>
-    <string name="action_logout_tooltip">Para cerrar sesión completamente, sal de tu cuenta de YouTube en el portal web antes de utilizar este botón de cierre de sesión.</string>
+    <string name="action_logout_tooltip">Para cerrar sesión completamente, sal de tu cuenta de YouTube en el portal web antes de utilizar este botón de cierre de sesión</string>
     <string name="max_queues_title">Número máximo de colas</string>
     <string name="oobe_welcome_tip">Para disfrutar de la mejor experiencia, te recomendamos completar una configuración rápida para personalizar ajustes clave como el tema, la cuenta de YouTube, los medios locales y las descargas.</string>
     <string name="oobe_cache_title">Caché de canciones</string>
@@ -267,4 +267,5 @@
     <string name="scanner_strict_file_paths_title">Coincidir rutas de archivo en lugar de metadatos</string>
     <string name="scanner_strict_file_paths_description">Desactiva toda la coincidencia inteligente de metadatos. Esto puede causar problemas si se mueven archivos en tu almacenamiento local, pero permite que la misma canción se encuentre en diferentes carpetas</string>
     <string name="scanner_type_tooltip">El escáner del sistema es más rápido, pero puede extraer algunos metadatos de forma incorrecta en comparación con otros extractores. Ten en cuenta que al cambiar de escáner no se volverán a cargar automáticamente los metadatos de las canciones existentes.</string>
+    <string name="restore_lm_tooltip">En instalaciones nuevas de la aplicación, es posible que las rutas de descarga personalizadas y de escaneo de medios locales no funcionen. Para solucionarlo, elimínelas y vuelva a agregarlas.</string>
 </resources>

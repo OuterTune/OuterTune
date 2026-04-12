@@ -40,7 +40,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,10 +57,7 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.BuildConfig
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
-import com.dd3boh.outertune.constants.ENABLE_UPDATE_CHECKER
 import com.dd3boh.outertune.constants.LYRIC_FETCH_TIMEOUT
-import com.dd3boh.outertune.constants.LastUpdateCheckKey
-import com.dd3boh.outertune.constants.LastVersionKey
 import com.dd3boh.outertune.constants.MAX_LM_SCANNER_JOBS
 import com.dd3boh.outertune.constants.OOBE_VERSION
 import com.dd3boh.outertune.constants.SNACKBAR_VERY_SHORT
@@ -75,11 +71,8 @@ import com.dd3boh.outertune.ui.component.SettingsClickToReveal
 import com.dd3boh.outertune.ui.component.button.IconButton
 import com.dd3boh.outertune.ui.component.button.IconLabelButton
 import com.dd3boh.outertune.ui.utils.backToMain
-import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.scanners.FFmpegScanner
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegLibrary
-import java.text.DateFormat.getDateTimeInstance
-import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -228,7 +221,6 @@ fun AboutScreen(
             ) {
                 SettingsClickToReveal(stringResource(R.string.app_info_title)) {
                     val info = mutableListOf<String>(
-                        "Update checker: $ENABLE_UPDATE_CHECKER",
                         "FFMetadataEx: $ENABLE_FFMETADATAEX",
                         "LM scanner concurrency: $MAX_LM_SCANNER_JOBS",
                         "LYRIC_FETCH_TIMEOUT: $LYRIC_FETCH_TIMEOUT",
@@ -236,14 +228,6 @@ fun AboutScreen(
                         "LYRIC_FETCH_TIMEOUT: $LYRIC_FETCH_TIMEOUT",
                         "SNACKBAR_VERY_SHORT: $SNACKBAR_VERY_SHORT"
                     )
-                    if (ENABLE_UPDATE_CHECKER) {
-                        val lastVer by rememberPreference(LastVersionKey, defaultValue = "0.0.0")
-                        val lastUpdateCheck by rememberPreference(LastUpdateCheckKey, defaultValue = -1L)
-                        info.add("Last known version: $lastVer")
-                        info.add(
-                            "Last update check: ${getDateTimeInstance().format(Date(lastUpdateCheck))}"
-                        )
-                    }
                     if (ENABLE_FFMETADATAEX) {
                         info.add("FFMetadataEx version: ${FFmpegScanner.VERSION_STRING}")
                         info.add("FFmpeg version: ${FfmpegLibrary.getVersion()}")

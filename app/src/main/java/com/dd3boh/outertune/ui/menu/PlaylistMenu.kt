@@ -86,6 +86,7 @@ fun PlaylistMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val queueBoard by playerConnection.queueBoard.collectAsState()
     val isNetworkConnected = LocalNetworkConnected.current
     val dbPlaylist by database.playlist(playlist.id).collectAsState(initial = playlist)
     var songs by remember {
@@ -418,12 +419,12 @@ fun PlaylistMenu(
         AddToQueueDialog(
 
             onAdd = { queueName ->
-                val q = playerConnection.service.queueBoard.addQueue(
+                val q = queueBoard.addQueue(
                     queueName, songs.map { it.toMediaMetadata() },
                     forceInsert = true, delta = false
                 )
                 q?.let {
-                    playerConnection.service.queueBoard.setCurrQueue(it)
+                    queueBoard.setCurrQueue(it)
                 }
             },
             onDismiss = {

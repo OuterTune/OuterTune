@@ -33,7 +33,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -74,6 +73,7 @@ fun YouTubeSongMenu(
     val downloadUtil = LocalDownloadUtil.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val queueBoard by playerConnection.queueBoard.collectAsState()
     val syncUtils = LocalSyncUtils.current
 
     val librarySong by database.song(song.id).collectAsState(initial = null)
@@ -250,12 +250,12 @@ fun YouTubeSongMenu(
     if (showChooseQueueDialog) {
         AddToQueueDialog(
             onAdd = { queueName ->
-                val q = playerConnection.service.queueBoard.addQueue(
+                val q = queueBoard.addQueue(
                     queueName, listOf(song.toMediaMetadata()),
                     forceInsert = true, delta = false
                 )
                 q?.let {
-                    playerConnection.service.queueBoard.setCurrQueue(it)
+                    queueBoard.setCurrQueue(it)
                 }
             },
             onDismiss = {

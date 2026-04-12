@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +37,8 @@ fun AddToQueueDialog(
     onAdd: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val playerConnection = LocalPlayerConnection.current
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val queueBoard by playerConnection.queueBoard.collectAsState()
     var queues by remember {
         mutableStateOf(emptyList<MultiQueueObject>())
     }
@@ -46,7 +48,7 @@ fun AddToQueueDialog(
 
 
     LaunchedEffect(Unit) {
-        queues = playerConnection?.service?.queueBoard?.getAllQueues()?.reversed() ?: emptyList()
+        queues = queueBoard.getAllQueues().reversed()
     }
 
     ListDialog(
@@ -102,8 +104,8 @@ fun EditQueueDialog(
     queue: MultiQueueObject,
     onDismiss: () -> Unit,
 ) {
-    val playerConnection = LocalPlayerConnection.current
-
+    val playerConnection = LocalPlayerConnection.current?: return
+    val queueBoard by playerConnection.queueBoard.collectAsState()
     TextFieldDialog(
         icon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
         title = { Text(text = stringResource(R.string.edit_playlist)) },
@@ -114,7 +116,7 @@ fun EditQueueDialog(
         ),
         onDone = { name ->
             onDismiss()
-            playerConnection?.service?.queueBoard?.renameQueue(queue, name)
+            queueBoard.renameQueue(queue, name)
         }
     )
 }

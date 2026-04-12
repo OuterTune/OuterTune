@@ -243,7 +243,7 @@
     </plurals>
     <string name="seek_increment">シーク増加</string>
     <string name="ffmpeg_lgpl">本アプリはLGPLバージョン2.1でFFmpegのライブラリを使用</string>
-    <string name="toggle_lyrics">歌詞を切替替</string>
+    <string name="toggle_lyrics">歌詞を切替</string>
     <string name="audio_decoder_ffmpeg_only">FFmpegデコーダーを優先</string>
     <string name="audio_decoder_preference">音声デコーダー</string>
     <string name="audio_decoder_system_only">システムのデコーダーのみ</string>

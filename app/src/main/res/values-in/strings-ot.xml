@@ -131,7 +131,7 @@
     <string name="flat_subfolders_description">Nonaktifkan untuk mempertahankan struktur file seperti di disk</string>
     <string name="disable_lm_confirm">Apakah Anda yakin ingin menonaktifkan fitur media lokal? Konten pustaka Anda tidak akan terpengaruh.</string>
     <string name="auto_scanner_title">Pemindai otomatis</string>
-    <string name="auto_scanner_description">Memindai lagu secara otomatis saat membuka aplikasi. Ini tidak memuat ulang metadata dari lagu yang sudah ada.</string>
+    <string name="auto_scanner_description">Perbarui lagu lokal dan folder unduhan khusus secara berkala saat membuka aplikasi</string>
     <string name="scan_paths_title">Konfigurasi lokasi pemindaian…</string>
     <string name="scan_paths_description">Pilih folder di penyimpanan lokal Anda untuk memindai lagu</string>
     <string name="scan_paths_tooltip">Semua subdirektori juga akan terpengaruh</string>
@@ -194,7 +194,7 @@
     <string name="restart_to_apply_changes">Mulai ulang aplikasi agar perubahan diterapkan</string>
     <string name="pause_remote_listen_history">Jeda berbagi riwayat mendengarkan dengan YouTube Music</string>
     <string name="err_restore_incompatible_database">Basis data tidak kompatibel, tidak dapat dipulihkan</string>
-    <string name="import_innertune_tooltip">Pemulihan cadangan InnerTune didukung, meskipun ada kemungkinan anomali karena keterbatasan teknis</string>
+    <string name="import_innertune_tooltip">Pemulihan cadangan InnerTune didukung, meskipun ada kemungkinan masalah karena keterbatasan teknis</string>
     <string name="experimental_settings_title">Eksperimental</string>
     <string name="dev_settings_title">Aktifkan pengaturan pengembang</string>
     <string name="dev_settings_description">Menampilkan pengaturan lanjutan tambahan yang ditujukan untuk penggunaan pengembangan</string>
@@ -243,4 +243,23 @@
     <plurals name="second">
         <item quantity="other">%d detik</item>
     </plurals>
+    <string name="library_filter">Filter koleksi</string>
+    <string name="toggle_lyrics">Lirik</string>
+    <string name="grp_more_settings">Pengaturan lebih lanjut</string>
+    <string name="action_logout_tooltip">Untuk keluar sepenuhnya, silahkan logout akun YouTube-mu lewat web terlebih dahulu sebelum memakai tombol logout ini</string>
+    <string name="audio_decoder_ffmpeg_only">Prioritaskan dekoder FFmpeg</string>
+    <string name="audio_decoder_preference">Dekoder Audio</string>
+    <string name="audio_decoder_system_only">Dekoder khusus untuk sistem</string>
+    <string name="audio_decoder_system_with_ffmpeg">Prioritaskan dekoder sistem</string>
+    <string name="auto_scanner_tooltip">Untuk media lokal, pemindai otomatis tidak akan memindai ulang deskripsi lagu yang sudah ada. Gunakan pemindai manual dengan box centang pindai ulang tercentang jika kamu mau membenarkan deskripsi lagu</string>
+    <string name="scanner_auto_end">Media lokal dan lagu download sudah dipindai ulang!</string>
+    <string name="scanner_auto_start">Memindai media lokal dan lagu di folder unduhan…</string>
+    <string name="scanner_strict_file_paths_title">Samakan lokasi file daripada deskripsi lagu</string>
+    <string name="scanner_strict_file_paths_description">Menonaktifkan semua pencocokan cerdas deskripsi lagu. Ini bisa menyebabkan masalah jika file dipindah di penyimpanan lokal, tapi memungkinkan lagu yang sama ada di folder berbeda.</string>
+    <string name="scanner_type_tooltip">Pemindai sistem lebih cepat, tapi mungkin salah mengekstrak beberapa metadata dibandingkan dengan pemindai lain. Perlu diketahui bahwa mengganti pemindai tidak akan secara otomatis memuat ulang metadata lagu yang sudah ada.</string>
+    <string name="restore_lm_tooltip">Untuk yang menginstall aplikasi ini secara baru, download custom dan pemindai media lokal mungkin tidak bekerja. Untuk memperbaikinya, hapus izin lalu tambahkan lagi</string>
+    <string name="max_queues_title">Jumlah maksimal daftar lagu</string>
+    <string name="oobe_welcome_tip">Untuk pengalaman terbaik, Kami merekomendasikan menyelesaikan pengaturan cepat untuk pengaturan lebih lanjut seperti tema, akun YouTube, media lokal, Dan unduhan.</string>
+    <string name="oobe_cache_title">Cache lagu</string>
+    <string name="oobe_cache_subtitle">Pilih ukuran cache untuk lagu anda, ini bisa membantu mengurangi penggunaan internet atau masalah playback API YouTube</string>
 </resources>

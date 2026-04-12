@@ -52,7 +52,7 @@ class QueueBoard(
 ) {
     private val TAG = QueueBoard::class.simpleName.toString()
 
-    private var masterIndex = masterQueues.size - 1 // current queue index
+    private var masterIndex: Int // current queue index
     var detachedHead = false
 
     init {
@@ -63,6 +63,7 @@ class QueueBoard(
         if (!queues.isEmpty()) {
             masterQueues.addAll(queues.subList((queues.size - maxQueues).coerceAtLeast(0), queues.size))
         }
+        masterIndex = masterQueues.size - 1
     }
 
     /**

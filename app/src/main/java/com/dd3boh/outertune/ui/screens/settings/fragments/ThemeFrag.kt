@@ -9,6 +9,7 @@
 package com.dd3boh.outertune.ui.screens.settings.fragments
 
 import android.os.Build
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BlurOn
@@ -24,6 +25,7 @@ import com.dd3boh.outertune.constants.DEFAULT_PLAYER_BACKGROUND
 import com.dd3boh.outertune.constants.DarkMode
 import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.DynamicThemeKey
+import com.dd3boh.outertune.constants.HighContrastKey
 import com.dd3boh.outertune.constants.PlayerBackgroundStyle
 import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
 import com.dd3boh.outertune.constants.PureBlackKey
@@ -36,6 +38,7 @@ import com.dd3boh.outertune.utils.rememberPreference
 fun ColumnScope.ThemeAppFrag() {
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (highContrastCompat, onHccChange) = rememberPreference(HighContrastKey, defaultValue = false)
 
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
 
@@ -45,6 +48,15 @@ fun ColumnScope.ThemeAppFrag() {
         checked = dynamicTheme,
         onCheckedChange = onDynamicThemeChange
     )
+    AnimatedVisibility(!dynamicTheme) {
+        SwitchPreference(
+            title = { Text(stringResource(R.string.high_contrast)) },
+            description = stringResource(R.string.high_contrast_description),
+            icon = { Icon(Icons.Rounded.Contrast, null) },
+            checked = highContrastCompat,
+            onCheckedChange = onHccChange
+        )
+    }
     EnumListPreference(
         title = { Text(stringResource(R.string.dark_theme)) },
         icon = { Icon(Icons.Rounded.DarkMode, null) },

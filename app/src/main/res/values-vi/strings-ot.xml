@@ -17,7 +17,7 @@
     <string name="grp_layout">Bố trí</string>
     <string name="song_added_to_queue">\"%s\" đã được thêm vào hàng chờ</string>
     <string name="sort_by_like_date">Ngày bạn đã thích</string>
-    <string name="queue_local_history">Lịch sử (Local)</string>
+    <string name="queue_local_history">Lịch sử (cục bộ)</string>
     <string name="player_background_gradient">Theo màu sắc</string>
     <string name="queue_searched_songs_ot">Tìm kiếm:</string>
     <string name="song_added_to_queue_end">\"%s\" đã được thêm vào cuối hàng chờ</string>
@@ -99,4 +99,22 @@
     <string name="err_invalid_ytm_song">Phát bài hát không thành công. Chỉ có nội dung khả dụng trên Youtube Music mới có thể được phát</string>
     <string name="file_path">Đường dẫn của tệp</string>
     <string name="extra_details">Thông tin thêm</string>
+    <string name="library_filter">Bộ lọc thư viện</string>
+    <string name="grp_more_settings">Thêm cài đặt</string>
+    <string name="import_success_songs">Nhập thành công</string>
+    <string name="lyrics_font_Size">Cỡ chữ</string>
+    <string name="lyrics_karaoke_title">Kiểu lời bài hát karaoke</string>
+    <string name="m3u_export">Xuất file với định dạng M3U</string>
+    <string name="m3u_import_playlist_failed">Không thể nhập tệp</string>
+    <string name="oobe_ad_free_exp">Không có quảng cáo YouTube</string>
+    <string name="m3u_import_playlist">Nhập một danh sách phát (m3u)</string>
+    <string name="action_back">Quay lại</string>
+    <string name="action_next">Tiếp theo</string>
+    <string name="action_skip">Bỏ qua</string>
+    <string name="action_cancel">Hủy bỏ</string>
+    <string name="import_failed_songs">Không thể nhập tệp</string>
+    <string name="oobe_complete">OuterTune đã thiết lập và sẵn sàng sử dụng. Khám phá âm nhạc, tìm bài hát mới, và tận hưởng trải nghiệm!</string>
+    <string name="oobe_local_music_support_description">Phát tệp nhạc của bạn (VD. MP3, OGG, FLAC,...)</string>
+    <string name="oobe_complete_title">Đã thiết lập thành công!</string>
+    <string name="oobe_welcome_message">Chào mừng đến với OuterTune</string>
 </resources>

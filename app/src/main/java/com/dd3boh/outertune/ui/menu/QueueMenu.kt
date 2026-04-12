@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,6 +31,7 @@ fun QueueMenu(
     onDismiss: () -> Unit,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
+    val queueBoard by playerConnection.queueBoard.collectAsState()
 
     if (mq == null) {
         onDismiss()
@@ -99,14 +101,14 @@ fun QueueMenu(
     if (showChooseQueueDialog) {
         AddToQueueDialog(
             onAdd = { queueName ->
-                val q = playerConnection.service.queueBoard.addQueue(
+                val q = queueBoard.addQueue(
                     queueName,
                     songs,
                     forceInsert = true,
                     delta = false
                 )
                 q?.let {
-                    playerConnection.service.queueBoard.setCurrQueue(it)
+                    queueBoard.setCurrQueue(it)
                 }
             },
             onDismiss = {

@@ -193,8 +193,8 @@ class TagLibScanner : MetadataScanner {
 
 
             // deduplicate
-            artistList = artistList.filterNot { it.name == "" }.distinctBy { it.name } as ArrayList<ArtistEntity>
-            genresList = genresList.filterNot { it.title == "" }.distinctBy { it.title } as ArrayList<GenreEntity>
+            artistList = artistList.filterNot { it.name == "" }.distinctBy { it.name.lowercase() } as ArrayList<ArtistEntity>
+            genresList = genresList.filterNot { it.title == "" }.distinctBy { it.title.lowercase() } as ArrayList<GenreEntity>
 
             return SongTempData(
                 Song(

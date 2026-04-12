@@ -1,6 +1,6 @@
 ## material-color-utilities
 
-Commit: 5a7931ec912c45e72caff1d4a776cb2f2c398cd8
+Commit: c50b4106030b35449baf7ec71b74963deff072dd
 
 Source: https://github.com/material-foundation/material-color-utilities
 

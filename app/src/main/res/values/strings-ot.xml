@@ -121,6 +121,8 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Appearance settings -->
     <string name="new_interface">New interface layout</string>
+    <string name="high_contrast" translatable="false">High contrast mode compatibility</string>
+    <string name="high_contrast_description" translatable="false">Enable to fix some visual issues when Android\'s high contrast mode is enabled</string>
     <string name="player_background_blur">Blur</string>
     <string name="player_background_default">Follow theme</string>
     <string name="player_background_gradient">Gradient</string>
@@ -132,7 +134,7 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="tab_arrangement_disable_tip">--- Drag below here to disable ---</string>
     <string name="tab_arrangement_home_required">The Home tab is required.</string>
     <string name="tablet_ui_title">Force tablet UI</string>
-    <string name="tablet_ui_title_description">Enable a landscape interface that is optimized for larger screens regardless of the current screen size</string>
+    <string name="tablet_ui_title_description">Force a split interface optimized for large screens. This setting has no effect if minimum width requirements are not met</string>
     <string name="filter_arrangement">Arrange filters</string>
 
 <!-- Content settings -->

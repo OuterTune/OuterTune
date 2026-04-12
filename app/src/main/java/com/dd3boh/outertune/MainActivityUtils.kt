@@ -11,12 +11,10 @@ import androidx.navigation.NavController
 import com.dd3boh.outertune.constants.AUTO_SCAN_COOLDOWN
 import com.dd3boh.outertune.constants.AUTO_SCAN_SOFT_COOLDOWN
 import com.dd3boh.outertune.constants.AutomaticScannerKey
-import com.dd3boh.outertune.constants.ENABLE_UPDATE_CHECKER
 import com.dd3boh.outertune.constants.ExcludedScanPathsKey
 import com.dd3boh.outertune.constants.LastLocalScanKey
 import com.dd3boh.outertune.constants.LastVersionKey
 import com.dd3boh.outertune.constants.LocalLibraryEnableKey
-import com.dd3boh.outertune.constants.LookupYtmArtistsKey
 import com.dd3boh.outertune.constants.OOBE_VERSION
 import com.dd3boh.outertune.constants.OobeStatusKey
 import com.dd3boh.outertune.constants.SCANNER_OWNER_LM
@@ -34,18 +32,14 @@ import com.dd3boh.outertune.playback.DownloadUtil
 import com.dd3boh.outertune.playback.PlayerConnection
 import com.dd3boh.outertune.playback.queues.ListQueue
 import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
-import com.dd3boh.outertune.ui.utils.Updater
 import com.dd3boh.outertune.ui.utils.clearDtCache
-import com.dd3boh.outertune.utils.compareVersion
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.enumPreference
 import com.dd3boh.outertune.utils.get
-import com.dd3boh.outertune.utils.lmScannerCoroutine
 import com.dd3boh.outertune.utils.reportException
 import com.dd3boh.outertune.utils.scanners.LocalMediaScanner
 import com.dd3boh.outertune.utils.scanners.LocalMediaScanner.Companion.destroyScanner
 import com.dd3boh.outertune.utils.scanners.LocalMediaScanner.Companion.scannerState
-import com.dd3boh.outertune.utils.scanners.ScannerAbortException
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -153,7 +147,6 @@ suspend fun scanInit(
     val excludedScanPaths = context.dataStore.get(ExcludedScanPathsKey, defaultValue = "")
     val strictExtensions = context.dataStore.get(ScannerStrictExtKey, defaultValue = false)
     val strictFilePaths = context.dataStore.get(ScannerStrictFilePathsKey, defaultValue = false)
-    val lookupYtmArtists = context.dataStore.get(LookupYtmArtistsKey, defaultValue = false)
     val autoScan = context.dataStore.get(AutomaticScannerKey, defaultValue = true)
     val lastLocalScan = context.dataStore.get(LastLocalScanKey, 0L)
 
@@ -215,23 +208,6 @@ suspend fun scanInit(
                 )
                 val uris = scanner.scanLocal(scanPaths, excludedScanPaths)
                 scanner.quickSync(database, uris, scannerSensitivity, strictExtensions, strictFilePaths)
-
-                // start artist linking job
-                if (lookupYtmArtists && scannerState.value <= 0) {
-                    CoroutineScope(lmScannerCoroutine).launch {
-                        try {
-                            scanner.localToRemoteArtist(database)
-                        } catch (e: ScannerAbortException) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    message = "${context.getString(R.string.scanner_scan_fail)}: ${e.message}",
-                                    withDismissAction = true,
-                                    duration = SnackbarDuration.Long
-                                )
-                            }
-                        }
-                    }
-                }
             } catch (e: Exception) {
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
@@ -270,28 +246,4 @@ suspend fun scanInit(
         )
     }
 
-
-// update checker
-    coroutineScope.launch(Dispatchers.IO) {
-        if (!ENABLE_UPDATE_CHECKER) return@launch
-        if (compareVersion(lastVer, BuildConfig.VERSION_NAME) <= 0) {
-            context.dataStore.edit { settings ->
-                settings[LastVersionKey] = BuildConfig.VERSION_NAME
-                settings[UpdateAvailableKey] = false
-            }
-            Log.d(MAIN_TAG, "App version is >= latest. Tracking current version")
-        }
-
-        Updater.tryCheckUpdate(context)?.let {
-            if (compareVersion(lastVer, it) < 0) {
-                context.dataStore.edit { settings ->
-                    settings[LastVersionKey] = BuildConfig.VERSION_NAME
-                    settings[UpdateAvailableKey] = true
-                }
-                Log.d(MAIN_TAG, "Update available. UpdateAvailable set to true")
-            } else {
-                Log.d(MAIN_TAG, "No new updates available")
-            }
-        }
-    }
 }

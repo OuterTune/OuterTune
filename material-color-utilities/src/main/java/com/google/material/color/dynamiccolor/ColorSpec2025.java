@@ -428,7 +428,8 @@ final class ColorSpec2025 extends ColorSpec2021 {
                     return surfaceContainerHigh();
                   }
                 })
-            .setContrastCurve((s) -> s.isDark ? getContrastCurve(11) : getContrastCurve(9))
+            .setContrastCurve(
+                (s) -> s.isDark && s.platform == PHONE ? getContrastCurve(11) : getContrastCurve(9))
             .build();
     return super.onSurface().toBuilder()
         .extendSpecVersion(SpecVersion.SPEC_2025, color2025)
@@ -625,15 +626,23 @@ final class ColorSpec2025 extends ColorSpec2021 {
                       return tMaxC(s.primaryPalette, 0, 90);
                     }
                   } else if (s.variant == EXPRESSIVE) {
-                    return tMaxC(
-                        s.primaryPalette,
-                        0,
-                        Hct.isYellow(s.primaryPalette.getHue())
-                            ? 25
-                            : Hct.isCyan(s.primaryPalette.getHue()) ? 88 : 98);
+                    if (s.platform == PHONE) {
+                      return tMaxC(
+                          s.primaryPalette,
+                          0,
+                          Hct.isYellow(s.primaryPalette.getHue())
+                              ? 25
+                              : Hct.isCyan(s.primaryPalette.getHue()) ? 88 : 98);
+                    } else { // WATCH
+                      return tMaxC(s.primaryPalette);
+                    }
                   } else { // VIBRANT
-                    return tMaxC(
-                        s.primaryPalette, 0, Hct.isCyan(s.primaryPalette.getHue()) ? 88 : 98);
+                    if (s.platform == PHONE) {
+                      return tMaxC(
+                          s.primaryPalette, 0, Hct.isCyan(s.primaryPalette.getHue()) ? 88 : 98);
+                    } else { // WATCH
+                      return tMaxC(s.primaryPalette);
+                    }
                   }
                 })
             .setIsBackground(true)
