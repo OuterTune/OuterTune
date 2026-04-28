@@ -30,6 +30,9 @@ jobs:
       - name: Accept SDK licenses
         run: yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses
 
+      - name: Patch media submodule AGP version to 8.13.2
+        run: sed -i "s/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.13.2/g" media/build.gradle
+
       - name: Build debug APK and run jvm tests
         run: ./gradlew assembleCoreDebug lintCoreDebug testCoreDebugUnitTest --stacktrace -DskipFormatKtlint
 
