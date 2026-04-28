@@ -11,6 +11,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "OuterTune"
 include(":app")
+include(":innertube")
 include(":material-color-utilities")
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.

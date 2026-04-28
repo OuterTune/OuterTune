@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.aboutlibraries)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -232,6 +233,7 @@ dependencies {
     implementation(libs.viewmodel.compose)
 
     implementation(libs.media3)
+    implementation(libs.media3.okhttp)
     implementation(libs.media3.session)
 
     implementation(libs.room.runtime)
@@ -249,6 +251,7 @@ dependencies {
     implementation(libs.aboutlibraries.compose.m3)
 
     // modules
+    implementation(project(":innertube"))
     implementation(project(":material-color-utilities"))
 
 }

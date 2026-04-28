@@ -2,7 +2,7 @@ package com.dd3boh.outertune.db.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-// TODO: keep as is for downloaded songs?
+
 @Entity(tableName = "format")
 data class FormatEntity(
     @PrimaryKey val id: String,
@@ -14,5 +14,7 @@ data class FormatEntity(
     val bitsPerSample: Int? = null,
     val contentLength: Long, // file size
     val loudnessDb: Double? = null,
+    @Deprecated("playbackTrackingUrl should be retrieved from a fresh player request")
+    val playbackTrackingUrl: String? = null,
     val extraComment: String? = null,
 )
