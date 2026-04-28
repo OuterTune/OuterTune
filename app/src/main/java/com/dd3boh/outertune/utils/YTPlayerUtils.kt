@@ -22,6 +22,7 @@ import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
+import com.zionhuang.innertube.models.YouTubeClient.Companion.TVHTML5_SIMPLY_EMBEDDED_PLAYER
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.zionhuang.innertube.models.response.PlayerResponse
 import okhttp3.OkHttpClient
@@ -52,12 +53,8 @@ object YTPlayerUtils {
      * Clients used for fallback streams in case the streams of the main client do not work.
      */
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
-        // Could not parse deobfuscation function
-//        WEB_REMIX,
-//        ANDROID,
-//        TVHTML5,
-//        TVHTML5_SIMPLY_EMBEDDED_PLAYER,
-        IOS, // recent api changes produce error 403 after 30 seconds
+        TVHTML5_SIMPLY_EMBEDDED_PLAYER, // requires login; stable streams via signature timestamp
+        IOS, // fallback for non-logged-in; recent api changes produce error 403 after 30 seconds
     )
 
 

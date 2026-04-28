@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - canary
+      - fix/ytm-playback-0.10.2
   pull_request:
     branches:
       - '**'
@@ -30,8 +31,12 @@ jobs:
       - name: Build debug APK and run jvm tests
         run: ./gradlew assembleCoreDebug lintCoreDebug testCoreDebugUnitTest --stacktrace -DskipFormatKtlint
 
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app
+          name: OuterTune_release_fix_${{ steps.date.outputs.date }}
           path: app/build/outputs/apk/core/debug/*.apk
