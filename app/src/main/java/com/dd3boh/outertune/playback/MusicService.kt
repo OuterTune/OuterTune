@@ -114,7 +114,6 @@ import com.dd3boh.outertune.playback.queues.YouTubeQueue
 import com.dd3boh.outertune.utils.CoilBitmapLoader
 import com.dd3boh.outertune.utils.NetworkConnectivityObserver
 import com.dd3boh.outertune.utils.SyncUtils
-import com.dd3boh.outertune.providers.ytm.InnertubeStreamingProvider
 import com.dd3boh.outertune.utils.YTPlayerUtils
 import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.enumPreference
@@ -710,16 +709,6 @@ class MusicService : MediaLibraryService(),
                 Log.d(TAG, "PLAYING: remote song (temp cache)")
                 offloadScope.launch { recoverSong(mediaId) }
                 return@Factory dataSpec.withUri(it.first.toUri())
-            }
-
-            // try direct innertube call first (no NewPipe dependency, simpler stack)
-            runBlocking(Dispatchers.IO) {
-                InnertubeStreamingProvider.getStreamingUrlBlocking(mediaId)
-            }?.let { directUrl ->
-                Log.d(TAG, "PLAYING: remote song (innertube direct)")
-                songUrlCache[mediaId] = directUrl to (System.currentTimeMillis() + 3_600_000L)
-                offloadScope.launch { recoverSong(mediaId) }
-                return@Factory dataSpec.withUri(directUrl.toUri())
             }
 
             Log.d(TAG, "PLAYING: remote song (online fetch via YTPlayerUtils)")
