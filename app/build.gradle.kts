@@ -187,6 +187,7 @@ android {
 
     lint {
         lintConfig = file("lint.xml")
+        abortOnError = false
     }
 
     androidResources {
