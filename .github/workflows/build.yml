@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - canary
+      - claude/session-complete-pWYpn
   pull_request:
     branches:
       - '**'
