@@ -247,6 +247,10 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugaring)
 
+    // potoken
+    implementation(libs.webkit)
+    implementation(libs.kotlinx.serialization.json)
+
     // misc
     implementation(libs.aboutlibraries.compose.m3)
 
