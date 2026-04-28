@@ -243,16 +243,19 @@ object YTPlayerUtils {
 
     /**
      * Checks if the stream url returns a successful status.
-     * If this returns true the url is likely to work.
-     * If this returns false the url might cause an error during playback.
+     * Uses a 1-byte range GET instead of HEAD because YouTube CDN often rejects HEAD requests
+     * with 403 even for valid URLs, which would cause valid clients to be skipped.
      */
     private fun validateStatus(url: String): Boolean {
         try {
-            val requestBuilder = okhttp3.Request.Builder()
-                .head()
+            val request = okhttp3.Request.Builder()
+                .get()
+                .header("Range", "bytes=0-1")
                 .url(url)
-            val response = httpClient.newCall(requestBuilder.build()).execute()
-            return response.isSuccessful
+                .build()
+            val response = httpClient.newCall(request).execute()
+            response.body?.close()
+            return response.isSuccessful || response.code == 206
         } catch (e: Exception) {
             reportException(e)
         }
