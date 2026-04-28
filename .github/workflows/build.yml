@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,12 +33,26 @@ jobs:
       - name: Build debug APK and run jvm tests
         run: ./gradlew assembleCoreDebug lintCoreDebug testCoreDebugUnitTest --stacktrace -DskipFormatKtlint
 
-      - name: Get current date
-        id: date
-        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
-
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OuterTune_release_fix_${{ steps.date.outputs.date }}
+          name: OuterTune_release_fix_debug
           path: app/build/outputs/apk/core/debug/*.apk
+
+      - name: Create or update Release
+        if: github.ref == 'refs/heads/fix/ytm-playback-0.10.2'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.10.2-playback-fix
+          name: "0.10.2 YTM Playback Fix"
+          body: |
+            自動建置 - 修復 YouTube Music 播放 20 秒停止問題
+
+            **修復內容：**
+            - 新增 TVHTML5_SIMPLY_EMBEDDED_PLAYER 作為 fallback client
+            - 解決 IOS client 在約 30 秒後回傳 HTTP 403 的問題
+
+            Built from commit: ${{ github.sha }}
+          files: app/build/outputs/apk/core/debug/*.apk
+          make_latest: true
+          prerelease: true
