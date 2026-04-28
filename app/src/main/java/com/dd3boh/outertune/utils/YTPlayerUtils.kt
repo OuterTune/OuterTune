@@ -51,10 +51,12 @@ object YTPlayerUtils {
 
     /**
      * Clients used for fallback streams in case the streams of the main client do not work.
+     * Order matters: first match with a valid stream URL wins (last client skips validateStatus).
      */
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
         TVHTML5_SIMPLY_EMBEDDED_PLAYER, // requires login; stable streams via signature timestamp
-        IOS, // fallback for non-logged-in; recent api changes produce error 403 after 30 seconds
+        WEB_REMIX,                       // poToken-based; stable streams for non-logged-in users
+        IOS,                             // last resort; 403 after ~30s due to recent API changes
     )
 
 
