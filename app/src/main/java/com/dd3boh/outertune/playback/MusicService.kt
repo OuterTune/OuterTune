@@ -628,6 +628,14 @@ class MusicService : MediaLibraryService(),
     }
 
     private fun createCacheDataSource(): CacheDataSource.Factory {
+        val streamHeaders = buildMap<String, String> {
+            put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0")
+            put("Origin", "https://music.youtube.com")
+            put("Referer", "https://music.youtube.com/")
+            YouTube.cookie?.takeIf { it.isNotEmpty() }?.let { put("Cookie", it) }
+            YouTube.visitorData?.takeIf { it.isNotEmpty() }?.let { put("X-Goog-Visitor-Id", it) }
+        }
+
         return CacheDataSource.Factory()
             .setCache(downloadCache)
             .setUpstreamDataSourceFactory(
@@ -640,9 +648,7 @@ class MusicService : MediaLibraryService(),
                                 OkHttpClient.Builder()
                                     .proxy(YouTube.proxy)
                                     .build()
-                            ).setDefaultRequestProperties(
-                                mapOf("User-Agent" to "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0")
-                            )
+                            ).setDefaultRequestProperties(streamHeaders)
                         )
                     )
                     .setCacheWriteDataSinkFactory(

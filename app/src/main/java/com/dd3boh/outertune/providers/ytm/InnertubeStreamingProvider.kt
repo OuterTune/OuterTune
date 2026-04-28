@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.providers.ytm
 
 import android.util.Log
+import com.zionhuang.innertube.YouTube
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -31,24 +32,38 @@ object InnertubeStreamingProvider {
             .put("clientName", clientName)
             .put("clientVersion", clientVersion)
             .apply { androidSdk?.let { put("androidSdkVersion", it) } }
+            .apply {
+                YouTube.visitorData?.takeIf { it.isNotEmpty() }
+                    ?.let { put("visitorData", it) }
+            }
 
         val body = JSONObject()
             .put("videoId", videoId)
             .put("context", JSONObject().put("client", clientObj))
             .toString()
 
-        parseStreamUrl(postJson(body))
+        parseStreamUrl(postJson(body, clientName))
     } catch (e: Exception) {
         Log.w(TAG, "[$clientName] failed for $videoId: ${e.message}")
         null
     }
 
-    private fun postJson(body: String): String {
+    private fun postJson(body: String, clientName: String): String {
         val conn = URL("$PLAYER_URL?key=$API_KEY").openConnection() as HttpURLConnection
         try {
             conn.requestMethod = "POST"
             conn.setRequestProperty("Content-Type", "application/json")
-            conn.setRequestProperty("User-Agent", "com.google.android.apps.youtube.music/7.27.52 (Linux; U; Android 11) gzip")
+            conn.setRequestProperty("Origin", "https://music.youtube.com")
+            conn.setRequestProperty("Referer", "https://music.youtube.com/")
+            conn.setRequestProperty(
+                "User-Agent",
+                if (clientName == "ANDROID_MUSIC")
+                    "com.google.android.apps.youtube.music/7.27.52 (Linux; U; Android 11) gzip"
+                else
+                    "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0"
+            )
+            YouTube.cookie?.takeIf { it.isNotEmpty() }
+                ?.let { conn.setRequestProperty("Cookie", it) }
             conn.connectTimeout = 10_000
             conn.readTimeout = 10_000
             conn.doOutput = true
