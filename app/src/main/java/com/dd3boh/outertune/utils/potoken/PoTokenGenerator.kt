@@ -21,7 +21,9 @@ class PoTokenGenerator {
     private var webPoTokenGenerator: PoTokenWebView? = null
 
     fun getWebClientPoToken(videoId: String, sessionId: String): PoTokenResult? {
+        Log.d(TAG, "[$videoId] getWebClientPoToken: webViewSupported=$webViewSupported webViewBadImpl=$webViewBadImpl")
         if (!webViewSupported || webViewBadImpl) {
+            Log.e(TAG, "[$videoId] poToken BLOCKED: webViewSupported=$webViewSupported webViewBadImpl=$webViewBadImpl")
             return null
         }
 
@@ -30,7 +32,7 @@ class PoTokenGenerator {
         } catch (e: Exception) {
             when (e) {
                 is BadWebViewException -> {
-                    Log.e(TAG, "Could not obtain poToken because WebView is broken", e)
+                    Log.e(TAG, "[$videoId] poToken FAILED: WebView is broken — $e")
                     webViewBadImpl = true
                     null
                 }

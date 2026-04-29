@@ -109,6 +109,7 @@ class PoTokenWebView private constructor(
             "https://www.youtube.com/api/jnn/v1/Create",
             "[ \"$REQUEST_KEY\" ]",
         ) { responseBody ->
+            Log.d(TAG, "Create response[80]=${responseBody.take(80)}")
             val parsedChallengeData = parseChallengeData(responseBody)
             webView.evaluateJavascript(
                 """try {
@@ -133,9 +134,7 @@ class PoTokenWebView private constructor(
      */
     @JavascriptInterface
     fun onJsInitializationError(error: String) {
-        if (BuildConfig.DEBUG) {
-            Log.e(TAG, "Initialization error from JavaScript: $error")
-        }
+        Log.e(TAG, "JS init error: $error")
         onInitializationErrorCloseAndCancel(buildExceptionForJsError(error))
     }
 
@@ -150,14 +149,14 @@ class PoTokenWebView private constructor(
             "https://www.youtube.com/api/jnn/v1/GenerateIT",
             "[ \"$REQUEST_KEY\", \"$botguardResponse\" ]",
         ) { responseBody ->
-            Log.d(TAG, "GenerateIT response: $responseBody")
+            Log.d(TAG, "GenerateIT response[80]=${responseBody.take(80)}")
             val (integrityToken, expirationTimeInSeconds) = parseIntegrityTokenData(responseBody)
+            Log.d(TAG, "integrityToken obtained, expiresIn=${expirationTimeInSeconds}s")
 
-            // leave 10 minutes of margin just to be sure
             expirationInstant = Instant.now().plusSeconds(expirationTimeInSeconds).minus(10, ChronoUnit.MINUTES)
 
             webView.evaluateJavascript("this.integrityToken = $integrityToken") {
-                Log.d(TAG, "initialization finished, expiration=${expirationTimeInSeconds}s")
+                Log.d(TAG, "PoTokenWebView READY — initialization complete, expiration=${expirationTimeInSeconds}s")
                 continuation.resume(this)
             }
         }
@@ -280,6 +279,7 @@ class PoTokenWebView private constructor(
             }
             val httpCode = response.code
             if (httpCode != 200) {
+                Log.e(TAG, "BotGuard HTTP error $httpCode for $url")
                 onInitializationErrorCloseAndCancel(PoTokenException("Invalid response code: $httpCode"))
             } else {
                 val body = withContext(Dispatchers.IO) {

@@ -80,37 +80,38 @@ object YTPlayerUtils {
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
     ): Result<PlaybackData> = runCatching {
-        Log.d(TAG, "Playback info requested: $videoId")
+        Log.d(TAG, "[$videoId] ====== playerResponseForPlayback START ======")
 
-        /**
-         * This is required for some clients to get working streams however
-         * it should not be forced for the [MAIN_CLIENT] because the response of the [MAIN_CLIENT]
-         * is required even if the streams won't work from this client.
-         * This is why it is allowed to be null.
-         */
         val signatureTimestamp = getSignatureTimestampOrNull(videoId)
 
         val isLoggedIn = YouTube.cookie != null
         val sessionId =
-            if (isLoggedIn) {
-                // signed in sessions use dataSyncId as identifier
-                YouTube.dataSyncId
-            } else {
-                // signed out sessions use visitorData as identifier
-                YouTube.visitorData
-            }
+            if (isLoggedIn) YouTube.dataSyncId
+            else YouTube.visitorData
 
-        Log.d(TAG, "[$videoId] signatureTimestamp: $signatureTimestamp, isLoggedIn: $isLoggedIn")
+        Log.d(TAG, "[$videoId] isLoggedIn=$isLoggedIn signatureTimestamp=$signatureTimestamp")
+        Log.d(TAG, "[$videoId] sessionId=${sessionId?.take(20)?.let { "$it..." } ?: "null"}")
 
-        val (webPlayerPot, webStreamingPot) = getWebClientPoTokenOrNull(videoId, sessionId)?.let {
-            Pair(it.playerRequestPoToken, it.streamingDataPoToken)
-        } ?: Pair(null, null).also {
-            Log.w(TAG, "[$videoId] No po token")
+        val potResult = getWebClientPoTokenOrNull(videoId, sessionId)
+        val webPlayerPot = potResult?.playerRequestPoToken
+        val webStreamingPot = potResult?.streamingDataPoToken
+        if (potResult != null) {
+            Log.d(TAG, "[$videoId] poToken GENERATED: playerPot=${webPlayerPot?.take(20)}... streamPot=${webStreamingPot?.take(20)}...")
+        } else {
+            Log.w(TAG, "[$videoId] poToken FAILED or null — WEB_REMIX will not get &pot=")
         }
+
+        // Log the body fields we're about to send for MAIN_CLIENT
+        Log.d(TAG, "[$videoId] MAIN_CLIENT request: client=${MAIN_CLIENT.clientName} v${MAIN_CLIENT.clientVersion}" +
+                " sigTs=$signatureTimestamp usePoToken=${MAIN_CLIENT.useWebPoTokens} pot=${webPlayerPot?.take(20)}")
 
         val mainPlayerResponse =
             YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp, webPlayerPot)
                 .getOrThrow()
+
+        Log.d(TAG, "[$videoId] MAIN_CLIENT playabilityStatus=${mainPlayerResponse.playabilityStatus.status}" +
+                " reason=${mainPlayerResponse.playabilityStatus.reason}" +
+                " adaptiveFormats=${mainPlayerResponse.streamingData?.adaptiveFormats?.size ?: 0}")
 
         val audioConfig = mainPlayerResponse.playerConfig?.audioConfig
         val videoDetails = mainPlayerResponse.videoDetails
@@ -121,68 +122,94 @@ object YTPlayerUtils {
         var streamExpiresInSeconds: Int? = null
 
         var streamPlayerResponse: PlayerResponse? = null
+        var winningClient: YouTubeClient? = null
+
         for (clientIndex in (-1 until STREAM_FALLBACK_CLIENTS.size)) {
-            // reset for each client
             format = null
             streamUrl = null
             streamExpiresInSeconds = null
 
-            // decide which client to use for streams and load its player response
             val client: YouTubeClient
             if (clientIndex == -1) {
-                Log.d(TAG, "Trying client: ${MAIN_CLIENT.clientName}")
-                // try with streams from main client first
                 client = MAIN_CLIENT
                 streamPlayerResponse = mainPlayerResponse
+                Log.d(TAG, "[$videoId] --- Trying MAIN_CLIENT: ${client.clientName} ---")
             } else {
-                Log.d(TAG, "Trying fallback client: ${STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
-                // after main client use fallback clients
                 client = STREAM_FALLBACK_CLIENTS[clientIndex]
+                Log.d(TAG, "[$videoId] --- Trying FALLBACK[$clientIndex]: ${client.clientName}" +
+                        " loginRequired=${client.loginRequired} usePoToken=${client.useWebPoTokens} ---")
 
                 if (client.loginRequired && !isLoggedIn) {
-                    // skip client if it requires login but user is not logged in
+                    Log.d(TAG, "[$videoId] SKIP ${client.clientName}: loginRequired but not logged in")
                     continue
                 }
+
+                Log.d(TAG, "[$videoId] ${client.clientName} request body: client=${client.clientName} v${client.clientVersion}" +
+                        " sigTs=$signatureTimestamp usePoToken=${client.useWebPoTokens}" +
+                        " playerPot=${if (client.useWebPoTokens) webPlayerPot?.take(20) else "n/a"}")
 
                 streamPlayerResponse =
                     YouTube.player(videoId, playlistId, client, signatureTimestamp, webPlayerPot)
                         .getOrNull()
             }
 
-            Log.d(TAG, "[$videoId] stream client: ${client.clientName}, " +
-                    "playabilityStatus: ${streamPlayerResponse?.playabilityStatus?.let {
-                        it.status + (it.reason?.let { " - $it" } ?: "")
-                    }}")
+            val statusStr = streamPlayerResponse?.playabilityStatus?.let {
+                "${it.status}${it.reason?.let { r -> " ($r)" } ?: ""}"
+            } ?: "null"
+            Log.d(TAG, "[$videoId] ${client.clientName} playabilityStatus=$statusStr")
 
-            // process current client response
             if (streamPlayerResponse?.playabilityStatus?.status == "OK") {
-                format =
-                    findFormat(
-                        streamPlayerResponse,
-                        audioQuality,
-                        connectivityManager,
-                    ) ?: continue
-                streamUrl = findUrlOrNull(format, videoId) ?: continue
-                streamExpiresInSeconds =
-                    streamPlayerResponse.streamingData?.expiresInSeconds ?: continue
+                val formats = streamPlayerResponse.streamingData?.adaptiveFormats
+                Log.d(TAG, "[$videoId] ${client.clientName} adaptiveFormats=${formats?.size ?: 0}" +
+                        " audio=${formats?.count { it.isAudio } ?: 0}")
 
+                format = findFormat(streamPlayerResponse, audioQuality, connectivityManager)
+                if (format == null) {
+                    Log.w(TAG, "[$videoId] ${client.clientName} SKIP: findFormat returned null")
+                    continue
+                }
+                Log.d(TAG, "[$videoId] ${client.clientName} selected format: itag=${format.itag} mime=${format.mimeType} bitrate=${format.bitrate}")
+
+                val rawUrl = findUrlOrNull(format, videoId)
+                if (rawUrl == null) {
+                    Log.w(TAG, "[$videoId] ${client.clientName} SKIP: findUrlOrNull returned null (NewPipe failed?)")
+                    continue
+                }
+                Log.d(TAG, "[$videoId] ${client.clientName} rawUrl[50]=${rawUrl.take(50)}")
+
+                streamExpiresInSeconds = streamPlayerResponse.streamingData?.expiresInSeconds
+                if (streamExpiresInSeconds == null) {
+                    Log.w(TAG, "[$videoId] ${client.clientName} SKIP: expiresInSeconds null")
+                    continue
+                }
+
+                streamUrl = rawUrl
                 if (client.useWebPoTokens && webStreamingPot != null) {
-                    streamUrl += "&pot=$webStreamingPot";
+                    streamUrl += "&pot=$webStreamingPot"
+                    Log.d(TAG, "[$videoId] ${client.clientName} appended &pot= streamUrl[50]=${streamUrl.take(50)}")
+                } else if (client.useWebPoTokens && webStreamingPot == null) {
+                    Log.w(TAG, "[$videoId] ${client.clientName} useWebPoTokens=true but streamPot=null — URL sent WITHOUT &pot=")
                 }
 
                 if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1) {
-                    /** skip [validateStatus] for last client */
+                    Log.w(TAG, "[$videoId] ${client.clientName} is LAST client — using without validateStatus (may 403)")
+                    winningClient = client
                     break
                 }
-                if (validateStatus(streamUrl)) {
-                    // working stream found
-                    Log.i(TAG, "[$videoId] [${client.clientName}] found working stream")
+
+                val valid = validateStatus(streamUrl)
+                Log.d(TAG, "[$videoId] ${client.clientName} validateStatus=$valid expiresIn=${streamExpiresInSeconds}s")
+                if (valid) {
+                    Log.i(TAG, "[$videoId] WINNER: ${client.clientName} — stable stream confirmed")
+                    winningClient = client
                     break
                 } else {
-                    Log.w(TAG, "[$videoId] [${client.clientName}] got bad http status code")
+                    Log.w(TAG, "[$videoId] ${client.clientName} validateStatus FAILED — trying next client")
                 }
             }
         }
+
+        Log.d(TAG, "[$videoId] ====== client selection done — winningClient=${winningClient?.clientName ?: "NONE"} ======")
 
         if (streamPlayerResponse == null) {
             throw Exception("Bad stream player response")
@@ -194,26 +221,13 @@ object YTPlayerUtils {
                 PlaybackException.ERROR_CODE_REMOTE_ERROR
             )
         }
-        if (streamExpiresInSeconds == null) {
-            throw Exception("Missing stream expire time")
-        }
-        if (format == null) {
-            throw Exception("Could not find format")
-        }
-        if (streamUrl == null) {
-            throw Exception("Could not find stream url")
-        }
+        if (streamExpiresInSeconds == null) throw Exception("Missing stream expire time")
+        if (format == null) throw Exception("Could not find format")
+        if (streamUrl == null) throw Exception("Could not find stream url")
 
-        Log.d(TAG, "[$videoId] stream url: $streamUrl")
+        Log.i(TAG, "[$videoId] FINAL streamUrl[50]=${streamUrl.take(50)} expiresIn=${streamExpiresInSeconds}s")
 
-        PlaybackData(
-            audioConfig,
-            videoDetails,
-            playbackTracking,
-            format,
-            streamUrl,
-            streamExpiresInSeconds,
-        )
+        PlaybackData(audioConfig, videoDetails, playbackTracking, format, streamUrl, streamExpiresInSeconds)
     }
 
     /**
