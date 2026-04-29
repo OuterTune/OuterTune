@@ -10,6 +10,7 @@ object YTPlayerDebugInfo {
     @Volatile var potStatus: String = "—"
     @Volatile var urlPrefix: String = "—"
     @Volatile var newPipeOk: Boolean? = null
+    @Volatile var newPipeError: String? = null
     private val attempts = mutableListOf<String>()
 
     fun reset(vid: String) {
@@ -18,6 +19,7 @@ object YTPlayerDebugInfo {
         potStatus = "—"
         urlPrefix = "—"
         newPipeOk = null
+        newPipeError = null
         synchronized(attempts) { attempts.clear() }
     }
 
@@ -30,6 +32,7 @@ object YTPlayerDebugInfo {
         appendLine("videoId : $videoId")
         appendLine("poToken : $potStatus")
         appendLine("NewPipe : ${newPipeOk?.let { if (it) "OK" else "FAILED" } ?: "—"}")
+        newPipeError?.let { appendLine("NP err  : $it") }
         appendLine("winner  : $winnerClient")
         appendLine("URL[50] : $urlPrefix")
         appendLine("--- client attempts ---")

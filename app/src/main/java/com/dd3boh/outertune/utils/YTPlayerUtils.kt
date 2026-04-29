@@ -20,6 +20,7 @@ import com.dd3boh.outertune.utils.potoken.PoTokenResult
 import com.zionhuang.innertube.NewPipeUtils
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.YouTubeClient
+import com.zionhuang.innertube.models.YouTubeClient.Companion.ANDROID
 import com.zionhuang.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
 import com.zionhuang.innertube.models.YouTubeClient.Companion.TVHTML5_SIMPLY_EMBEDDED_PLAYER
@@ -49,7 +50,8 @@ object YTPlayerUtils {
      */
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
         TVHTML5_SIMPLY_EMBEDDED_PLAYER, // login + sigTs → stable (skipped if not logged in)
-        ANDROID_VR_NO_AUTH,             // no auth, direct URLs, no poToken needed
+        ANDROID,                        // direct URLs, no cipher, no poToken needed; ~6h expiry
+        ANDROID_VR_NO_AUTH,             // no auth, direct URLs (may get LOGIN_REQUIRED from server)
         IOS,                            // last resort; 403 after ~30s
     )
 
@@ -305,6 +307,9 @@ object YTPlayerUtils {
         return NewPipeUtils.getStreamUrl(format, videoId)
             .onFailure {
                 reportException(it)
+                val msg = "${it.javaClass.simpleName}: ${it.message?.take(100)}"
+                Log.e(TAG, "[$videoId] getStreamUrl FAILED: $msg")
+                YTPlayerDebugInfo.newPipeError = msg
             }
             .getOrNull()
     }
