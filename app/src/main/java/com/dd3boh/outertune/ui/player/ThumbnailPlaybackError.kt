@@ -51,6 +51,7 @@ import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.PlayerBackgroundStyle
 import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
 import com.dd3boh.outertune.ui.utils.fadingEdge
+import com.dd3boh.outertune.utils.YTPlayerDebugInfo
 import com.dd3boh.outertune.utils.rememberEnumPreference
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -124,20 +125,25 @@ fun ThumbnailPlaybackError(
             }
         }
         AnimatedVisibility(showStackTrace) {
+            val debugInfo = YTPlayerDebugInfo.format()
+            val systemInfo = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) | ${BuildConfig.FLAVOR}\n" +
+                    "${BuildConfig.APPLICATION_ID} | ${BuildConfig.BUILD_TYPE}\n" +
+                    "${Build.BRAND} ${Build.DEVICE} (${Build.MODEL})\n" +
+                    "${Build.VERSION.SDK_INT} (${Build.ID})\n\n"
+            val fullText = debugInfo + "\n" + systemInfo + error.stackTraceToString()
+
             Text(
-                text = error.stackTraceToString(),
+                text = fullText,
                 color = textColor,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
-                    .padding(top = 64.dp)
+                    .padding(top = 16.dp)
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onTap = {
-                                val systemInfo =
-                                    "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) | ${BuildConfig.FLAVOR}\n${BuildConfig.APPLICATION_ID} | ${BuildConfig.BUILD_TYPE}\n${Build.BRAND} ${Build.DEVICE} (${Build.MODEL})\n${Build.VERSION.SDK_INT} (${Build.ID})\n\n"
                                 val clipData = ClipData.newPlainText(
                                     "OuterTune player error",
-                                    AnnotatedString(systemInfo + "OuterTune player error\n\n" + error.stackTraceToString())
+                                    AnnotatedString(fullText)
                                 )
                                 clipboardManager.nativeClipboard.setPrimaryClip(clipData)
                             }

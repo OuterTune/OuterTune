@@ -81,6 +81,7 @@ object YTPlayerUtils {
         connectivityManager: ConnectivityManager,
     ): Result<PlaybackData> = runCatching {
         Log.d(TAG, "[$videoId] ====== playerResponseForPlayback START ======")
+        YTPlayerDebugInfo.reset(videoId)
 
         val signatureTimestamp = getSignatureTimestampOrNull(videoId)
 
@@ -97,8 +98,10 @@ object YTPlayerUtils {
         val webStreamingPot = potResult?.streamingDataPoToken
         if (potResult != null) {
             Log.d(TAG, "[$videoId] poToken GENERATED: playerPot=${webPlayerPot?.take(20)}... streamPot=${webStreamingPot?.take(20)}...")
+            YTPlayerDebugInfo.potStatus = "OK (${webPlayerPot?.take(12)}…)"
         } else {
             Log.w(TAG, "[$videoId] poToken FAILED or null — WEB_REMIX will not get &pot=")
+            YTPlayerDebugInfo.potStatus = "NONE"
         }
 
         // Log the body fields we're about to send for MAIN_CLIENT
@@ -173,8 +176,10 @@ object YTPlayerUtils {
                 val rawUrl = findUrlOrNull(format, videoId)
                 if (rawUrl == null) {
                     Log.w(TAG, "[$videoId] ${client.clientName} SKIP: findUrlOrNull returned null (NewPipe failed?)")
+                    YTPlayerDebugInfo.newPipeOk = false
                     continue
                 }
+                YTPlayerDebugInfo.newPipeOk = true
                 Log.d(TAG, "[$videoId] ${client.clientName} rawUrl[50]=${rawUrl.take(50)}")
 
                 streamExpiresInSeconds = streamPlayerResponse.streamingData?.expiresInSeconds
@@ -191,14 +196,19 @@ object YTPlayerUtils {
                     Log.w(TAG, "[$videoId] ${client.clientName} useWebPoTokens=true but streamPot=null — URL sent WITHOUT &pot=")
                 }
 
+                YTPlayerDebugInfo.clientUsed = client.clientName
+                YTPlayerDebugInfo.urlPrefix = streamUrl.take(50)
+
                 if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1) {
                     Log.w(TAG, "[$videoId] ${client.clientName} is LAST client — using without validateStatus (may 403)")
+                    YTPlayerDebugInfo.validateLog += "${client.clientName}=LAST(no-check) "
                     winningClient = client
                     break
                 }
 
                 val valid = validateStatus(streamUrl)
                 Log.d(TAG, "[$videoId] ${client.clientName} validateStatus=$valid expiresIn=${streamExpiresInSeconds}s")
+                YTPlayerDebugInfo.validateLog += "${client.clientName}=${if (valid) "OK" else "FAIL"} "
                 if (valid) {
                     Log.i(TAG, "[$videoId] WINNER: ${client.clientName} — stable stream confirmed")
                     winningClient = client
