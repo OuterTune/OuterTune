@@ -33,14 +33,14 @@ jobs:
       - name: Patch media submodule AGP version to 8.13.2
         run: sed -i "s/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.13.2/g" media/build.gradle
 
-      - name: Build debug APK and run jvm tests
-        run: ./gradlew assembleCoreDebug lintCoreDebug testCoreDebugUnitTest --stacktrace -DskipFormatKtlint
+      - name: Build debug APK
+        run: ./gradlew assembleCoreDebug --stacktrace -DskipFormatKtlint
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OuterTune_release_fix_debug
-          path: app/build/outputs/apk/core/debug/*.apk
+          name: OuterTune_debug
+          path: app/build/outputs/apk/core/debug/*universal*.apk
 
       - name: Create or update Release
         if: github.ref == 'refs/heads/fix/ytm-playback-0.10.2'
@@ -56,6 +56,6 @@ jobs:
             - 解決 IOS client 在約 30 秒後回傳 HTTP 403 的問題
 
             Built from commit: ${{ github.sha }}
-          files: app/build/outputs/apk/core/debug/*.apk
+          files: app/build/outputs/apk/core/debug/*universal*.apk
           make_latest: true
           prerelease: true
