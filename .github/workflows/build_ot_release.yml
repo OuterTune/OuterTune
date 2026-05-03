@@ -55,13 +55,34 @@ jobs:
 
       - name: Enable local NewPipeExtractor build
         run: |
-          # Delete the standalone //} line first, then uncomment the block
-          sed -i '/^\/\/}$/d' settings.gradle.kts
-          sed -i 's|^//includeBuild("../NewPipeExtractor")|includeBuild("../NewPipeExtractor")|' settings.gradle.kts
-          sed -i 's|^//    dependencySubstitution|    dependencySubstitution|' settings.gradle.kts
-          sed -i 's|^//        substitute(module("com.github.teamnewpipe:NewPipeExtractor")).using(project(":extractor"))|        substitute(module("com.github.teamnewpipe:NewPipeExtractor")).using(project(":extractor"))|' settings.gradle.kts
+          cat > settings.gradle.kts << 'EOF'
+          @file:Suppress("UnstableApiUsage")
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven { setUrl("https://jitpack.io") }
+              }
+          }
+
+          rootProject.name = "OuterTune"
+          include(":app")
+          include(":innertube")
+          include(":kugou")
+          include(":lrclib")
+          include(":material-color-utilities")
+          include(":ffMetadataEx")
+          include(":taglib")
+
+          includeBuild("../NewPipeExtractor") {
+              dependencySubstitution {
+                  substitute(module("com.github.teamnewpipe:NewPipeExtractor")).using(project(":extractor"))
+              }
+          }
+          EOF
           
-          # Change innertube/build.gradle.kts to use versionless dependency
           sed -i 's|implementation(libs.newpipe.extractor)|implementation("com.github.teamnewpipe:NewPipeExtractor")|' innertube/build.gradle.kts
 
       - name: Build core release APK
@@ -70,14 +91,14 @@ jobs:
       - name: Build full release APK
         run: ./gradlew assembleFullRelease
 
-      - name: Create github release draft
-        uses: softprops/action-gh-release@v2
+      - name: Upload core APK
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: build-${{ env.date_tag }}
-          name: "Build ${{ env.date_tag }}"
-          draft: true
-          files: |
-            app/build/outputs/apk/core/release/*.apk
-            app/build/outputs/apk/full/release/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.REL_TOKEN }}
+          name: core-release-apk
+          path: app/build/outputs/apk/core/release/*.apk
+
+      - name: Upload full APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-release-apk
+          path: app/build/outputs/apk/full/release/*.apk
