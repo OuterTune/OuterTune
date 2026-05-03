@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
@@ -31,8 +30,8 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.OfflinePin
+import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.Button
@@ -40,15 +39,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton as M3IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -64,19 +64,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -138,15 +133,13 @@ import com.dd3boh.outertune.utils.syncCoroutine
 import com.dd3boh.outertune.viewmodels.LocalPlaylistViewModel
 import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlaylistScreen(
     navController: NavController,
@@ -180,64 +173,51 @@ fun LocalPlaylistScreen(
             restore = { it.toMutableStateList() }
         )
     ) { mutableStateListOf() }
+    var playlistFilterText by rememberSaveable { mutableStateOf("") }
+    var filterToSelectedOnly by rememberSaveable { mutableStateOf(false) }
     val onExitSelectionMode = {
         inSelectMode = false
         selection.clear()
-    }
-
-    // search
-    var isSearching by rememberSaveable { mutableStateOf(false) }
-    var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue())
-    }
-    var searchQuery by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue())
-    }
-    val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(isSearching) {
-        if (isSearching) {
-            focusRequester.requestFocus()
-        }
-    }
-
-    LaunchedEffect(query) {
-        snapshotFlow { searchQuery }.debounce { 300L }.collectLatest {
-            if (searchQuery.text != query.text) {
-                searchQuery = query
-
-                if (!searchQuery.text.isEmpty()) {
-                    mutableSongs.clear()
-                    mutableSongs.addAll(
-                        playlistWithSongs.second.filter { song ->
-                            song.song.title.contains(searchQuery.text, ignoreCase = true) || song.song.artists.fastAny {
-                                it.name.contains(searchQuery.text, ignoreCase = true)
-                            }
-                        }
-                    )
-                }
-            }
-        }
+        filterToSelectedOnly = false
     }
 
     if (inSelectMode) {
         BackHandler(onBack = onExitSelectionMode)
-    } else if (isSearching) {
-        BackHandler {
-            isSearching = false
-            query = TextFieldValue()
+    }
+
+    LaunchedEffect(filterToSelectedOnly, selection.size) {
+        if (filterToSelectedOnly && selection.isEmpty()) {
+            filterToSelectedOnly = false
         }
     }
 
     val editable: Boolean =
         playlistWithSongs.first?.playlist?.isLocal == true || (playlistWithSongs.first?.playlist?.isEditable == true && syncMode == SyncMode.RW)
 
-    LaunchedEffect(playlistWithSongs.second, isSearching) {
-        if (!isSearching) {
-            mutableSongs.apply {
-                clear()
-                addAll(playlistWithSongs.second)
+    LaunchedEffect(
+        playlistWithSongs.second,
+        playlistFilterText,
+        filterToSelectedOnly,
+        inSelectMode,
+        selection.size,
+        selection.joinToString(),
+    ) {
+        delay(if (playlistFilterText.isBlank()) 0 else 200)
+        val base = playlistWithSongs.second
+        var list = base
+        val q = playlistFilterText.trim()
+        if (q.isNotEmpty()) {
+            list = base.filter { song ->
+                song.song.title.contains(q, ignoreCase = true) ||
+                    song.song.artists.fastAny { it.name.contains(q, ignoreCase = true) }
             }
         }
+        if (inSelectMode && filterToSelectedOnly && selection.isNotEmpty()) {
+            val ids = selection.toSet()
+            list = list.filter { it.song.id in ids }
+        }
+        mutableSongs.clear()
+        mutableSongs.addAll(list)
     }
 
     var showEditDialog by remember {
@@ -451,21 +431,18 @@ fun LocalPlaylistScreen(
                         )
                     }
                 } else {
-                    // playlist header
-                    if (!isSearching) {
-                        item(
-                            key = "playlist header",
-                            contentType = CONTENT_TYPE_HEADER
-                        ) {
-                            LocalPlaylistHeader(
-                                playlist = playlist,
-                                songs =  playlistWithSongs.second,
-                                onShowEditDialog = { showEditDialog = true },
-                                onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
-                                snackbarHostState = snackbarHostState,
-                                modifier = Modifier // .animateItem()
-                            )
-                        }
+                    item(
+                        key = "playlist header",
+                        contentType = CONTENT_TYPE_HEADER
+                    ) {
+                        LocalPlaylistHeader(
+                            playlist = playlist,
+                            songs = playlistWithSongs.second,
+                            onShowEditDialog = { showEditDialog = true },
+                            onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
+                            snackbarHostState = snackbarHostState,
+                            modifier = Modifier
+                        )
                     }
 
                     item(
@@ -494,7 +471,7 @@ fun LocalPlaylistScreen(
                                 modifier = Modifier.weight(1f)
                             )
 
-                            if (editable && !(inSelectMode || isSearching)) {
+                            if (editable && !inSelectMode) {
                                 IconButton(
                                     onClick = { locked = !locked },
                                     modifier = Modifier.padding(horizontal = 6.dp)
@@ -506,6 +483,37 @@ fun LocalPlaylistScreen(
                                 }
                             }
                         }
+                    }
+
+                    item(
+                        key = "playlist song filter",
+                        contentType = CONTENT_TYPE_HEADER,
+                    ) {
+                        OutlinedTextField(
+                            value = playlistFilterText,
+                            onValueChange = { playlistFilterText = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            placeholder = {
+                                Text(stringResource(R.string.playlist_songs_filter_hint))
+                            },
+                            singleLine = true,
+                            trailingIcon = {
+                                if (playlistFilterText.isNotEmpty()) {
+                                    M3IconButton(onClick = { playlistFilterText = "" }) {
+                                        Icon(
+                                            Icons.Rounded.Clear,
+                                            contentDescription = stringResource(android.R.string.cancel),
+                                        )
+                                    }
+                                }
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            ),
+                        )
                     }
                 }
             }
@@ -520,7 +528,7 @@ fun LocalPlaylistScreen(
                 ReorderableItem(
                     state = reorderableState,
                     key = song.map.id,
-                    enabled = editable
+                    enabled = editable && playlistFilterText.isBlank() && !filterToSelectedOnly
                 ) {
                     SongListItem(
                         song = song.song,
@@ -554,7 +562,17 @@ fun LocalPlaylistScreen(
                                 )
                             )
                         },
-                        dragHandleModifier = if (sortType == PlaylistSongSortType.CUSTOM && !locked && !isSearching && editable) Modifier.draggableHandle() else null,
+                        dragHandleModifier = if (
+                            sortType == PlaylistSongSortType.CUSTOM &&
+                            !locked &&
+                            playlistFilterText.isBlank() &&
+                            !filterToSelectedOnly &&
+                            editable
+                        ) {
+                            Modifier.draggableHandle()
+                        } else {
+                            null
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background),
@@ -569,63 +587,14 @@ fun LocalPlaylistScreen(
 
         TopAppBar(
             title = {
-                if (isSearching) {
-                    TextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        placeholder = {
-                            Text(
-                                text = stringResource(R.string.search),
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        },
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.titleLarge,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                    )
-                } else if (showTopBarTitle) {
-                    Text( playlistWithSongs.first?.playlist?.name.orEmpty())
-                }
-            },
-            actions = {
-                if (!isSearching) {
-                    IconButton(
-                        onClick = {
-                            isSearching = true
-                        }
-                    ) {
-                        Icon(
-                            Icons.Rounded.Search,
-                            contentDescription = null
-                        )
-                    }
+                if (showTopBarTitle) {
+                    Text(playlistWithSongs.first?.playlist?.name.orEmpty())
                 }
             },
             navigationIcon = {
                 IconButton(
-                    onClick = {
-                        if (isSearching) {
-                            isSearching = false
-                            query = TextFieldValue()
-                        } else {
-                            navController.navigateUp()
-                        }
-                    },
-                    onLongClick = {
-                        if (!isSearching) {
-                            navController.backToMain()
-                        }
-                    }
+                    onClick = { navController.navigateUp() },
+                    onLongClick = { navController.backToMain() }
                 ) {
                     Icon(
                         Icons.AutoMirrored.Rounded.ArrowBack,
@@ -633,25 +602,51 @@ fun LocalPlaylistScreen(
                     )
                 }
             },
-//            windowInsets = TopBarInsets,
             scrollBehavior = scrollBehavior
         )
 
         FloatingFooter(inSelectMode) {
-            SelectHeader(
-                navController = navController,
-                selectedItems = selection.mapNotNull { id ->
-                    playlistWithSongs.second.find { it.song.id == id }?.song
-                }.map { it.toMediaMetadata() },
-                totalItemCount = playlistWithSongs.second.map { it.song }.size,
-                onSelectAll = {
-                    selection.clear()
-                    selection.addAll(playlistWithSongs.second.map { it.song }.map { it.song.id })
-                },
-                onDeselectAll = { selection.clear() },
-                menuState = menuState,
-                onDismiss = onExitSelectionMode
-            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+            ) {
+                if (selection.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        TextButton(onClick = { filterToSelectedOnly = !filterToSelectedOnly }) {
+                            Text(
+                                text = if (filterToSelectedOnly) {
+                                    stringResource(R.string.playlist_show_all_tracks)
+                                } else {
+                                    stringResource(R.string.playlist_selected_only)
+                                },
+                            )
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SelectHeader(
+                        navController = navController,
+                        selectedItems = selection.mapNotNull { id ->
+                            playlistWithSongs.second.find { it.song.id == id }?.song
+                        }.map { it.toMediaMetadata() },
+                        totalItemCount = playlistWithSongs.second.map { it.song }.size,
+                        onSelectAll = {
+                            selection.clear()
+                            selection.addAll(playlistWithSongs.second.map { it.song }.map { it.song.id })
+                        },
+                        onDeselectAll = { selection.clear() },
+                        menuState = menuState,
+                        onDismiss = onExitSelectionMode
+                    )
+                }
+            }
         }
         SnackbarHost(
             hostState = snackbarHostState,

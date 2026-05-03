@@ -7,7 +7,10 @@ import com.zionhuang.innertube.models.ArtistItem
 import com.zionhuang.innertube.models.BrowseEndpoint
 import com.zionhuang.innertube.models.GridRenderer
 import com.zionhuang.innertube.models.MusicCarouselShelfRenderer
+import com.zionhuang.innertube.models.MusicResponsiveHeaderRenderer
 import com.zionhuang.innertube.models.MusicShelfRenderer
+import com.zionhuang.innertube.models.SectionListRenderer
+import com.zionhuang.innertube.models.Tabs
 import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SearchSuggestions
 import com.zionhuang.innertube.models.SongItem
@@ -319,48 +322,97 @@ object YouTube {
         }
     }
 
-    suspend fun playlist(playlistId: String): Result<PlaylistPage> = runCatching {
+    suspend fun playlist(playlistId: String, seedVideoId: String? = null): Result<PlaylistPage> = runCatching {
         val response = innerTube.browse(
             client = WEB_REMIX,
             browseId = "VL$playlistId",
             setLogin = true
         ).body<BrowseResponse>()
 
-        val base = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
-        val header = base?.musicResponsiveHeaderRenderer ?: base?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
+        val twoCol = response.contents?.twoColumnBrowseResultsRenderer
+        val singleCol = response.contents?.singleColumnBrowseResultsRenderer
 
-        val editable = base?.musicEditablePlaylistDetailHeaderRenderer != null
+        val tabSectionTwo = twoCol?.tabs?.filterNotNull()?.firstOrNull()
+            ?.tabRenderer?.content?.sectionListRenderer?.contents
+        val tabSectionSingle = singleCol?.tabs?.filterNotNull()?.firstOrNull()
+            ?.tabRenderer?.content?.sectionListRenderer?.contents
 
+        val header = playlistBrowseHeader(tabSectionTwo)
+            ?: playlistBrowseHeader(tabSectionSingle)
+        val musicHeader = response.header?.musicHeaderRenderer
+
+        val editable = tabSectionTwo.orEmpty().any { it.musicEditablePlaylistDetailHeaderRenderer != null }
+            || tabSectionSingle.orEmpty().any { it.musicEditablePlaylistDetailHeaderRenderer != null }
+
+        val title = header?.title?.runs?.firstOrNull()?.text
+            ?: musicHeader?.title?.runs?.firstOrNull()?.text
+            ?: playlistId
+
+        val author = header?.straplineTextOne?.runs?.firstOrNull()?.let {
+            Artist(it.text, it.navigationEndpoint?.browseEndpoint?.browseId)
+        } ?: musicHeader?.straplineTextOne?.runs?.firstOrNull()?.let {
+            Artist(it.text, it.navigationEndpoint?.browseEndpoint?.browseId)
+        } ?: musicHeader?.subtitle?.runs?.firstOrNull()?.let {
+            Artist(it.text, it.navigationEndpoint?.browseEndpoint?.browseId)
+        }
+
+        val songCountText = header?.secondSubtitle?.runs?.firstOrNull()?.text
+            ?: musicHeader?.secondSubtitle?.runs?.firstOrNull()?.text
+
+        val thumbnail = response.background?.musicThumbnailRenderer?.getThumbnailUrl()
+
+        val shelvesTwoSecondary = parsePlaylistShelvesFromSectionList(twoCol?.secondaryContents?.sectionListRenderer)
+        val shelvesTwoTabs = parsePlaylistShelvesFromTwoColumnTabs(twoCol)
+        val shelvesSingle = parsePlaylistShelvesFromSingleColumnTabs(singleCol)
+        val shelvesTopLevel = parsePlaylistShelvesFromSectionList(response.contents?.sectionListRenderer)
+        val shelves = when {
+            shelvesTwoSecondary.songs.isNotEmpty()
+                || shelvesTwoSecondary.songsContinuation != null
+                || shelvesTwoSecondary.continuation != null -> shelvesTwoSecondary
+            shelvesTwoTabs.songs.isNotEmpty()
+                || shelvesTwoTabs.songsContinuation != null
+                || shelvesTwoTabs.continuation != null -> shelvesTwoTabs
+            shelvesSingle.songs.isNotEmpty()
+                || shelvesSingle.songsContinuation != null
+                || shelvesSingle.continuation != null -> shelvesSingle
+            else -> shelvesTopLevel
+        }
+
+        val buttons = header?.buttons.orEmpty()
+        var songsOut = shelves.songs
+        var songsContinuationOut = shelves.songsContinuation
+        var continuationOut = shelves.continuation
+        if (songsOut.isEmpty()) {
+            var fromQueue = queue(playlistId = playlistId).getOrElse { emptyList() }
+            if (fromQueue.isEmpty() && !seedVideoId.isNullOrBlank()) {
+                fromQueue = queue(videoIds = listOf(seedVideoId.trim()), playlistId = playlistId).getOrElse { emptyList() }
+            }
+            if (fromQueue.isNotEmpty()) {
+                songsOut = fromQueue
+                songsContinuationOut = null
+                continuationOut = null
+            }
+        }
         PlaylistPage(
             playlist = PlaylistItem(
                 id = playlistId,
-                title = header?.title?.runs?.firstOrNull()?.text!!,
-                author = header.straplineTextOne?.runs?.firstOrNull()?.let {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                    )
-                },
-                songCountText = header.secondSubtitle?.runs?.firstOrNull()?.text,
-                thumbnail = response.background?.musicThumbnailRenderer?.getThumbnailUrl(),
-                playEndpoint = header.buttons.getOrNull(1)?.musicPlayButtonRenderer
+                title = title,
+                author = author,
+                songCountText = songCountText,
+                thumbnail = thumbnail,
+                playEndpoint = buttons.getOrNull(1)?.musicPlayButtonRenderer
                     ?.playNavigationEndpoint?.watchEndpoint,
-                shuffleEndpoint = header.buttons.getOrNull(2)?.menuRenderer?.items?.find {
+                shuffleEndpoint = buttons.getOrNull(2)?.menuRenderer?.items?.find {
                     it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
                 }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
-                radioEndpoint = header.buttons.getOrNull(2)?.menuRenderer?.items?.find {
+                radioEndpoint = buttons.getOrNull(2)?.menuRenderer?.items?.find {
                     it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                 }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
                 isEditable = editable
             ),
-            songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
-                ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getItems()?.mapNotNull {
-                    PlaylistPage.fromMusicResponsiveListItemRenderer(it)
-                }!!,
-            songsContinuation = response.contents.twoColumnBrowseResultsRenderer.secondaryContents.sectionListRenderer
-                .contents.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getContinuation(),
-            continuation = response.contents.twoColumnBrowseResultsRenderer.secondaryContents.sectionListRenderer
-                .continuations?.getContinuation()
+            songs = songsOut,
+            songsContinuation = songsContinuationOut,
+            continuation = continuationOut,
         )
     }
 
@@ -831,6 +883,76 @@ object YouTube {
     }
 
     const val MAX_GET_QUEUE_SIZE = 1000
+
+    private data class ParsedPlaylistShelves(
+        val songs: List<SongItem>,
+        val songsContinuation: String?,
+        val continuation: String?,
+    )
+
+    private fun playlistBrowseHeader(contents: List<SectionListRenderer.Content>?): MusicResponsiveHeaderRenderer? {
+        if (contents == null) return null
+        for (item in contents) {
+            item.musicResponsiveHeaderRenderer?.let { return it }
+            item.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer?.let { return it }
+        }
+        return null
+    }
+
+    private fun parsePlaylistShelvesFromTwoColumnTabs(
+        twoCol: BrowseResponse.TwoColumnBrowseResultsRenderer?,
+    ): ParsedPlaylistShelves {
+        twoCol?.tabs?.filterNotNull()?.forEach { tab ->
+            val sl = tab.tabRenderer.content?.sectionListRenderer ?: return@forEach
+            val parsed = parsePlaylistShelvesFromSectionList(sl)
+            if (parsed.songs.isNotEmpty() || parsed.songsContinuation != null || parsed.continuation != null) {
+                return parsed
+            }
+        }
+        return ParsedPlaylistShelves(emptyList(), null, null)
+    }
+
+    private fun parsePlaylistShelvesFromSingleColumnTabs(singleCol: Tabs?): ParsedPlaylistShelves {
+        singleCol?.tabs?.filterNotNull()?.forEach { tab ->
+            val sl = tab.tabRenderer.content?.sectionListRenderer ?: return@forEach
+            val parsed = parsePlaylistShelvesFromSectionList(sl)
+            if (parsed.songs.isNotEmpty() || parsed.songsContinuation != null || parsed.continuation != null) {
+                return parsed
+            }
+        }
+        return ParsedPlaylistShelves(emptyList(), null, null)
+    }
+
+    private fun parsePlaylistShelvesFromSectionList(sectionList: SectionListRenderer?): ParsedPlaylistShelves {
+        val contents = sectionList?.contents.orEmpty()
+        val playlistShelf = contents.firstOrNull { it.musicPlaylistShelfRenderer != null }?.musicPlaylistShelfRenderer
+        val musicShelf = if (playlistShelf != null) {
+            null
+        } else {
+            contents.asSequence()
+                .mapNotNull { it.musicShelfRenderer }
+                .firstOrNull { it.contents?.getItems().orEmpty().isNotEmpty() }
+        }
+        val songs = when {
+            playlistShelf != null -> playlistShelf.contents?.getItems()?.mapNotNull {
+                PlaylistPage.fromMusicResponsiveListItemRenderer(it)
+            }.orEmpty()
+            musicShelf != null -> musicShelf.contents?.getItems()?.mapNotNull {
+                PlaylistPage.fromMusicResponsiveListItemRenderer(it)
+            }.orEmpty()
+            else -> emptyList()
+        }
+        val songsContinuation = when {
+            playlistShelf != null -> playlistShelf.contents?.getContinuation()
+            musicShelf != null -> musicShelf.contents?.getContinuation()
+            else -> null
+        }
+        return ParsedPlaylistShelves(
+            songs = songs,
+            songsContinuation = songsContinuation,
+            continuation = sectionList?.continuations?.getContinuation(),
+        )
+    }
 
     private val VISITOR_DATA_REGEX = Regex("^Cg[t|s]")
 }

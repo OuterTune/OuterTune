@@ -80,8 +80,6 @@ desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version =
 
 junit = { group = "junit", name = "junit", version = "4.13.2" }
 
-newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "d59dc21" }
-
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

@@ -32,6 +32,7 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -86,6 +87,7 @@ import com.dd3boh.outertune.ui.component.items.AutoPlaylistGridItem
 import com.dd3boh.outertune.ui.component.items.AutoPlaylistListItem
 import com.dd3boh.outertune.ui.dialog.CreatePlaylistDialog
 import com.dd3boh.outertune.ui.dialog.ImportM3uDialog
+import com.dd3boh.outertune.ui.dialog.ImportYoutubePlaylistDialog
 import com.dd3boh.outertune.ui.menu.ActionDropdown
 import com.dd3boh.outertune.ui.menu.DropdownItem
 import com.dd3boh.outertune.ui.utils.MEDIA_PERMISSION_LEVEL
@@ -128,6 +130,7 @@ fun LibraryPlaylistsScreen(
     val lazyGridState = rememberLazyGridState()
 
     var showImportM3uDialog by rememberSaveable { mutableStateOf(false) }
+    var showImportYoutubePlaylistDialog by rememberSaveable { mutableStateOf(false) }
     var showCreatePlaylistDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.syncPlaylists() }
@@ -215,6 +218,12 @@ fun LibraryPlaylistsScreen(
                     )
                 }
                 Spacer(Modifier.width(4.dp))
+                IconButton(onClick = { showImportYoutubePlaylistDialog = true }) {
+                    Icon(
+                        Icons.Rounded.Add,
+                        contentDescription = stringResource(R.string.import_youtube_playlist_title),
+                    )
+                }
                 ActionDropdown(
                     actions = listOf(
                         DropdownItem(
@@ -244,6 +253,11 @@ fun LibraryPlaylistsScreen(
                             title = stringResource(R.string.import_playlist),
                             leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Input, null) },
                             action = { showImportM3uDialog = true }
+                        ),
+                        DropdownItem(
+                            title = stringResource(R.string.import_youtube_playlist_title),
+                            leadingIcon = { Icon(Icons.Rounded.Add, null) },
+                            action = { showImportYoutubePlaylistDialog = true }
                         ),
                     ),
                 )
@@ -444,6 +458,12 @@ fun LibraryPlaylistsScreen(
             ImportM3uDialog(
                 navController = navController,
                 onDismiss = { showImportM3uDialog = false }
+            )
+        }
+
+        if (showImportYoutubePlaylistDialog) {
+            ImportYoutubePlaylistDialog(
+                onDismiss = { showImportYoutubePlaylistDialog = false }
             )
         }
 

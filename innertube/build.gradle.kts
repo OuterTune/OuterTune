@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.client.encoding)
     implementation(libs.brotli)
-    implementation(libs.newpipe.extractor)
+    // JitPack root POM is an empty aggregator with broken self-transitives; depend on the extractor submodule (real classes).
+    implementation("com.github.teamnewpipe.NewPipeExtractor:extractor:d59dc216f49290b2c6c8cf532378e2ee42b32d4a")
     testImplementation(libs.junit)
 }

@@ -70,6 +70,8 @@ class App : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
 
+        installUncaughtExceptionLogger()
+
         if (BuildConfig.DEBUG) {
             System.setProperty("kotlinx.coroutines.debug", "on")
         }
@@ -204,6 +206,22 @@ class App : Application(), SingletonImageLoader.Factory {
                     .build()
             )
             .build()
+    }
+
+    /**
+     * Ensures fatal crashes log a full stack trace to Logcat (tag **OuterTune**) before the default handler runs.
+     * Filter Logcat with: `tag:OuterTune` or `OuterTune`.
+     */
+    private fun installUncaughtExceptionLogger() {
+        val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, exception ->
+            Log.e(
+                "OuterTune",
+                "Uncaught in thread \"${thread.name}\" — ${exception.javaClass.simpleName}: ${exception.message}",
+                exception,
+            )
+            previousHandler?.uncaughtException(thread, exception)
+        }
     }
 
     companion object {

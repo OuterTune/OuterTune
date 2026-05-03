@@ -15,12 +15,25 @@ data class PlaylistPage(
     val continuation: String?,
 ) {
     companion object {
+        private fun MusicResponsiveListItemRenderer.resolvePlaylistVideoId(): String? =
+            playlistItemData?.videoId
+                ?: navigationEndpoint?.watchEndpoint?.videoId
+                ?: navigationEndpoint?.watchPlaylistEndpoint?.videoId
+                ?: overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer
+                    ?.playNavigationEndpoint?.watchEndpoint?.videoId
+                ?: overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer
+                    ?.playNavigationEndpoint?.watchPlaylistEndpoint?.videoId
+
         fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {
+            val id = renderer.resolvePlaylistVideoId() ?: return null
+            val title = renderer.flexColumns.firstOrNull()
+                ?.musicResponsiveListItemFlexColumnRenderer?.text
+                ?.runs?.firstOrNull()?.text
+                ?: PageHelper.extractRuns(renderer.flexColumns, "MUSIC_VIDEO").firstOrNull()?.text
+                ?: return null
             return SongItem(
-                id = renderer.playlistItemData?.videoId ?: return null,
-                title = renderer.flexColumns.firstOrNull()
-                    ?.musicResponsiveListItemFlexColumnRenderer?.text
-                    ?.runs?.firstOrNull()?.text ?: return null,
+                id = id,
+                title = title,
                 artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.map {
                     Artist(
                         name = it.text,
@@ -39,7 +52,9 @@ data class PlaylistPage(
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null,
                 endpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
-                setVideoId = renderer.playlistItemData.playlistSetVideoId ?: return null
+                setVideoId = renderer.playlistItemData?.playlistSetVideoId
+                    ?: renderer.navigationEndpoint?.watchEndpoint?.playlistSetVideoId
+                    ?: renderer.navigationEndpoint?.watchPlaylistEndpoint?.playlistSetVideoId,
             )
         }
     }

@@ -22,29 +22,38 @@ data class NextResult(
 
 object NextPage {
     fun fromPlaylistPanelVideoRenderer(renderer: PlaylistPanelVideoRenderer): SongItem? {
-        val longByLineRuns = renderer.longBylineText?.runs?.splitBySeparator() ?: return null
+        val videoId = renderer.videoId ?: return null
+        val title = renderer.title?.runs?.firstOrNull()?.text ?: return null
+        val thumbnail = renderer.thumbnail.thumbnails.lastOrNull()?.url ?: return null
+        val longByLineRuns = renderer.longBylineText?.runs?.splitBySeparator()
+        val artistRuns = longByLineRuns?.firstOrNull()?.oddElements()
+            ?: renderer.shortBylineText?.runs?.oddElements()
+        val artists = artistRuns?.map {
+            Artist(
+                name = it.text,
+                id = it.navigationEndpoint?.browseEndpoint?.browseId,
+            )
+        }.orEmpty()
+        val album = longByLineRuns?.getOrNull(1)?.firstOrNull()?.takeIf {
+            it.navigationEndpoint?.browseEndpoint != null
+        }?.let {
+            Album(
+                name = it.text,
+                id = it.navigationEndpoint?.browseEndpoint?.browseId!!,
+            )
+        }
         return SongItem(
-            id = renderer.videoId ?: return null,
-            title = renderer.title?.runs?.firstOrNull()?.text ?: return null,
-            artists = longByLineRuns.firstOrNull()?.oddElements()?.map {
-                Artist(
-                    name = it.text,
-                    id = it.navigationEndpoint?.browseEndpoint?.browseId
-                )
-            } ?: return null,
-            album = longByLineRuns.getOrNull(1)?.firstOrNull()?.takeIf {
-                it.navigationEndpoint?.browseEndpoint != null
-            }?.let {
-                Album(
-                    name = it.text,
-                    id = it.navigationEndpoint?.browseEndpoint?.browseId!!
-                )
-            },
-            duration = renderer.lengthText?.runs?.firstOrNull()?.text?.parseTime() ?: return null,
-            thumbnail = renderer.thumbnail.thumbnails.lastOrNull()?.url ?: return null,
+            id = videoId,
+            title = title,
+            artists = artists,
+            album = album,
+            duration = renderer.lengthText?.runs?.firstOrNull()?.text?.parseTime(),
+            thumbnail = thumbnail,
             explicit = renderer.badges?.find {
                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-            } != null
+            } != null,
+            endpoint = renderer.navigationEndpoint.watchEndpoint,
+            setVideoId = renderer.playlistSetVideoId,
         )
     }
 }

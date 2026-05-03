@@ -25,7 +25,7 @@ include(":taglib")
 // For this to work you also need to change the implementation in innertube/build.gradle.kts
 // to one which does not specify a version.
 // From:
-//      implementation(libs.newpipe.extractor)
+//      implementation("com.github.teamnewpipe:NewPipeExtractor:…")
 // To:
 //      implementation("com.github.teamnewpipe:NewPipeExtractor")
 

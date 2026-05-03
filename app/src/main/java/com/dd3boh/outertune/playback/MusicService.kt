@@ -814,8 +814,16 @@ class MusicService : MediaLibraryService(),
 // Misc
 
     fun updateNotification() {
+        val liked = currentSong.value?.song?.liked == true
         mediaSession.setCustomLayout(
             listOf(
+                // Favorite first: compact media notifications only surface the first custom actions.
+                CommandButton.Builder(ICON_UNDEFINED)
+                    .setDisplayName(getString(if (liked) R.string.action_remove_like else R.string.action_like))
+                    .setSessionCommand(CommandToggleLike)
+                    .setCustomIconResId(if (liked) R.drawable.notification_favorite_on else R.drawable.notification_favorite_off)
+                    .setEnabled(currentSong.value != null)
+                    .build(),
                 CommandButton.Builder(ICON_UNDEFINED)
                     .setDisplayName(getString(if (queueBoard.getCurrentQueue()?.shuffled == true) R.string.action_shuffle_off else R.string.action_shuffle_on))
                     .setSessionCommand(CommandToggleShuffle)
@@ -841,11 +849,6 @@ class MusicService : MediaLibraryService(),
                         }
                     )
                     .setSessionCommand(CommandToggleRepeatMode)
-                    .build(),
-                CommandButton.Builder(if (currentSong.value?.song?.liked == true) CommandButton.ICON_HEART_FILLED else CommandButton.ICON_HEART_UNFILLED)
-                    .setDisplayName(getString(if (currentSong.value?.song?.liked == true) R.string.action_remove_like else R.string.action_like))
-                    .setSessionCommand(CommandToggleLike)
-                    .setEnabled(currentSong.value != null)
                     .build(),
                 CommandButton.Builder(CommandButton.ICON_RADIO)
                     .setDisplayName(getString(R.string.start_radio))

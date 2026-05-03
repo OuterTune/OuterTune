@@ -35,6 +35,9 @@ while also allowing users to translate our app as well. New, specific strings to
 
 <!-- Playlist -->
     <string name="auto_playlist">Auto playlist</string>
+    <string name="playlist_songs_filter_hint">Filter by title or artist…</string>
+    <string name="playlist_selected_only">Selected only</string>
+    <string name="playlist_show_all_tracks">All tracks</string>
 
 <!-- Menu -->
     <string name="select">Selection mode</string>
@@ -344,6 +347,16 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="m3u_import_playlist">Import a playlist (m3u)</string>
     <string name="m3u_import_playlist_failed">Failed to import</string>
     <string name="m3u_ytm_lookup">Search on YouTube Music for songs not found in the app database</string>
+
+    <!-- Import playlist from YouTube link (Library → Playlists) -->
+    <string name="import_youtube_playlist_title">Import from YouTube link</string>
+    <string name="import_youtube_playlist_hint">Paste a youtube.com or youtu.be URL with a list=… playlist id</string>
+    <string name="import_youtube_playlist_description">Creates a local playlist with all tracks from the link. The playlist is named after the first song in the list.</string>
+    <string name="import_youtube_playlist_import">Import</string>
+    <string name="import_youtube_playlist_no_list_param">No playlist id found. Use a URL that includes list=… (for example a mix or playlist link).</string>
+    <string name="import_youtube_playlist_offline">You need an internet connection to import from YouTube.</string>
+    <string name="import_youtube_playlist_done">Playlist imported</string>
+    <string name="import_youtube_playlist_failed">Could not import playlist: %1$s</string>
 
 <!-- Misc -->
     <string name="action_back">Back</string>
