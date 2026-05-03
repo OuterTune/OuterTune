@@ -23,33 +23,32 @@ class LyricsHelper @Inject constructor(
     @ApplicationContext private val context: Context,
     val database: MusicDatabase
 ) {
-    private val lyricsProviders =
-        listOf(YouTubeSubtitleLyricsProvider, LrcLibLyricsProvider, KuGouLyricsProvider, YouTubeLyricsProvider)
+    private val lyricsProviders = listOf(
+        BetterLyricsProvider,          // word-by-word TTML → Extended LRC (tried first)
+        YouTubeSubtitleLyricsProvider,
+        LrcLibLyricsProvider,
+        KuGouLyricsProvider,
+        YouTubeLyricsProvider,
+    )
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
 
     /**
-     * Retrieve lyrics from all sources
+     * Retrieve lyrics from all sources.
      *
-     * How lyrics are resolved are determined by PreferLocalLyrics settings key. If this is true, prioritize local lyric
-     * files over all cloud providers, true is vice versa.
-     *
-     * Lyrics stored in the database are fetched first. If this is not available, it is resolved by other means.
-     * If local lyrics are preferred, lyrics from the lrc file is fetched, and then resolve by other means.
-     *
-     * @param mediaMetadata Song to fetch lyrics for
-     * @param database MusicDatabase connection. Database lyrics are prioritized over all sources.
-     * If no database is provided, the database source is disabled
+     * BetterLyricsProvider is tried first among remote sources because it returns
+     * Extended LRC with per-word <timestamps>, enabling the karaoke animation.
+     * If it has no match the remaining providers are tried in order as before.
      */
     suspend fun getLyrics(mediaMetadata: MediaMetadata): SemanticLyrics? {
         val trim = context.dataStore.get(LyricTrimKey, defaultValue = false)
         val multiline = context.dataStore.get(MultilineLrcKey, defaultValue = true)
-
         val prefLocal = context.dataStore.get(LyricSourcePrefKey, true)
 
         val cached = cache.get(mediaMetadata.id)?.firstOrNull()
         if (cached != null) {
             return parseLrc(cached.lyrics, trim, multiline)
         }
+
         val dbLyrics = database.lyrics(mediaMetadata.id).let { it.first()?.lyrics }
         if (dbLyrics != null && !prefLocal) {
             return parseLrc(dbLyrics, trim, multiline)
@@ -59,25 +58,14 @@ class LyricsHelper @Inject constructor(
             getLocalLyrics(mediaMetadata, LrcUtils.LrcParserOptions(trim, multiline, "Unable to parse lyrics"))
         val remoteLyrics: String?
 
-        // fallback to secondary provider when primary is unavailable
         if (prefLocal) {
-            if (localLyrics != null) {
-                return localLyrics
-            }
-            if (dbLyrics != null) {
-                return parseLrc(dbLyrics, trim, multiline)
-            }
+            if (localLyrics != null) return localLyrics
+            if (dbLyrics != null) return parseLrc(dbLyrics, trim, multiline)
 
-            // "lazy eval" the remote lyrics cuz it is laughably slow
             remoteLyrics = getRemoteLyrics(mediaMetadata)
             if (remoteLyrics != null) {
                 database.query {
-                    upsert(
-                        LyricsEntity(
-                            id = mediaMetadata.id,
-                            lyrics = remoteLyrics
-                        )
-                    )
+                    upsert(LyricsEntity(id = mediaMetadata.id, lyrics = remoteLyrics))
                 }
                 return parseLrc(remoteLyrics, trim, multiline)
             }
@@ -85,34 +73,20 @@ class LyricsHelper @Inject constructor(
             remoteLyrics = getRemoteLyrics(mediaMetadata)
             if (remoteLyrics != null) {
                 database.query {
-                    upsert(
-                        LyricsEntity(
-                            id = mediaMetadata.id,
-                            lyrics = remoteLyrics
-                        )
-                    )
+                    upsert(LyricsEntity(id = mediaMetadata.id, lyrics = remoteLyrics))
                 }
                 return parseLrc(remoteLyrics, trim, multiline)
             } else if (localLyrics != null) {
                 return localLyrics
             }
-
         }
 
         database.query {
-            upsert(
-                LyricsEntity(
-                    id = mediaMetadata.id,
-                    lyrics = LYRICS_NOT_FOUND
-                )
-            )
+            upsert(LyricsEntity(id = mediaMetadata.id, lyrics = LYRICS_NOT_FOUND))
         }
         return null
     }
 
-    /**
-     * Lookup lyrics from remote providers
-     */
     private suspend fun getRemoteLyrics(mediaMetadata: MediaMetadata): String? {
         lyricsProviders.forEach { provider ->
             if (provider.isEnabled(context)) {
@@ -131,20 +105,13 @@ class LyricsHelper @Inject constructor(
         return null
     }
 
-    /**
-     * Lookup lyrics from local disk (.lrc) file
-     */
     private fun getLocalLyrics(
         mediaMetadata: MediaMetadata,
         parserOptions: LrcUtils.LrcParserOptions
     ): SemanticLyrics? {
         if (LocalLyricsProvider.isEnabled(context) && mediaMetadata.localPath != null) {
-            return LocalLyricsProvider.getLyricsNew(
-                mediaMetadata.localPath,
-                parserOptions
-            )
+            return LocalLyricsProvider.getLyricsNew(mediaMetadata.localPath, parserOptions)
         }
-
         return null
     }
 
@@ -157,9 +124,7 @@ class LyricsHelper @Inject constructor(
     ) {
         val cacheKey = "$songArtists-$songTitle".replace(" ", "")
         cache.get(cacheKey)?.let { results ->
-            results.forEach {
-                callback(it)
-            }
+            results.forEach { callback(it) }
             return
         }
         val allResult = mutableListOf<LyricsResult>()
