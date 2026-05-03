@@ -55,11 +55,11 @@ jobs:
 
       - name: Enable local NewPipeExtractor build
         run: |
-          # Uncomment includeBuild block in settings.gradle.kts
+          # Delete the standalone //} line first, then uncomment the block
+          sed -i '/^\/\/}$/d' settings.gradle.kts
           sed -i 's|^//includeBuild("../NewPipeExtractor")|includeBuild("../NewPipeExtractor")|' settings.gradle.kts
           sed -i 's|^//    dependencySubstitution|    dependencySubstitution|' settings.gradle.kts
           sed -i 's|^//        substitute(module("com.github.teamnewpipe:NewPipeExtractor")).using(project(":extractor"))|        substitute(module("com.github.teamnewpipe:NewPipeExtractor")).using(project(":extractor"))|' settings.gradle.kts
-          sed -i 's|^//}|}|' settings.gradle.kts
           
           # Change innertube/build.gradle.kts to use versionless dependency
           sed -i 's|implementation(libs.newpipe.extractor)|implementation("com.github.teamnewpipe:NewPipeExtractor")|' innertube/build.gradle.kts
