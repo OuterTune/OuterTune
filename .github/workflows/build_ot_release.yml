@@ -60,10 +60,10 @@ jobs:
           ./gradlew assembleRelease
 
       - name: Build core release APK
-        run: ./gradlew assembleCoreRelease
+        run: ./gradlew assembleCoreRelease --no-configuration-cache
 
       - name: Build full release APK
-        run: ./gradlew assembleFullRelease
+        run: ./gradlew assembleFullRelease --no-configuration-cache
 
       - name: Upload core APK
         uses: actions/upload-artifact@v4
