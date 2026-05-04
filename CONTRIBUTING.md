@@ -6,7 +6,7 @@ When cloning the repository, please clone submodules recursively.
 git clone --recurse-submodules <url>
 ```
 
-If any weird errors show up with modules, updating submodules may solve your issue. media and taglib are required
+If any errors show up with modules, updating submodules may solve your issue. media and taglib are required
 modules. ffMetadataEx is required for only the "full" build variant
 
 ```bash
