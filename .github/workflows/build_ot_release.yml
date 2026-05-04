@@ -25,12 +25,18 @@ jobs:
         run: |
           echo "$KEYSTORE" | base64 --decode > keystore.jks
           echo "$KEYSTORE_PROPERTIES" > keystore.properties
-          # Override storeFile to match the actual decoded keystore path
           sed -i "s|storeFile=.*|storeFile=keystore.jks|" keystore.properties
+          echo "=== keystore.properties ==="
+          cat keystore.properties
+          echo "=== keystore.jks exists ==="
+          ls -la keystore.jks
         env:
           KEYSTORE: ${{ secrets.KEYSTORE }}
           KEYSTORE_PROPERTIES: ${{ secrets.KEYSTORE_PROPERTIES }}
 
+      - name: Clear configuration cache
+        run: rm -rf .gradle/configuration-cache
+        
       - name: Get date-time string
         id: datetime
         run: |
