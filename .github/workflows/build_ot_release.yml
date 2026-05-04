@@ -23,8 +23,10 @@ jobs:
 
       - name: Setup signing configs
         run: |
-          echo "$KEYSTORE" | base64 --decode > test.jks
+          echo "$KEYSTORE" | base64 --decode > keystore.jks
           echo "$KEYSTORE_PROPERTIES" > keystore.properties
+          # Override storeFile to match the actual decoded keystore path
+          sed -i "s|storeFile=.*|storeFile=keystore.jks|" keystore.properties
         env:
           KEYSTORE: ${{ secrets.KEYSTORE }}
           KEYSTORE_PROPERTIES: ${{ secrets.KEYSTORE_PROPERTIES }}
