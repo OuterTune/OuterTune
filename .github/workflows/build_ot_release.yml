@@ -23,13 +23,13 @@ jobs:
 
       - name: Setup signing configs
         run: |
-          echo "$KEYSTORE" | base64 --decode > keystore.jks
+          echo "$KEYSTORE" | base64 --decode > app/keystore.jks
           echo "$KEYSTORE_PROPERTIES" > keystore.properties
           sed -i "s|storeFile=.*|storeFile=keystore.jks|" keystore.properties
           echo "=== keystore.properties ==="
           cat keystore.properties
           echo "=== keystore.jks exists ==="
-          ls -la keystore.jks
+          ls -la app/keystore.jks
         env:
           KEYSTORE: ${{ secrets.KEYSTORE }}
           KEYSTORE_PROPERTIES: ${{ secrets.KEYSTORE_PROPERTIES }}
