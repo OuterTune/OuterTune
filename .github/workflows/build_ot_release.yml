@@ -1,7 +1,6 @@
 name: Build APKs for release
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,7 +35,7 @@ jobs:
 
       - name: Clear configuration cache
         run: rm -rf .gradle/configuration-cache
-        
+
       - name: Get date-time string
         id: datetime
         run: |
@@ -55,29 +54,14 @@ jobs:
           echo "=== AFTER PATCH ==="
           head -15 build.gradle
 
-      - name: Clone ffMetadataEx
-        run: git clone https://github.com/OuterTune/ffMetadataEx -b vibebur-128 ../ffMetadataEx
-
-      - name: Clone ffmpeg libs
+      - name: Clone ffmpeg prebuilt libs
         run: |
-          git clone https://github.com/mikooomich/ffmpeg-android-maker-prebuilt/ -b audio ../ffMetadataEx/ffmpeg-android-maker
+          git clone https://github.com/mikooomich/ffmpeg-android-maker-prebuilt/ -b audio ffMetadataEx/ffmpeg-android-maker
           echo "=== checking ffmpeg output ==="
-          ls ../ffMetadataEx/ffmpeg-android-maker/output/lib/ 2>/dev/null || echo "output/lib NOT FOUND"
+          ls ffMetadataEx/ffmpeg-android-maker/output/lib/
 
-      - name: Build ffMetadataEx AAR
-        run: |
-          cd ../ffMetadataEx
-          chmod +x gradlew
-          ./gradlew assembleRelease
-
-      - name: Clear configuration cache        # ← add this
-        run: rm -rf .gradle/configuration-cache
-
-      - name: Build core release APK
-        run: ./gradlew assembleCoreRelease
-
-      - name: Build full release APK
-        run: ./gradlew assembleFullRelease
+      - name: Build release APKs
+        run: ./gradlew assembleCoreRelease assembleFullRelease
 
       - name: Upload core APK
         uses: actions/upload-artifact@v4
