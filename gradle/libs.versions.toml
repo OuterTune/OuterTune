@@ -80,6 +80,10 @@ desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version =
 
 junit = { group = "junit", name = "junit", version = "4.13.2" }
 
+# Used by :taglib (subproject shares root version catalog; taglib/gradle/libs.versions.toml is not applied)
+androidx-runner = { module = "androidx.test:runner", version = "1.7.0" }
+androidx-rules = { module = "androidx.test:rules", version = "1.7.0" }
+
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

@@ -70,7 +70,7 @@ class TagLibScanner : MetadataScanner {
             channels = audioProperties.channels
             sampleRate = audioProperties.sampleRate
             bitrate = audioProperties.bitrate * 1000
-            codec = audioProperties.codec
+            codec = file.extension.lowercase().ifBlank { "unknown" }
 
 
             // Read metadata
