@@ -59,11 +59,14 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
 
+      - name: Clear configuration cache        # ← add this
+        run: rm -rf .gradle/configuration-cache
+
       - name: Build core release APK
-        run: ./gradlew assembleCoreRelease --no-configuration-cache
+        run: ./gradlew assembleCoreRelease
 
       - name: Build full release APK
-        run: ./gradlew assembleFullRelease --no-configuration-cache
+        run: ./gradlew assembleFullRelease
 
       - name: Upload core APK
         uses: actions/upload-artifact@v4
