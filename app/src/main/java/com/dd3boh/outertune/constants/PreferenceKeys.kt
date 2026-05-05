@@ -86,6 +86,7 @@ val LyricFontSizeKey = intPreferencesKey("lyricFontSize")
 val LyricClickable = booleanPreferencesKey("lyricClickable")
 val LyricKaraokeEnable = booleanPreferencesKey("lyricKaraokeEnable")
 val LyricUpdateSpeed = stringPreferencesKey("lyricUpdateSpeed")
+val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
 
 
 /**
