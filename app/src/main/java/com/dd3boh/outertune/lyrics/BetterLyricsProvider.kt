@@ -6,6 +6,9 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import com.dd3boh.outertune.constants.EnableBetterLyricsKey
+import com.dd3boh.outertune.utils.dataStore
+import com.dd3boh.outertune.utils.get
 
 /**
  * Fetches word-timed TTML from lyrics-api.boidu.dev, parses it with [TTMLParser],
@@ -22,7 +25,8 @@ object BetterLyricsProvider : LyricsProvider {
     private const val BASE_URL = "https://lyrics-api.boidu.dev"
     private const val TIMEOUT_MS = 15_000
 
-    override fun isEnabled(context: Context) = true
+    override fun isEnabled(context: Context) =
+        context.dataStore.get(EnableBetterLyricsKey, true)
 
     override suspend fun getLyrics(
         id: String,
