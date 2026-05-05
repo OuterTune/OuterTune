@@ -8,7 +8,7 @@ import java.net.URL
 import java.net.URLEncoder
 import com.dd3boh.outertune.constants.EnableBetterLyricsKey
 import com.dd3boh.outertune.utils.dataStore
-
+import com.dd3boh.outertune.utils.get
 
 /**
  * Fetches word-timed TTML from lyrics-api.boidu.dev, parses it with [TTMLParser],
