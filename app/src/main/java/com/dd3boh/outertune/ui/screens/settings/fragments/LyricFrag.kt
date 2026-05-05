@@ -50,6 +50,7 @@ import com.dd3boh.outertune.ui.component.SwitchPreference
 import com.dd3boh.outertune.ui.dialog.CounterDialog
 import com.dd3boh.outertune.utils.rememberEnumPreference
 import com.dd3boh.outertune.utils.rememberPreference
+import com.dd3boh.outertune.constants.EnableBetterLyricsKey
 
 @Composable
 fun ColumnScope.LyricFormatFrag() {
@@ -138,13 +139,14 @@ fun ColumnScope.LyricSourceFrag() {
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrcLib, onEnableLrcLibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (preferLocalLyric, onPreferLocalLyric) = rememberPreference(LyricSourcePrefKey, defaultValue = true)
-
-    SwitchPreference(
-        title = { Text(stringResource(R.string.enable_lrclib)) },
+	val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
+	
+	SwitchPreference(
+	    title = { Text(stringResource(R.string.enable_better_lyrics)) },
         icon = { Icon(Icons.Rounded.Lyrics, null) },
-        checked = enableLrcLib,
-        onCheckedChange = onEnableLrcLibChange
-    )
+        checked = enableBetterLyrics,
+        onCheckedChange = onEnableBetterLyricsChange
+	)
     SwitchPreference(
         title = { Text(stringResource(R.string.enable_kugou)) },
         icon = { Icon(Icons.Rounded.Lyrics, null) },
