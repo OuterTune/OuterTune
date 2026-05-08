@@ -177,7 +177,7 @@
     <string name="filter_arrangement">Подреждане на филтри</string>
     <string name="queues_title">Опашки</string>
     <string name="queues_empty">Няма опашки</string>
-    <string name="tablet_ui_title_description">Активирайте пейзажен интерфейс, оптимизиран за по-големи екрани, независимо от текущия размер на екрана</string>
+    <string name="tablet_ui_title_description">Принудително разделяне на интерфейса, оптимизирано за големи екрани. Тази настройка няма ефект, ако не са спазени минималните изисквания за ширина.</string>
     <string name="grp_behavior">Поведение</string>
     <string name="grp_sync">Синхронизиране</string>
     <string name="swipe_to_skip_title">Плъзнете хоризонтално, за да промените песента</string>

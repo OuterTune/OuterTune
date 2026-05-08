@@ -192,7 +192,7 @@
     <string name="att_maintainer">维护者</string>
     <string name="att_translator">译者 (%s)</string>
     <string name="tablet_ui_title">强制使用平板布局</string>
-    <string name="tablet_ui_title_description">忽略当前屏幕尺寸，启用专为大屏幕优化的横向界面布局</string>
+    <string name="tablet_ui_title_description">强制启用针对大屏幕优化的分屏界面。如果不满足最小宽度要求，则此设置无效</string>
     <string name="filter_arrangement">设置筛选</string>
     <string name="sync_conflict_add_only">保留所有本地内容并添加来自远程的新内容</string>
     <string name="sync_conflict_overwrite">用远程内容覆盖本地内容</string>

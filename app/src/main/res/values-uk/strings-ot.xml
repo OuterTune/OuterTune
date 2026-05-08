@@ -173,7 +173,7 @@
     <string name="attribution_title">Атрибуція</string>
     <string name="oss_licenses_title">Ліцензії з відкритим кодом</string>
     <string name="lyrics_karaoke_description">Дозволяє синхронізувати тексти пісень послівно. Потрібна підтримка формату текстів пісень.</string>
-    <string name="tablet_ui_title_description">Увімкнути альбомний інтерфейс, оптимізований для більших екранів, незалежно від поточного розміру екрана</string>
+    <string name="tablet_ui_title_description">Примусово ввімкнути розділений інтерфейс, оптимізований для великих екранів. Це налаштування не матиме ефекту, якщо не дотримано вимог щодо мінімальної ширини</string>
     <string name="m3u_ytm_lookup">Пошук у YouTube Music пісень, яких немає в базі даних програми</string>
     <string name="speed_very_slow">Дуже повільно</string>
     <string name="speed_slow">Повільно</string>
@@ -187,7 +187,7 @@
     <string name="scan_paths_description">Виберіть папки на вашому локальному сховищі для сканування пісень</string>
     <string name="clear_image_cache_confirm">Ви впевнені, що хочете очистити кеш зображень? Усі існуючі мініатюри альбомів будуть видалені.</string>
     <string name="oobe_ytm_logon_title">Обліковий запис</string>
-    <string name="oobe_local_media_title">Місцеві ЗМІ</string>
+    <string name="oobe_local_media_title">Локальні медіа</string>
     <string name="oobe_complete_title">Все готово!</string>
     <string name="oobe_cross_platform_sync">Міжплатформна синхронізація</string>
     <string name="oobe_ytm_logon_subtitle">Увійдіть у свій обліковий запис YouTube Music, щоб синхронізувати та отримати доступ до контенту приватного облікового запису. Це необов’язково.</string>

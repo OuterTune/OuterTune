@@ -178,7 +178,7 @@
     <string name="attribution_title">Атрибуция</string>
     <string name="speed_slow">Медленно</string>
     <string name="speed_medium">Средне</string>
-    <string name="tablet_ui_title_description">Задействовать горизонтально ориентированный интерфейс, оптимизированный для больших экранов, независимо от текущего размера экрана</string>
+    <string name="tablet_ui_title_description">Принудительно включить разделенный интерфейс, оптимизированный для больших экранов. Настройка не действует, если требования к минимальной ширине не соблюдены</string>
     <string name="import_success_songs">Успешно импортировано</string>
     <string name="disable_lm_confirm">Вы уверены, что хотите отключить функции локальных медиа? Содержимое вашей библиотеки не будет затронуто.</string>
     <string name="scan_paths_description">Выберите папки на локальном устройстве для поиска песен</string>

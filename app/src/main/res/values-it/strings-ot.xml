@@ -198,7 +198,7 @@
     <string name="speed_medium">Medio</string>
     <string name="speed_very_fast">Molto veloce</string>
     <string name="tablet_ui_title">Forza Tablet UI</string>
-    <string name="tablet_ui_title_description">Abilita un\'interfaccia orizzontale ottimizzata per schermi più grandi indipendentemente dalla dimensione dello schermo corrente</string>
+    <string name="tablet_ui_title_description">Abilita un\'interfaccia orizzontale ottimizzata per schermi più grandi. Questa impostazione non ha effetto se i requisiti di larghezza minima non sono soddisfatti.</string>
     <string name="dl_extra_path_title">Configura posizioni di importazione extra …</string>
     <string name="dl_migrate_title">Migrare i download su archiviazione esterna …</string>
     <string name="dl_migrate_description">Sposta i download dall\'archiviazione interna dell\'app nell\'archiviazione esterna del dispositivo</string>
