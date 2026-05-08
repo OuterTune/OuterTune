@@ -107,4 +107,5 @@
     <string name="oobe_complete_title">Ja està tot a punt!</string>
     <string name="oobe_downloads_subtitle">Tria una carpeta on es desaran les cançons descarregades.</string>
     <string name="oobe_downloads_title">Descàrregues de cançons</string>
+    <string name="grp_general">General</string>
 </resources>
