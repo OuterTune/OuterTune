@@ -174,7 +174,7 @@
     <string name="speed_very_fast">Très rapide</string>
     <string name="lyrics_karaoke_description">Permet la synchronisation mot à mot des paroles. Nécessite la prise en charge du format des paroles.</string>
     <string name="m3u_ytm_lookup">Rechercher sur YouTube Music des titres non trouvées dans la base de données de l\'application</string>
-    <string name="tablet_ui_title_description">Activer une interface paysage optimisée pour les écrans plus grands, quelle que soit la taille actuelle de l\'écran</string>
+    <string name="tablet_ui_title_description">Forcer une interface fractionnée optimisée pour les grands écrans. Ce paramètre n\'a aucun effet si les exigences minimales en matière de largeur ne sont pas respectées.</string>
     <string name="attribution_title">Attribution</string>
     <string name="oss_licenses_title">Licences open source</string>
     <string name="lyrics_karaoke_title">Paroles de style karaoké.</string>
