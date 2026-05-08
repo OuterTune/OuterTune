@@ -83,4 +83,28 @@
     <string name="attrib_zhuang">Zion Huang per a InnerTune</string>
     <string name="attribution_title">Atribució</string>
     <string name="special_thanks">Agraïments especials</string>
+    <string name="speed_very_fast">Molt ràpid</string>
+    <string name="speed_medium">Mitjà</string>
+    <string name="speed_slow">Lent</string>
+    <string name="speed_very_slow">Molt lent</string>
+    <plurals name="second">
+        <item quantity="one">%d segon</item>
+        <item quantity="other">%d segons</item>
+    </plurals>
+    <string name="info">Informació</string>
+    <string name="action_cancel">Cancel·lar</string>
+    <string name="action_skip">Ometre</string>
+    <string name="action_next">Següent</string>
+    <string name="action_back">Tornar</string>
+    <string name="m3u_ytm_lookup">Busca a YouTube Music cançons que no es troben en la base de dades de l’aplicació</string>
+    <string name="m3u_import_playlist_failed">No s’ha pogut importar</string>
+    <string name="m3u_import_playlist">Importa una llista de reproducció (m3u)</string>
+    <string name="m3u_import_failed">No s’han trobat cançons. El fitxer M3U no és vàlid o no s’ha trobat cap coincidència de cançons</string>
+    <string name="m3u_export">Exporta com a fitxer M3U</string>
+    <string name="import_success_songs">Importat correctament</string>
+    <string name="import_failed_songs">No s’ha pogut importar</string>
+    <string name="oobe_complete">OuterTune està configurat i llest per a utilitzar-se. Explora la teua música, descobreix noves cançons i gaudeix de l’experiència!</string>
+    <string name="oobe_complete_title">Ja està tot a punt!</string>
+    <string name="oobe_downloads_subtitle">Tria una carpeta on es desaran les cançons descarregades.</string>
+    <string name="oobe_downloads_title">Descàrregues de cançons</string>
 </resources>
