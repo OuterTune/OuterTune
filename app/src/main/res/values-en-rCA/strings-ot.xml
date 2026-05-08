@@ -2,4 +2,9 @@
 <resources>
     <string name="grp_behavior">Behaviour</string>
     <string name="oobe_ytm_integration_description">Access your favourite tracks seamlessly</string>
+    <string name="android_auto">Android Auto</string>
+    <string name="folders">Folders</string>
+    <string name="library">Library</string>
+    <string name="recent_activity">Recent activity</string>
+    <string name="local_history">Local</string>
 </resources>
