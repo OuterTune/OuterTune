@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 import java.time.LocalDateTime
 import org.apache.commons.lang3.RandomStringUtils
 
@@ -42,7 +43,6 @@ data class PodcastEntity(
         )
     ],
     indices = [
-        Index(value = ["podcastId"]),
         Index(value = ["isLocal"])
     ]
 )
@@ -86,6 +86,10 @@ data class PodcastEpisodeEntity(
  */
 @Immutable
 data class PodcastWithEpisodes(
-    val podcast: PodcastEntity,
+    @Embedded val podcast: PodcastEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "podcastId"
+    )
     val episodes: List<PodcastEpisodeEntity> = emptyList()
 )

@@ -103,16 +103,9 @@ interface PodcastDao {
     @Query("SELECT COUNT(*) FROM podcast_episode WHERE podcastId = :podcastId")
     fun getTotalEpisodeCount(podcastId: String): Flow<Int>
 
-    
     // ========== PODCAST WITH EPISODES ==========
     
-    @Query("""
-        SELECT p.*, COUNT(e.id) as episodeCount
-        FROM podcast p
-        LEFT JOIN podcast_episode e ON p.id = e.podcastId
-        WHERE p.id = :podcastId
-        GROUP BY p.id
-    """)
+    @Query("SELECT * FROM podcast WHERE id = :podcastId")
     fun getPodcastWithEpisodes(podcastId: String): Flow<PodcastWithEpisodes?>
 
     @Query("""
