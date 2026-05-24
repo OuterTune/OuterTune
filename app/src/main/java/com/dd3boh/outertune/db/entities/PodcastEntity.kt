@@ -53,7 +53,7 @@ data class PodcastEpisodeEntity(
     val title: String,
     val description: String? = null,
     val audioUrl: String,
-    val duration: Int = -1, // en segundos, -1 si desconocido
+    val duration: Int = -1, // in seconds, -1 if unknown
     val thumbnailUrl: String? = null,
     val pubDate: LocalDateTime? = null,
     @ColumnInfo(name = "isLocal", defaultValue = false.toString())
@@ -62,14 +62,10 @@ data class PodcastEpisodeEntity(
     val localPath: String? = null,
     val dateDownload: LocalDateTime? = null, // doubles as "isDownloaded"
     val listened: Boolean = false,
-    val listeningProgress: Int = 0, // en segundos
+    val listeningProgress: Int = 0, // in seconds
     val dateListenedLast: LocalDateTime? = null,
     val dateAdded: LocalDateTime? = null,
 ) {
-    fun toggleLibrary() = copy(
-        inLibrary = if (inLibrary == null) LocalDateTime.now() else null
-    )
-
     fun updateListeningProgress(progress: Int) = copy(
         listeningProgress = progress,
         dateListenedLast = LocalDateTime.now()
