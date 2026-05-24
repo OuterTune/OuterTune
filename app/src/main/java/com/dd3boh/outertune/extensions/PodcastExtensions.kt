@@ -62,6 +62,7 @@ fun PodcastEpisodeMetadata.toMediaMetadata(): MediaMetadata {
             MediaMetadata.Artist(id = podcastId, name = "Podcast")
         ),
         duration = this.duration,
+        genre = null,
         thumbnailUrl = this.thumbnailUrl,
         isLocal = this.isLocal,
         localPath = this.localPath,
@@ -76,6 +77,7 @@ fun PodcastEpisodeEntity.toMediaMetadata(): MediaMetadata {
             MediaMetadata.Artist(id = podcastId, name = "Podcast")
         ),
         duration = this.duration,
+        genre = null,
         thumbnailUrl = this.thumbnailUrl,
         isLocal = this.isLocal,
         localPath = this.localPath,

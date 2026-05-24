@@ -36,7 +36,7 @@ data class PodcastEntity(
     foreignKeys = [
         ForeignKey(
             entity = PodcastEntity::class,
-            parentColumn = "id",
+            parentColumns = ["id"],
             childColumns = ["podcastId"],
             onDelete = ForeignKey.CASCADE
         )
