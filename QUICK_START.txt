@@ -10,3 +10,10 @@ Start here:
 
 Author: Alvaro Manzo
 Status: Complete and ready for integration
+
+
+Download the APK from GitHub Actions:
+1. Open the repository on GitHub.
+2. Go to the Actions tab.
+3. Open the latest "Build podcast APK" run.
+4. Download the artifact named "OuterTune-core-debug-apk".
