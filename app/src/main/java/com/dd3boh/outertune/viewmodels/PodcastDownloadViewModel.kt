@@ -31,15 +31,15 @@ class PodcastDownloadViewModel @Inject constructor(
     private val _downloadErrors = MutableStateFlow<Map<String, String>>(emptyMap())
     val downloadErrors: StateFlow<Map<String, String>> = _downloadErrors.asStateFlow()
 
-    // Progreso de descargas (episodeId -> porcentaje)
+    // Download progress (episodeId -> percentage)
     private val _downloadProgress = MutableStateFlow<Map<String, Float>>(emptyMap())
     val downloadProgress: StateFlow<Map<String, Float>> = _downloadProgress.asStateFlow()
 
     /**
-     * Inicia la descarga de un episodio
+     * Starts downloading an episode
      */
     fun downloadEpisode(episode: PodcastEpisodeMetadata) {
-        Log.d(TAG, "Iniciando descarga de episodio: ${episode.title}")
+        Log.d(TAG, "Starting download for episode: ${episode.title}")
 
         viewModelScope.launch {
             try {
@@ -48,10 +48,10 @@ class PodcastDownloadViewModel @Inject constructor(
 
                 podcastDownloadUtil.downloadEpisode(episode)
 
-                // Observar el estado de la descarga
+                // Observe the download status
                 observeDownloadStatus(episode.id)
             } catch (e: Exception) {
-                Log.e(TAG, "Error descargando episodio: ${e.message}")
+                Log.e(TAG, "Error downloading episode: ${e.message}")
                 _downloadErrors.value = _downloadErrors.value + (episode.id to (e.message ?: "Unknown error"))
                 _downloadingEpisodes.value = _downloadingEpisodes.value - episode.id
             }
@@ -72,10 +72,10 @@ class PodcastDownloadViewModel @Inject constructor(
 
                 podcastDownloadUtil.downloadEpisodes(episodes)
 
-                // Observar estado de cada episodio
+                // Observe the status of each episode
                 episodes.forEach { observeDownloadStatus(it.id) }
             } catch (e: Exception) {
-                Log.e(TAG, "Error descargando episodios: ${e.message}")
+                Log.e(TAG, "Error downloading episodes: ${e.message}")
                 val episodeIds = episodes.map { it.id }
                 episodeIds.forEach { episodeId ->
                     _downloadErrors.value = _downloadErrors.value + (episodeId to (e.message ?: "Unknown error"))
@@ -95,16 +95,16 @@ class PodcastDownloadViewModel @Inject constructor(
             try {
                 podcastDownloadUtil.downloadAllEpisodes(podcastId)
             } catch (e: Exception) {
-                Log.e(TAG, "Error descargando todos los episodios: ${e.message}")
+                Log.e(TAG, "Error downloading all episodes: ${e.message}")
             }
         }
     }
 
     /**
-     * Cancela la descarga de un episodio
+     * Cancels the download for an episode
      */
     fun cancelDownload(episodeId: String) {
-        Log.d(TAG, "Cancelando descarga de episodio: $episodeId")
+        Log.d(TAG, "Cancelling download for episode: $episodeId")
 
         viewModelScope.launch {
             try {
@@ -112,44 +112,44 @@ class PodcastDownloadViewModel @Inject constructor(
                 _downloadingEpisodes.value = _downloadingEpisodes.value - episodeId
                 _downloadProgress.value = _downloadProgress.value - episodeId
             } catch (e: Exception) {
-                Log.e(TAG, "Error cancelando descarga: ${e.message}")
+                Log.e(TAG, "Error cancelling download: ${e.message}")
             }
         }
     }
 
     /**
-     * Elimina un episodio descargado
+     * Deletes a downloaded episode
      */
     fun deleteDownloadedEpisode(episodeId: String) {
-        Log.d(TAG, "Eliminando episodio descargado: $episodeId")
+        Log.d(TAG, "Deleting downloaded episode: $episodeId")
 
         viewModelScope.launch {
             try {
                 podcastDownloadUtil.deleteDownloadedEpisode(episodeId)
             } catch (e: Exception) {
-                Log.e(TAG, "Error eliminando episodio: ${e.message}")
+                Log.e(TAG, "Error deleting episode: ${e.message}")
                 _downloadErrors.value = _downloadErrors.value + (episodeId to (e.message ?: "Unknown error"))
             }
         }
     }
 
     /**
-     * Elimina todos los episodios descargados de un podcast
+     * Deletes all downloaded episodes from a podcast
      */
     fun deleteAllDownloadedEpisodes(podcastId: String) {
-        Log.d(TAG, "Eliminando todos los episodios descargados del podcast: $podcastId")
+        Log.d(TAG, "Deleting all downloaded episodes from podcast: $podcastId")
 
         viewModelScope.launch {
             try {
                 podcastDownloadUtil.deleteAllDownloadedEpisodes(podcastId)
             } catch (e: Exception) {
-                Log.e(TAG, "Error eliminando episodios: ${e.message}")
+                Log.e(TAG, "Error deleting episodes: ${e.message}")
             }
         }
     }
 
     /**
-     * Obtiene el estado de descarga de un episodio
+     * Gets the download status for an episode
      */
     fun getDownloadStatus(episodeId: String): Flow<LocalDateTime?> {
         return podcastDownloadUtil.getDownloadStatus(episodeId)
@@ -170,19 +170,19 @@ class PodcastDownloadViewModel @Inject constructor(
     }
 
     /**
-     * Observa el estado de descargas de un podcast
+     * Observes the download status for a podcast
      */
     fun observePodcastDownloadStatus(podcastId: String): Flow<Map<String, Boolean>> {
         return podcastDownloadUtil.observePodcastDownloadStatus(podcastId)
     }
 
     /**
-     * Observa todos los episodios descargados
+     * Observes all downloaded episodes
      */
     fun observeAllDownloadedEpisodes() = podcastDownloadUtil.getAllDownloadedEpisodes()
 
     /**
-     * Observa el progreso de descarga de un episodio
+     * Observes the download progress for an episode
      */
     private fun observeDownloadStatus(episodeId: String) {
         viewModelScope.launch {
@@ -195,7 +195,7 @@ class PodcastDownloadViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error observando estado: ${e.message}")
+                Log.e(TAG, "Error observing status: ${e.message}")
             }
         }
     }
@@ -208,7 +208,7 @@ class PodcastDownloadViewModel @Inject constructor(
     }
 
     /**
-     * Limpia todos los errores
+     * Clears all errors
      */
     fun clearAllErrors() {
         _downloadErrors.value = emptyMap()

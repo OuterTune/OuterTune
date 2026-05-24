@@ -100,7 +100,7 @@ data class PodcastEpisodeMetadata(
     }
 
     /**
-     * Calcula el porcentaje de escucha
+     * Calculates the listening percentage
      */
     fun getListeningPercentage(): Float {
         return if (duration > 0) (listeningProgress.toFloat() / duration) * 100f else 0f

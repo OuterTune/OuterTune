@@ -25,7 +25,7 @@ fun PodcastEpisodeMetadata.isDownloading(): Boolean {
 
 /**
  * Returns true if the episode has been fully listened to
- * (>95% del contenido)
+ * (>95% of the content)
  */
 fun PodcastEpisodeMetadata.isFullyListened(): Boolean {
     if (duration <= 0) return listened
@@ -97,7 +97,7 @@ fun PodcastEpisodeEntity.markAsDownloaded(
 }
 
 /**
- * Marca el episodio como no descargado
+ * Marks the episode as not downloaded
  */
 fun PodcastEpisodeEntity.markAsNotDownloaded(): PodcastEpisodeEntity {
     return this.copy(
@@ -108,7 +108,7 @@ fun PodcastEpisodeEntity.markAsNotDownloaded(): PodcastEpisodeEntity {
 }
 
 /**
- * Actualiza el progreso de escucha
+ * Updates the listening progress
  */
 fun PodcastEpisodeEntity.updateProgress(progress: Int): PodcastEpisodeEntity {
     return this.copy(

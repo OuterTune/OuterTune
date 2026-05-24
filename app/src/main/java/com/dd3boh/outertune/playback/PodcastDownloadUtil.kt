@@ -36,7 +36,7 @@ class PodcastDownloadUtil @Inject constructor(
      * Downloads a single podcast episode
      */
     fun downloadEpisode(episode: PodcastEpisodeMetadata) {
-        Log.d(TAG, "Iniciando descarga del episodio: ${episode.title}")
+        Log.d(TAG, "Starting download for episode: ${episode.title}")
         downloadEpisodes(listOf(episode))
     }
 
@@ -51,11 +51,11 @@ class PodcastDownloadUtil @Inject constructor(
 
         Log.d(TAG, "Downloading ${episodes.size} podcast episodes")
 
-        // Convertir a MediaMetadata y usar el sistema de descargas existente
+        // Convert to MediaMetadata and use the existing download system
         val mediaMetadataList = episodes.map { it.toMediaMetadata() }
         downloadUtil.download(mediaMetadataList)
 
-        // Actualizar la BD una vez que se completen las descargas
+        // Update the database once downloads complete
         scope.launch {
             episodes.forEach { episode ->
                 podcastDao.updateEpisodeDownloadStatus(
@@ -95,12 +95,12 @@ class PodcastDownloadUtil @Inject constructor(
     }
 
     /**
-     * Cancela la descarga de un episodio
+     * Cancels the download for an episode
      */
     fun cancelDownload(episodeId: String) {
-        Log.d(TAG, "Cancelando descarga del episodio: $episodeId")
+        Log.d(TAG, "Cancelling download for episode: $episodeId")
         // Note: The implementation depends on whether DownloadUtil exposes a cancel method
-        // Por ahora, podemos marcar como no descargado en la BD
+        // For now, we can mark it as not downloaded in the database
         scope.launch {
             val episode = podcastDao.getEpisode(episodeId)
             episode.collect { episodeEntity ->
@@ -115,13 +115,13 @@ class PodcastDownloadUtil @Inject constructor(
      * Deletes a downloaded episode
      */
     fun deleteDownloadedEpisode(episodeId: String) {
-        Log.d(TAG, "Eliminando episodio descargado: $episodeId")
+        Log.d(TAG, "Deleting downloaded episode: $episodeId")
 
         scope.launch {
             val episode = podcastDao.getEpisode(episodeId)
             episode.collect { episodeEntity ->
                 if (episodeEntity != null && episodeEntity.isLocal) {
-                    // Eliminar archivo del disco (si es necesario)
+                    // Delete the file from disk if necessary
                     if (episodeEntity.localPath != null) {
                         try {
                             val file = java.io.File(episodeEntity.localPath)
@@ -133,7 +133,7 @@ class PodcastDownloadUtil @Inject constructor(
                         }
                     }
 
-                    // Actualizar BD
+                    // Update the database
                     podcastDao.updateEpisode(episodeEntity.markAsNotDownloaded())
                 }
             }
@@ -144,7 +144,7 @@ class PodcastDownloadUtil @Inject constructor(
      * Deletes all downloaded episodes from a podcast
      */
     fun deleteAllDownloadedEpisodes(podcastId: String) {
-        Log.d(TAG, "Eliminando todos los episodios descargados del podcast: $podcastId")
+        Log.d(TAG, "Deleting all downloaded episodes from podcast: $podcastId")
 
         scope.launch {
             val episodes = podcastDao.getDownloadedEpisodes(podcastId)
@@ -166,7 +166,7 @@ class PodcastDownloadUtil @Inject constructor(
             var size = 0L
             episode.apply {
                 // This is where we would read the local file size
-                // Por ahora retornamos 0
+                // For now, return 0
             }
             size
         } catch (e: Exception) {
@@ -201,7 +201,7 @@ class PodcastDownloadUtil @Inject constructor(
     }
 
     /**
-     * Obtiene todos los episodios descargados globalmente
+     * Gets all downloaded episodes globally
      */
     fun getAllDownloadedEpisodes(): Flow<List<PodcastEpisodeEntity>> {
         return podcastDao.getDownloadedEpisodes()

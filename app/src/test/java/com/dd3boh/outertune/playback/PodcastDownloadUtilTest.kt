@@ -34,7 +34,7 @@ class PodcastDownloadUtilTest {
 
     @Before
     fun setup() {
-        // Crear base de datos en memoria para tests
+        // Create an in-memory database for tests
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             MusicDatabase::class.java
@@ -143,7 +143,7 @@ class PodcastDownloadUtilTest {
 
         database.podcastDao().insertEpisode(episode)
 
-        // Marcar como descargado
+        // Mark as downloaded
         database.podcastDao().updateEpisodeDownloadStatus(
             episodeId = episode.id,
             isLocal = true,
@@ -169,7 +169,7 @@ class PodcastDownloadUtilTest {
 
         database.podcastDao().insertEpisode(episode)
 
-        // Actualizar progreso
+        // Update progress
         database.podcastDao().updateListeningProgress(episode.id, 1800)
 
         val updated = database.podcastDao().getEpisode(episode.id).first()
@@ -189,7 +189,7 @@ class PodcastDownloadUtilTest {
 
         database.podcastDao().insertEpisode(episode)
 
-        // Marcar como escuchado
+        // Mark as listened
         val now = LocalDateTime.now()
         database.podcastDao().markAsListened(episode.id, now)
 
@@ -207,7 +207,7 @@ class PodcastDownloadUtilTest {
 
         database.podcastDao().insertPodcast(podcast)
 
-        // Insertar episodios
+        // Insert episodes
         database.podcastDao().insertEpisodes(
             listOf(
                 PodcastEpisodeEntity(
@@ -229,7 +229,7 @@ class PodcastDownloadUtilTest {
             )
         )
 
-        // Obtener episodios no escuchados
+        // Get unlistened episodes
         val unlistened = database.podcastDao().getUnlistenedEpisodes("pod_001").first()
         assert(unlistened.size == 1)
         assert(unlistened[0].id == "ep_001")
@@ -245,7 +245,7 @@ class PodcastDownloadUtilTest {
 
         database.podcastDao().insertPodcast(podcast)
 
-        // Insertar episodios
+        // Insert episodes
         database.podcastDao().insertEpisodes(
             listOf(
                 PodcastEpisodeEntity(
@@ -268,7 +268,7 @@ class PodcastDownloadUtilTest {
             )
         )
 
-        // Obtener episodios descargados
+        // Get downloaded episodes
         val downloaded = database.podcastDao().getDownloadedEpisodes("pod_001").first()
         assert(downloaded.size == 1)
         assert(downloaded[0].id == "ep_001")
@@ -290,7 +290,7 @@ class PodcastDownloadUtilTest {
         var retrieved = database.podcastDao().getEpisode(episode.id).first()
         assert(retrieved != null)
 
-        // Eliminar
+        // Delete
         database.podcastDao().deleteEpisode(episode)
 
         // Verify it was deleted
