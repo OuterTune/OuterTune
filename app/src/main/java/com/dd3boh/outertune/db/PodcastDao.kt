@@ -9,6 +9,8 @@ import androidx.room.Update
 import com.dd3boh.outertune.db.entities.PodcastEntity
 import com.dd3boh.outertune.db.entities.PodcastEpisodeEntity
 import kotlinx.coroutines.flow.Flow
+import androidx.room.Transaction
+import com.dd3boh.outertune.db.entities.PodcastWithEpisodes
 import java.time.LocalDateTime
 
 @Dao
@@ -101,6 +103,11 @@ interface PodcastDao {
 
     @Query("SELECT COUNT(*) FROM podcast_episode WHERE podcastId = :podcastId")
     fun getTotalEpisodeCount(podcastId: String): Flow<Int>
+
+    // ========== PODCAST WITH EPISODES ==========
+    @Transaction
+    @Query("SELECT * FROM podcast WHERE id = :podcastId")
+    fun getPodcastWithEpisodes(podcastId: String): Flow<PodcastWithEpisodes?>
 
     // ========== RECENT UNLISTENED EPISODES ==========
     

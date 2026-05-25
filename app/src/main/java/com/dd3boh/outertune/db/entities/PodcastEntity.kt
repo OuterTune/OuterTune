@@ -2,10 +2,12 @@ package com.dd3boh.outertune.db.entities
 
 import androidx.compose.runtime.Immutable
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 import java.time.LocalDateTime
 import org.apache.commons.lang3.RandomStringUtils
 
@@ -29,6 +31,19 @@ data class PodcastEntity(
         fun generatePodcastId() = "PC" + RandomStringUtils.insecure().next(8, true, false)
     }
 }
+
+/**
+ * Relationship between a Podcast and its episodes with additional information
+ */
+@Immutable
+data class PodcastWithEpisodes(
+    @Embedded val podcast: PodcastEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "podcastId"
+    )
+    val episodes: List<PodcastEpisodeEntity> = emptyList()
+)
 
 @Immutable
 @Entity(
