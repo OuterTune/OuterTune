@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - lite
+      - lite-podcasts-fix
 
 jobs:
   build-apk:
