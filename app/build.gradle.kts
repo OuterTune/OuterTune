@@ -267,6 +267,6 @@ dependencies {
 
 afterEvaluate {
     dependencies {
-        add("fullImplementation", project(":ffMetadataEx"))
+        add("fullImplementation", files("../prebuilt/ffMetadataEx-release.aar"))
     }
 }

@@ -1,6 +1,3 @@
-[submodule "ffMetadataEx"]
-	path = ffMetadataEx
-	url = https://github.com/OuterTune/ffMetadataEx
 [submodule "media"]
 	path = media
 	url = https://github.com/nift4/media
