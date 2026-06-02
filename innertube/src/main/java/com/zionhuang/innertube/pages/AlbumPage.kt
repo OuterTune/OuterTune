@@ -81,7 +81,12 @@ data class AlbumPage(
 
         fun getSong(renderer: MusicResponsiveListItemRenderer, album: AlbumItem? = null): SongItem? {
             return SongItem(
-                id = renderer.playlistItemData?.videoId ?: return null,
+                // Some albums return tracks without playlistItemData; the videoId then lives only
+                // in the overlay play button (or navigationEndpoint). Ported from ArchiveTune.
+                id = renderer.playlistItemData?.videoId
+                    ?: renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId
+                    ?: renderer.navigationEndpoint?.watchEndpoint?.videoId
+                    ?: return null,
                 title = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_VIDEO").firstOrNull()?.text ?: return null,
                 artists = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ARTIST").map{
                     Artist(
@@ -91,16 +96,20 @@ data class AlbumPage(
                 },
                 album = album?.let {
                     Album(it.title, it.browseId)
-                } ?: renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
-                    Album(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId!!
-                    )
-                }!!,
+                } ?: renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let { run ->
+                    run.navigationEndpoint?.browseEndpoint?.browseId?.let { browseId ->
+                        Album(
+                            name = run.text,
+                            id = browseId
+                        )
+                    }
+                },
                 duration = renderer.fixedColumns?.firstOrNull()
                     ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                     ?.text?.parseTime() ?: return null,
-                thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: album?.thumbnail!!,
+                thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
+                    ?: album?.thumbnail
+                    ?: return null,
                 explicit = renderer.badges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null
