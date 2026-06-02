@@ -3,6 +3,8 @@
 *.aar
 *.ap_
 *.aab
+# Prebuilt ffMetadataEx AAR is tracked intentionally (out-of-tree FFmpeg module)
+!prebuilt/ffMetadataEx-release.aar
 
 # Files for the ART/Dalvik VM
 *.dex

@@ -15,8 +15,6 @@ include(":innertube")
 include(":kugou")
 include(":lrclib")
 include(":material-color-utilities")
-include(":ffMetadataEx")
-include(":taglib")
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.
 // We assume, that OuterTune and NewPipe Extractor have the same parent directory.

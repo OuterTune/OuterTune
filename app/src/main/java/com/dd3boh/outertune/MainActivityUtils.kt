@@ -141,7 +141,7 @@ suspend fun scanInit(
     val scannerImpl by enumPreference(
         context = context,
         key = ScannerImplKey,
-        defaultValue = ScannerImpl.TAGLIB
+        defaultValue = ScannerImpl.MEDIASTORE
     )
     val scanPaths = context.dataStore.get(ScanPathsKey, defaultValue = "")
     val excludedScanPaths = context.dataStore.get(ExcludedScanPathsKey, defaultValue = "")
