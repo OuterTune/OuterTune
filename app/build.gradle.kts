@@ -163,7 +163,7 @@ android {
             allowedLicenses.addAll("Apache-2.0", "BSD-3-Clause", "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1", "GNU GENERAL PUBLIC LICENSE, Version 3", "GPL-3.0-only", "EPL-2.0", "MIT", "MPL-2.0", "Public Domain")
 
             // Full license text for license IDs mentioned here will be included, even if no detected dependency uses them.
-             additionalLicenses.addAll("apache_2_0", "gpl_2_1") // taglib, ffMpeg in ffMetadataEx
+             additionalLicenses.addAll("apache_2_0", "gpl_2_1") // ffMpeg in ffMetadataEx
         }
 
         library {
@@ -256,7 +256,6 @@ dependencies {
     implementation(project(":kugou"))
     implementation(project(":lrclib"))
     implementation(project(":material-color-utilities"))
-    implementation(project(":taglib"))
 
     // misc
     implementation(libs.aboutlibraries.compose.m3)

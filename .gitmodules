@@ -4,6 +4,3 @@
 [submodule "media"]
 	path = media
 	url = https://github.com/nift4/media
-[submodule "taglib"]
-	path = taglib
-	url = https://github.com/OuterTune/taglib

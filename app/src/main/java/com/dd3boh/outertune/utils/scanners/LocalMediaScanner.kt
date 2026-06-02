@@ -74,8 +74,7 @@ import java.time.ZoneOffset
 class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
     private val TAG = LocalMediaScanner::class.simpleName.toString()
     private var advancedScannerImpl: MetadataScanner = when (scannerImpl) {
-        ScannerImpl.TAGLIB -> TagLibScanner()
-        ScannerImpl.FFMPEG_EXT -> if (ENABLE_FFMETADATAEX) FFmpegScanner() else TagLibScanner()
+        ScannerImpl.FFMPEG_EXT -> if (ENABLE_FFMETADATAEX) FFmpegScanner() else MediaStoreExtractor()
         ScannerImpl.MEDIASTORE -> MediaStoreExtractor() // unused
     }
 
@@ -106,7 +105,7 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
 
             // decide which scanner to use
             val ffmpegData =
-                if (advancedScannerImpl is TagLibScanner || (ENABLE_FFMETADATAEX && advancedScannerImpl is FFmpegScanner)) {
+                if (ENABLE_FFMETADATAEX && advancedScannerImpl is FFmpegScanner) {
                     advancedScannerImpl.getAllMetadataFromFile(file)
                 } else {
                     throw RuntimeException("Unsupported extractor")
@@ -1081,11 +1080,11 @@ class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
         fun getScanner(context: Context, scannerImpl: ScannerImpl, owner: Int): LocalMediaScanner {
 
             if (localScanner == null) {
-                // reset to taglib if ffMetadataEx disappears
+                // reset to mediastore if ffMetadataEx disappears
                 if (scannerImpl == ScannerImpl.FFMPEG_EXT && !ENABLE_FFMETADATAEX) {
                     CoroutineScope(lmScannerCoroutine).launch {
                         context.dataStore.edit { settings ->
-                            settings[ScannerImplKey] = ScannerImpl.TAGLIB.toString()
+                            settings[ScannerImplKey] = ScannerImpl.MEDIASTORE.toString()
                             settings[AutomaticScannerKey] = false
                             runBlocking(Dispatchers.Main) {
                                 // TODO: string resource (but will anyone even notice this...)

@@ -112,7 +112,6 @@ Local scanner
 
 enum class ScannerImpl {
     MEDIASTORE,
-    TAGLIB,
     FFMPEG_EXT,
 }
 
