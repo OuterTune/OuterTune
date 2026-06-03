@@ -101,7 +101,9 @@ object YTPlayerUtils {
                 YouTube.visitorData
             }
 
-        Log.d(TAG, "[$videoId] signatureTimestamp: $signatureTimestamp, isLoggedIn: $isLoggedIn")
+        Log.d(TAG, "[$videoId] signatureTimestamp: $signatureTimestamp, isLoggedIn: $isLoggedIn, " +
+                "dataSyncId present: ${!YouTube.dataSyncId.isNullOrBlank()} (len=${YouTube.dataSyncId?.length ?: 0}), " +
+                "visitorData present: ${!YouTube.visitorData.isNullOrBlank()}")
 
         val (webPlayerPot, webStreamingPot) = getWebClientPoTokenOrNull(videoId, sessionId)?.let {
             Pair(it.playerRequestPoToken, it.streamingDataPoToken)
@@ -145,9 +147,12 @@ object YTPlayerUtils {
                     continue
                 }
 
-                streamPlayerResponse =
+                val playerResult =
                     YouTube.player(videoId, playlistId, client, signatureTimestamp, webPlayerPot)
-                        .getOrNull()
+                playerResult.exceptionOrNull()?.let {
+                    Log.e(TAG, "[$videoId] [${client.clientName}] player request failed", it)
+                }
+                streamPlayerResponse = playerResult.getOrNull()
             }
 
             Log.d(TAG, "[$videoId] stream client: ${client.clientName}, " +
@@ -157,15 +162,21 @@ object YTPlayerUtils {
 
             // process current client response
             if (streamPlayerResponse?.playabilityStatus?.status == "OK") {
-                format =
-                    findFormat(
-                        streamPlayerResponse,
-                        audioQuality,
-                        connectivityManager,
-                    ) ?: continue
-                streamUrl = findUrlOrNull(format, videoId) ?: continue
-                streamExpiresInSeconds =
-                    streamPlayerResponse.streamingData?.expiresInSeconds ?: continue
+                format = findFormat(streamPlayerResponse, audioQuality, connectivityManager)
+                if (format == null) {
+                    Log.w(TAG, "[$videoId] [${client.clientName}] OK but no audio format found")
+                    continue
+                }
+                streamUrl = findUrlOrNull(format, videoId)
+                if (streamUrl == null) {
+                    Log.w(TAG, "[$videoId] [${client.clientName}] OK but failed to build stream url (deobfuscation?)")
+                    continue
+                }
+                streamExpiresInSeconds = streamPlayerResponse.streamingData?.expiresInSeconds
+                if (streamExpiresInSeconds == null) {
+                    Log.w(TAG, "[$videoId] [${client.clientName}] OK but missing expiresInSeconds")
+                    continue
+                }
 
                 if (client.useWebPoTokens && webStreamingPot != null) {
                     streamUrl += "&pot=$webStreamingPot";
@@ -282,6 +293,7 @@ object YTPlayerUtils {
     ): String? {
         return NewPipeUtils.getStreamUrl(format, videoId)
             .onFailure {
+                Log.e(TAG, "[$videoId] getStreamUrl failed (itag=${format.itag}, hasUrl=${format.url != null}, hasCipher=${format.signatureCipher != null})", it)
                 reportException(it)
             }
             .getOrNull()
