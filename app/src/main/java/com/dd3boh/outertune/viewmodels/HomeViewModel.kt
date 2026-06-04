@@ -178,7 +178,7 @@ class HomeViewModel @Inject constructor(
             previousHomePage.value = homePage.value
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val nextSections = YouTube.home(params = chip?.endpoint?.params).getOrNull() ?: return@launch
+            val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull() ?: return@launch
             homePage.value = nextSections.copy(
                 chips = homePage.value?.chips,
                 sections = nextSections.sections,

@@ -523,9 +523,9 @@ fun DetailsDialog(
                     .sizeIn(minWidth = 280.dp, maxWidth = 560.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                val details = mutableListOf(
+                val details = mutableListOf<Pair<String, String?>>(
                     stringResource(R.string.song_title) to mediaMetadata.title,
-                    stringResource(R.string.song_artists) to mediaMetadata.artists?.joinToString { it.name },
+                    stringResource(R.string.song_artists) to mediaMetadata.artists.joinToString { it.name },
                     stringResource(R.string.media_id) to mediaMetadata.id,
                     stringResource(R.string.play_count) to currentPlayCount.toString()
                 )

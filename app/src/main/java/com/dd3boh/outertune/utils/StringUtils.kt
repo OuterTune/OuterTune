@@ -131,10 +131,10 @@ fun closestAlbumMatch(query: String, stringList: List<AlbumEntity>): AlbumEntity
 fun numberToAlpha(l: Long): String {
     val alphabetMap = ('A'..'J').toList()
     val weh = if (l < 0) "0" else l.toString()
-    val lengthStr = if (weh.length.toInt() < 10) {
-        "0" + weh.length.toInt()
+    val lengthStr = if (weh.length < 10) {
+        "0" + weh.length
     } else {
-        weh.length.toInt().toString()
+        weh.length.toString()
     }
 
     return (lengthStr + weh + "\u0000").map {
