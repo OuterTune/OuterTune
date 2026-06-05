@@ -106,7 +106,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import com.dd3boh.outertune.constants.AppBarHeight
 import com.dd3boh.outertune.constants.DEFAULT_ENABLED_TABS
 import com.dd3boh.outertune.constants.DarkMode
@@ -269,7 +269,7 @@ class MainActivity : ComponentActivity() {
             val tabMode = this@MainActivity.tabMode()
             val useNavRail by remember {
                 derivedStateOf {
-                    windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED && !tabMode
+                    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) && !tabMode
                 }
             }
 
