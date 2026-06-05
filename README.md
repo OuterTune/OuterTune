@@ -4,6 +4,14 @@
 
 A Material 3 YouTube Music client & local music player for Android
 
+> [!NOTE]
+> This is a personal fork, maintained for my own use because the upstream
+> [OuterTune](https://github.com/OuterTune/OuterTune) stopped developing its
+> YouTube Music features.
+>
+> It comes with no guarantee of continued development, support, or working
+> behavior, and issues / pull requests may not be addressed.
+
 [![Latest release](https://img.shields.io/github/v/release/OuterTune/OuterTune?include_prereleases)](https://github.com/OuterTune/OuterTune/releases)
 [![License](https://img.shields.io/github/license/OuterTune/OuterTune)](https://www.gnu.org/licenses/gpl-3.0)
 [![Downloads](https://img.shields.io/github/downloads/OuterTune/OuterTune/total)](https://github.com/OuterTune/OuterTune/releases)
@@ -18,9 +26,6 @@ A Material 3 YouTube Music client & local music player for Android
 
 > [!WARNING]
 > OuterTune is only available on the platforms listed here. This app is not listed on the Play Store or any other fake website that claim to be us. We recommend you to immediately delete any fake versions or clones for your safety.
-
-> [!NOTE]
-> We are looking for maintainers! For more information and the state of OuterTune: https://github.com/OuterTune/OuterTune/discussions/1116
 
 ## Features
 
