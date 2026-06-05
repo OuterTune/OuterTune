@@ -13,10 +13,10 @@ import io.ktor.client.request.parameter
 import io.ktor.http.ContentType
 import io.ktor.http.encodeURLParameter
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.util.decodeBase64String
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.lang.Integer.min
+import kotlin.io.encoding.Base64
 import kotlin.math.abs
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -43,6 +43,10 @@ private val client = HttpClient {
 private const val PAGE_SIZE = 8
 private const val HEAD_CUT_LIMIT = 30
 
+/** Decodes a standard Base64 string to its UTF-8 text (replaces Ktor's deprecated decodeBase64String). */
+private fun String.decodeBase64ToString(): String =
+    Base64.Default.decode(this).decodeToString()
+
 /**
  * KuGou Lyrics Library
  * Modified from [ViMusic](https://github.com/vfsfitvnm/ViMusic)
@@ -54,7 +58,7 @@ object KuGou {
         runCatching {
             val keyword = generateKeyword(title, artist)
             getLyricsCandidate(keyword, duration)?.let { candidate ->
-                downloadLyrics(candidate.id, candidate.accesskey).content.decodeBase64String()
+                downloadLyrics(candidate.id, candidate.accesskey).content.decodeBase64ToString()
                     .normalize().let {
                         if ("纯音乐，请欣赏" in it || "酷狗音乐  就是歌多" in it) {
                             // instrumental tracks should report as having no lyrics
@@ -72,13 +76,13 @@ object KuGou {
         searchSongs(keyword).data.info.forEach {
             if (duration == -1 || abs(it.duration - duration) <= DURATION_TOLERANCE) {
                 searchLyricsByHash(it.hash).candidates.firstOrNull()?.let { candidate ->
-                    downloadLyrics(candidate.id, candidate.accesskey).content.decodeBase64String()
+                    downloadLyrics(candidate.id, candidate.accesskey).content.decodeBase64ToString()
                         .normalize().let(callback)
                 }
             }
         }
         searchLyricsByKeyword(keyword, duration).candidates.forEach { candidate ->
-            downloadLyrics(candidate.id, candidate.accesskey).content.decodeBase64String()
+            downloadLyrics(candidate.id, candidate.accesskey).content.decodeBase64ToString()
                 .normalize().let(callback)
         }
     }
