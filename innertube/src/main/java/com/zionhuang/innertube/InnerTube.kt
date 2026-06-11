@@ -14,7 +14,6 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlin.io.encoding.Base64
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.net.Proxy
@@ -246,21 +245,7 @@ class InnerTube {
         )
     }
 
-    suspend fun getTranscript(
-        client: YouTubeClient,
-        videoId: String,
-    ) = httpClient.post("https://music.youtube.com/youtubei/v1/get_transcript") {
-        parameter("key", "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3")
-        headers {
-            append("Content-Type", "application/json")
-        }
-        setBody(
-            GetTranscriptBody(
-                context = client.toContext(locale, null, null),
-                params = Base64.Default.encode("\n${11.toChar()}$videoId".encodeToByteArray())
-            )
-        )
-    }
+    suspend fun httpGet(url: String, block: HttpRequestBuilder.() -> Unit = {}) = httpClient.get(url, block)
 
     suspend fun getSwJsData() = httpClient.get("https://music.youtube.com/sw.js_data")
 

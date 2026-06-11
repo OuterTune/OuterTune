@@ -17,7 +17,25 @@ data class PlayerResponse(
     val videoDetails: VideoDetails?,
     @SerialName("playbackTracking")
     val playbackTracking: PlaybackTracking?,
+    val captions: Captions? = null,
 ) {
+    @Serializable
+    data class Captions(
+        val playerCaptionsTracklistRenderer: PlayerCaptionsTracklistRenderer?,
+    ) {
+        @Serializable
+        data class PlayerCaptionsTracklistRenderer(
+            val captionTracks: List<CaptionTrack>?,
+        ) {
+            @Serializable
+            data class CaptionTrack(
+                val baseUrl: String,
+                val languageCode: String,
+                val kind: String? = null,  // "asr" = auto-generated caption
+            )
+        }
+    }
+
     @Serializable
     data class PlayabilityStatus(
         val status: String,
