@@ -15,10 +15,8 @@ import io.ktor.client.request.headers
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
-@Ignore("IDK Why GitHub Action always runs the test with error")
 class YouTubeTest {
     private val youTube = YouTube
 
@@ -173,9 +171,8 @@ class YouTubeTest {
 
     companion object {
         private val VIDEO_IDS = listOf(
-            "4H-N260cPCg",
-            "jF4KKOsoyDs",
-            "x8VYWazR5mE" // Login required
+            "dQw4w9WgXcQ",
+            "jF4KKOsoyDs"
         )
 
         private const val PLAYLIST_ID = "RDAMVM_WVXrDmm-P0"
