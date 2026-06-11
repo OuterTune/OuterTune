@@ -131,21 +131,26 @@ class YouTubeTest {
 
     @Test
     fun `Browse playlist`() = runBlocking {
-        // This playlist has 2900 songs
-        val playlistId = "PLtAw-mgfCzRwduBTjBHknz5U4_ZM4n6qm"
-        var count = 5
-        val playlistPage = YouTube.playlist(playlistId).getOrThrow()
-        var songs = playlistPage.songs
-        var continuation = playlistPage.songsContinuation
-        while (count > 0) {
-            songs.forEach {
-                println(it.id)
+        val playlistIds = listOf(
+            "PLtAw-mgfCzRwduBTjBHknz5U4_ZM4n6qm", // user-created playlist without a header
+            "RDCLAK5uy_l2pHac-aawJYLcesgTf67gaKU-B9ekk1o" // YouTube Music curated playlist with a header
+        )
+        for (playlistId in playlistIds) {
+            var count = 5
+            val playlistPage = YouTube.playlist(playlistId).getOrThrow()
+            var songs = playlistPage.songs
+            assertTrue(songs.isNotEmpty())
+            var continuation = playlistPage.songsContinuation
+            while (count > 0) {
+                songs.forEach {
+                    println(it.id)
+                }
+                if (continuation == null) break
+                val continuationPage = YouTube.playlistContinuation(continuation).getOrThrow()
+                songs = continuationPage.songs
+                continuation = continuationPage.continuation
+                count--
             }
-            if (continuation == null) break
-            val continuationPage = YouTube.playlistContinuation(continuation).getOrThrow()
-            songs = continuationPage.songs
-            continuation = continuationPage.continuation
-            count--
         }
     }
 
