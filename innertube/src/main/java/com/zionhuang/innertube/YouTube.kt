@@ -14,6 +14,7 @@ import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.zionhuang.innertube.models.YouTubeClient
+import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.zionhuang.innertube.models.YouTubeLocale
@@ -25,10 +26,10 @@ import com.zionhuang.innertube.models.response.BrowseResponse
 import com.zionhuang.innertube.models.response.CreatePlaylistResponse
 import com.zionhuang.innertube.models.response.GetQueueResponse
 import com.zionhuang.innertube.models.response.GetSearchSuggestionsResponse
-import com.zionhuang.innertube.models.response.GetTranscriptResponse
 import com.zionhuang.innertube.models.response.NextResponse
 import com.zionhuang.innertube.models.response.PlayerResponse
 import com.zionhuang.innertube.models.response.SearchResponse
+import com.zionhuang.innertube.models.response.TimedText3Response
 import com.zionhuang.innertube.pages.AlbumPage
 import com.zionhuang.innertube.pages.ArtistItemsContinuationPage
 import com.zionhuang.innertube.pages.ArtistItemsPage
@@ -52,6 +53,7 @@ import com.zionhuang.innertube.pages.SearchSuggestionPage
 import com.zionhuang.innertube.pages.SearchSummary
 import com.zionhuang.innertube.pages.SearchSummaryPage
 import io.ktor.client.call.body
+import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -668,7 +670,7 @@ object YouTube {
 
     suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) = runCatching {
         val cpn = (1..16).map {
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.nextInt(
                 0,
                 64
             )]
@@ -779,14 +781,52 @@ object YouTube {
     }
 
     suspend fun transcript(videoId: String): Result<String> = runCatching {
-        val response = innerTube.getTranscript(WEB, videoId).body<GetTranscriptResponse>()
-        response.actions?.firstOrNull()?.updateEngagementPanelAction?.content?.transcriptRenderer?.body?.transcriptBodyRenderer?.cueGroups?.joinToString(separator = "\n") { group ->
-            val time = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.startOffsetMs
-            val text = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.cue.simpleText
-                .trim('♪')
-                .trim(' ')
-            "[%02d:%02d.%03d]$text".format(time / 60000, (time / 1000) % 60, time % 1000)
-        }!!
+        // The get_transcript endpoint now rejects unauthenticated requests with HTTP 400, so the
+        // timed text (caption) track from the player response is used instead. The IOS client is
+        // required here because the WEB client does not return caption tracks.
+        val captionTracks = innerTube.player(IOS, videoId, null, null, null)
+            .body<PlayerResponse>()
+            .captions
+            ?.playerCaptionsTracklistRenderer
+            ?.captionTracks
+            .orEmpty()
+        check(captionTracks.isNotEmpty()) { "No caption tracks available for videoId=$videoId" }
+
+        // Prefer auto-generated captions (kind=asr), then English, then the first available track.
+        val track = captionTracks.firstOrNull { it.kind == "asr" }
+            ?: captionTracks.firstOrNull { it.languageCode.startsWith("en") }
+            ?: captionTracks.first()
+
+        val timedText = innerTube.httpGet(track.baseUrl) { parameter("fmt", "json3") }.body<TimedText3Response>()
+
+        // Convert the timed text events into LRC formatted lines.
+        val lines = mutableListOf<String>()
+        var currentTime: Long = -1L
+        val currentText = StringBuilder()
+
+        fun flushLine() {
+            if (currentTime < 0) return
+            val text = currentText.toString().replace("\n", " ").trim('♪').trim()
+            if (text.isNotBlank()) {
+                lines += "[%02d:%02d.%03d]$text".format(currentTime / 60000, (currentTime / 1000) % 60, currentTime % 1000)
+            }
+        }
+
+        timedText.events?.forEach { event ->
+            val segs = event.segs ?: return@forEach
+            val text = segs.mapNotNull { it.utf8 }.joinToString("")
+            if (text.replace("\n", "").isBlank()) return@forEach
+            if (!event.isAppend) {
+                flushLine()
+                currentTime = event.tStartMs
+                currentText.clear()
+            }
+            currentText.append(text)
+        }
+        flushLine()
+
+        check(lines.isNotEmpty()) { "Empty transcript for videoId=$videoId" }
+        lines.joinToString("\n")
     }
 
     suspend fun visitorData(): Result<String> = runCatching {

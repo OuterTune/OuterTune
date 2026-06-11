@@ -170,7 +170,7 @@ class YouTubeTest {
 
     @Test
     fun transcript() = runBlocking {
-        val lyrics = YouTube.transcript("7G0ovtPqHnI").getOrThrow()
+        val lyrics = YouTube.transcript("dQw4w9WgXcQ").getOrThrow()
         assertTrue(lyrics.isNotEmpty())
     }
 
