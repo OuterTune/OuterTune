@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.lyrics
 
 import android.content.Context
+import android.util.Log
 import android.util.LruCache
 import com.dd3boh.outertune.constants.LyricSourcePrefKey
 import com.dd3boh.outertune.constants.LyricTrimKey
@@ -24,7 +25,7 @@ class LyricsHelper @Inject constructor(
     val database: MusicDatabase
 ) {
     private val lyricsProviders =
-        listOf(YouTubeSubtitleLyricsProvider, LrcLibLyricsProvider, KuGouLyricsProvider, YouTubeLyricsProvider)
+        listOf(LrcLibLyricsProvider, KuGouLyricsProvider, YouTubeLyricsProvider, YouTubeSubtitleLyricsProvider)
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
 
     /**
@@ -114,20 +115,33 @@ class LyricsHelper @Inject constructor(
      * Lookup lyrics from remote providers
      */
     private suspend fun getRemoteLyrics(mediaMetadata: MediaMetadata): String? {
+        val artistName = mediaMetadata.artists
+            .filter { it.id != null }
+            .joinToString { it.name.removeSuffix(" - Topic") }
+            .ifEmpty { mediaMetadata.artists.joinToString { it.name } }
+        Log.d(TAG, "getLyrics start: videoId=${mediaMetadata.id} title=\"${mediaMetadata.title}\" artist=\"${artistName}\"")
         lyricsProviders.forEach { provider ->
             if (provider.isEnabled(context)) {
+                val t0 = System.currentTimeMillis()
                 provider.getLyrics(
                     mediaMetadata.id,
                     mediaMetadata.title,
-                    mediaMetadata.artists.joinToString { it.name },
+                    artistName,
                     mediaMetadata.duration
                 ).onSuccess { lyrics ->
+                    val elapsed = System.currentTimeMillis() - t0
+                    Log.d(TAG, "${provider.name} SUCCESS in ${elapsed}ms")
                     return lyrics
                 }.onFailure {
+                    val elapsed = System.currentTimeMillis() - t0
+                    Log.d(TAG, "${provider.name} FAILURE in ${elapsed}ms: ${it.message}")
                     reportException(it)
                 }
+            } else {
+                Log.d(TAG, "${provider.name} SKIPPED (disabled)")
             }
         }
+        Log.d(TAG, "getLyrics end: all providers exhausted for videoId=${mediaMetadata.id}")
         return null
     }
 
@@ -176,6 +190,7 @@ class LyricsHelper @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "LyricsHelper"
         private const val MAX_CACHE_SIZE = 3
     }
 }
