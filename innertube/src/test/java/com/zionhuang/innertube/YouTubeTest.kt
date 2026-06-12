@@ -49,17 +49,28 @@ class YouTubeTest {
         // Top result with radio link
         val searchAllTypeResult = youTube.searchSummary("musi").getOrThrow()
         assertTrue(searchAllTypeResult.summaries.size > 1)
-        for (filter in listOf(
-            FILTER_SONG,
-            FILTER_VIDEO,
-            FILTER_ALBUM,
-            FILTER_ARTIST,
-            FILTER_FEATURED_PLAYLIST,
-            FILTER_COMMUNITY_PLAYLIST
-        )) {
+
+        // An artist query covers songs, videos, albums, the artist itself,
+        // and user-created (community) playlists.
+        val filters = mapOf(
+            "song" to FILTER_SONG,
+            "video" to FILTER_VIDEO,
+            "album" to FILTER_ALBUM,
+            "artist" to FILTER_ARTIST,
+            "community playlist" to FILTER_COMMUNITY_PLAYLIST,
+        )
+        for ((name, filter) in filters) {
             val searchResult = youTube.search(SEARCH_QUERY, filter).getOrThrow()
-            assertTrue(searchResult.items.isNotEmpty())
+            assertTrue("no items returned for filter: $name", searchResult.items.isNotEmpty())
         }
+    }
+
+    @Test
+    fun `Check 'featured playlist' search`() = runBlocking {
+        // Featured (YouTube Music curated) playlists exist for moods/genres,
+        // not for artist names, so a mood query is used here.
+        val searchResult = youTube.search("relax", FILTER_FEATURED_PLAYLIST).getOrThrow()
+        assertTrue(searchResult.items.isNotEmpty())
     }
 
     @Test

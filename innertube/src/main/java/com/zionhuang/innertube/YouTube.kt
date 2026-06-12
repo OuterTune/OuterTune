@@ -13,6 +13,7 @@ import com.zionhuang.innertube.models.SearchSuggestions
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
+import com.zionhuang.innertube.models.YTItem
 import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB
@@ -118,34 +119,72 @@ object YouTube {
 
     suspend fun searchSummary(query: String): Result<SearchSummaryPage> = runCatching {
         val response = innerTube.search(WEB_REMIX, query).body<SearchResponse>()
-        SearchSummaryPage(
-            summaries = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.mapNotNull { it ->
-                if (it.musicCardShelfRenderer != null)
-                    SearchSummary(
-                        title = it.musicCardShelfRenderer.header?.musicCardShelfHeaderBasicRenderer?.title?.runs?.firstOrNull()?.text ?: "",
-                        items = listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(it.musicCardShelfRenderer))
-                            .plus(
-                                it.musicCardShelfRenderer.contents
-                                    ?.mapNotNull { it.musicResponsiveListItemRenderer }
-                                    ?.mapNotNull(SearchSummaryPage.Companion::fromMusicResponsiveListItemRenderer)
-                                    .orEmpty()
-                            )
-                            .distinctBy { it.id }
-                            .ifEmpty { null } ?: return@mapNotNull null
-                    )
-                else
-                    SearchSummary(
-                        title = it.musicShelfRenderer?.title?.runs?.firstOrNull()?.text ?: "",
-                        items = it.musicShelfRenderer?.contents?.getItems()
-                            ?.mapNotNull {
-                                SearchSummaryPage.fromMusicResponsiveListItemRenderer(it)
-                            }
-                            ?.distinctBy { it.id }
-                            ?.ifEmpty { null } ?: return@mapNotNull null
-                    )
-            }!!
-        )
+        val sections = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
+            ?.tabRenderer?.content?.sectionListRenderer?.contents.orEmpty()
+
+        val summaries = mutableListOf<SearchSummary>()
+        for (content in sections) {
+            when {
+                content.musicCardShelfRenderer != null -> {
+                    val items = listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(content.musicCardShelfRenderer))
+                        .plus(
+                            content.musicCardShelfRenderer.contents
+                                ?.mapNotNull { it.musicResponsiveListItemRenderer }
+                                ?.mapNotNull(SearchSummaryPage.Companion::fromMusicResponsiveListItemRenderer)
+                                .orEmpty()
+                        )
+                        .distinctBy { it.id }
+                    if (items.isNotEmpty()) {
+                        summaries += SearchSummary(
+                            title = content.musicCardShelfRenderer.header?.musicCardShelfHeaderBasicRenderer?.title?.runs?.firstOrNull()?.text ?: "",
+                            items = items
+                        )
+                    }
+                }
+
+                content.musicShelfRenderer != null -> {
+                    val items = content.musicShelfRenderer.contents?.getItems()
+                        ?.mapNotNull { SearchSummaryPage.fromMusicResponsiveListItemRenderer(it) }
+                        ?.distinctBy { it.id }
+                        .orEmpty()
+                    if (items.isNotEmpty()) {
+                        summaries += SearchSummary(
+                            title = content.musicShelfRenderer.title?.runs?.firstOrNull()?.text ?: "",
+                            items = items
+                        )
+                    }
+                }
+
+                // Newer responses wrap individual results in itemSectionRenderer instead of
+                // titled shelves; group those items by type into separate summary sections.
+                content.itemSectionRenderer != null -> {
+                    val items = content.itemSectionRenderer.contents?.getItems()
+                        ?.mapNotNull { SearchSummaryPage.fromMusicResponsiveListItemRenderer(it) }
+                        .orEmpty()
+                    summaries += groupSearchItemsByType(items)
+                }
+            }
+        }
+
+        // Merge sections that share the same title (e.g. items split across many itemSectionRenderers).
+        val merged = summaries
+            .filter { it.items.isNotEmpty() }
+            .groupBy { it.title }
+            .map { (title, group) -> SearchSummary(title = title, items = group.flatMap { it.items }.distinctBy { it.id }) }
+
+        SearchSummaryPage(summaries = merged)
     }
+
+    private fun groupSearchItemsByType(items: List<YTItem>): List<SearchSummary> =
+        items.groupBy { item ->
+            when (item) {
+                is SongItem -> "Songs"
+                is AlbumItem -> "Albums"
+                is ArtistItem -> "Artists"
+                is PlaylistItem -> "Playlists"
+                else -> "Other"
+            }
+        }.map { (title, group) -> SearchSummary(title = title, items = group) }
 
     suspend fun search(query: String, filter: SearchFilter): Result<SearchResult> = runCatching {
         val response = innerTube.search(WEB_REMIX, query, filter.value).body<SearchResponse>()
