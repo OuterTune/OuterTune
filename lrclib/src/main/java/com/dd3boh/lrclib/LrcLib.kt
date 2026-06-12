@@ -45,7 +45,6 @@ object LrcLib {
             parameter("artist_name", artist)
             if (album != null) parameter("album_name", album)
         }.body<List<Track>>()
-        .filter { it.syncedLyrics != null }
 
     suspend fun getLyrics(
         title: String,
@@ -53,9 +52,8 @@ object LrcLib {
         duration: Int,
         album: String? = null,
     ) = runCatching {
-        val tracks = queryLyrics(artist, title, album)
-
-        val res = tracks.bestMatchingFor(duration)?.syncedLyrics?.let(LrcLib::Lyrics)
+        val syncedTracks = queryLyrics(artist, title, album).filter { it.syncedLyrics != null }
+        val res = syncedTracks.bestMatchingFor(duration)?.syncedLyrics?.let(LrcLib::Lyrics)
         if (res != null) {
             return@runCatching res.text
         } else {
