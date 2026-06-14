@@ -39,6 +39,7 @@
     <string name="local_player_settings_title">端末内メディア</string>
     <string name="m3u_import_playlist">再生リストをインポート (m3u)</string>
     <string name="auto_scanner_title">自動でスキャン</string>
+    <string name="auto_scanner_tooltip">ローカルメディアの自動スキャンでは、既存の曲のメタデータは再読み込みされません。メタデータも更新したい場合は、「再スキャン」チェックボックスをオンにして手動スキャンをお使いください。</string>
     <string name="scan_paths_title">スキャンするパスを設定…</string>
     <string name="scan_paths_tooltip">すべてのサブディレクトリが対象です</string>
     <string name="scan_paths_add_folder">新しいフォルダを追加</string>
@@ -49,6 +50,8 @@
     <string name="scanner_warning">初期設定では、上記で指定しない限り、スキャンは既存の曲のメタデータを再読み込みしません。ライブラリの量によっては、時間がかかります。</string>
     <string name="scanner_missing_ffmpeg">FFmpeg 抽出プログラムが検出されませんでした</string>
     <string name="scanner_missing_storage_perm">端末内メディアをスキャンするにはストレージの権限が必要</string>
+    <string name="scanner_auto_end">ローカルメディアと楽曲ダウンロードの更新が完了しました！</string>
+    <string name="scanner_auto_start">ローカルメディアと楽曲ダウンロードフォルダを更新しています…</string>
     <string name="scanner_progress_scanning">スキャン中…</string>
     <string name="folders">フォルダ</string>
     <string name="recent_activity">最近のアクティビティ</string>
@@ -77,6 +80,7 @@
     <string name="ytm_sync">YouTube Music アカウントと自動で同期</string>
     <string name="token_hidden">タップしてトークンを表示</string>
     <string name="grp_manual_scanner">手動でスキャン</string>
+    <string name="grp_more_settings">その他の設定</string>
     <string name="attrib_zhuang">Zion Huang の InnerTune</string>
     <string name="special_thanks">謝辞</string>
     <string name="player_background_blur">ぼかし</string>
@@ -105,10 +109,13 @@
     </plurals>
     <string name="scanner_strict_file_name_title">ファイル名を厳格に扱う</string>
     <string name="scanner_strict_file_name_description">有効にすると、ファイル名は無視されません。例: Song.ogg は Song.flac とは異なる曲になります。スキャンの感度設定は引き続き適用されます</string>
+    <string name="scanner_strict_file_paths_title">メタデータの代わりにファイルパスで照合する</string>
+    <string name="scanner_strict_file_paths_description">メタデータのスマートマッチングをすべて無効にします。ローカルストレージ内でファイルを移動すると問題が生じることがありますが、異なるフォルダに同じ曲を置けるようになります。</string>
     <string name="scanner_sensitivity_title">スキャンの感度を設定</string>
     <string name="scanner_sensitivity_L2">タイトルとアーティストが一致</string>
     <string name="scanner_sensitivity_L3">タイトル、アーティスト、アルバムが一致</string>
     <string name="scanner_type_title">メタデータ抽出</string>
+    <string name="scanner_type_tooltip">システムスキャナーは高速ですが、他の抽出方式と比べてメタデータの取得に誤りが生じる場合があります。スキャナーを切り替えても、既存の曲のメタデータは自動的には再読み込みされませんのでご注意ください。</string>
     <string name="scanner_type_taglib">統合されたTagLibメタデータ抽出ツールを使用</string>
     <string name="scanner_sensitivity_L1">タイトルが一致</string>
     <string name="scanner_online_artist_linking">端末内のファイルのアーティストをYouTube Music のアーティストとリンクする</string>
@@ -223,6 +230,7 @@
     <string name="scanner_sensitivity_L0">YouTubeで検索が有効になっている場合はYouTubeから提供される最初の結果を取得し、そうでない場合はタイトルが一致するものを取得します</string>
     <string name="err_invalid_ytm_song">曲の再生に失敗。YouTube Musicで利用可能なコンテンツのみ再生できます</string>
     <string name="err_restore_incompatible_database">互換性のないデータベースを復元できませんでした</string>
+    <string name="restore_lm_tooltip">アプリを新規インストールした場合、カスタムのダウンロード先やローカルメディアのスキャンパスが正しく機能しないことがあります。解決するには、一度削除して再度追加してください。</string>
     <string name="m3u_import_failed">曲が見つかりません。無効なM3Uファイルか、一致する曲が見つかりませんでした</string>
     <string name="tap_show_more">タップで詳細を表示</string>
     <string name="all_contributors">すべての貢献者を表示</string>
