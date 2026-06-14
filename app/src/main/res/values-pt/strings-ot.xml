@@ -92,7 +92,7 @@
     <string name="tab_arrangement_disable_tip">--- Arraste para baixo daqui para desativar ---</string>
     <string name="tab_arrangement_home_required">O separador Início não pode ser removido.</string>
     <string name="tablet_ui_title">Impor interface de tablet</string>
-    <string name="tablet_ui_title_description">Ativar interface em modo horizontal, otimizada para ecrãs maiores, independentemente do tamanho do ecrã atual</string>
+    <string name="tablet_ui_title_description">Ativar interface em modo horizontal, otimizada para ecrãs maiores. Esta definição não produz efeitos se os requisitos não forem cumpridos.</string>
     <string name="filter_arrangement">Organizar filtros</string>
     <string name="like_autodownload">Descarregar músicas favoritas automaticamente</string>
     <string name="token_adv_login_description">Este é um método avançado para iniciar a sessão. Em alternativa ao acesso via web, pode introduzir ou atualizar o seu \'token\' de acesso aqui. Este método pode melhorar o acesso caso esteja a utilizar vários dispositivos. Tenha em atenção que se introduzir um formato de \"token\" inválido, o acesso não será válido.</string>
@@ -233,7 +233,7 @@
     <string name="m3u_ytm_lookup">Pesquisar no YouTube Music por músicas ausentes na base de dados</string>
     <string name="action_back">Recuar</string>
     <string name="action_next">Avançar</string>
-    <string name="action_skip">Saltar</string>
+    <string name="action_skip">Ignorar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="info">Informação</string>
     <string name="speed_very_slow">Muito lenta</string>
@@ -266,4 +266,6 @@
     <string name="scanner_strict_file_paths_title">Correspondência com caminho dos ficheiros em vez de metadados</string>
     <string name="scanner_strict_file_paths_description">Desativa toda a correspondência inteligente de metadados. Pode causar problemas se os ficheiros forem movidos no seu armazenamento local, mas permite que a mesma música esteja em pastas diferentes.</string>
     <string name="scanner_type_tooltip">A análise é mais rápida, mas pode extrair metadados incorretamente em comparação com outros extratores. Tenha em conta de que a troca de analisadores não recarrega automaticamente os metadados das músicas existentes.</string>
+    <string name="dl_storage_tooltip">As descargas internas são gravadas no armazenamento privado da aplicação e não são acessíveis sem root.\n\nAs descargas externas são gravadas no armazenamento externo do seu dispositivo (ex: /sdcard ou em cartões micro SD) e podem serem acedidas e editadas diretamente com um gestor de ficheiros. Para a pasta de descargas externas, recomendamos selecionar uma pasta vazia especificamente para descarregar músicas, já que OuterTune pode modificar ou apagar ficheiros nesta pasta.\n\nPastas adicionais de importação são apenas para leitura e utilizadas para carregar faixas adicionais. OuterTune nunca alterará ou apagará ficheiros nestas pastas. Pode selecionar estas pastas na secção avançada.\n\nAo apagar descargas, apenas as músicas internas serão apagadas. As descargas externas e as pastas adicionais extra devem serem apagadas manualmente seja pelo menu da faixa ou manualmente com um gestor de ficheiros.\n\nReanalisar pastas de descargas: as faixas existentes em Descargas externas e Pastas adicionais de importação NÃO são atualizadas automaticamente. Se adicionar, remover ou alterar ficheiros manualmente com um gestor de ficheiros, terá que reanalisar as pastas para atualizar a base de dados. Esta opção está disponível na secção avançada.</string>
+    <string name="restore_lm_tooltip">Para novas instalações da aplicação, os caminhos de ficheiros locais e/ou de descargas podem não funcionar. Se isso acontecer, experimente remover as pastas e adicionar novamente.</string>
 </resources>

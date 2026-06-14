@@ -234,4 +234,8 @@
     <string name="oobe_cross_platform_sync_description">अपने संगीत को सभी उपकरणों पर एक समान बनाए रखें</string>
     <string name="oobe_use_backup">मेरे पास बैकअप है</string>
     <string name="oobe_interface_subtitle">आप आउटरट्यून के स्वरूप और उसमें प्रदर्शित होने वाली सामग्री को अपनी इच्छानुसार अनुकूलित कर सकते हैं।</string>
+    <string name="oobe_ytm_logon_title">अकाउंट</string>
+    <string name="oobe_ytm_logon_subtitle">अपनी निजी अकाउंट सामग्री को सिंक करने और एक्सेस करने के लिए अपने YouTube Music अकाउंट में साइन इन करें। यह वैकल्पिक है।</string>
+    <string name="oobe_local_media_title">स्थानीय मीडिया</string>
+    <string name="oobe_local_media_subtitle">अपने संगीत वाले फ़ोल्डर चुनें। हम उन्हें स्कैन करके गाने जोड़ देंगे।</string>
 </resources>

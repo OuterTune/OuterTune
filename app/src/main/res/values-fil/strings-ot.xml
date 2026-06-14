@@ -1,3 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="android_auto">Android Auto</string>
+    <string name="folders">mga Folder</string>
+    <string name="library">Silid-Aklatan</string>
+    <string name="recent_activity">Kamakailang aktibidad</string>
+    <string name="local_history">Lokal</string>
+    <string name="queue_local_history">Kasaysayan (local)</string>
+    <string name="queue_remote_history">Kasaysayan (remote)</string>
+    <string name="library_filter">Silid-aklatan filter</string>
+    <string name="library_empty">ang iyong library contents ay lalabas dito</string>
 </resources>

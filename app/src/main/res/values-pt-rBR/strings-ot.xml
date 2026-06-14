@@ -164,7 +164,7 @@
     <string name="library_empty">Os conteúdos da sua biblioteca aparecerão aqui</string>
     <string name="grp_behavior">Comportamento</string>
     <string name="m3u_ytm_lookup">Pesquisar no YouTube Music por músicas ausentes no banco de dados do app</string>
-    <string name="tablet_ui_title_description">Ativar uma interface em modo paisagem que é otimizada para telas maiores, independente do tamanho da tela atual</string>
+    <string name="tablet_ui_title_description">Force uma interface em modo paisagem otimizada para telas maiores. Essa configuração não tem efeito se os requisitos de largura mínimos não forem cumpridos</string>
     <string name="tablet_ui_title">Forçar interface de tablet</string>
     <string name="oss_licenses_title">Licenças de código aberto</string>
     <string name="lyrics_karaoke_description">Ativa a sincronização de palavra por palavra. Requer suporte pelo formato da letra.</string>
