@@ -67,8 +67,7 @@ OuterTune is a supercharged fork of [InnerTune](https://github.com/z-huang/Inner
 
 ## Building & Contributing
 
-We are looking for contributors, translators, and maintainers! If you would like to help out, or just wish to build the
-app yourself, please see the [building and contribution notes](CONTRIBUTING.md).
+Just wish to build the app yourself, please see the [building and contribution notes](CONTRIBUTING.md).
 
 ### Submitting Translations
 
