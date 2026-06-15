@@ -55,9 +55,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lyrics as LyricsOutlined
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FastRewind
+import androidx.compose.material.icons.rounded.Lyrics as LyricsRounded
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -558,7 +560,28 @@ fun ActionButtons(
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
+    var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
+
     Spacer(modifier = Modifier.width(10.dp))
+
+    Box(
+        modifier = Modifier
+            .offset(y = 5.dp)
+            .size(36.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.primary)
+    ) {
+        ResizableIconButton(
+            icon = if (showLyrics) Icons.Rounded.LyricsRounded else Icons.Outlined.LyricsOutlined,
+            color = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(24.dp),
+            onClick = { showLyrics = !showLyrics }
+        )
+    }
+
+    Spacer(modifier = Modifier.width(7.dp))
 
     Box(
         modifier = Modifier
