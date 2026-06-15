@@ -5,7 +5,7 @@ fun String.resize(
     height: Int? = null,
 ): String {
     if (width == null && height == null) return this
-    "https://lh3\\.googleusercontent\\.com/.*=w(\\d+)-h(\\d+).*".toRegex().matchEntire(this)?.groupValues?.let { group ->
+    "https://[a-z0-9]+\\.googleusercontent\\.com/.*=w(\\d+)-h(\\d+).*".toRegex().matchEntire(this)?.groupValues?.let { group ->
         val (W, H) = group.drop(1).map { it.toInt() }
         var w = width
         var h = height
@@ -15,6 +15,18 @@ fun String.resize(
     }
     if (this matches "https://yt3\\.ggpht\\.com/.*=s(\\d+)".toRegex()) {
         return "$this-s${width ?: height}"
+    }
+    if (this.contains("i.ytimg.com")) {
+        val w = width ?: height!!
+        return if (w > 480) {
+            this.replace("hqdefault.jpg", "maxresdefault.jpg")
+                .replace("mqdefault.jpg", "maxresdefault.jpg")
+                .replace("sddefault.jpg", "maxresdefault.jpg")
+        } else if (w > 320) {
+            this.replace("mqdefault.jpg", "hqdefault.jpg")
+        } else {
+            this
+        }
     }
     return this
 }
