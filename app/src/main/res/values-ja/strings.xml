@@ -205,7 +205,7 @@
     <string name="proxy_type">プロキシの種類</string>
     <string name="proxy_url">プロキシの URL</string>
     <string name="restart_to_take_effect">適用するには再起動してください</string>
-    <string name="player_and_audio">プレーヤーと音声</string>
+    <string name="player_and_audio">プレーヤーとオーディオ</string>
     <string name="audio_quality">音質</string>
     <string name="audio_quality_auto">自動</string>
     <string name="audio_quality_high">高</string>
@@ -216,7 +216,7 @@
     <string name="auto_load_more">追加の曲を自動で読み込む</string>
     <string name="auto_load_more_desc">キューの最後まで再生した時、可能なら自動で曲を追加</string>
     <string name="skip_silence">無音部分をスキップ</string>
-    <string name="audio_normalization">音声の正規化</string>
+    <string name="audio_normalization">オーディオの正規化</string>
     <string name="auto_skip_next_on_error">エラー発生時に自動で次の曲を再生</string>
     <string name="auto_skip_next_on_error_desc">継続的な再生体験を維持します</string>
     <string name="stop_music_on_task_clear">タスクを削除したら音楽を停止</string>

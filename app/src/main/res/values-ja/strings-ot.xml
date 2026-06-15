@@ -25,7 +25,7 @@
     <string name="sync_progress_success">同期完了</string>
     <string name="prefs_advanced">高度なオプション</string>
     <string name="settings_debug">デバッグ</string>
-    <string name="grp_audio">音声</string>
+    <string name="grp_audio">オーディオ</string>
     <string name="grp_layout">配置</string>
     <string name="grp_localization">言語設定</string>
     <string name="grp_lyrics_format">書式設定</string>
@@ -79,7 +79,7 @@
     <string name="show_liked_and_downloaded_playlist">ライブラリ内にいいねやダウンロードした曲の再生リストを表示</string>
     <string name="ytm_sync">YouTube Music アカウントと自動で同期</string>
     <string name="token_hidden">タップしてトークンを表示</string>
-    <string name="grp_manual_scanner">手動でスキャン</string>
+    <string name="grp_manual_scanner">手動スキャン</string>
     <string name="grp_more_settings">その他の設定</string>
     <string name="attrib_zhuang">Zion Huang の InnerTune</string>
     <string name="special_thanks">謝辞</string>
@@ -92,10 +92,10 @@
     <string name="tab_arrangement_home_required">ホームタブは必須です。</string>
     <string name="token_shown">再度タップすると、コピーまたは編集</string>
     <string name="audio_offload">オフロードを有効にする</string>
-    <string name="audio_offload_description">音声の再生にオフロードの音声パスを使用します。有効にすると電力消費が減る可能性がありますが、音声の再生や後処理で問題が発生することがあります。この設定は、未対応のコーデックや機器には影響しません</string>
+    <string name="audio_offload_description">オーディオ再生にはオフロードオーディオパスを使用します。これを有効にすると消費電力は削減できますが、オーディオ再生や後処理に問題が発生する可能性があります。この設定は、未対応のコーデックや機器には影響しません</string>
     <string name="keep_alive_description">OuterTuneがバックグラウンドで終了されないよう、永続的なフォアグラウンドサービスを使用します</string>
     <string name="min_playback_duration">最小の再生時間</string>
-    <string name="min_playback_duration_description">曲を「再生済み」と判断するために再生すべき最小量</string>
+    <string name="min_playback_duration_description">曲を「再生済み」と判断するための、最低限の再生時間</string>
     <string name="scanner_progress_syncing">同期中…</string>
     <string name="scanner_scan_fail">スキャンが失敗しました</string>
     <string name="scanner_ytm_link_fail">YouTube アーティストのリンク ジョブが失敗しました</string>
@@ -253,7 +253,7 @@
     <string name="ffmpeg_lgpl">本アプリはLGPLバージョン2.1でFFmpegのライブラリを使用</string>
     <string name="toggle_lyrics">歌詞を切替</string>
     <string name="audio_decoder_ffmpeg_only">FFmpegデコーダーを優先</string>
-    <string name="audio_decoder_preference">音声デコーダー</string>
+    <string name="audio_decoder_preference">オーディオデコーダー</string>
     <string name="audio_decoder_system_only">システムのデコーダーのみ</string>
     <string name="audio_decoder_system_with_ffmpeg">システムのデコーダーを優先</string>
     <string name="action_logout_tooltip">完全にログアウトするには、このログアウトボタンを使う前に、ウェブポータルでYouTubeアカウントからサインアウトしてください</string>
