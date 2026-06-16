@@ -6,6 +6,7 @@ import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.ClearAll
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Headset
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import com.dd3boh.outertune.constants.AudioNormalizationKey
 import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.constants.AudioQualityKey
 import com.dd3boh.outertune.constants.AutoLoadMoreKey
+import com.dd3boh.outertune.constants.IgnoreAudioFocusKey
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.SeekIncrement
 import com.dd3boh.outertune.constants.SeekIncrementKey
@@ -126,6 +128,7 @@ fun PlaybackBehaviourFrag() {
         key = StopMusicOnTaskClearKey,
         defaultValue = false
     )
+    val (ignoreAudioFocus, onIgnoreAudioFocusChange) = rememberPreference(key = IgnoreAudioFocusKey, defaultValue = false)
 
     var showMinPlaybackDur by remember {
         mutableStateOf(false)
@@ -149,6 +152,13 @@ fun PlaybackBehaviourFrag() {
         isEnabled = !keepAlive,
         checked = stopMusicOnTaskClear,
         onCheckedChange = onStopMusicOnTaskClearChange,
+    )
+    SwitchPreference(
+        title = { Text(stringResource(R.string.ignore_audio_focus)) },
+        description = stringResource(R.string.ignore_audio_focus_desc),
+        icon = { Icon(Icons.Rounded.Headset, null) },
+        checked = ignoreAudioFocus,
+        onCheckedChange = onIgnoreAudioFocusChange
     )
 
     /**
