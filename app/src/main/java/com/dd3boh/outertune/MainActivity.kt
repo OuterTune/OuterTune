@@ -797,15 +797,21 @@ class MainActivity : ComponentActivity() {
                                                     playerBottomSheetState.collapseSoft()
                                                 }
 
-                                                if (navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true) {
-                                                    navBackStackEntry?.savedStateHandle?.set(
-                                                        "scrollToTop",
-                                                        true
-                                                    )
-                                                } else if (navigationItems.none { scr -> navBackStackEntry?.destination?.hierarchy?.any { it.route == scr.route } == true }) {
-                                                    // this eye bleach allows you to navigate back when you tap on the navbar on a non-root page
-                                                    // TODO: nav3 allows us to access back stack... maybe do indicators properly and remove this hack
-                                                    navController.navigateUp()
+                                                val isCurrentTab = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
+                                                val isInCurrentTabStack = !isCurrentTab && navController.currentBackStack.value.any { it.destination.route == screen.route }
+
+                                                if (screen.route == Screens.Home.route) {
+                                                    navController.navigate(screen.route) {
+                                                        popUpTo(navController.graph.startDestinationId) {
+                                                            saveState = true
+                                                        }
+                                                        launchSingleTop = true
+                                                    }
+                                                } else if (isCurrentTab || isInCurrentTabStack) {
+                                                    navController.navigate(screen.route) {
+                                                        popUpTo(screen.route)
+                                                        launchSingleTop = true
+                                                    }
                                                 } else {
                                                     navController.navigate(screen.route) {
                                                         popUpTo(navController.graph.startDestinationId) {
@@ -897,17 +903,26 @@ class MainActivity : ComponentActivity() {
                                                 if (playerBottomSheetState.isExpanded) {
                                                     playerBottomSheetState.collapseSoft()
                                                 }
-                                                if (navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true) {
-                                                    navBackStackEntry?.savedStateHandle?.set(
-                                                        "scrollToTop",
-                                                        true
-                                                    )
+                                                val isCurrentTab = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
+                                                val isInCurrentTabStack = !isCurrentTab && navController.currentBackStack.value.any { it.destination.route == screen.route }
+
+                                                if (screen.route == Screens.Home.route) {
+                                                    navController.navigate(screen.route) {
+                                                        popUpTo(navController.graph.startDestinationId) {
+                                                            saveState = true
+                                                        }
+                                                        launchSingleTop = true
+                                                    }
+                                                } else if (isCurrentTab || isInCurrentTabStack) {
+                                                    navController.navigate(screen.route) {
+                                                        popUpTo(screen.route)
+                                                        launchSingleTop = true
+                                                    }
                                                 } else {
                                                     navController.navigate(screen.route) {
                                                         popUpTo(navController.graph.startDestinationId) {
                                                             saveState = true
                                                         }
-
                                                         launchSingleTop = true
                                                         restoreState = true
                                                     }
