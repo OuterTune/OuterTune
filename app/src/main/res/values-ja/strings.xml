@@ -220,6 +220,8 @@
     <string name="auto_skip_next_on_error">エラー発生時に自動で次の曲を再生</string>
     <string name="auto_skip_next_on_error_desc">継続的な再生体験を維持します</string>
     <string name="stop_music_on_task_clear">タスクを削除したら音楽を停止</string>
+    <string name="ignore_audio_focus">オーディオフォーカスを維持</string>
+    <string name="ignore_audio_focus_desc">他のアプリがオーディオフォーカスを取得しても再生を継続します。通話中も一時停止しません。</string>
     <string name="equalizer">イコライザー</string>
     <string name="storage">保存領域</string>
     <string name="cache">キャッシュ</string>

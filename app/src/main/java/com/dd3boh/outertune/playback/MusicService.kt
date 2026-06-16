@@ -86,6 +86,7 @@ import com.dd3boh.outertune.constants.PauseRemoteListenHistoryKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
 import com.dd3boh.outertune.constants.PlayerVolumeKey
 import com.dd3boh.outertune.constants.RepeatModeKey
+import com.dd3boh.outertune.constants.IgnoreAudioFocusKey
 import com.dd3boh.outertune.constants.SkipOnErrorKey
 import com.dd3boh.outertune.constants.SkipSilenceKey
 import com.dd3boh.outertune.constants.StopMusicOnTaskClearKey
@@ -237,7 +238,7 @@ class MusicService : MediaLibraryService(),
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                    .build(), true
+                    .build(), !dataStore.get(IgnoreAudioFocusKey, false)
             )
             .setSeekBackIncrementMs(5000)
             .setSeekForwardIncrementMs(5000)
@@ -325,6 +326,15 @@ class MusicService : MediaLibraryService(),
                 .collectLatest(scope) {
                     withContext(Dispatchers.Main) {
                         player.skipSilenceEnabled = it
+                    }
+                }
+
+            dataStore.data
+                .map { it[IgnoreAudioFocusKey] ?: false }
+                .distinctUntilChanged()
+                .collectLatest(scope) { ignoreAudioFocus ->
+                    withContext(Dispatchers.Main) {
+                        player.setAudioAttributes(player.audioAttributes, !ignoreAudioFocus)
                     }
                 }
 
