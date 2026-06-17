@@ -145,10 +145,18 @@ fun SearchBarContainer(
                 navBackStackEntry?.destination?.route?.startsWith("search/") == true)
     }
 
+    val savedHeightOffsets = remember { mutableMapOf<String, Float>() }
+    var previousRoute by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(navBackStackEntry) {
         if (searchActive) {
             onSearchActiveChange(false)
         }
+        val currentRoute = navBackStackEntry?.destination?.route
+        previousRoute?.let { savedHeightOffsets[it] = scrollBehavior.state.heightOffset }
+        scrollBehavior.state.heightOffset = savedHeightOffsets[currentRoute] ?: 0f
+        scrollBehavior.state.contentOffset = 0f
+        previousRoute = currentRoute
     }
 
     AnimatedVisibility(
