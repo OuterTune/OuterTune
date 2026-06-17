@@ -800,6 +800,12 @@ class MainActivity : ComponentActivity() {
                                                 val isCurrentTab = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
                                                 val isInCurrentTabStack = !isCurrentTab && navController.currentBackStack.value.any { it.destination.route == screen.route }
 
+                                                if (isCurrentTab) {
+                                                    navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
+                                                    scrollBehavior.state.heightOffset = 0f
+                                                    scrollBehavior.state.contentOffset = 0f
+                                                }
+
                                                 if (screen.route == Screens.Home.route) {
                                                     navController.navigate(screen.route) {
                                                         popUpTo(navController.graph.startDestinationId) {
@@ -905,6 +911,12 @@ class MainActivity : ComponentActivity() {
                                                 }
                                                 val isCurrentTab = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
                                                 val isInCurrentTabStack = !isCurrentTab && navController.currentBackStack.value.any { it.destination.route == screen.route }
+
+                                                if (isCurrentTab) {
+                                                    navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
+                                                    scrollBehavior.state.heightOffset = 0f
+                                                    scrollBehavior.state.contentOffset = 0f
+                                                }
 
                                                 if (screen.route == Screens.Home.route) {
                                                     navController.navigate(screen.route) {
