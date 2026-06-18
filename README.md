@@ -14,10 +14,12 @@ A Material 3 YouTube Music client & local music player for Android
 
 ## Differences from Upstream
 
-Changes applied on top of [OuterTune/OuterTune](https://github.com/OuterTune/OuterTune) `v0.10.2`:
+Changes applied on top of [OuterTune/OuterTune](https://github.com/OuterTune/OuterTune):
 
-- Fixed several YouTube Music bugs (empty album tracks, playlist crash, search result parsing)
-- Improved lyrics fetching accuracy and latency (LrcLib + caption tracks)
+- Fixed several YouTube Music bugs (empty album tracks, playlist crash, search result parsing); improved YTM thumbnail resolution
+- Improved lyrics fetching accuracy and latency (LrcLib + caption tracks); added lyrics toggle button to now-playing action bar
+- Fixed bottom navigation: tapping a tab goes directly to the tab root; re-tapping the active tab scrolls to top and resets the search bar; search bar state is preserved per route
+- Added "keep audio focus" player setting
 - Restored tablet UI; fixed player double overlay; made dialogs scrollable
 - Replaced taglib with ffMetadataEx; improved local music linking and gapless playback
 - Updated Kotlin, KSP, NewPipeExtractor, Ktor, AGP, and Gradle
