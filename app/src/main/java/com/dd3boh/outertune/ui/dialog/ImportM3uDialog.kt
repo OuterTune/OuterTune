@@ -380,7 +380,7 @@ suspend fun loadM3u(
                             }
                         }
                         val oldSize = songs.size
-                        var foundOne = false // TODO: Eventually the user can pick from matches... eventually...
+                        // TODO: Eventually the user can pick from matches... eventually...
 
                         // take first song when searching on YTM
                         if (matchStrength == ScannerM3uMatchCriteria.LEVEL_0 && searchOnline && matches.isNotEmpty()) {
@@ -389,7 +389,6 @@ suspend fun loadM3u(
                             for (s in matches) {
                                 if (compareM3uSong(mockSong, s, matchStrength = matchStrength)) {
                                     songs.add(s)
-                                    foundOne = true
                                     break
                                 }
                             }
