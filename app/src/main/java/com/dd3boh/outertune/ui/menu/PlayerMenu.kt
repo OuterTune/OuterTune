@@ -294,7 +294,7 @@ fun PlayerMenu(
                         TextField(
                             value = textFieldValue,
                             onValueChange = onTextFieldValueChange,
-                            placeholder = { pluralString },
+                            placeholder = { Text(pluralString) },
                             singleLine = true,
                             leadingIcon = { Icon(Icons.Rounded.MoreTime, null) },
                             colors = OutlinedTextFieldDefaults.colors(),
