@@ -2,12 +2,11 @@
 
 When cloning the repository, please clone submodules recursively.
 
-```agsl
+```bash
 git clone --recurse-submodules <url>
 ```
 
-If any weird errors show up with modules, updating submodules may solve your issue. The media submodule is required.
-ffMetadataEx is required for only the "full" build variant
+If any weird errors show up with modules, updating submodules may solve your issue. The `media` submodule is required:
 
 ```bash
 git submodule update --init --recursive
@@ -29,8 +28,21 @@ full
 | core    | arm64-v8a, armeabi-v7a, x86, x86_64 | ❌                      | ❌                             | ❌                     |
 | full    | arm64-v8a, armeabi-v7a, x86, x86_64 | ✅                      | ✅                             | ✅                     |
 
-**Extra setup is required for the `full` variant.** Please
-see https://github.com/OuterTune/ffMetadataEx/blob/main/README.md#building
+The `full` flavor uses ffMetadataEx, which is bundled as a prebuilt AAR at
+`prebuilt/ffMetadataEx-release.aar`. No extra setup is required to build the `full` flavor.
+
+## Building from the command line
+
+```bash
+# core debug build
+./gradlew assembleCoreDebug
+
+# full debug build
+./gradlew assembleFullDebug
+
+# build and install the full debug build to a connected device
+./gradlew installFullDebug
+```
 
 <br/><br/>
 
