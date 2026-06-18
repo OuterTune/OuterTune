@@ -798,7 +798,7 @@ class MainActivity : ComponentActivity() {
                                                 }
 
                                                 val isCurrentTab = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
-                                                val isInCurrentTabStack = !isCurrentTab && navController.currentBackStack.value.any { it.destination.route == screen.route }
+                                                val isInCurrentTabStack = !isCurrentTab && runCatching { navController.getBackStackEntry(screen.route) }.isSuccess
 
                                                 if (isCurrentTab) {
                                                     navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
@@ -910,7 +910,7 @@ class MainActivity : ComponentActivity() {
                                                     playerBottomSheetState.collapseSoft()
                                                 }
                                                 val isCurrentTab = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
-                                                val isInCurrentTabStack = !isCurrentTab && navController.currentBackStack.value.any { it.destination.route == screen.route }
+                                                val isInCurrentTabStack = !isCurrentTab && runCatching { navController.getBackStackEntry(screen.route) }.isSuccess
 
                                                 if (isCurrentTab) {
                                                     navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
