@@ -71,7 +71,9 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-class LocalMediaScanner(val context: Context, scannerImpl: ScannerImpl) {
+class LocalMediaScanner(context: Context, scannerImpl: ScannerImpl) {
+    // Hold the application context to avoid leaking an Activity/Service through the static scanner instance
+    val context: Context = context.applicationContext
     private val TAG = LocalMediaScanner::class.simpleName.toString()
     private var advancedScannerImpl: MetadataScanner = when (scannerImpl) {
         ScannerImpl.FFMPEG_EXT -> if (ENABLE_FFMETADATAEX) FFmpegScanner() else MediaStoreExtractor()

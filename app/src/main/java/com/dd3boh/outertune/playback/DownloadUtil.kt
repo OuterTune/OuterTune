@@ -216,7 +216,7 @@ class DownloadUtil @Inject constructor(
         }
 
         runBlocking {
-            database.song(id).first()?.song?.copy(localPath = null)
+            database.song(id).first()?.song?.copy(localPath = null)?.let { database.update(it) }
             database.updateDownloadStatus(id, null)
         }
         return true

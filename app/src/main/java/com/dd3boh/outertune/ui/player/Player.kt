@@ -496,7 +496,7 @@ fun LandscapePlayer(
                     rows = GridCells.Fixed(1),
                     contentPadding = PaddingValues(vertical = 16.dp),
                     flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                    userScrollEnabled = playerSheetState.isExpanded && swipeToSkip
+                    userScrollEnabled = playerSheetState.isExpanded
                 ) {
                     items(
                         items = mediaItems,
