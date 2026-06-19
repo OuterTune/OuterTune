@@ -3,6 +3,7 @@ package com.dd3boh.outertune.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dd3boh.outertune.constants.InnerTubeCookieKey
 import com.dd3boh.outertune.constants.PlaylistFilter
 import com.dd3boh.outertune.constants.PlaylistSortType
 import com.dd3boh.outertune.db.MusicDatabase
@@ -11,6 +12,7 @@ import com.dd3boh.outertune.db.entities.LocalItem
 import com.dd3boh.outertune.db.entities.Song
 import com.dd3boh.outertune.models.SimilarRecommendation
 import com.dd3boh.outertune.utils.SyncUtils
+import com.dd3boh.outertune.utils.dataStore
 import com.dd3boh.outertune.utils.reportException
 import com.dd3boh.outertune.utils.syncCoroutine
 import com.zionhuang.innertube.YouTube
@@ -20,12 +22,16 @@ import com.zionhuang.innertube.models.YTItem
 import com.zionhuang.innertube.pages.ExplorePage
 import com.zionhuang.innertube.pages.HomePage
 import com.zionhuang.innertube.utils.completed
+import com.zionhuang.innertube.utils.parseCookieString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -201,6 +207,14 @@ class HomeViewModel @Inject constructor(
         refresh()
         viewModelScope.launch(syncCoroutine) {
             syncUtils.tryAutoSync()
+        }
+        // Reload when the sign-in state changes so the home reflects login without a manual refresh.
+        viewModelScope.launch {
+            context.dataStore.data
+                .map { "SAPISID" in parseCookieString(it[InnerTubeCookieKey] ?: "") }
+                .distinctUntilChanged()
+                .drop(1) // skip the current state already loaded by refresh() above
+                .collect { refresh() }
         }
     }
 }
