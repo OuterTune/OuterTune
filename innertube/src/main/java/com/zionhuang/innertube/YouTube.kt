@@ -555,10 +555,11 @@ object YouTube {
 
             else -> { // contents?.musicShelfRenderer != null
                 LibraryPage(
-                    items = contents?.musicShelfRenderer?.contents!!
-                        .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
-                        .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
-                    continuation = contents.musicShelfRenderer.continuations?.getContinuation()
+                    items = contents?.musicShelfRenderer?.contents
+                        ?.mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
+                        ?.mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) }
+                        .orEmpty(),
+                    continuation = contents?.musicShelfRenderer?.continuations?.getContinuation()
                 )
             }
         }
@@ -585,10 +586,11 @@ object YouTube {
 
             else -> { // contents?.musicShelfContinuation != null
                 LibraryContinuationPage(
-                    items = contents?.musicShelfContinuation?.contents!!
-                        .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
-                        .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
-                    continuation = contents.musicShelfContinuation.continuations?.getContinuation()
+                    items = contents?.musicShelfContinuation?.contents
+                        ?.mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
+                        ?.mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) }
+                        .orEmpty(),
+                    continuation = contents?.musicShelfContinuation?.continuations?.getContinuation()
                 )
             }
         }
@@ -884,7 +886,8 @@ object YouTube {
         innerTube.accountMenu(WEB_REMIX).body<AccountMenuResponse>()
             .actions[0].openPopupAction.popup.multiPageMenuRenderer
             .header?.activeAccountHeaderRenderer
-            ?.toAccountInfo()!!
+            ?.toAccountInfo()
+            ?: throw IllegalStateException("Account info is not available (not signed in or account header missing)")
     }
 
     @JvmInline
