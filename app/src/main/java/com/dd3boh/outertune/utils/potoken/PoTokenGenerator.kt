@@ -3,6 +3,7 @@ package com.dd3boh.outertune.utils.potoken
 import android.util.Log
 import android.webkit.CookieManager
 import com.dd3boh.outertune.App
+import com.dd3boh.outertune.constants.POTOKEN_DEBUG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -45,7 +46,7 @@ class PoTokenGenerator {
      * [PoTokenWebView.generatePoToken] was called
      */
     private suspend fun getWebClientPoToken(videoId: String, sessionId: String, forceRecreate: Boolean): PoTokenResult {
-        Log.d(TAG, "Web poToken requested: $videoId, $sessionId")
+        if (POTOKEN_DEBUG) Log.d(TAG, "Web poToken requested: $videoId, $sessionId")
 
         val (poTokenGenerator, streamingPot, hasBeenRecreated) =
             webPoTokenGenLock.withLock {
@@ -89,7 +90,7 @@ class PoTokenGenerator {
             }
         }
 
-        Log.d(TAG, "[$videoId] playerPot=$playerPot, streamingPot=$streamingPot")
+        if (POTOKEN_DEBUG) Log.d(TAG, "[$videoId] playerPot=$playerPot, streamingPot=$streamingPot")
 
         return PoTokenResult(playerPot, streamingPot)
     }

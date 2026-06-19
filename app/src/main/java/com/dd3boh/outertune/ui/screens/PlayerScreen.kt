@@ -3,6 +3,7 @@ package com.dd3boh.outertune.ui.screens
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.util.Log
+import com.dd3boh.outertune.constants.UI_DEBUG
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -74,7 +75,7 @@ fun PlayerScreen(
             showLyrics = showLyrics,
             useDarkTheme = useDarkTheme,
         )
-        Log.v(TAG, "PLR-3.0")
+        if (UI_DEBUG) Log.v(TAG, "PLR-3.0")
 
         val state = rememberBottomSheetState(
             dismissedBound = 0.dp,

@@ -2,6 +2,7 @@ package com.dd3boh.outertune.ui.screens.library
 
 import android.content.pm.PackageManager
 import android.util.Log
+import com.dd3boh.outertune.constants.UI_DEBUG
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -97,7 +98,7 @@ fun LibrarySongsScreen(
     viewModel: LibrarySongsViewModel = hiltViewModel(),
     libraryFilterContent: @Composable (() -> Unit)? = null
 ) {
-    Log.v("LibrarySongsScreen", "S_RC-1")
+    if (UI_DEBUG) Log.v("LibrarySongsScreen", "S_RC-1")
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current

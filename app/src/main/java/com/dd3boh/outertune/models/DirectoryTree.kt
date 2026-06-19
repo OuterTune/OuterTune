@@ -9,6 +9,7 @@
 package com.dd3boh.outertune.models
 
 import android.util.Log
+import com.dd3boh.outertune.constants.UI_DEBUG
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastSumBy
 import com.dd3boh.outertune.constants.FolderSongSortType
@@ -81,7 +82,7 @@ class DirectoryTree(path: String, var culmSongs: CulmSongs) {
             files.add(song)
             culmSongs.value++
             if (SCANNER_DEBUG)
-                Log.v(TAG, "Adding song with path: $path")
+                if (UI_DEBUG) Log.v(TAG, "Adding song with path: $path")
             return
         }
 
@@ -125,12 +126,12 @@ class DirectoryTree(path: String, var culmSongs: CulmSongs) {
      * @return song at path, or null if it does not exist
      */
     fun getSong(path: String): Song? {
-        Log.v(TAG, "Searching for song, at path: $path")
+        if (UI_DEBUG) Log.v(TAG, "Searching for song, at path: $path")
 
         // search for song in current dir
         if (path.indexOf('/') == -1) {
             val foundSong: Song = files.first { getFileName(it.song.localPath) == getFileName(path) }
-            Log.v(TAG, "Searching for song, found?: ${foundSong.id} Name: ${foundSong.song.title}")
+            if (UI_DEBUG) Log.v(TAG, "Searching for song, found?: ${foundSong.id} Name: ${foundSong.song.title}")
             return foundSong
         }
 

@@ -2,6 +2,7 @@ package com.dd3boh.outertune.ui.screens.library
 
 import android.content.pm.PackageManager
 import android.util.Log
+import com.dd3boh.outertune.constants.UI_DEBUG
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -135,7 +136,7 @@ fun FolderScreen(
     isRoot: Boolean = false,
     libraryFilterContent: @Composable (() -> Unit)? = null
 ) {
-    Log.v("FolderScreen", "F_RC-1")
+    if (UI_DEBUG) Log.v("FolderScreen", "F_RC-1")
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current

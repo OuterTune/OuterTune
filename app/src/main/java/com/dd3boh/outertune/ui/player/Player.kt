@@ -123,6 +123,7 @@ import com.dd3boh.outertune.constants.DarkMode
 import com.dd3boh.outertune.constants.DarkModeKey
 import com.dd3boh.outertune.constants.PlayerBackgroundStyle
 import com.dd3boh.outertune.constants.PlayerBackgroundStyleKey
+import com.dd3boh.outertune.constants.PLAYER_DEBUG
 import com.dd3boh.outertune.constants.PlayerHorizontalPadding
 import com.dd3boh.outertune.constants.QueuePeekHeight
 import com.dd3boh.outertune.constants.SeekIncrement
@@ -166,7 +167,7 @@ fun BottomSheetPlayer(
     modifier: Modifier = Modifier,
 ) {
     val TAG = "BottomSheetPlayer"
-    Log.v(TAG, "PLR-1")
+    if (PLAYER_DEBUG) Log.v(TAG, "PLR-1")
 
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -188,9 +189,9 @@ fun BottomSheetPlayer(
     val qbInit by playerConnection.service.qbInit.collectAsState()
 
     LaunchedEffect(qbInit, queueBoard.masterQueues.toList()) {
-        Log.d(TAG, "Queues changed. qbInit = $qbInit")
+        if (PLAYER_DEBUG) Log.d(TAG, "Queues changed. qbInit = $qbInit")
         if (qbInit && !queueBoard.masterQueues.isEmpty() && state.isDismissed) {
-            Log.d(TAG, "Triggering sheet collapseSoft")
+            if (PLAYER_DEBUG) Log.d(TAG, "Triggering sheet collapseSoft")
             state.collapseSoft()
         }
     }
@@ -215,7 +216,7 @@ fun BottomSheetPlayer(
             MiniPlayer()
         }
     ) {
-        Log.v(TAG, "PLR-3.0")
+        if (PLAYER_DEBUG) Log.v(TAG, "PLR-3.0")
 
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && !context.tabMode() && context.supportsWideScreen()) {
             LandscapePlayer(state, navController, queueBoard)
@@ -234,7 +235,7 @@ fun PortraitPlayer(
     enableQueueSheet: Boolean = true,
 ) {
     val TAG = "BottomSheetPlayer"
-    Log.v(TAG, "PLR-3.1b")
+    if (PLAYER_DEBUG) Log.v(TAG, "PLR-3.1b")
 
     val playerConnection = LocalPlayerConnection.current ?: return
 
@@ -259,7 +260,7 @@ fun PortraitPlayer(
                 .weight(1f)
                 .nestedScroll(playerSheetState.preUpPostDownNestedScrollConnection)
         ) {
-            Log.v(TAG, "PLR-3.2b")
+            if (PLAYER_DEBUG) Log.v(TAG, "PLR-3.2b")
             val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
 
@@ -444,7 +445,7 @@ fun LandscapePlayer(
                 .weight(1f)
                 .nestedScroll(playerSheetState.preUpPostDownNestedScrollConnection)
         ) {
-            Log.v(TAG, "PLR-3.1a")
+            if (PLAYER_DEBUG) Log.v(TAG, "PLR-3.1a")
             if (!swipeToSkip) {
                 Thumbnail(
                     sliderPositionProvider = { sliderPosition },
@@ -551,7 +552,7 @@ fun ActionButtons(
     navController: NavController,
 ) {
     val TAG = "ActionButtons()"
-    Log.v(TAG, "PLR-AB-1")
+    if (PLAYER_DEBUG) Log.v(TAG, "PLR-AB-1")
 
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -640,7 +641,7 @@ fun ControlsContent(
     showQueueHint: Boolean = false,
 ) {
     val TAG = "ControlsContent()"
-    Log.v(TAG, "PLR-CC-1")
+    if (PLAYER_DEBUG) Log.v(TAG, "PLR-CC-1")
 
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -1041,7 +1042,7 @@ fun PlayerBackground(
     useDarkTheme: Boolean,
 ) {
     val TAG = "PlayerBackground"
-    Log.v(TAG, "PLR_BG-1")
+    if (PLAYER_DEBUG) Log.v(TAG, "PLR_BG-1")
 
     val context = LocalContext.current
 
@@ -1084,7 +1085,7 @@ fun PlayerBackground(
             }
         ) { metadata ->
             if (playerBackground == PlayerBackgroundStyle.BLUR) {
-                Log.v(TAG, "PLR-2.2a")
+                if (PLAYER_DEBUG) Log.v(TAG, "PLR-2.2a")
                 AsyncImage(
                     model = metadata?.getThumbnailModel(100, 100),
                     contentDescription = null,
@@ -1104,7 +1105,7 @@ fun PlayerBackground(
             }
         ) { colors ->
             if (playerBackground == PlayerBackgroundStyle.GRADIENT && colors.size >= 2) {
-                Log.v(TAG, "PLR-2.2b")
+                if (PLAYER_DEBUG) Log.v(TAG, "PLR-2.2b")
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1114,7 +1115,7 @@ fun PlayerBackground(
         }
 
         if (playerBackground != PlayerBackgroundStyle.FOLLOW_THEME && showLyrics) {
-            Log.v(TAG, "PLR-2.2c")
+            if (PLAYER_DEBUG) Log.v(TAG, "PLR-2.2c")
             Box(
                 modifier = Modifier
                     .fillMaxSize()
