@@ -97,3 +97,18 @@ const val QUEUE_DEBUG = false
 
 // enable verbose debugging details for the player and queue UI
 const val PLAYER_DEBUG = false
+
+// enable verbose debugging details for library/account sync
+const val SYNC_DEBUG = false
+
+// enable verbose debugging details for the download manager
+const val DOWNLOAD_DEBUG = false
+
+// enable verbose debugging details for the playback service
+const val SERVICE_DEBUG = false
+
+// enable verbose debugging details for PoToken generation
+const val POTOKEN_DEBUG = false
+
+// enable verbose debugging details for miscellaneous UI screens
+const val UI_DEBUG = false

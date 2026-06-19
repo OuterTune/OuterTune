@@ -20,6 +20,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.dd3boh.outertune.constants.AudioQuality
 import com.dd3boh.outertune.constants.AudioQualityKey
+import com.dd3boh.outertune.constants.DOWNLOAD_DEBUG
 import com.dd3boh.outertune.constants.DownloadExtraPathKey
 import com.dd3boh.outertune.constants.DownloadPathKey
 import com.dd3boh.outertune.db.MusicDatabase
@@ -291,7 +292,7 @@ class DownloadUtil @Inject constructor(
             val toMigrate = downloadedSongs.filter { it.value.state == Download.STATE_COMPLETED }
             toMigrate.forEach { s ->
                 if (runs++ % 10 == 0) {
-                    Log.d(TAG, "Migrating download: $runs/${toMigrate.size}")
+                    if (DOWNLOAD_DEBUG) Log.d(TAG, "Migrating download: $runs/${toMigrate.size}")
                     if (runs % 20 == 0) {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(context, "$runs/${toMigrate.size}", LENGTH_SHORT).show()
@@ -328,7 +329,7 @@ class DownloadUtil @Inject constructor(
      * Rescan download directory and updates songs
      */
     suspend fun rescanDownloads() {
-        Log.i(TAG, "+rescanDownloads()")
+        if (DOWNLOAD_DEBUG) Log.i(TAG, "+rescanDownloads()")
         isProcessingDownloads.value = true
         val dbDownloads = database.downloadedOrQueuedSongs().first()
         val result = mutableMapOf<String, LocalDateTime>()
@@ -336,19 +337,19 @@ class DownloadUtil @Inject constructor(
         // get missing files not in custom downloads or in internal downloads, remove them
         val missingFiles =
             localMgr.getMissingFiles(dbDownloads.filterNot { it.song.dateDownload == null }).toMutableList()
-        Log.d(TAG, "Found ${missingFiles.size}/${dbDownloads.size} songs not in custom download directories")
+        if (DOWNLOAD_DEBUG) Log.d(TAG, "Found ${missingFiles.size}/${dbDownloads.size} songs not in custom download directories")
         val cursor = downloadManager.downloadIndex.getDownloads()
         while (cursor.moveToNext()) {
             missingFiles.removeIf { it.id == cursor.download.request.id }
         }
-        Log.d(
+        if (DOWNLOAD_DEBUG) Log.d(
             TAG,
             "Found ${missingFiles.size}/${dbDownloads.size} song not in custom download directories + internal cache. Removing these files now"
         )
 
         database.transaction {
             missingFiles.forEach {
-                Log.v(TAG, "Shedding: [${it.id}] ${it.song.title}")
+                if (DOWNLOAD_DEBUG) Log.v(TAG, "Shedding: [${it.id}] ${it.song.title}")
                 removeDownloadSong(it.song.id)
             }
         }
@@ -361,7 +362,7 @@ class DownloadUtil @Inject constructor(
 
         downloads.value = result
         isProcessingDownloads.value = false
-        Log.i(TAG, "-rescanDownloads()")
+        if (DOWNLOAD_DEBUG) Log.i(TAG, "-rescanDownloads()")
     }
 
 
@@ -372,9 +373,9 @@ class DownloadUtil @Inject constructor(
      * songs will already need to exist in the database.
      */
     suspend fun scanDownloads() {
-        Log.i(TAG, "+scanDownloads()")
+        if (DOWNLOAD_DEBUG) Log.i(TAG, "+scanDownloads()")
         if (isProcessingDownloads.value) {
-            Log.i(TAG, "-scanDownloads()")
+            if (DOWNLOAD_DEBUG) Log.i(TAG, "-scanDownloads()")
             return
         }
         isProcessingDownloads.value = true
@@ -403,7 +404,7 @@ class DownloadUtil @Inject constructor(
             }
         }
 //            LocalMediaScanner.destroyScanner(SCANNER_OWNER_DL)
-        Log.d(TAG, "Registered ${availableFiles.size} files from custom downloads")
+        if (DOWNLOAD_DEBUG) Log.d(TAG, "Registered ${availableFiles.size} files from custom downloads")
 
         // add internal downloads
         val cursor = downloadManager.downloadIndex.getDownloads()
@@ -414,11 +415,11 @@ class DownloadUtil @Inject constructor(
                 count ++
             }
         }
-        Log.d(TAG, "Registered $count files from internal downloads")
+        if (DOWNLOAD_DEBUG) Log.d(TAG, "Registered $count files from internal downloads")
         isProcessingDownloads.value = false
-        Log.d(TAG, "Database registration complete, triggering map registry rebuild")
+        if (DOWNLOAD_DEBUG) Log.d(TAG, "Database registration complete, triggering map registry rebuild")
         rescanDownloads()
-        Log.i(TAG, "-scanDownloads()")
+        if (DOWNLOAD_DEBUG) Log.i(TAG, "-scanDownloads()")
     }
 
     companion object {
@@ -428,7 +429,7 @@ class DownloadUtil @Inject constructor(
 
 
     init {
-        Log.i(TAG, "DownloadUtil init")
+        if (DOWNLOAD_DEBUG) Log.i(TAG, "DownloadUtil init")
         // TODO: make sure db is update when download is queued
         CoroutineScope(dlCoroutine).launch {
             rescanDownloads()

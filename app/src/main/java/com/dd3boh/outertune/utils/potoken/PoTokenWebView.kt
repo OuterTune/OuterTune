@@ -3,6 +3,7 @@ package com.dd3boh.outertune.utils.potoken
 import android.content.Context
 import android.util.Log
 import android.webkit.ConsoleMessage
+import com.dd3boh.outertune.constants.POTOKEN_DEBUG
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -84,7 +85,7 @@ class PoTokenWebView private constructor(
      * run it, and obtain an `integrityToken`.
      */
     private fun loadHtmlAndObtainBotguard() {
-        Log.d(TAG, "loadHtmlAndObtainBotguard() called")
+        if (POTOKEN_DEBUG) Log.d(TAG, "loadHtmlAndObtainBotguard() called")
 
         scope.launch(exceptionHandler) {
             val html = withContext(Dispatchers.IO) {
@@ -103,7 +104,7 @@ class PoTokenWebView private constructor(
      */
     @JavascriptInterface
     fun downloadAndRunBotguard() {
-        Log.d(TAG, "downloadAndRunBotguard() called")
+        if (POTOKEN_DEBUG) Log.d(TAG, "downloadAndRunBotguard() called")
 
         makeBotguardServiceRequest(
             "https://www.youtube.com/api/jnn/v1/Create",
@@ -145,19 +146,19 @@ class PoTokenWebView private constructor(
      */
     @JavascriptInterface
     fun onRunBotguardResult(botguardResponse: String) {
-        Log.d(TAG, "botguardResponse: $botguardResponse")
+        if (POTOKEN_DEBUG) Log.d(TAG, "botguardResponse: $botguardResponse")
         makeBotguardServiceRequest(
             "https://www.youtube.com/api/jnn/v1/GenerateIT",
             "[ \"$REQUEST_KEY\", \"$botguardResponse\" ]",
         ) { responseBody ->
-            Log.d(TAG, "GenerateIT response: $responseBody")
+            if (POTOKEN_DEBUG) Log.d(TAG, "GenerateIT response: $responseBody")
             val (integrityToken, expirationTimeInSeconds) = parseIntegrityTokenData(responseBody)
 
             // leave 10 minutes of margin just to be sure
             expirationInstant = Instant.now().plusSeconds(expirationTimeInSeconds).minus(10, ChronoUnit.MINUTES)
 
             webView.evaluateJavascript("this.integrityToken = $integrityToken") {
-                Log.d(TAG, "initialization finished, expiration=${expirationTimeInSeconds}s")
+                if (POTOKEN_DEBUG) Log.d(TAG, "initialization finished, expiration=${expirationTimeInSeconds}s")
                 continuation.resume(this)
             }
         }
@@ -168,7 +169,7 @@ class PoTokenWebView private constructor(
     suspend fun generatePoToken(identifier: String): String {
         return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { cont ->
-                Log.d(TAG, "generatePoToken() called with identifier $identifier")
+                if (POTOKEN_DEBUG) Log.d(TAG, "generatePoToken() called with identifier $identifier")
                 addPoTokenEmitter(identifier, cont)
                 webView.evaluateJavascript(
                     """try {
@@ -204,7 +205,7 @@ class PoTokenWebView private constructor(
      */
     @JavascriptInterface
     fun onObtainPoTokenResult(identifier: String, poTokenU8: String) {
-        Log.d(TAG, "Generated poToken (before decoding): identifier=$identifier poTokenU8=$poTokenU8")
+        if (POTOKEN_DEBUG) Log.d(TAG, "Generated poToken (before decoding): identifier=$identifier poTokenU8=$poTokenU8")
         val poToken = try {
             u8ToBase64(poTokenU8)
         } catch (t: Throwable) {
@@ -212,7 +213,7 @@ class PoTokenWebView private constructor(
             return
         }
 
-        Log.d(TAG, "Generated poToken: identifier=$identifier poToken=$poToken")
+        if (POTOKEN_DEBUG) Log.d(TAG, "Generated poToken: identifier=$identifier poToken=$poToken")
         popPoTokenContinuation(identifier)?.resume(poToken)
     }
 

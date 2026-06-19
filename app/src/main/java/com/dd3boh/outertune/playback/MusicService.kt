@@ -66,6 +66,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
 import com.dd3boh.outertune.MainActivity
 import com.dd3boh.outertune.R
+import com.dd3boh.outertune.constants.SERVICE_DEBUG
 import com.dd3boh.outertune.constants.AudioDecoderKey
 import com.dd3boh.outertune.constants.AudioGaplessOffloadKey
 import com.dd3boh.outertune.constants.AudioNormalizationKey
@@ -226,7 +227,7 @@ class MusicService : MediaLibraryService(),
     var consecutivePlaybackErr = 0
 
     override fun onCreate() {
-        Log.i(TAG, "Starting MusicService")
+        if (SERVICE_DEBUG) Log.i(TAG, "Starting MusicService")
         super.onCreate()
 
         player = ExoPlayer.Builder(this)
@@ -301,7 +302,7 @@ class MusicService : MediaLibraryService(),
 
         // lateinit tasks
         offloadScope.launch {
-            Log.i(TAG, "Launching MusicService offloadScope tasks")
+            if (SERVICE_DEBUG) Log.i(TAG, "Launching MusicService offloadScope tasks")
             if (!qbInit.value) {
                 initQueue()
             }
@@ -473,7 +474,7 @@ class MusicService : MediaLibraryService(),
         val preloadItem = queue.preloadItem
         // do not use scope.launch ... it breaks randomly... why is this bug back???
         CoroutineScope(Dispatchers.Main).launch {
-            Log.d(TAG, "playQueue: Resolving additional queue data...")
+            if (SERVICE_DEBUG) Log.d(TAG, "playQueue: Resolving additional queue data...")
             try {
                 if (preloadItem != null) {
                     q = queueBoard.value.addQueue(
@@ -497,7 +498,7 @@ class MusicService : MediaLibraryService(),
                 }
 
                 val items = ArrayList<MediaMetadata>()
-                Log.d(TAG, "playQueue: Queue initial status item count: ${initialStatus.items.size}")
+                if (SERVICE_DEBUG) Log.d(TAG, "playQueue: Queue initial status item count: ${initialStatus.items.size}")
                 if (!initialStatus.items.isEmpty()) {
                     if (preloadItem != null) {
                         items.add(preloadItem)
@@ -524,7 +525,7 @@ class MusicService : MediaLibraryService(),
                     .show()
             }
 
-            Log.d(TAG, "playQueue: Queue additional data resolution complete")
+            if (SERVICE_DEBUG) Log.d(TAG, "playQueue: Queue additional data resolution complete")
         }
     }
 
@@ -577,7 +578,7 @@ class MusicService : MediaLibraryService(),
     }
 
     suspend fun initQueue() {
-        Log.i(TAG, "+initQueue()")
+        if (SERVICE_DEBUG) Log.i(TAG, "+initQueue()")
         val persistQueue = dataStore.get(PersistentQueueKey, true)
         val maxQueues = dataStore.get(MaxQueuesKey, 19)
         if (persistQueue) {
@@ -585,13 +586,13 @@ class MusicService : MediaLibraryService(),
         } else {
             queueBoard.value = QueueBoard(this, queueBoard.value.masterQueues, maxQueues = maxQueues)
         }
-        Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue. Queues loaded = ${queueBoard.value.masterQueues.size}")
+        if (SERVICE_DEBUG) Log.d(TAG, "Queue with $maxQueues queue limit. Persist queue = $persistQueue. Queues loaded = ${queueBoard.value.masterQueues.size}")
         qbInit.value = true
-        Log.i(TAG, "-initQueue()")
+        if (SERVICE_DEBUG) Log.i(TAG, "-initQueue()")
     }
 
     fun deInitQueue() {
-        Log.i(TAG, "+deInitQueue()")
+        if (SERVICE_DEBUG) Log.i(TAG, "+deInitQueue()")
         val pos = player.currentPosition
         queueBoard.value.shutdown()
         if (dataStore.get(PersistentQueueKey, true)) {
@@ -601,7 +602,7 @@ class MusicService : MediaLibraryService(),
         }
         // do not replace the object. Can lead to entire queue being deleted even though it is supposed to be saved already
         qbInit.value = false
-        Log.i(TAG, "-deInitQueue()")
+        if (SERVICE_DEBUG) Log.i(TAG, "-deInitQueue()")
     }
 
     suspend fun saveQueueToDisk(currentPosition: Long) {
@@ -655,7 +656,7 @@ class MusicService : MediaLibraryService(),
                     .setCacheWriteDataSinkFactory(
                         HybridCacheDataSinkFactory(playerCache) { dataSpec ->
                             val isLocal = queueBoard.value.getCurrentQueue()?.findSong(dataSpec.key ?: "")?.isLocal == true
-                            Log.d(TAG, "SONG CACHE: ${!isLocal}")
+                            if (SERVICE_DEBUG) Log.d(TAG, "SONG CACHE: ${!isLocal}")
                             !isLocal
                         }
                     )
@@ -669,7 +670,7 @@ class MusicService : MediaLibraryService(),
         val songUrlCache = HashMap<String, Pair<String, Long>>()
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
-            Log.d(TAG, "PLAYING: song id = $mediaId")
+            if (SERVICE_DEBUG) Log.d(TAG, "PLAYING: song id = $mediaId")
 
             var song = queueBoard.value.getCurrentQueue()?.findSong(dataSpec.key ?: "")
             if (song == null) { // in the case of resumption, queueBoard may not be ready yet
@@ -678,7 +679,7 @@ class MusicService : MediaLibraryService(),
             // local song
             if (song?.localPath != null) {
                 if (song.isLocal) {
-                    Log.d(TAG, "PLAYING: local song")
+                    if (SERVICE_DEBUG) Log.d(TAG, "PLAYING: local song")
                     val file = File(song.localPath)
                     if (!file.exists()) {
                         throw PlaybackException(
@@ -692,7 +693,7 @@ class MusicService : MediaLibraryService(),
                 } else {
                     val isDownloadNew = downloadUtil.localMgr.getFilePathIfExists(mediaId)
                     isDownloadNew?.let {
-                        Log.d(TAG, "PLAYING: Custom downloaded song")
+                        if (SERVICE_DEBUG) Log.d(TAG, "PLAYING: Custom downloaded song")
                         return@Factory dataSpec.withUri(it)
                     }
                 }
@@ -702,18 +703,18 @@ class MusicService : MediaLibraryService(),
                 downloadCache.isCached(mediaId, dataSpec.position, if (dataSpec.length >= 0) dataSpec.length else 1)
             val isCache = playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
             if (isDownload || isCache) {
-                Log.d(TAG, "PLAYING: remote song (cache = ${isCache}, download = ${isDownload})")
+                if (SERVICE_DEBUG) Log.d(TAG, "PLAYING: remote song (cache = ${isCache}, download = ${isDownload})")
                 offloadScope.launch { recoverSong(mediaId) }
                 return@Factory dataSpec
             }
 
             songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
-                Log.d(TAG, "PLAYING: remote song (temp cache)")
+                if (SERVICE_DEBUG) Log.d(TAG, "PLAYING: remote song (temp cache)")
                 offloadScope.launch { recoverSong(mediaId) }
                 return@Factory dataSpec.withUri(it.first.toUri())
             }
 
-            Log.d(TAG, "PLAYING: remote song (online fetch)")
+            if (SERVICE_DEBUG) Log.d(TAG, "PLAYING: remote song (online fetch)")
 
             val playbackData = runBlocking(Dispatchers.IO) {
                 val audioQuality by enumPreference(this@MusicService, AudioQualityKey, AudioQuality.AUTO)
@@ -973,14 +974,14 @@ class MusicService : MediaLibraryService(),
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
             playlistId != null // aka "hasNext"
         ) {
-            Log.d(TAG, "onMediaItemTransition: Triggering queue auto load more")
+            if (SERVICE_DEBUG) Log.d(TAG, "onMediaItemTransition: Triggering queue auto load more")
             scope.launch(SilentHandler) {
                 val endpoint = playlistId // playlistId.substringBefore("\n")
                 val continuation = null // playlistId.substringAfter("\n")
                 val yq = YouTubeQueue(WatchEndpoint(endpoint, continuation))
                 val mediaItems = yq.nextPage()
                 q.playlistId = mediaItems.takeLast(4).shuffled().first().id // yq.getContinuationEndpoint()
-                Log.d(TAG, "onMediaItemTransition: Got ${mediaItems.size} songs from radio")
+                if (SERVICE_DEBUG) Log.d(TAG, "onMediaItemTransition: Got ${mediaItems.size} songs from radio")
                 if (player.playbackState != STATE_IDLE && songCount > 1) { // initial radio loading is handled by playQueue()
                     queueBoard.value.enqueueEnd(mediaItems.drop(1))
                 }
@@ -1043,7 +1044,7 @@ class MusicService : MediaLibraryService(),
 
             val playRatio =
                 playbackStats.totalPlayTimeMs.toFloat() / ((mediaItem.metadata?.duration?.times(1000)) ?: -1)
-            Log.d(TAG, "Playback ratio: $playRatio Min threshold: $minPlaybackDur")
+            if (SERVICE_DEBUG) Log.d(TAG, "Playback ratio: $playRatio Min threshold: $minPlaybackDur")
             if (playRatio >= minPlaybackDur && !dataStore.get(PauseListenHistoryKey, false)) {
                 database.query {
                     incrementPlayCount(mediaItem.mediaId)
@@ -1061,11 +1062,11 @@ class MusicService : MediaLibraryService(),
 
                 // TODO: support playlist id
                 val ytHist = mediaItem.metadata?.isLocal != true && !dataStore.get(PauseRemoteListenHistoryKey, false)
-                Log.d(TAG, "Trying to register remote history: $ytHist")
+                if (SERVICE_DEBUG) Log.d(TAG, "Trying to register remote history: $ytHist")
                 if (ytHist) {
                     val playbackUrl = YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
                         .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-                    Log.d(TAG, "Got playback url: $playbackUrl")
+                    if (SERVICE_DEBUG) Log.d(TAG, "Got playback url: $playbackUrl")
                     playbackUrl?.let {
                         YouTube.registerPlayback(null, playbackUrl)
                             .onFailure {
@@ -1105,25 +1106,25 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onDestroy() {
-        Log.i(TAG, "Terminating MusicService.")
+        if (SERVICE_DEBUG) Log.i(TAG, "Terminating MusicService.")
         deInitQueue()
 
         mediaSession.player.stop()
         mediaSession.release()
         mediaSession.player.release()
         super.onDestroy()
-        Log.i(TAG, "Terminated MusicService.")
+        if (SERVICE_DEBUG) Log.i(TAG, "Terminated MusicService.")
     }
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        Log.i(TAG, "onTaskRemoved called")
+        if (SERVICE_DEBUG) Log.i(TAG, "onTaskRemoved called")
         if (dataStore.get(StopMusicOnTaskClearKey, true) && !dataStore.get(KeepAliveKey, false)) {
-            Log.i(TAG, "onTaskRemoved kill")
+            if (SERVICE_DEBUG) Log.i(TAG, "onTaskRemoved kill")
             pauseAllPlayersAndStopSelf()
         } else {
-            Log.i(TAG, "onTaskRemoved def")
+            if (SERVICE_DEBUG) Log.i(TAG, "onTaskRemoved def")
             super.onTaskRemoved(rootIntent)
         }
     }

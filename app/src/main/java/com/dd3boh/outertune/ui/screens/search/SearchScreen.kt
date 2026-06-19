@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.ui.screens.search
 
 import android.util.Log
+import com.dd3boh.outertune.constants.UI_DEBUG
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -77,7 +78,7 @@ fun SearchBarContainer(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    Log.v("SearchBarContainer", "SB-1")
+    if (UI_DEBUG) Log.v("SearchBarContainer", "SB-1")
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val database = LocalDatabase.current
@@ -261,7 +262,7 @@ fun SearchBarContainer(
             windowInsets = searchBarInset,
             focusRequester = searchBarFocusRequester,
         ) {
-            Log.v("SearchBarContainer", "SB-2")
+            if (UI_DEBUG) Log.v("SearchBarContainer", "SB-2")
             Crossfade(
                 targetState = searchSource,
                 label = "",

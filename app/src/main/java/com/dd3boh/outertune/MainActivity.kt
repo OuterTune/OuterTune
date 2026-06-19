@@ -16,6 +16,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import com.dd3boh.outertune.constants.UI_DEBUG
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -221,7 +222,7 @@ class MainActivity : ComponentActivity() {
         }
 
     override fun onDestroy() {
-        Log.i(MAIN_TAG, "onDestroy() called. isFinishing = $isFinishing")
+        if (UI_DEBUG) Log.i(MAIN_TAG, "onDestroy() called. isFinishing = $isFinishing")
         try {
             connectivityObserver.unregister()
         } catch (e: UninitializedPropertyAccessException) {
@@ -251,7 +252,7 @@ class MainActivity : ComponentActivity() {
         activityLauncher = ActivityLauncherHelper(this)
 
         setContent {
-            Log.v(MAIN_TAG, "RC-1")
+            if (UI_DEBUG) Log.v(MAIN_TAG, "RC-1")
             val coroutineScope = rememberCoroutineScope()
             val haptic = LocalHapticFeedback.current
             val snackbarHostState = remember { SnackbarHostState() }
@@ -322,7 +323,7 @@ class MainActivity : ComponentActivity() {
                 pureBlack = pureBlack,
                 highContrastCompat = highContrastCompat,
             ) {
-                Log.v(MAIN_TAG, "RC-2.1")
+                if (UI_DEBUG) Log.v(MAIN_TAG, "RC-2.1")
                 val density = LocalDensity.current
                 val windowsInsets = WindowInsets.systemBars
                 val bottomInset = with(density) { windowsInsets.getBottom(density).toDp() }
@@ -360,7 +361,7 @@ class MainActivity : ComponentActivity() {
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
                     val maxW = maxWidth
-                    Log.v(MAIN_TAG, "RC-2.2")
+                    if (UI_DEBUG) Log.v(MAIN_TAG, "RC-2.2")
 
                     fun getNavPadding(): Dp {
                         return if (!useNavRail) (if (slimNav) 52.dp else 68.dp) else MinMiniPlayerHeight
@@ -442,7 +443,7 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxSize()
                         ) {
-                            Log.v(MAIN_TAG, "RC-3")
+                            if (UI_DEBUG) Log.v(MAIN_TAG, "RC-3")
 
 
                             val navHost: @Composable() (() -> Unit) = @Composable {
