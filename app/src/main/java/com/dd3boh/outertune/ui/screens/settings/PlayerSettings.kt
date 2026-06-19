@@ -35,6 +35,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.navigation.NavController
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.AudioDecoderKey
+import com.dd3boh.outertune.constants.DEFAULT_AUDIO_DECODER
 import com.dd3boh.outertune.constants.ENABLE_FFMETADATAEX
 import com.dd3boh.outertune.constants.KeepAliveKey
 import com.dd3boh.outertune.constants.PersistentQueueKey
@@ -62,7 +63,7 @@ fun PlayerSettings(
 ) {
     val (audioDecoder, onAudioDecoderChange) = rememberPreference(
         key = AudioDecoderKey,
-        defaultValue = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+        defaultValue = DEFAULT_AUDIO_DECODER
     )
     val (keepAlive, onKeepAliveChange) = rememberPreference(key = KeepAliveKey, defaultValue = false)
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)

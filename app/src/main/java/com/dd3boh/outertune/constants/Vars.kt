@@ -1,6 +1,7 @@
 package com.dd3boh.outertune.constants
 
 import android.os.Build
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import com.dd3boh.outertune.BuildConfig
 
 /**
@@ -8,6 +9,20 @@ import com.dd3boh.outertune.BuildConfig
  */
 
 const val ENABLE_FFMETADATAEX = BuildConfig.FLAVOR == "full"
+
+/**
+ * Default audio decoder mode, depending on flavor.
+ *
+ * The "full" flavor bundles the FFmpeg decoders, so default to falling back to them for
+ * formats the system cannot decode (e.g. ALAC). The "core" flavor has no FFmpeg decoders,
+ * so it stays on system-only. This is read-time only and is never persisted, so an explicit
+ * user choice always wins and the shared preference is not polluted across flavors.
+ */
+val DEFAULT_AUDIO_DECODER = if (ENABLE_FFMETADATAEX) {
+    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+} else {
+    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+}
 
 
 /**

@@ -68,6 +68,7 @@ import com.dd3boh.outertune.MainActivity
 import com.dd3boh.outertune.R
 import com.dd3boh.outertune.constants.SERVICE_DEBUG
 import com.dd3boh.outertune.constants.AudioDecoderKey
+import com.dd3boh.outertune.constants.DEFAULT_AUDIO_DECODER
 import com.dd3boh.outertune.constants.AudioGaplessOffloadKey
 import com.dd3boh.outertune.constants.AudioNormalizationKey
 import com.dd3boh.outertune.constants.AudioOffloadKey
@@ -218,7 +219,7 @@ class MusicService : MediaLibraryService(),
 
     private val normalizeFactor = MutableStateFlow(1f)
 
-    private val audioDecoder = dataStore.get(AudioDecoderKey, DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+    private val audioDecoder = dataStore.get(AudioDecoderKey, DEFAULT_AUDIO_DECODER)
     private val isGaplessOffloadAllowed = dataStore.get(AudioGaplessOffloadKey, false)
     val playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
 
