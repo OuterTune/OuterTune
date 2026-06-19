@@ -15,7 +15,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -35,6 +37,7 @@ import com.dd3boh.outertune.ui.utils.backToMain
 import com.dd3boh.outertune.utils.rememberPreference
 import com.dd3boh.outertune.utils.reportException
 import com.zionhuang.innertube.YouTube
+import com.zionhuang.innertube.utils.parseCookieString
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -52,6 +55,17 @@ fun LoginScreen(
     var accountEmail by rememberPreference(AccountEmailKey, "")
     var accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
 
+    // Once the cookie shows an established session, leave the login screen and return to the
+    // start destination (the main screen) automatically.
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            navController.popBackStack(navController.graph.startDestinationId, false)
+        }
+    }
+
     var webView: WebView? = null
 
     AndroidView(
@@ -61,19 +75,30 @@ fun LoginScreen(
         factory = { context ->
             WebView(context).apply {
                 webViewClient = object : WebViewClient() {
+                    private var loginHandled = false
                     override fun onPageFinished(view: WebView, url: String?) {
                         loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
                         loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
 
                         if (url?.startsWith("https://music.youtube.com") == true) {
-                            innerTubeCookie = CookieManager.getInstance().getCookie(url)
-                            GlobalScope.launch {
-                                YouTube.accountInfo().onSuccess {
-                                    accountName = it.name
-                                    accountEmail = it.email.orEmpty()
-                                    accountChannelHandle = it.channelHandle.orEmpty()
-                                }.onFailure {
-                                    reportException(it)
+                            val cookie = CookieManager.getInstance().getCookie(url)
+                            innerTubeCookie = cookie
+
+                            // Act only once the cookie shows an established session, so accountInfo()
+                            // is not called during intermediate, not-yet-signed-in page loads.
+                            if (!loginHandled && "SAPISID" in parseCookieString(cookie)) {
+                                loginHandled = true
+                                // Apply the cookie synchronously so accountInfo() is authenticated
+                                // without waiting for the asynchronous DataStore collector in App.
+                                YouTube.cookie = cookie
+                                GlobalScope.launch {
+                                    YouTube.accountInfo().onSuccess {
+                                        accountName = it.name
+                                        accountEmail = it.email.orEmpty()
+                                        accountChannelHandle = it.channelHandle.orEmpty()
+                                    }.onFailure {
+                                        reportException(it)
+                                    }
                                 }
                             }
                         }
