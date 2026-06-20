@@ -209,7 +209,7 @@ interface DatabaseDao : SongsDao, AlbumsDao, ArtistsDao, PlaylistsDao, QueueDao 
                     id = albumId,
                     title = it.title,
                     thumbnailUrl = album?.thumbnailUrl?: mediaMetadata.thumbnailUrl,
-                    songCount = 1,
+                    songCount = (album?.songCount ?: 0).coerceAtLeast(1),
                     duration = (album?.duration ?: 0) + mediaMetadata.duration,
                     isLocal = it.isLocal
                 )
