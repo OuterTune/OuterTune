@@ -97,6 +97,7 @@ We recycle translations from upstream, they are pulled periodically. -->
     <string name="action_download">Download</string>
     <string name="downloading">Downloading</string>
     <string name="remove_download">Remove download</string>
+    <string name="remove_download_confirm">Do you really want to remove this download? It will be deleted from local storage.</string>
     <string name="import_playlist">Import playlist</string>
     <string name="add_to_playlist">Add to playlist</string>
     <string name="view_artist">View artist</string>
