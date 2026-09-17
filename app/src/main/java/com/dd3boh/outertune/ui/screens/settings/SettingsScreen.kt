@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Interests
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Restore
@@ -132,6 +133,11 @@ fun SettingsScreen(
                 title = { Text(stringResource(R.string.experimental_settings_title)) },
                 icon = { Icon(Icons.Rounded.WarningAmber, null) },
                 onClick = { navController.navigate("settings/experimental") }
+            )
+            PreferenceEntry(
+                title = { Text("Shower Mode") },
+                icon = { Icon(Icons.Rounded.Mic, null) },
+                onClick = { navController.navigate("settings/shower_mode") }
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
