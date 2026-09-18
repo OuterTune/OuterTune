@@ -28,6 +28,8 @@ import com.dd3boh.outertune.db.entities.PlaylistEntity
 import com.dd3boh.outertune.db.entities.PlaylistEntity.Companion.generatePlaylistId
 import com.dd3boh.outertune.db.entities.PlaylistSongMap
 import com.dd3boh.outertune.db.entities.PlaylistSongMapPreview
+import com.dd3boh.outertune.db.entities.PodcastEntity
+import com.dd3boh.outertune.db.entities.PodcastEpisodeEntity
 import com.dd3boh.outertune.db.entities.QueueEntity
 import com.dd3boh.outertune.db.entities.QueueSongMap
 import com.dd3boh.outertune.db.entities.SearchHistory
@@ -54,6 +56,8 @@ class MusicDatabase(
             block(this@MusicDatabase)
         }
     }
+
+    fun podcastDao() = delegate.podcastDao()
 
     fun transaction(block: MusicDatabase.() -> Unit) = with(delegate) {
         transactionExecutor.execute {
@@ -89,6 +93,8 @@ class MusicDatabase(
         LyricsEntity::class,
         PlayCountEntity::class,
         Event::class,
+        PodcastEntity::class,
+        PodcastEpisodeEntity::class,
     ],
     views = [
         SortedSongArtistMap::class,
@@ -124,6 +130,7 @@ class MusicDatabase(
 @TypeConverters(Converters::class)
 abstract class InternalDatabase : RoomDatabase() {
     abstract val dao: DatabaseDao
+    abstract fun podcastDao(): PodcastDao
 
     companion object {
         const val DB_NAME = "song.db"

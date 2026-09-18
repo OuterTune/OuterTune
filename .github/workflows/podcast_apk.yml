@@ -1,0 +1,38 @@
+name: Build podcast APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - lite
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Accept Android SDK licenses
+        run: yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+
+      - name: Build debug APK
+        run: ./gradlew assembleCoreDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OuterTune-core-debug-apk
+          path: app/build/outputs/apk/core/debug/*.apk
+          if-no-files-found: error

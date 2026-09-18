@@ -649,12 +649,12 @@ class QueueBoard(
             items.move(fromIndex, toIndex)
             items.fastForEachIndexed { index, s ->
                 // items is a copy of queue.queue, assume all objects will exist *once* only
-                queue.queue.find { it == s }?.shuffleIndex = index
+                queue.queue.find { it === s }?.shuffleIndex = index
             }
         } else {
             queue.queue.move(fromIndex, toIndex)
+            queue.queue.fastForEachIndexed { index, s -> s.shuffleIndex = index }
         }
-        queue.getCurrentQueueShuffled().fastForEachIndexed { index, s -> s.shuffleIndex = index }
 
         saveQueueSongs(queue)
 

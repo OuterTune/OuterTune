@@ -1,0 +1,19 @@
+PODCAST DOWNLOAD SUPPORT FOR OUTERTUNE
+
+Start here:
+1. Read README_CONTRIBUTION.md
+2. Review PODCAST_DOWNLOAD_FEATURE.md
+3. Follow INTEGRATION_GUIDE.md
+4. Update MusicDatabase.kt
+5. Run tests
+6. Create a pull request
+
+Author: Alvaro Manzo
+Status: Complete and ready for integration
+
+
+Download the APK from GitHub Actions:
+1. Open the repository on GitHub.
+2. Go to the Actions tab.
+3. Open the latest "Build podcast APK" run.
+4. Download the artifact named "OuterTune-core-debug-apk".
