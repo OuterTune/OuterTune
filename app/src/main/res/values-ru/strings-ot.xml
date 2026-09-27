@@ -124,7 +124,7 @@
     <string name="like_all">Отметить всё понравившимся</string>
     <string name="scan_paths_title">Настроить места для сканирования…</string>
     <string name="action_cancel">Закрыть</string>
-    <string name="oobe_complete">OuterTune настроен и готов к использованию. Изучайте свою музыку, открывайте новые треки и наслаждайтесь процессом!</string>
+    <string name="oobe_complete">OuterTune настроен и готов к использованию. Пользуйтесь с удовольствием!</string>
     <string name="tab_arrangement_disable_tip">--- Потяните вниз, чтобы выключить ---</string>
     <string name="lyrics_multiline_description">Объединять все строки между точками синхронизации в один текст</string>
     <string name="scan_paths_add_folder">Добавить новую папку</string>
@@ -137,7 +137,7 @@
     <string name="tab_arrangement_home_required">Вкладка «Главная» обязательна.</string>
     <string name="scan_paths_incl">Папки для поиска</string>
     <string name="scanner_missing_ffmpeg">Экстрактор FFmpeg не найден</string>
-    <string name="import_innertune_tooltip">Восстановление резервных копий InnerTune поддерживается, однако возможны аномалии из-за технических ограничений</string>
+    <string name="import_innertune_tooltip">Восстановление резервных копий InnerTune поддерживается, однако возможны аномалии из-за технических ограничений. Форки НЕ поддерживаются.</string>
     <string name="lyrics_prefer_local_description">Отдавать приоритет локальным файлам текстов песен перед использованием облачных источников. Отключите эту опцию, чтобы отдать приоритет облачным источникам</string>
     <string name="auto_scanner_description">Периодически обновлять локальные песни и папки пользовательских загрузок при открытии приложения</string>
     <string name="scanner_btn_idle">Сканировать</string>
@@ -166,7 +166,7 @@
     <string name="grp_behavior">Поведение</string>
     <string name="library_empty">Здесь появится содержимое вашей библиотеки</string>
     <string name="oss_licenses_title">Лицензии открытого кода</string>
-    <string name="tablet_ui_title">Принудительный интерфейс для планшетов</string>
+    <string name="tablet_ui_title">Включить планшетный интерфейс</string>
     <string name="lyrics_karaoke_title">Слова песни в стиле караоке.</string>
     <string name="lyrics_karaoke_description">Включает синхронизацию лирики слово за словом. Требуется поддержка формата текстов песен.</string>
     <string name="lyrics_karaoke_hz_title">Настроить скорость обновления слов песни в караоке</string>
@@ -178,7 +178,7 @@
     <string name="attribution_title">Атрибуция</string>
     <string name="speed_slow">Медленно</string>
     <string name="speed_medium">Средне</string>
-    <string name="tablet_ui_title_description">Принудительно включить разделенный интерфейс, оптимизированный для больших экранов. Настройка не действует, если требования к минимальной ширине не соблюдены</string>
+    <string name="tablet_ui_title_description">Разрешить разделенный интерфейс, оптимизированный для больших экранов. Настройка не действует, если требования к минимальной ширине не соблюдены</string>
     <string name="import_success_songs">Успешно импортировано</string>
     <string name="disable_lm_confirm">Вы уверены, что хотите отключить функции локальных медиа? Содержимое вашей библиотеки не будет затронуто.</string>
     <string name="scan_paths_description">Выберите папки на локальном устройстве для поиска песен</string>
@@ -260,7 +260,7 @@
     <string name="toggle_lyrics">Показать текст песни</string>
     <string name="action_logout_tooltip">Чтобы выйти полностью, сначала выйдите из аккаунта YouTube в веб-портале, затем используйте эту кнопку выхода</string>
     <string name="max_queues_title">Максимальное количество очередей</string>
-    <string name="oobe_welcome_tip">Для наилучшего опыта рекомендуем пройти быструю начальную настройку, чтобы персонализировать основные параметры, такие как тема, аккаунт YouTube, локальные медиа и загрузки.</string>
+    <string name="oobe_welcome_tip">Для наилучшего опыта рекомендуем пройти быструю настройку, чтобы персонализировать основные параметры</string>
     <string name="oobe_cache_title">Кэш песен</string>
     <string name="oobe_cache_subtitle">Выберите размер кэша песен. Это может помочь уменьшить проблемы с воспроизведением, связанные с интернет-соединением или API YouTube</string>
     <string name="grp_more_settings">Больше настроек</string>
@@ -270,4 +270,12 @@
     <string name="scanner_strict_file_paths_title">Сопоставлять пути к файлам вместо метаданных</string>
     <string name="scanner_strict_file_paths_description">Отключает интеллектуальное сопоставление метаданных. Это может вызвать проблемы, если файлы будут перемещены в локальном хранилище, но позволяет распознавать одну и ту же песню в разных папках</string>
     <string name="scanner_type_tooltip">Системный сканер работает быстрее, но может некорректно извлекать некоторые метаданные по сравнению с другими методами. Обратите внимание, что смена сканера не приведёт к автоматическому обновлению метаданных уже существующих песен.</string>
+    <string name="folder_nav_prev">..</string>
+    <string name="folder_nav_prev_subtitle">Предыдущая папка</string>
+    <string name="keep_screen_on">Не выключать экран</string>
+    <string name="keep_screen_on_lyrics">При отображении текста песни</string>
+    <string name="keep_screen_on_player">Когда открыт плеер</string>
+    <string name="keep_screen_on_never">Никогда</string>
+    <string name="restore_lm_tooltip">При чистой установке приложения пользовательские пути загрузки и сканирования локальных медиафайлов могут не работать. Чтобы решить эту проблему, удалите их и добавьте заново.</string>
+    <string name="export_success">Успешно экспортировано</string>
 </resources>
