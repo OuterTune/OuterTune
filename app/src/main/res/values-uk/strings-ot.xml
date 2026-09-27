@@ -96,7 +96,7 @@
     <string name="dev_settings_title">Увімкнути налаштування розробника</string>
     <string name="action_next">Вперед</string>
     <string name="dev_settings_description">Відкриває додаткові розширені налаштування, призначені для використання під час розробки</string>
-    <string name="oobe_complete">OuterTune налаштовано та готовий до використання. Відкрийте для себе музику, знайдіть нові треки та насолоджуйтесь!</string>
+    <string name="oobe_complete">OuterTune налаштований і готовий до використання. Насолоджуйтесь!</string>
     <string name="action_skip">Пропустити</string>
     <string name="action_back">Назад</string>
     <string name="sync_progress_active">Синхронізація з обліковим записом YouTube…</string>
@@ -165,7 +165,7 @@
     <string name="playlist_missing_note">Немає списків відтворення? Натисніть тут, щоб увімкнути режим синхронізації читання та запису в налаштуваннях</string>
     <string name="grp_behavior">Поведінка</string>
     <string name="library_empty">Вміст вашої бібліотеки відображатиметься тут</string>
-    <string name="tablet_ui_title">Примусово налаштовувати інтерфейс планшета</string>
+    <string name="tablet_ui_title">Увімкнути інтерфейс планшета</string>
     <string name="import_success_songs">Успішно імпортовано</string>
     <string name="lyrics_karaoke_hz_title">Налаштуйте швидкість оновлення текстів пісень караоке-пісень</string>
     <string name="m3u_export">Експортувати як файл M3U</string>
@@ -173,7 +173,7 @@
     <string name="attribution_title">Атрибуція</string>
     <string name="oss_licenses_title">Ліцензії з відкритим кодом</string>
     <string name="lyrics_karaoke_description">Дозволяє синхронізувати тексти пісень послівно. Потрібна підтримка формату текстів пісень.</string>
-    <string name="tablet_ui_title_description">Примусово ввімкнути розділений інтерфейс, оптимізований для великих екранів. Це налаштування не матиме ефекту, якщо не дотримано вимог щодо мінімальної ширини</string>
+    <string name="tablet_ui_title_description">Дозволити розділений інтерфейс, оптимізований для великих екранів. Це налаштування не матиме ефекту, якщо не дотримано вимог щодо мінімальної ширини</string>
     <string name="m3u_ytm_lookup">Пошук у YouTube Music пісень, яких немає в базі даних програми</string>
     <string name="speed_very_slow">Дуже повільно</string>
     <string name="speed_slow">Повільно</string>
@@ -259,7 +259,7 @@
     <string name="audio_decoder_system_only">Тільки системні декодери</string>
     <string name="audio_decoder_system_with_ffmpeg">Пріоритет системних декодерів</string>
     <string name="max_queues_title">Максимальна кількість черг</string>
-    <string name="oobe_welcome_tip">Для найкращого досвіду рекомендуємо виконати швидке налаштування, щоб персоналізувати ключові параметри, такі як тема, обліковий запис YouTube, локальні медіа та завантаження.</string>
+    <string name="oobe_welcome_tip">Для найкращого досвіду рекомендуємо виконати швидке налаштування, щоб персоналізувати ключові параметри</string>
     <string name="oobe_cache_title">Кеш пісень</string>
     <string name="oobe_cache_subtitle">Виберіть розмір кешу пісні. Це може допомогти зменшити проблеми з відтворенням через Інтернет або YouTube API</string>
     <string name="action_logout_tooltip">Щоб повністю вийти, вийдіть зі свого облікового запису YouTube на веб-порталі, перш ніж використовувати цю кнопку виходу</string>
@@ -271,4 +271,11 @@
     <string name="scanner_strict_file_paths_description">Вимикає інтелектуальне зіставлення метаданих. Це може спричинити проблеми, якщо файли переміщуються в локальному сховищі, але дозволяє зберігати одну й ту ж пісню в різних теках</string>
     <string name="scanner_type_tooltip">Системний сканер працює швидше, але може некоректно витягувати деякі метадані порівняно з іншими видобувачами. Зверніть увагу, що зміна сканера не призведе до автоматичного перезавантаження метаданих наявних пісень.</string>
     <string name="restore_lm_tooltip">Для нових встановлень програми шляхи завантаження та сканування локальних медіафайлів можуть не працювати. Щоб вирішити цю проблему, видаліть і знову додайте їх.</string>
+    <string name="folder_nav_prev">..</string>
+    <string name="folder_nav_prev_subtitle">Попередня тека</string>
+    <string name="keep_screen_on">Не вимикати екран</string>
+    <string name="keep_screen_on_lyrics">Коли з’являються слова пісні</string>
+    <string name="keep_screen_on_player">Програвач активний</string>
+    <string name="keep_screen_on_never">Ніколи</string>
+    <string name="export_success">Успішно експортовано</string>
 </resources>
