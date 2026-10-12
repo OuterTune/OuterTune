@@ -9,7 +9,13 @@ A Material 3 music player for Android
 
 I won't waste your time:
 
-This app is no longer in active development. If you are looking for a replacement YouTube Music client, try [Metrolist](https://github.com/MetrolistGroup/Metrolist), [ArchiveTune](https://github.com/koiverse/ArchiveTune), etc. If you are looking for a local music player (or want to keep with with my antics...), then [Gramophone](https://github.com/FoedusProgramme/Gramophone) may just be for you.
+This app is no longer in active development. If you are looking for a replacement YouTube Music client, try any of the following forks and/or apps:
+- InterTune https://github.com/ItzSkyeYT/InterTune
+- AsterTune https://github.com/yuuichi-s/AsterTune
+- Metrolist https://github.com/MetrolistGroup/Metrolist
+- ArchiveTune https://github.com/koiverse/ArchiveTune
+
+If you are looking for a local music player (or want to keep with with my antics...), then [Gramophone](https://github.com/FoedusProgramme/Gramophone) may just be for you.
 
 Should anyone wish to take on the maintainer role and resurrect this app, feel free to contact us :D
 
