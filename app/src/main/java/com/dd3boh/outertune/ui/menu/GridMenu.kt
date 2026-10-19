@@ -27,13 +27,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.OfflinePin
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,7 +62,7 @@ val GridMenuItemHeight = 96.dp
 fun GridMenu(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    content: LazyGridScope.() -> Unit,
+    content: @Composable LazyGridScope.() -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 120.dp),
@@ -145,17 +151,20 @@ fun LazyGridScope.GridMenuItem(
 
 
 
+@Composable
 fun LazyGridScope.DownloadGridMenu(
     @Download.State state: Int?,
     onRemoveDownload: () -> Unit,
     onDownload: () -> Unit,
 ) {
+    var showConfirmRemove by rememberSaveable { mutableStateOf(false) }
+
     when (state) {
         Download.STATE_COMPLETED -> {
             GridMenuItem(
                 icon = Icons.Rounded.OfflinePin,
                 title = R.string.remove_download,
-                onClick = onRemoveDownload
+                onClick = { showConfirmRemove = true }
             )
         }
 
@@ -168,7 +177,7 @@ fun LazyGridScope.DownloadGridMenu(
                     )
                 },
                 title = R.string.downloading,
-                onClick = onRemoveDownload
+                onClick = { showConfirmRemove = true }
             )
         }
 
@@ -180,20 +189,44 @@ fun LazyGridScope.DownloadGridMenu(
             )
         }
     }
+
+    if (showConfirmRemove) {
+        AlertDialog(
+            onDismissRequest = { showConfirmRemove = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showConfirmRemove = false
+                    onRemoveDownload()
+                }) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmRemove = false }) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+            },
+            title = { Text(text = stringResource(R.string.remove_download)) },
+            text = { Text(text = stringResource(R.string.remove_download_confirm)) }
+        )
+    }
 }
 
+@Composable
 fun LazyGridScope.DownloadGridMenu(
     localDateTime: LocalDateTime?,
     onRemoveDownload: () -> Unit,
     onDownload: () -> Unit,
 ) {
+    var showConfirmRemove by rememberSaveable { mutableStateOf(false) }
+
     val state = getDownloadState(localDateTime)
     when (state) {
         Download.STATE_COMPLETED -> {
             GridMenuItem(
                 icon = Icons.Rounded.OfflinePin,
                 title = R.string.remove_download,
-                onClick = onRemoveDownload
+                onClick = { showConfirmRemove = true }
             )
         }
 
@@ -206,7 +239,7 @@ fun LazyGridScope.DownloadGridMenu(
                     )
                 },
                 title = R.string.downloading,
-                onClick = onRemoveDownload
+                onClick = { showConfirmRemove = true }
             )
         }
 
@@ -217,6 +250,27 @@ fun LazyGridScope.DownloadGridMenu(
                 onClick = onDownload
             )
         }
+    }
+
+    if (showConfirmRemove) {
+        AlertDialog(
+            onDismissRequest = { showConfirmRemove = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showConfirmRemove = false
+                    onRemoveDownload()
+                }) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmRemove = false }) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+            },
+            title = { Text(text = stringResource(R.string.remove_download)) },
+            text = { Text(text = stringResource(R.string.remove_download_confirm)) }
+        )
     }
 }
 
