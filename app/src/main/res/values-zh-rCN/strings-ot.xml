@@ -113,7 +113,7 @@
     <string name="dev_settings_title">启用开发人员设置</string>
     <string name="dev_settings_description">显示用于开发的其他高级设置</string>
     <string name="oobe_welcome_message">欢迎来到 OuterTune</string>
-    <string name="oobe_complete">OuterTune设置完成，可立即使用。探索你的音乐，发现新歌曲，享受美好的体验吧！</string>
+    <string name="oobe_complete">OuterTune 已设置完成，可以使用了。尽情享受吧！</string>
     <string name="oobe_use_backup">我有备份</string>
     <string name="action_back">返回</string>
     <string name="action_next">下一个</string>
@@ -191,8 +191,8 @@
     <string name="att_lead_developer">主要开发者</string>
     <string name="att_maintainer">维护者</string>
     <string name="att_translator">译者 (%s)</string>
-    <string name="tablet_ui_title">强制使用平板布局</string>
-    <string name="tablet_ui_title_description">强制启用针对大屏幕优化的分屏界面。如果不满足最小宽度要求，则此设置无效</string>
+    <string name="tablet_ui_title">启用平板界面</string>
+    <string name="tablet_ui_title_description">允许使用针对大屏幕优化的分屏界面。如果不满足最小宽度要求，则此设置无效</string>
     <string name="filter_arrangement">设置筛选</string>
     <string name="sync_conflict_add_only">保留所有本地内容并添加来自远程的新内容</string>
     <string name="sync_conflict_overwrite">用远程内容覆盖本地内容</string>
@@ -258,8 +258,15 @@
     <string name="dl_rescan_confirm">是否立即重新扫描所有下载文件夹？这可能需要几分钟，具体取决于您的媒体库大小。</string>
     <string name="dl_storage_tooltip">内部下载保存在应用的私有存储空间，没有 root 权限将无法访问。外部下载保存在您设备的外部存储空间（例如，/sdcard 或 micro SD 卡），可以使用文件管理器直接访问或编辑。对于“外部下载”文件夹，我们建议您选择一个专门用于歌曲下载的空文件夹，因为 OuterTune 可能会修改或删除该文件夹中的文件。\n\n额外导入文件夹是只读的，用于加载额外的歌曲。OuterTune 绝不会更改或删除这些文件夹中的文件。您可以在高级设置部分选择这些文件夹。\n\n当您清除下载时，只有内部歌曲会被删除。外部下载和额外导入的歌曲必须手动移除，可以通过歌曲菜单操作，也可以通过文件管理器手动删除。\n\n重新扫描下载文件夹： “外部下载”和“额外导入”文件夹中的歌曲不会自动更新。如果您使用文件管理器手动添加、移除或更改了文件，您可能需要重新扫描下载文件夹来更新应用的数据库。此选项可在高级设置部分找到。</string>
     <string name="max_queues_title">最大播放队列数</string>
-    <string name="oobe_welcome_tip">为了获得最佳体验，我们建议您立即完成快速设置，以便对主题、YouTube 帐户、本地媒体和下载等关键功能进行个性化配置。</string>
+    <string name="oobe_welcome_tip">为了获得最佳体验，我们建议您完成快速设置以个性化关键设置</string>
     <string name="oobe_cache_title">歌曲缓存</string>
     <string name="oobe_cache_subtitle">设置歌曲缓存容量。此操作有助于解决网络或 YouTube API 播放时出现的问题</string>
     <string name="restore_lm_tooltip">对于全新安装的应用，自定义下载路径和本地媒体扫描路径可能无法正常工作。要解决此问题，请先移除这些路径，然后重新添加。</string>
+    <string name="folder_nav_prev">..</string>
+    <string name="folder_nav_prev_subtitle">上一级文件夹</string>
+    <string name="keep_screen_on">保持屏幕开启</string>
+    <string name="keep_screen_on_lyrics">显示歌词时</string>
+    <string name="keep_screen_on_player">播放器处于活动状态时</string>
+    <string name="keep_screen_on_never">从不</string>
+    <string name="export_success">导出成功</string>
 </resources>

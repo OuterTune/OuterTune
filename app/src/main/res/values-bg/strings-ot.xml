@@ -106,7 +106,7 @@
     <string name="scanner_sensitivity_L2">Съпоставете заглавието и изпълнителите</string>
     <string name="scanner_type_title">Екстракт на метаданни</string>
     <string name="pause_remote_listen_history">Пауза при споделяне на историята на слушане с YouTube Music</string>
-    <string name="oobe_complete">OuterTune е настроен и готов за употреба. Разгледайте музиката си, открийте нови парчета и се насладете на преживяването!</string>
+    <string name="oobe_complete">OuterTune е настроен и готов за употреба. Насладете се!</string>
     <string name="action_back">Назад</string>
     <string name="action_next">Следващ</string>
     <string name="action_skip">Пропускане</string>
@@ -177,7 +177,7 @@
     <string name="filter_arrangement">Подреждане на филтри</string>
     <string name="queues_title">Опашки</string>
     <string name="queues_empty">Няма опашки</string>
-    <string name="tablet_ui_title_description">Принудително разделяне на интерфейса, оптимизирано за големи екрани. Тази настройка няма ефект, ако не са спазени минималните изисквания за ширина.</string>
+    <string name="tablet_ui_title_description">Позволява разделен интерфейс, оптимизиран за големи екрани. Тази настройка няма ефект, ако не са спазени минималните изисквания за ширина.</string>
     <string name="grp_behavior">Поведение</string>
     <string name="grp_sync">Синхронизиране</string>
     <string name="swipe_to_skip_title">Плъзнете хоризонтално, за да промените песента</string>
@@ -189,7 +189,7 @@
     <string name="check_for_update">Проверете за актуализации</string>
     <string name="checking_for_update">Проверка за актуализации</string>
     <string name="library_empty">Съдържанието на вашата библиотека ще се показва тук</string>
-    <string name="tablet_ui_title">Принудителен потребителски интерфейс на таблет</string>
+    <string name="tablet_ui_title">Активиране на потребителския интерфейс на таблета</string>
     <string name="dl_extra_path_description">Песните от тези папки ще се появят в приложението само ако сте ги слушали преди или сте ги добавили към плейлист</string>
     <string name="dl_extra_path_title">Конфигуриране на допълнителни местоположения за внасяне…</string>
     <string name="dl_migrate_description">Преместете изтеглянията от вътрешната памет на приложението във външната памет на устройството</string>
@@ -254,7 +254,7 @@
     <string name="audio_decoder_system_with_ffmpeg">Приоритизиране на системните декодери</string>
     <string name="action_logout_tooltip">За да излезете напълно, моля, излезте от профила си в YouTube в уеб портала, преди да използвате този бутон за излизане</string>
     <string name="max_queues_title">Максимален брой опашки</string>
-    <string name="oobe_welcome_tip">За най-добро изживяване препоръчваме да извършите бърза настройка, за да персонализирате ключови настройки, като тема, YouTube акаунт, локални медии и изтегляния.</string>
+    <string name="oobe_welcome_tip">За най-добро изживяване препоръчваме да извършите бърза настройка, за да персонализирате ключовите настройки.</string>
     <string name="oobe_cache_title">Кеш на песен</string>
     <string name="oobe_cache_subtitle">Изберете размер на кеша на песента. Това може да помогне за намаляване на проблеми с възпроизвеждането с интернет или YouTube API</string>
     <string name="grp_more_settings">Още настройки</string>
@@ -265,4 +265,11 @@
     <string name="scanner_strict_file_paths_description">Деактивира всяко интелигентно съпоставяне на метаданни. Това може да причини проблеми, ако файловете се преместват в локалното ви хранилище, но позволява една и съща песен в различни папки.</string>
     <string name="scanner_type_tooltip">Системният скенер е по-бърз, но може да извлече някои метаданни неправилно в сравнение с други инструменти за извличане. Моля, обърнете внимание, че превключването на скенери няма автоматично да презареди метаданните на съществуващите песни.</string>
     <string name="restore_lm_tooltip">За нови инсталации на приложението, персонализираното изтегляне и пътищата за сканиране на локални медии може да не работят. За да разрешите това, премахнете ги и ги добавете отново.</string>
+    <string name="folder_nav_prev_subtitle">Предишна папка</string>
+    <string name="keep_screen_on">Дръж екрана включен</string>
+    <string name="keep_screen_on_lyrics">Когато се показват текстове на песни</string>
+    <string name="keep_screen_on_player">Плейърът е активен</string>
+    <string name="keep_screen_on_never">Никога</string>
+    <string name="export_success">Изнасянето е успешно</string>
+    <string name="folder_nav_prev">..</string>
 </resources>

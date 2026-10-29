@@ -91,7 +91,7 @@
     <string name="tab_arrangement">Organizar separadores</string>
     <string name="tab_arrangement_disable_tip">--- Arraste para baixo daqui para desativar ---</string>
     <string name="tab_arrangement_home_required">O separador Início não pode ser removido.</string>
-    <string name="tablet_ui_title">Impor interface de tablet</string>
+    <string name="tablet_ui_title">Ativar interface Tablet</string>
     <string name="tablet_ui_title_description">Ativar interface em modo horizontal, otimizada para ecrãs maiores. Esta definição não produz efeitos se os requisitos não forem cumpridos.</string>
     <string name="filter_arrangement">Organizar filtros</string>
     <string name="like_autodownload">Descarregar músicas favoritas automaticamente</string>
@@ -223,7 +223,7 @@
     <string name="oobe_downloads_title">Descargas de músicas</string>
     <string name="oobe_downloads_subtitle">Selecione a pasta na qual as músicas descarregadas serão gravadas.</string>
     <string name="oobe_complete_title">Tudo pronto!</string>
-    <string name="oobe_complete">OuterTune está configurado e pronto para ser usado. Explore as suas músicas, descubra novas faixas e aproveite a experiência!</string>
+    <string name="oobe_complete">OuterTune está configurado e pronto para ser usado. Disfrute!</string>
     <string name="import_failed_songs">Não foi possível importar</string>
     <string name="import_success_songs">Importadas com sucesso</string>
     <string name="m3u_export">Exportar como um ficheiro M3U</string>
@@ -256,7 +256,7 @@
     </plurals>
     <string name="action_logout_tooltip">Para sair completamente, saia da sua conta YouTube no portal web antes de usar este botão de saída</string>
     <string name="max_queues_title">Número máximo de filas</string>
-    <string name="oobe_welcome_tip">Para uma melhor experiência, recomendamos concluir uma configuração rápida para personalizar as principais definições tais como tema, conta YouTube, ficheiros locais e descargas.</string>
+    <string name="oobe_welcome_tip">Para uma melhor experiência, recomendamos concluir uma configuração rápida para personalizar as principais definições</string>
     <string name="oobe_cache_title">Cache de músicas</string>
     <string name="oobe_cache_subtitle">Escolha um tamanho para a cache de músicas. Pode ajudar a reduzir problemas de reprodução via Internet ou vis API YouTube.</string>
     <string name="grp_more_settings">Mais definições</string>
@@ -268,4 +268,11 @@
     <string name="scanner_type_tooltip">A análise é mais rápida, mas pode extrair metadados incorretamente em comparação com outros extratores. Tenha em conta de que a troca de analisadores não recarrega automaticamente os metadados das músicas existentes.</string>
     <string name="dl_storage_tooltip">As descargas internas são gravadas no armazenamento privado da aplicação e não são acessíveis sem root.\n\nAs descargas externas são gravadas no armazenamento externo do seu dispositivo (ex: /sdcard ou em cartões micro SD) e podem serem acedidas e editadas diretamente com um gestor de ficheiros. Para a pasta de descargas externas, recomendamos selecionar uma pasta vazia especificamente para descarregar músicas, já que OuterTune pode modificar ou apagar ficheiros nesta pasta.\n\nPastas adicionais de importação são apenas para leitura e utilizadas para carregar faixas adicionais. OuterTune nunca alterará ou apagará ficheiros nestas pastas. Pode selecionar estas pastas na secção avançada.\n\nAo apagar descargas, apenas as músicas internas serão apagadas. As descargas externas e as pastas adicionais extra devem serem apagadas manualmente seja pelo menu da faixa ou manualmente com um gestor de ficheiros.\n\nReanalisar pastas de descargas: as faixas existentes em Descargas externas e Pastas adicionais de importação NÃO são atualizadas automaticamente. Se adicionar, remover ou alterar ficheiros manualmente com um gestor de ficheiros, terá que reanalisar as pastas para atualizar a base de dados. Esta opção está disponível na secção avançada.</string>
     <string name="restore_lm_tooltip">Para novas instalações da aplicação, os caminhos de ficheiros locais e/ou de descargas podem não funcionar. Se isso acontecer, experimente remover as pastas e adicionar novamente.</string>
+    <string name="folder_nav_prev">..</string>
+    <string name="folder_nav_prev_subtitle">Pasta anterior</string>
+    <string name="keep_screen_on">Manter ecrã ligado</string>
+    <string name="keep_screen_on_lyrics">Se estiver a mostrar a letra</string>
+    <string name="keep_screen_on_player">Se o reprodutor estiver ativo</string>
+    <string name="keep_screen_on_never">Nunca</string>
+    <string name="export_success">Exportado com sucesso</string>
 </resources>

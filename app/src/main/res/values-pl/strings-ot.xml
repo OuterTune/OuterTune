@@ -146,7 +146,7 @@
     <string name="experimental_settings_title">Eksperymentalne</string>
     <string name="dev_settings_description">Odkrywa dodatkowe ustawienia przeznaczone do użycia podczas programowania</string>
     <string name="swipe_to_skip_description">Włącz zmienianie utworów za pomocą przeciągnięcia poziomo</string>
-    <string name="oobe_complete">Konfiguracja aplikacji została zakończona sukcesem. Przeglądaj swoją muzykę, odkrywaj nowe ścieżki muzyczne i ciesz się doświadczeniami!</string>
+    <string name="oobe_complete">Możesz już używać Outertune. Ciesz się!</string>
     <string name="oobe_use_backup">Mam kopię zapasową</string>
     <string name="more_settings">Więcej ustawień</string>
     <string name="grp_account_sync">Konto oraz synchronizacja</string>
@@ -170,7 +170,7 @@
     <string name="oobe_complete_title">Wszystko gotowe!</string>
     <string name="dl_migrate_description">Przenieś pobrania z wewnętrznej pamięci aplikacji do zewnętrznej pamięci urządzenia</string>
     <string name="dl_migrate_confirm">Ta akcja przeniesie WSZYSTKIE wewnętrzne pobrania do \"%s\", ta akcja nie może być cofnięta. Czy chcesz kontynuować?</string>
-    <string name="tablet_ui_title">Wymuś układ dla tabletu</string>
+    <string name="tablet_ui_title">Włącz UI dla tabletu</string>
     <string name="dl_calculate_size">Kliknij, by obliczyć rozmiar pobranych piosenek</string>
     <string name="dl_rescan_title">Ponownie zeskanuj folder pobrań …</string>
     <string name="dl_size_used_main">Pamięć zewnętrzna: Użyto %s</string>
@@ -186,7 +186,7 @@
     <string name="speed_fast">Szybka</string>
     <string name="check_for_update">Sprawdź, czy dostępna jest nowa aktualizacja</string>
     <string name="checking_for_update">Sprawdzanie, czy nie została wydana nowa aktualizacja</string>
-    <string name="tablet_ui_title_description">Włącz krajobrazowy interfejs, który jest zoptymalizowany dla większych ekranów niezależnie od aktualnej wielkości ekranu</string>
+    <string name="tablet_ui_title_description">Zezwól na podzielony interfejs, zoptymalizowany dla większych ekranów. To ustawienie nie ma żadnych efektów, jeśli wymagania minimalne nie są spełnione</string>
     <string name="playlist_missing_note">Brakujące playlisty? Kliknij tutaj, by pozwolić na synchronizację typu czytaj-pisz w ustawieniach</string>
     <string name="grp_behavior">Zachowanie</string>
     <string name="dl_rescan_description">Zaktualizuje bazę danych i odśwież register pobrań jeżeli jakiekolwiek pliki lub foldery zostały zmienione</string>
@@ -254,7 +254,7 @@
     <string name="audio_decoder_system_with_ffmpeg">Priorytetyzuj systemowe dekodery</string>
     <string name="seek_increment">Szukaj przyrostu</string>
     <string name="max_queues_title">Maksymalna liczba kolejek</string>
-    <string name="oobe_welcome_tip">Dla najlepszego doświadczenia, rekomendujemy wypełnienie quick setup by spersonalizować kluczowe ustawienia takie jak motyw, konto YouTube, lokalne media i pobrania.</string>
+    <string name="oobe_welcome_tip">Dla najlepszego doświadczenia, rekomendujemy wypełnienie quick setup by spersonalizować kluczowe ustawienia</string>
     <string name="oobe_cache_title">Cache piosenek</string>
     <string name="oobe_cache_subtitle">Wybierz rozmiar cache piosenek. Może to pomoc w redukcji zużycia internetu albo problemów z odtwarzanie za pomocą YouTube API</string>
     <plurals name="second">
@@ -271,4 +271,11 @@
     <string name="scanner_strict_file_paths_description">­Wyłącza wszystkie mądre dopasowania metadanych. Może to spowodować problemy jeśli pliki są przeniesione w pamięci lokalnej, ale pozwala jednej piosence by była w różnych folderach</string>
     <string name="scanner_type_tooltip">Systemowy skaner jest szybszy, ale może nieprawidłowo wypakowywać metadane w porównaniu z innym ekstraktorami. Zmienianie skanera nie przeładuje automatycznie metadanych istniejących piosenek.</string>
     <string name="restore_lm_tooltip">Dla świeżej instalacji aplikacji, niestandardowe pobrania oraz lokalne media mogą nie działa. By rozwiązać ten problem dodaj je z powrotem.</string>
+    <string name="folder_nav_prev">Ekrany biblioteki</string>
+    <string name="folder_nav_prev_subtitle">Poprzedni folder</string>
+    <string name="keep_screen_on">Zachowaj ekran</string>
+    <string name="keep_screen_on_lyrics">Kiedy tekst jest pokazany</string>
+    <string name="keep_screen_on_player">Odtwarzacz jest aktywny</string>
+    <string name="keep_screen_on_never">Nigdy</string>
+    <string name="export_success">Pomyślnie wyeksportowano</string>
 </resources>
