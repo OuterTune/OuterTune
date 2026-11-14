@@ -277,7 +277,6 @@
     <string name="custom_accent_color_description">Gunakan warna tetap pilihan Anda sebagai aksen di seluruh aplikasi</string>
     <string name="accent_color">Warna aksen</string>
     <string name="enable_betterlyrics">Aktifkan penyedia lirik BetterLyrics</string>
-    <string name="enable_simpmusic">Aktifkan penyedia lirik SimpMusic</string>
     <string name="ignore_audio_focus">Pertahankan fokus audio</string>
     <string name="ignore_audio_focus_desc">Tetap putar saat aplikasi lain mengambil fokus audio. Musik tidak akan dijeda untuk sumber audio lain, termasuk panggilan telepon.</string>
 </resources>

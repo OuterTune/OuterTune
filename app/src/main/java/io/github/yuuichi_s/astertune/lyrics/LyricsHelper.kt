@@ -55,7 +55,6 @@ class LyricsHelper internal constructor(
         context,
         database,
         listOf(
-            SimpMusicLyricsProvider,
             BetterLyricsProvider,
             LrcLibLyricsProvider,
             KuGouLyricsProvider,

@@ -286,7 +286,6 @@
     <string name="custom_accent_color_description">Uygulama genelinde vurgu rengi olarak seçtiğiniz sabit bir rengi kullanın</string>
     <string name="accent_color">Vurgu rengi</string>
     <string name="enable_betterlyrics">BetterLyrics şarkı sözü sağlayıcısını etkinleştir</string>
-    <string name="enable_simpmusic">SimpMusic şarkı sözü sağlayıcısını etkinleştir</string>
     <string name="ignore_audio_focus">Ses odağını koru</string>
     <string name="ignore_audio_focus_desc">Başka bir uygulama ses odağını aldığında çalmaya devam et. Telefon aramaları dahil diğer ses kaynakları için müzik duraklatılmaz.</string>
 </resources>

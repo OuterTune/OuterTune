@@ -274,7 +274,6 @@
     <string name="ignore_audio_focus">오디오 포커스 유지</string>
     <string name="ignore_audio_focus_desc">다른 앱이 오디오 포커스를 가져가도 계속 재생합니다. 전화 통화를 포함한 다른 오디오 소스가 재생되어도 음악이 일시중지되지 않습니다.</string>
     <string name="enable_betterlyrics">BetterLyrics 가사 제공자 사용</string>
-    <string name="enable_simpmusic">SimpMusic 가사 제공자 사용</string>
     <string name="duration_hours_minutes">%1$d시간 %2$d분</string>
     <string name="duration_minutes">%d분</string>
     <string name="heading_with_count">%1$s - %2$d</string>

@@ -306,5 +306,4 @@
     <string name="ignore_audio_focus">Сохранять аудиофокус</string>
     <string name="ignore_audio_focus_desc">Продолжать воспроизведение, когда другое приложение получает аудиофокус. Музыка не будет приостанавливаться из-за других источников звука, включая телефонные звонки.</string>
     <string name="enable_betterlyrics">Включить провайдера текстов BetterLyrics</string>
-    <string name="enable_simpmusic">Включить провайдера текстов SimpMusic</string>
 </resources>

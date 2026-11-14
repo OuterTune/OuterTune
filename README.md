@@ -51,7 +51,7 @@ To transfer your data from OuterTune, see [Migrating from OuterTune to AsterTune
 
 | 🎤 Lyrics | ⚙️ Customization & Extras |
 | :--- | :--- |
-| • Synced lyrics (including word-level `LRC` and `TTML`)<br>• Sources: `LrcLib, KuGou, SimpMusic, BetterLyrics`, YouTube captions<br>• Parallel queries for enabled lyrics sources<br>• Built-in lyrics import & editing | • Dynamic Material Design 3 UI<br>• Offline & Wi-Fi download management<br>• Advanced local audio normalization & metadata extraction |
+| • Synced lyrics (including word-level `LRC` and `TTML`)<br>• Sources: `LrcLib, KuGou, BetterLyrics`, YouTube captions<br>• Parallel queries for enabled lyrics sources<br>• Built-in lyrics import & editing | • Dynamic Material Design 3 UI<br>• Offline & Wi-Fi download management<br>• Advanced local audio normalization & metadata extraction |
 
 ---
 
@@ -82,7 +82,7 @@ You can transfer your data using the app's built-in backup feature.
 ### Lyrics
 - Improved lyrics retrieval accuracy and display speed using LrcLib and caption tracks
 - Added a lyrics toggle button to the playback screen's action bar
-- Added SimpMusic and BetterLyrics as lyrics providers
+- Added BetterLyrics as a lyrics provider
 - Queries enabled providers in parallel with timeouts
 - Retrieves lyrics through the playback service even while the lyrics panel is closed
 

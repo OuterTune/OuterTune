@@ -12,7 +12,7 @@ import org.junit.Test
  */
 class ShouldFetchLyricsTest {
 
-    private val sig = "kugou,lrclib,simpmusic"
+    private val sig = "kugou,lrclib,youtube"
     private val now = 1_000_000_000_000L
     private val ttl = NEGATIVE_CACHE_TTL_MS
 

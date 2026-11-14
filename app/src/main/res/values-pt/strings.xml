@@ -295,7 +295,6 @@
     <string name="custom_accent_color_description">Utilizar uma cor fixa à sua escolha como destaque em toda a aplicação</string>
     <string name="accent_color">Cor de destaque</string>
     <string name="enable_betterlyrics">Ativar fornecedor de letras BetterLyrics</string>
-    <string name="enable_simpmusic">Ativar fornecedor de letras SimpMusic</string>
     <string name="ignore_audio_focus">Manter o foco de áudio</string>
     <string name="ignore_audio_focus_desc">Continuar a reproduzir quando outra aplicação assumir o foco de áudio. A música não será pausada por outras fontes de áudio, incluindo chamadas telefónicas.</string>
 </resources>

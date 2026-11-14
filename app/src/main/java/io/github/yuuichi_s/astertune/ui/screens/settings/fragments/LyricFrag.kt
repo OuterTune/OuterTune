@@ -38,7 +38,6 @@ import io.github.yuuichi_s.astertune.constants.EnableBetterLyricsKey
 import io.github.yuuichi_s.astertune.constants.EnableKugouKey
 import io.github.yuuichi_s.astertune.constants.EnableLrcLibKey
 import io.github.yuuichi_s.astertune.constants.EnableLyricsPrefetchKey
-import io.github.yuuichi_s.astertune.constants.EnableSimpMusicKey
 import io.github.yuuichi_s.astertune.constants.LyricClickable
 import io.github.yuuichi_s.astertune.constants.LyricFontSizeKey
 import io.github.yuuichi_s.astertune.constants.LyricKaraokeEnable
@@ -145,7 +144,6 @@ fun ColumnScope.LyricSourceFrag() {
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrcLib, onEnableLrcLibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = false)
-    val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
     val (preferLocalLyric, onPreferLocalLyric) = rememberPreference(LyricSourcePrefKey, defaultValue = true)
     val (enablePrefetch, onEnablePrefetchChange) = rememberPreference(EnableLyricsPrefetchKey, defaultValue = true)
     val (prefetchCount, onPrefetchCountChange) = rememberPreference(LyricsPrefetchCountKey, defaultValue = 3)
@@ -154,12 +152,6 @@ fun ColumnScope.LyricSourceFrag() {
         mutableStateOf(false)
     }
 
-    SwitchPreference(
-        title = { Text(stringResource(R.string.enable_simpmusic)) },
-        icon = { Icon(Icons.Rounded.Lyrics, null) },
-        checked = enableSimpMusic,
-        onCheckedChange = onEnableSimpMusicChange
-    )
     SwitchPreference(
         title = { Text(stringResource(R.string.enable_betterlyrics)) },
         icon = { Icon(Icons.Rounded.Lyrics, null) },

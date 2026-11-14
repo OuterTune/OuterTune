@@ -257,7 +257,6 @@
     <string name="enable_lrclib">歌詞の提供元 LrcLib を使用</string>
     <string name="enable_kugou">歌詞の提供元 KuGou を使用</string>
     <string name="enable_betterlyrics">歌詞の提供元 BetterLyrics を使用</string>
-    <string name="enable_simpmusic">歌詞の提供元 SimpMusic を使用</string>
     <string name="hide_explicit">露骨な内容のコンテンツを非表示</string>
     <string name="backup_restore">バックアップと復元</string>
     <string name="action_backup">バックアップ</string>

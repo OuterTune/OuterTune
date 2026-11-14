@@ -279,5 +279,4 @@
     <string name="ignore_audio_focus">保持音频焦点</string>
     <string name="ignore_audio_focus_desc">当其他应用获取音频焦点时继续播放。音乐不会因其他音源（包括来电）而暂停。</string>
     <string name="enable_betterlyrics">使用 BetterLyrics 提供歌词</string>
-    <string name="enable_simpmusic">使用 SimpMusic 提供歌词</string>
 </resources>

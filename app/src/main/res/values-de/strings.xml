@@ -286,7 +286,6 @@
     <string name="custom_accent_color_description">Eine feste Farbe deiner Wahl als Akzentfarbe in der gesamten App verwenden</string>
     <string name="accent_color">Akzentfarbe</string>
     <string name="enable_betterlyrics">BetterLyrics-Songtext-Anbieter aktivieren</string>
-    <string name="enable_simpmusic">SimpMusic-Songtext-Anbieter aktivieren</string>
     <string name="ignore_audio_focus">Audiofokus beibehalten</string>
     <string name="ignore_audio_focus_desc">Die Wiedergabe fortsetzen, wenn eine andere App den Audiofokus übernimmt. Die Musik wird bei anderen Audioquellen, einschließlich Telefonanrufen, nicht pausiert.</string>
 </resources>

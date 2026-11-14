@@ -322,7 +322,6 @@
     <string name="custom_accent_color_description">استخدام لون ثابت من اختيارك للتمييز في جميع أنحاء التطبيق</string>
     <string name="accent_color">لون التمييز</string>
     <string name="enable_betterlyrics">تفعيل موفر كلمات الأغاني BetterLyrics</string>
-    <string name="enable_simpmusic">تفعيل موفر كلمات الأغاني SimpMusic</string>
     <string name="ignore_audio_focus">الاحتفاظ بالتركيز الصوتي</string>
     <string name="ignore_audio_focus_desc">متابعة التشغيل عندما يستحوذ تطبيق آخر على التركيز الصوتي. لن تتوقف الموسيقى مؤقتًا بسبب مصادر الصوت الأخرى، بما فيها المكالمات الهاتفية.</string>
 </resources>
