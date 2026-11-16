@@ -281,7 +281,6 @@
     <string name="enable_discord_rpc">Activar Presencia Enriquecida</string>
     <string name="about">Sobre</string>
     <string name="app_version">Versión de la aplicación</string>
-    <string name="new_version_available">Nueva versión disponible</string>
     <string name="translation_models">Modelos de traducción</string>
     <string name="clear_translation_models">Modelos de traducción claros</string>
     <string name="action_like_all">Me gustan todas</string>

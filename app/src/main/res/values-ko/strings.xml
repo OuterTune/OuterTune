@@ -208,7 +208,6 @@
     <string name="restore_failed">백업을 복구하지 못했습니다</string>
     <string name="about">정보</string>
     <string name="app_version">앱 버전</string>
-    <string name="new_version_available">새 버전을 사용할 수 있습니다</string>
     <string name="translation_models">번역 모델</string>
     <string name="clear_translation_models">번역 모델 지우기</string>
     <string name="your_youtube_playlists">YouTube 재생목록</string>

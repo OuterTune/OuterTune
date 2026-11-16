@@ -208,7 +208,6 @@
     <string name="restore_failed">无法还原备份</string>
     <string name="about">关于</string>
     <string name="app_version">应用版本</string>
-    <string name="new_version_available">有新版本</string>
     <string name="translation_models">翻译模型</string>
     <string name="clear_translation_models">清除翻译模型</string>
     <string name="delete_playlist_confirm">是否确定要删除播放列表“%s”？</string>

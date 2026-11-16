@@ -225,7 +225,6 @@
     <string name="app_version">Versió de l’aplicació</string>
     <string name="translation_models">Models de traducció</string>
     <string name="clear_translation_models">Neteja els models de traducció</string>
-    <string name="new_version_available">Hi ha una versió nova disponible</string>
     <string name="downloading">S’està baixant</string>
     <string name="add_to_library">Afegeix a la col·lecció</string>
     <string name="action_download">Baixa</string>

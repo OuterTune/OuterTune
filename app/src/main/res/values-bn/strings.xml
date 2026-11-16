@@ -217,7 +217,6 @@
     <string name="restore_failed">ব্যাকআপ থেকে রিস্টোর করতে অক্ষম</string>
     <string name="about">অ্যাপ সম্পর্কে</string>
     <string name="app_version">অ্যাপ ভার্সন</string>
-    <string name="new_version_available">নতুন ভার্সন এসেছে</string>
     <string name="translation_models">ট্রান্সলেশন মডেল</string>
     <string name="clear_translation_models">ট্রান্সলেশন মডেল ক্লিয়ার করুন</string>
     <string name="forgotten_favorites">ভুলে যাওয়া প্রিয়গুলি</string>

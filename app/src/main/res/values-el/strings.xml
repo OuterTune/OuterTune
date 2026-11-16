@@ -261,7 +261,6 @@
     <string name="enable_discord_rpc">Ενεργοποίηση Πλούσιας Παρουσίας</string>
     <string name="about">Σχετικά</string>
     <string name="app_version">Έκδοση εφαρμογής</string>
-    <string name="new_version_available">Νέα διαθέσιμη έκδοση</string>
     <string name="translation_models">Μοντέλα Μετάφρασης</string>
     <string name="clear_translation_models">Εκκάθαριση μοντέλων μετάφρασης</string>
     <string name="auto_load_more_desc">Αυτόματη προσθήκη περισσότερων τραγουδιών όταν το τέλος της ουράς επιτυγχάνεται, αν είναι δυνατόν</string>

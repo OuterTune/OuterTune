@@ -8,12 +8,12 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
+import com.zionhuang.innertube.YouTube
 import io.github.yuuichi_s.astertune.constants.AUTO_SCAN_COOLDOWN
 import io.github.yuuichi_s.astertune.constants.AUTO_SCAN_SOFT_COOLDOWN
 import io.github.yuuichi_s.astertune.constants.AutomaticScannerKey
 import io.github.yuuichi_s.astertune.constants.ExcludedScanPathsKey
 import io.github.yuuichi_s.astertune.constants.LastLocalScanKey
-import io.github.yuuichi_s.astertune.constants.LastVersionKey
 import io.github.yuuichi_s.astertune.constants.LocalLibraryEnableKey
 import io.github.yuuichi_s.astertune.constants.OOBE_VERSION
 import io.github.yuuichi_s.astertune.constants.OobeStatusKey
@@ -23,7 +23,6 @@ import io.github.yuuichi_s.astertune.constants.ScannerMatchCriteria
 import io.github.yuuichi_s.astertune.constants.ScannerSensitivityKey
 import io.github.yuuichi_s.astertune.constants.ScannerStrictExtKey
 import io.github.yuuichi_s.astertune.constants.ScannerStrictFilePathsKey
-import io.github.yuuichi_s.astertune.constants.UpdateAvailableKey
 import io.github.yuuichi_s.astertune.db.MusicDatabase
 import io.github.yuuichi_s.astertune.models.toMediaMetadata
 import io.github.yuuichi_s.astertune.playback.DownloadUtil
@@ -39,7 +38,6 @@ import io.github.yuuichi_s.astertune.utils.scanners.LocalMediaScanner
 import io.github.yuuichi_s.astertune.utils.scanners.LocalMediaScanner.Companion.destroyScanner
 import io.github.yuuichi_s.astertune.utils.scanners.LocalMediaScanner.Companion.scannerState
 import io.github.yuuichi_s.astertune.utils.scanners.ScannerAbortException
-import com.zionhuang.innertube.YouTube
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -144,13 +142,6 @@ suspend fun scanInit(
     val strictFilePaths = context.dataStore.get(ScannerStrictFilePathsKey, defaultValue = false)
     val autoScan = context.dataStore.get(AutomaticScannerKey, defaultValue = true)
     val lastLocalScan = context.dataStore.get(LastLocalScanKey, 0L)
-
-    // updater
-    val updateAvailable = context.dataStore.get(
-        UpdateAvailableKey,
-        defaultValue = false
-    )
-    val lastVer = context.dataStore.get(LastVersionKey, defaultValue = "0.0.0")
 
     if (!autoScan || oobeStatus < OOBE_VERSION) {
         Log.i(MAIN_TAG, "Automatic scan is disabled, and/or user has not passed OOBE")

@@ -270,7 +270,6 @@
     <string name="enable_discord_rpc">பணக்கார இருப்பை இயக்கவும்</string>
     <string name="about">பற்றி</string>
     <string name="app_version">பயன்பாட்டு பதிப்பு</string>
-    <string name="new_version_available">புதிய பதிப்பு கிடைக்கிறது</string>
     <string name="translation_models">மொழிபெயர்ப்பு மாதிரிகள்</string>
     <plurals name="n_selected">
         <item quantity="one">%d தேர்ந்தெடுக்கப்பட்டது</item>

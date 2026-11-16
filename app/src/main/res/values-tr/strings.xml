@@ -218,7 +218,6 @@
     <string name="restore_failed">Yedekleme geri yüklenemedi</string>
     <string name="about">Hakkında</string>
     <string name="app_version">Uygulama sürümü</string>
-    <string name="new_version_available">Yeni sürüm mevcut</string>
     <string name="translation_models">Çeviri Modelleri</string>
     <string name="clear_translation_models">Çeviri modellerini temizle</string>
     <string name="big">Büyük</string>

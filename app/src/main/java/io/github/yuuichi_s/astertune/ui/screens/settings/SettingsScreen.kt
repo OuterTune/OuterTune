@@ -34,25 +34,19 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import io.github.yuuichi_s.astertune.LocalSnackbarHostState
 import io.github.yuuichi_s.astertune.R
-import io.github.yuuichi_s.astertune.constants.LastVersionKey
 import io.github.yuuichi_s.astertune.constants.SettingsGroupSpacing
-import io.github.yuuichi_s.astertune.constants.UpdateAvailableKey
 import io.github.yuuichi_s.astertune.ui.component.AccountAvatar
 import io.github.yuuichi_s.astertune.ui.component.PreferenceEntry
-import io.github.yuuichi_s.astertune.utils.rememberPreference
 
 val SETTINGS_TAG = "Settings"
 
@@ -66,10 +60,6 @@ fun SettingsScreen(
     val snackbarHostState = LocalSnackbarHostState.current
     val uriHandler = LocalUriHandler.current
 
-    val lastVer by rememberPreference(LastVersionKey, defaultValue = "0.0.0")
-    val (updateAvailable, onUpdateAvailableChange) = rememberPreference(UpdateAvailableKey, defaultValue = false)
-
-    var newVersion by remember { mutableStateOf("") }
     SettingsScaffold(
         title = stringResource(R.string.settings),
         navController = navController,

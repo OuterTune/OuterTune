@@ -274,7 +274,6 @@
     <string name="backup_create_success">Varmuuskopio luotu onnistuneesti</string>
     <string name="backup_create_failed">Varmuuskopiota ei voitu luoda</string>
     <string name="restore_failed">Varmuuskopion palauttaminen epäonnistui</string>
-    <string name="new_version_available">Uusi versio saatavilla</string>
     <string name="translation_models">Käännösmallit</string>
     <string name="clear_translation_models">Tyhjennä käännösmallit</string>
 </resources>

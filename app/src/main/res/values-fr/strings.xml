@@ -226,7 +226,6 @@
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
     <string name="about">À propos</string>
     <string name="app_version">Version de l\'application</string>
-    <string name="new_version_available">Nouvelle version disponible</string>
     <string name="translation_models">Modèles de traduction</string>
     <string name="clear_translation_models">Effacer les modèles de traduction</string>
     <string name="not_logged_in">Non connecté</string>

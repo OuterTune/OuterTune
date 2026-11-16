@@ -289,7 +289,6 @@
     <string name="enable_discord_rpc">Включить Rich Presence</string>
     <string name="about">О приложении</string>
     <string name="app_version">Версия приложения</string>
-    <string name="new_version_available">Доступна новая версия</string>
     <string name="translation_models">Модели перевода</string>
     <string name="clear_translation_models">Очистить модели перевода</string>
     <string name="use_login_for_browse">Использовать аккаунт для просмотра контента</string>

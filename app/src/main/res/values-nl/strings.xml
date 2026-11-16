@@ -217,7 +217,6 @@
     <string name="restore_failed">Reservekopie herstellen mislukt</string>
     <string name="about">Over</string>
     <string name="app_version">App versie</string>
-    <string name="new_version_available">Nieuwe versie beschikbaar</string>
     <string name="translation_models">Vertaalmodellen</string>
     <string name="clear_translation_models">Verwijder vertaalmodellen</string>
     <string name="enable_lrclib">LrcLib tekstaanbieder inschakelen</string>

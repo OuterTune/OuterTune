@@ -216,7 +216,6 @@
     <string name="restore_failed">Wiederherstellung der Sicherung fehlgeschlagen</string>
     <string name="about">Über</string>
     <string name="app_version">App-Version</string>
-    <string name="new_version_available">Neue Version verfügbar</string>
     <string name="translation_models">Übersetzungs-Modelle</string>
     <string name="clear_translation_models">Übersetzungsmodelle löschen</string>
     <string name="forgotten_favorites">Vergessene Favoriten</string>

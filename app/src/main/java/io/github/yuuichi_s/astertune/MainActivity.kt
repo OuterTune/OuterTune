@@ -130,6 +130,9 @@ import io.github.yuuichi_s.astertune.playback.DownloadUtil
 import io.github.yuuichi_s.astertune.playback.MediaControllerViewModel
 import io.github.yuuichi_s.astertune.playback.MusicService
 import io.github.yuuichi_s.astertune.playback.PlayerConnection
+import io.github.yuuichi_s.astertune.ui.component.UpdateAnnouncement
+import io.github.yuuichi_s.astertune.ui.component.announceUpdate
+import io.github.yuuichi_s.astertune.ui.component.UpdateInstaller
 import io.github.yuuichi_s.astertune.ui.component.rememberBottomSheetState
 import io.github.yuuichi_s.astertune.ui.component.shimmer.ShimmerTheme
 import io.github.yuuichi_s.astertune.ui.menu.BottomSheetMenu
@@ -192,6 +195,7 @@ import io.github.yuuichi_s.astertune.utils.SyncUtils
 import io.github.yuuichi_s.astertune.utils.lmScannerCoroutine
 import io.github.yuuichi_s.astertune.utils.rememberEnumPreference
 import io.github.yuuichi_s.astertune.utils.rememberPreference
+import io.github.yuuichi_s.astertune.utils.updater.UpdateChecker
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -1042,6 +1046,22 @@ class MainActivity : ComponentActivity() {
                             LaunchedEffect(Unit) {
                                 if (oobeStatus < OOBE_VERSION) {
                                     navController.navigate("setup_wizard")
+                                }
+                            }
+
+                            LaunchedEffect(Unit) {
+                                if (oobeStatus < OOBE_VERSION) return@LaunchedEffect
+                                // Not announced while an install started from About is running.
+                                val release = UpdateChecker.checkOnStart(this@MainActivity)
+                                    ?.takeUnless { UpdateInstaller.isRunning }
+                                    ?: return@LaunchedEffect
+                                when (announceUpdate(this@MainActivity, snackbarHostState, release)) {
+                                    UpdateAnnouncement.INSTALL -> navController.navigate("settings/about") {
+                                        launchSingleTop = true
+                                    }
+
+                                    UpdateAnnouncement.CLOSED -> UpdateChecker.dismiss(this@MainActivity, release)
+                                    UpdateAnnouncement.TIMED_OUT -> Unit
                                 }
                             }
                         }

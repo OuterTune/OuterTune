@@ -270,7 +270,6 @@
     <string name="enable_discord_rpc">Activar Rich Presence</string>
     <string name="about">Acerca de</string>
     <string name="app_version">Versión de la app</string>
-    <string name="new_version_available">Nueva versión disponible</string>
     <string name="translation_models">Modelos de traducción</string>
     <string name="clear_translation_models">Borrar modelos de traducción</string>
     <string name="listen_history">Historial de reproducciones</string>

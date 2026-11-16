@@ -226,7 +226,6 @@
     <string name="restore_failed">Impossibile eseguire il ripristino dal backup</string>
     <string name="about">Informazioni</string>
     <string name="app_version">Versione dell\'app</string>
-    <string name="new_version_available">Nuova versione disponibile</string>
     <string name="translation_models">Modelli di traduzione</string>
     <string name="clear_translation_models">Cancella i modelli di traduzione</string>
     <string name="squiggly">Ondulato</string>

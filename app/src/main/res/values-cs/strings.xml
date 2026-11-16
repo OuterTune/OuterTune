@@ -226,7 +226,6 @@
     <string name="restore_failed">Nepodařilo se obnovit zálohu</string>
     <string name="about">O aplikaci</string>
     <string name="app_version">Verze aplikace</string>
-    <string name="new_version_available">Je dostupná nová verze</string>
     <string name="translation_models">Modely překladů</string>
     <string name="clear_translation_models">Vymazat modely překladů</string>
     <string name="remove_from_playlist">Odstranit z playlistu</string>

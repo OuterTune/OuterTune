@@ -208,7 +208,6 @@
     <string name="restore_failed">Không thể khôi phục bản sao lưu</string>
     <string name="about">Giới thiệu</string>
     <string name="app_version">Phiên bản ứng dụng</string>
-    <string name="new_version_available">Phiên bản mới có sẵn</string>
     <string name="translation_models">Mô hình dịch thuật</string>
     <string name="clear_translation_models">Xoá mô hình dịch thuật</string>
     <string name="remove_from_playlist">Xoá khỏi danh sách phát</string>

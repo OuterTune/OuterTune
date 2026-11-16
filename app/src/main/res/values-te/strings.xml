@@ -274,7 +274,6 @@
     <string name="preview">పరిదృశ్యం</string>
     <string name="enable_discord_rpc">రిచ్ ప్రెజెన్స్‌ను ఎనేబుల్ చేయండి</string>
     <string name="app_version">యాప్ వెర్షన్</string>
-    <string name="new_version_available">కొత్త వెర్షన్ అందుబాటులో ఉంది</string>
     <string name="translation_models">అనువాద మోడల్స్</string>
     <string name="clear_translation_models">అనువాద నమూనాలను క్లియర్ చెయ్యండి</string>
 </resources>

@@ -275,7 +275,6 @@
     <string name="enable_discord_rpc">リッチプレゼンスを使用</string>
     <string name="about">アプリについて</string>
     <string name="app_version">アプリのバージョン</string>
-    <string name="new_version_available">最新版あり</string>
     <string name="translation_models">翻訳モデル</string>
     <string name="clear_translation_models">翻訳モデルを消去</string>
     <string name="use_login_for_browse_desc">例えば、Premiumのアカウントでログインした時に、Premium限定のアルバムが表示されるようになります</string>

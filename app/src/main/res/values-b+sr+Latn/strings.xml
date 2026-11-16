@@ -223,7 +223,6 @@
     <string name="enable_discord_rpc">Omogući Bogatu Prisutnost</string>
     <string name="about">O AsterTune-u</string>
     <string name="app_version">Verzija aplikacije</string>
-    <string name="new_version_available">Dostupna je nova verzija</string>
     <string name="translation_models">Modeli prevođenja</string>
     <string name="clear_translation_models">Obriši modele prevođenja</string>
     <string name="library_artist_empty">Izvođači biblioteke će se pojaviti ovde</string>

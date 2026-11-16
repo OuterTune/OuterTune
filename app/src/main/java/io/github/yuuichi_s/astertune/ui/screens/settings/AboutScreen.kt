@@ -11,6 +11,7 @@
 package io.github.yuuichi_s.astertune.ui.screens.settings
 
 import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,29 +28,46 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegLibrary
 import io.github.yuuichi_s.astertune.BuildConfig
+import io.github.yuuichi_s.astertune.LocalSnackbarHostState
 import io.github.yuuichi_s.astertune.R
+import io.github.yuuichi_s.astertune.constants.AutoUpdateCheckKey
 import io.github.yuuichi_s.astertune.constants.ENABLE_FFMETADATAEX
 import io.github.yuuichi_s.astertune.constants.LYRIC_FETCH_TIMEOUT
+import io.github.yuuichi_s.astertune.constants.LatestKnownVersionKey
 import io.github.yuuichi_s.astertune.constants.MAX_LM_SCANNER_JOBS
 import io.github.yuuichi_s.astertune.constants.OOBE_VERSION
 import io.github.yuuichi_s.astertune.constants.SNACKBAR_VERY_SHORT
@@ -61,11 +79,16 @@ import io.github.yuuichi_s.astertune.ui.component.ContributorInfo
 import io.github.yuuichi_s.astertune.ui.component.ContributorType.CUSTOM
 import io.github.yuuichi_s.astertune.ui.component.PreferenceEntry
 import io.github.yuuichi_s.astertune.ui.component.SettingsClickToReveal
+import io.github.yuuichi_s.astertune.ui.component.SwitchPreference
+import io.github.yuuichi_s.astertune.ui.component.UpdateInstallState
+import io.github.yuuichi_s.astertune.ui.component.UpdateInstallStatus
 import io.github.yuuichi_s.astertune.ui.component.button.IconLabelButton
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegLibrary
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
+import io.github.yuuichi_s.astertune.ui.component.rememberUpdateInstaller
+import io.github.yuuichi_s.astertune.utils.rememberPreference
+import io.github.yuuichi_s.astertune.utils.updater.AppUpdater
+import io.github.yuuichi_s.astertune.utils.updater.UpdateChecker
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,6 +97,27 @@ fun AboutScreen(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val (autoUpdateCheck, onAutoUpdateCheckChange) = rememberPreference(AutoUpdateCheckKey, defaultValue = true)
+    val latestKnownVersion by rememberPreference(LatestKnownVersionKey, defaultValue = "")
+    var checkingForUpdate by remember { mutableStateOf(false) }
+    val installer = rememberUpdateInstaller()
+    val updateVersion = latestKnownVersion.takeIf { AppUpdater.isNewer(it) }
+    val installerBusy = installer.state is UpdateInstallState.Downloading ||
+            installer.state == UpdateInstallState.Installing
+    val snackbarHostState = LocalSnackbarHostState.current
+
+    LaunchedEffect(installer) {
+        installer.messages.collect {
+            snackbarHostState.showSnackbar(
+                message = it.text(context),
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
     val showDebugInfo = BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "userdebug"
 
@@ -135,7 +179,13 @@ fun AboutScreen(
             }
         }
 
-        Spacer(Modifier.height(4.dp))
+        UpdateInstallStatus(
+            installer = installer,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = SettingsHorizontalPadding)
+                .padding(top = 8.dp)
+        )
 
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -149,11 +199,84 @@ fun AboutScreen(
             )
         }
 
-        Spacer(Modifier.height(96.dp))
-
         Column(
             modifier = Modifier.padding(horizontal = SettingsHorizontalPadding)
         ) {
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                PreferenceEntry(
+                    title = {
+                        Text(
+                            stringResource(
+                                if (checkingForUpdate) R.string.checking_for_update else R.string.check_for_update
+                            )
+                        )
+                    },
+                    description = when {
+                        updateVersion != null -> stringResource(R.string.update_available_version, updateVersion)
+                        latestKnownVersion.isNotEmpty() -> stringResource(R.string.no_updates_available)
+                        else -> null
+                    },
+                    trailingContent = updateVersion?.let { version ->
+                        {
+                            when (installer.state) {
+                                is UpdateInstallState.Downloading -> OutlinedButton(onClick = installer::cancel) {
+                                    Text(stringResource(android.R.string.cancel))
+                                }
+
+                                // Android's install can no longer be withdrawn.
+                                UpdateInstallState.Installing -> Unit
+
+                                else -> Button(
+                                    enabled = !checkingForUpdate,
+                                    onClick = {
+                                        installer.start {
+                                            UpdateChecker.newerRelease?.takeIf { it.version == version }
+                                                ?: UpdateChecker.check(context)
+                                        }
+                                    }
+                                ) {
+                                    Text(stringResource(R.string.update_install))
+                                }
+                            }
+                        }
+                    },
+                    // Not disabled while busy, as that would also dim the button on the right.
+                    // A check then would replace the version the install is for.
+                    onClick = onClick@{
+                        if (checkingForUpdate || installerBusy) return@onClick
+                        checkingForUpdate = true
+                        coroutineScope.launch {
+                            val message = try {
+                                if (UpdateChecker.check(context) == null) R.string.no_updates_available else null
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                Log.w("AboutScreen", "Update check failed", e)
+                                R.string.update_check_failed
+                            } finally {
+                                checkingForUpdate = false
+                            }
+                            if (message != null) {
+                                snackbarHostState.showSnackbar(
+                                    message = context.getString(message),
+                                    withDismissAction = true,
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }
+                    }
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.auto_update_check)) },
+                    description = stringResource(R.string.auto_update_check_description),
+                    checked = autoUpdateCheck,
+                    onCheckedChange = onAutoUpdateCheckChange
+                )
+            }
+            Spacer(modifier = Modifier.height(SettingsGroupSpacing))
+
             ElevatedCard(
                 modifier = Modifier.fillMaxWidth()
             ) {

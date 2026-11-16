@@ -122,6 +122,22 @@ while also allowing users to translate our app as well. New, specific strings to
     <string name="help_contact_email_inquiries">Other inquires (Tap to copy email)</string>
     <string name="help_support_forum">Help and support (Via GitHub)</string>
     <string name="no_updates_available">No updates available</string>
+    <string name="auto_update_check">Check for updates automatically</string>
+    <string name="auto_update_check_description">Check for a new version when opening the app</string>
+    <string name="update_available_version">Version %1$s is available</string>
+    <string name="update_check_failed">Could not check for updates</string>
+    <string name="update_install">Install</string>
+    <string name="update_downloading">Downloading…</string>
+    <string name="update_downloading_percent">Downloading… %1$d%%</string>
+    <string name="update_installing">Installing…</string>
+    <string name="update_installed">Installed</string>
+    <string name="update_download_failed">Download failed</string>
+    <string name="update_verify_failed">The downloaded file did not match the published file and was deleted</string>
+    <string name="update_install_aborted">Installation was cancelled</string>
+    <string name="update_install_failed">Installation failed %1$s</string>
+    <string name="update_install_permission_title">Allow installing updates</string>
+    <string name="update_install_permission_message">To install updates, allow AsterTune to install unknown apps in Android settings.</string>
+    <string name="update_open_settings">Open settings</string>
     <string name="oss_licenses_title">Open source licenses</string>
     <string name="wiki">Wiki</string>
 

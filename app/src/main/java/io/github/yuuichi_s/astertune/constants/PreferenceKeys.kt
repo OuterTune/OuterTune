@@ -225,9 +225,11 @@ val LastFmNeedsReconnectKey = booleanPreferencesKey("lastFmNeedsReconnect")
 /**
  * Misc
  */
-val LastUpdateCheckKey = longPreferencesKey("lastUpdateCheck")
-val LastVersionKey = stringPreferencesKey("lastVersion")
-val UpdateAvailableKey = booleanPreferencesKey("updateAvailable")
+val AutoUpdateCheckKey = booleanPreferencesKey("autoUpdateCheck")
+val LastUpdateCheckTimeKey = longPreferencesKey("lastUpdateCheckTime")
+val LatestKnownVersionKey = stringPreferencesKey("latestKnownVersion")
+val DismissedUpdateVersionKey = stringPreferencesKey("dismissedUpdateVersion")
+val UpdateInstallPermissionRequestedKey = booleanPreferencesKey("updateInstallPermissionRequested")
 
 val LanguageCodeToName = mapOf(
     "af" to "Afrikaans",

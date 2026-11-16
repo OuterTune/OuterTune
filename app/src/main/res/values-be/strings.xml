@@ -228,7 +228,6 @@
     <string name="restore_failed">Немагчыма ужывіць рэзервовую копію</string>
     <string name="about">Аб праграме</string>
     <string name="app_version">Версія праграмы</string>
-    <string name="new_version_available">Даступная новая версія</string>
     <string name="translation_models">Мадэлі перакладу</string>
     <string name="clear_translation_models">Ачысціць мадэлі перакладу</string>
 </resources>

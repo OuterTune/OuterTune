@@ -283,7 +283,6 @@
     <string name="enable_discord_rpc">הפעלת נוכחות עשירה</string>
     <string name="about">אודות</string>
     <string name="app_version">גירסת אפליקציה</string>
-    <string name="new_version_available">גירסה חדשה זמינה</string>
     <string name="translation_models">מודלים של תרגום</string>
     <string name="clear_translation_models">ניקוי מודלי תרגום</string>
     <string name="custom_accent_color">צבע הדגשה מותאם אישית</string>

@@ -226,7 +226,6 @@
     <string name="restore_failed">Falha ao restaurar o backup</string>
     <string name="about">Sobre</string>
     <string name="app_version">Versão do app</string>
-    <string name="new_version_available">Há uma nova versão disponível</string>
     <string name="translation_models">Modelos de Tradução</string>
     <string name="clear_translation_models">Limpar os modelos de tradução</string>
     <string name="remove_download_playlist_confirm">Você tem certeza que deseja remover todas as músicas da lista \"%s\" do armazenamento de Músicas Baixadas?</string>

@@ -208,7 +208,6 @@
     <string name="restore_failed">Gagal memulihkan cadangan</string>
     <string name="about">Tentang</string>
     <string name="app_version">Versi aplikasi</string>
-    <string name="new_version_available">Versi baru tersedia</string>
     <string name="translation_models">Model Penerjemahan</string>
     <string name="clear_translation_models">Hapus model penerjemahan</string>
     <string name="forgotten_favorites">Favorit yang terlupakan</string>

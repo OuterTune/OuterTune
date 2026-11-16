@@ -292,7 +292,6 @@
     <string name="enable_discord_rpc">Zapnúť Rich Presence</string>
     <string name="about">Informácie</string>
     <string name="app_version">Verzia aplikácie</string>
-    <string name="new_version_available">Nová verzia je dostupná</string>
     <string name="translation_models">Prekladové modely</string>
     <string name="clear_translation_models">Jasné modely prekladu</string>
 </resources>

@@ -1,7 +1,6 @@
 package io.github.yuuichi_s.astertune.ui.screens.search
 
 import android.util.Log
-import io.github.yuuichi_s.astertune.constants.UI_DEBUG
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -10,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -86,7 +85,7 @@ import io.github.yuuichi_s.astertune.constants.LocalLibraryEnableKey
 import io.github.yuuichi_s.astertune.constants.PauseSearchHistoryKey
 import io.github.yuuichi_s.astertune.constants.SearchSource
 import io.github.yuuichi_s.astertune.constants.SearchSourceKey
-import io.github.yuuichi_s.astertune.constants.UpdateAvailableKey
+import io.github.yuuichi_s.astertune.constants.UI_DEBUG
 import io.github.yuuichi_s.astertune.db.entities.SearchHistory
 import io.github.yuuichi_s.astertune.ui.component.AccountAvatar
 import io.github.yuuichi_s.astertune.ui.component.InputFieldHeight
@@ -119,7 +118,6 @@ fun SearchBarContainer(
 
     val enabledTabs by rememberPreference(EnabledTabsKey, defaultValue = DEFAULT_ENABLED_TABS)
     var searchSource by rememberEnumPreference(SearchSourceKey, SearchSource.ONLINE)
-    val updateAvailable by rememberPreference(UpdateAvailableKey, defaultValue = false)
     val localLibEnable by rememberPreference(LocalLibraryEnableKey, defaultValue = true)
 
     val navigationItems = remember { Screens.getScreens(enabledTabs) }
